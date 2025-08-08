@@ -1,3 +1,13 @@
+#### 0. Setup Dreamcast tooling
+
+sh4-elf toolchain, KOS, kos-ports/libGL all need built and installed.
+
+Use the `environ.sh` from `mk64-dc` for reference.
+
+`source /opt/toolchains/dc/kos/environ.sh` 
+
+and then...
+
 #### 1. Install build dependencies
 
 ### Windows
