@@ -1413,8 +1413,8 @@ void Map_Setup(void) {
 
     for (i = 0; i < ARRAY_COUNT(gBSSMapPlanetTextures); i++) {
         D_menu_801CD818[i] = 0.0f;
-        Map_Texture_Sphere(gBSSMapPlanetTextures[i], SEGMENTED_TO_VIRTUAL(gAssetMapPlanetTextures[i]),
-                           &D_menu_801CD818[i]);
+        //Map_Texture_Sphere(gBSSMapPlanetTextures[i], SEGMENTED_TO_VIRTUAL(gAssetMapPlanetTextures[i]),
+          //                 &D_menu_801CD818[i]);
     }
 
     D_menu_801CD810 = 0;
@@ -2070,7 +2070,7 @@ void Map_Texture_Sphere(u8* textureDest, u8* textureSrc, f32* offset) {
         *offset = 0.0f;
     }
 }
-
+extern uint8_t gBackToMap;
 void Map_Prologue_Update(void) {
     PlanetId planetId;
     static f32 D_menu_801B6934[] = {
@@ -2140,7 +2140,8 @@ void Map_Prologue_Update(void) {
             break;
     }
 
-    if (gControllerPress[gMainController].button & START_BUTTON) {
+    if (gControllerPress[gMainController].button & START_BUTTON || gBackToMap) {
+        gBackToMap = 0;
         AUDIO_PLAY_BGM(NA_BGM_MAP);
         AUDIO_PLAY_SFX(NA_SE_MAP_MOVE_STOP, gDefaultSfxSource, 4);
 
@@ -3465,8 +3466,8 @@ void Map_801A48C0(f32 speed) {
 
     angle = M_DTOR * ((1 - (temp / D_menu_801CEA68)) * 180.0f);
 
-    sMapCamEyeX = sPathFollowCamEyeX * (1 + __sinf(angle) * 1.1f);
-    sMapCamEyeY = sPathFollowCamEyeY * (1 + __sinf(angle) * 1.3f);
+    sMapCamEyeX = sPathFollowCamEyeX * (1 + sinf(angle) * 1.1f);
+    sMapCamEyeY = sPathFollowCamEyeY * (1 + sinf(angle) * 1.3f);
 }
 
 void Map_801A4A38(f32 arg0) {

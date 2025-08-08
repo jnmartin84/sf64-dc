@@ -94,8 +94,10 @@ bool AllRange_PlayMessage(u16* msg, RadioCharacterId rcid) {
         return false;
     }
 }
-
+#include <stdio.h>
 void AllRange_DrawCountdown(void) {
+//    printf("%s\n",__func__);
+
     if (gShowAllRangeCountdown) {
         s32 seconds = gAllRangeCountdown[1];
 

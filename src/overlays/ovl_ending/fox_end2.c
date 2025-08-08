@@ -333,7 +333,7 @@ void Ending_8018E1B8(u32 arg0, AssetInfo* asset) {
     Matrix_Scale(gGfxMatrix, asset->unk_30.x + (arg0 % 3) * 0.01f, asset->unk_30.y + (arg0 % 3) * 0.01f,
                  asset->unk_30.z + (arg0 % 3) * 0.01f, MTXF_APPLY);
 
-    temp = __sinf(arg0 * 0.1f + asset->unk_70);
+    temp = sinf(arg0 * 0.1f + asset->unk_70);
 
     switch (asset->unk_71) {
         case 1:
@@ -389,7 +389,7 @@ void Ending_8018E7B8(u32 arg0, AssetInfo* asset) {
                      asset->unk_18.y + (arg0 - asset->unk_0C) * asset->unk_3C.y,
                      asset->unk_18.z + (arg0 - asset->unk_0C) * asset->unk_3C.z, MTXF_APPLY);
 
-    temp = __sinf(arg0 * 0.1f + asset->unk_70);
+    temp = sinf(arg0 * 0.1f + asset->unk_70);
 
     switch (asset->unk_71) {
         case 1:
@@ -448,7 +448,7 @@ void Ending_Floor_Draw(u32 arg0, AssetInfo* asset) {
 
     Matrix_Scale(gGfxMatrix, asset->unk_30.x, asset->unk_30.y, asset->unk_30.z, MTXF_APPLY);
 
-    temp = __sinf(arg0 * 0.1f + asset->unk_70);
+    temp = sinf(arg0 * 0.1f + asset->unk_70);
 
     Matrix_RotateY(gGfxMatrix,
                    M_DTOR * (asset->unk_24.y + temp * asset->unk_54.y + (arg0 - asset->unk_0C) * asset->unk_48.y),
@@ -484,7 +484,7 @@ void Ending_8018F2A8(u32 arg0, AssetInfo* asset) {
 
     Matrix_Scale(gGfxMatrix, asset->unk_30.x, asset->unk_30.y, asset->unk_30.z, MTXF_APPLY);
 
-    temp = __sinf(arg0 * 0.1f + asset->unk_70);
+    temp = sinf(arg0 * 0.1f + asset->unk_70);
 
     Matrix_RotateY(gGfxMatrix,
                    M_DTOR * (asset->unk_24.y + temp * asset->unk_54.y + (arg0 - asset->unk_0C) * asset->unk_48.y),
@@ -523,7 +523,7 @@ void Ending_8018F64C(u32 arg0, AssetInfo* asset) {
 
     Matrix_Scale(gGfxMatrix, asset->unk_30.x, asset->unk_30.y, asset->unk_30.z, MTXF_APPLY);
 
-    temp = __sinf(arg0 * 0.1f + asset->unk_70);
+    temp = sinf(arg0 * 0.1f + asset->unk_70);
 
     switch (asset->unk_71) {
         case 1:
@@ -590,7 +590,7 @@ void Ending_8018FC60(u32 arg0, AssetInfo* asset) {
 
     Matrix_Scale(gGfxMatrix, asset->unk_30.x, asset->unk_30.y, asset->unk_30.z, MTXF_APPLY);
 
-    temp = __sinf(arg0 * 0.1f + asset->unk_70);
+    temp = sinf(arg0 * 0.1f + asset->unk_70);
 
     switch (asset->unk_71) {
         case 1:
@@ -652,7 +652,7 @@ void Ending_80190274(u32 arg0, AssetInfo* asset) {
 
     Matrix_Scale(gGfxMatrix, asset->unk_30.x, asset->unk_30.y, asset->unk_30.z, MTXF_APPLY);
 
-    temp = __sinf(arg0 * 0.1f + asset->unk_70);
+    temp = sinf(arg0 * 0.1f + asset->unk_70);
 
     Matrix_RotateY(gGfxMatrix,
                    M_DTOR * (asset->unk_24.y + temp * asset->unk_54.y + (arg0 - asset->unk_0C) * asset->unk_48.y),
@@ -699,7 +699,7 @@ void Ending_80190778(u32 arg0, AssetInfo* asset) {
 
     Matrix_Scale(gGfxMatrix, asset->unk_30.x, asset->unk_30.y, asset->unk_30.z, MTXF_APPLY);
 
-    temp = __sinf(arg0 * 0.2f + asset->unk_70);
+    temp = sinf(arg0 * 0.2f + asset->unk_70);
 
     switch (asset->unk_71) {
         case 1:
@@ -769,7 +769,7 @@ void Ending_80190CF0(u32 arg0, AssetInfo* asset) {
 
     Matrix_Scale(gGfxMatrix, asset->unk_30.x, asset->unk_30.y, asset->unk_30.z, MTXF_APPLY);
 
-    temp = __sinf(arg0 * 0.2f + asset->unk_70);
+    temp = sinf(arg0 * 0.2f + asset->unk_70);
 
     switch (asset->unk_71) {
         case 1:
@@ -834,7 +834,7 @@ void Ending_80191294(u32 arg0, AssetInfo* asset) {
 
     Matrix_Scale(gGfxMatrix, asset->unk_30.x, asset->unk_30.y, asset->unk_30.z, MTXF_APPLY);
 
-    temp = __sinf(arg0 * 0.1f + asset->unk_70);
+    temp = sinf(arg0 * 0.1f + asset->unk_70);
 
     Matrix_RotateY(gGfxMatrix,
                    M_DTOR * (asset->unk_24.y + temp * asset->unk_54.y + (arg0 - asset->unk_0C) * asset->unk_48.y),
@@ -891,7 +891,7 @@ void Ending_80191710(u32 arg0, AssetInfo* asset) {
 
     Matrix_Scale(gGfxMatrix, asset->unk_30.x, asset->unk_30.y, asset->unk_30.z, MTXF_APPLY);
 
-    temp = __sinf(arg0 * 0.1f + asset->unk_70);
+    temp = sinf(arg0 * 0.1f + asset->unk_70);
 
     switch (asset->unk_71) {
         case 1:
@@ -950,7 +950,7 @@ void Ending_80191C7C(u32 arg0, AssetInfo* asset) {
 
     Matrix_Scale(gGfxMatrix, asset->unk_30.x, asset->unk_30.y, asset->unk_30.z, MTXF_APPLY);
 
-    temp = __sinf(arg0 * 0.1f + asset->unk_70);
+    temp = sinf(arg0 * 0.1f + asset->unk_70);
 
     Matrix_RotateY(gGfxMatrix,
                    M_DTOR * (asset->unk_24.y + temp * asset->unk_54.y + (arg0 - asset->unk_0C) * asset->unk_48.y),

@@ -3,7 +3,7 @@
 
 #include "libultra/ultra64.h"
 #include "sf64math.h"
-#include "libc/stdbool.h"
+//#include "libc/stdbool.h"
 
 #define SCREEN_WIDTH  320
 #define SCREEN_HEIGHT 240

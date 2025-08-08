@@ -2,6 +2,31 @@
 #define MACROS_H
 
 #include "alignment.h"
+extern long unsigned int gSegments[16];
+static inline void* segmented_to_virtual(const void* addr) {
+    unsigned int uip_addr = (unsigned int) addr;
+
+    if ((uip_addr >= 0x8c010000) && (uip_addr <= 0x8cffffff)) {
+        return uip_addr;
+    }
+
+    unsigned int segment = (unsigned int) (uip_addr >> 24) & 0x0f;
+
+    // investigate why this hits on Sherbet Land 4 player attract mode demo
+#if DEBUG
+    if (segment > 0xf) {
+        printf("%08x converts to bad segment %02x %08x\n", (uintptr_t) addr, segment, (uintptr_t) uip_addr);
+        printf("\n");
+        stacktrace();
+        printf("\n");
+        while (1) {}
+        exit(-1);
+    }
+#endif
+
+    unsigned int offset = (unsigned int) uip_addr & 0x00FFFFFF;
+    return (void*) ((gSegments[segment] + offset));
+}
 
 #define SCREEN_WIDTH  320
 #define SCREEN_HEIGHT 240
@@ -23,8 +48,10 @@
 #define RAND_INT_SEEDED(max) ((s32)(Rand_ZeroOneSeeded()*(max)))
 #define RAND_FLOAT_CENTERED_SEEDED(width) ((Rand_ZeroOneSeeded()-0.5f)*(width))
 
-#define SEGMENTED_TO_VIRTUAL(segment) ((void*)OS_PHYSICAL_TO_K0(gSegments[((uintptr_t)(segment)<<4)>>0x1C]+(((uintptr_t)(segment))&0xFFFFFF)))
-#define SEGMENTED_TO_VIRTUAL_JP(segment) ((void*)OS_PHYSICAL_TO_K0(gSegments[((uintptr_t)(segment)&(0xF<<0x18))>>0x18]+(((uintptr_t)(segment))&0xFFFFFF)))
+#define SEGMENTED_TO_VIRTUAL(segment) segmented_to_virtual((segment))
+ //((void*)OS_PHYSICAL_TO_K0(gSegments[((uintptr_t)(segment)<<4)>>0x1C]+(((uintptr_t)(segment))&0xFFFFFF)))
+#define SEGMENTED_TO_VIRTUAL_JP(segment) segmented_to_virtual((segment))
+//((void*)OS_PHYSICAL_TO_K0(gSegments[((uintptr_t)(segment)&(0xF<<0x18))>>0x18]+(((uintptr_t)(segment))&0xFFFFFF)))
 
 #define ARRAY_COUNT(arr) (s32)(sizeof(arr) / sizeof(arr[0]))
 #define ARRAY_COUNTU(arr) (u32)(sizeof(arr) / sizeof(arr[0]))
@@ -41,8 +68,8 @@
 #define RAD_TO_DEG(radians) (((radians) * 180.0f) / M_PI)
 #define DEG_TO_RAD(degrees) (((degrees) / 180.0f) * M_PI)
 
-#define SIN_DEG(angle) __sinf((M_DTOR)*(angle))
-#define COS_DEG(angle) __cosf((M_DTOR)*(angle))
+#define SIN_DEG(angle) sinf((M_DTOR)*(angle))
+#define COS_DEG(angle) cosf((M_DTOR)*(angle))
 
 #define USEC_TO_CYCLES(n) (((u64)(n)*(osClockRate/15625LL))/(1000000LL/15625LL))
 #define MSEC_TO_CYCLES(n) (USEC_TO_CYCLES((n) * 1000LL))

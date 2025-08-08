@@ -1,7 +1,14 @@
-#include "sys.h"
+#include "n64sys.h"
+#include <stddef.h>
+#include <stdarg.h>
+#include <stdio.h>
+
+u32 osMemSize = (4 * 1048576);
 
 s32 Lib_vsPrintf(char* dst, const char* fmt, va_list args) {
-    return vsprintf(dst, fmt, args);
+    char *retdst = vsprintf(dst, fmt, args);
+    //printf("vsprintf: %s\n", retdst);
+    return retdst;
 }
 
 void Lib_vTable(s32 index, void (**table)(s32, s32), s32 arg0, s32 arg1) {
@@ -80,12 +87,12 @@ void Lib_QuickSort(u8* first, u32 length, u32 size, CompareFunc cFunc) {
         }
     }
 }
-
+#include <stdio.h>
 void Lib_InitPerspective(Gfx** dList) {
     u16 norm;
-
+//printf("%s\n", __func__);
     guPerspective(gGfxMtx, &norm, gFovY, (f32) SCREEN_WIDTH / SCREEN_HEIGHT, gProjectNear, gProjectFar, 1.0f);
-    gSPPerspNormalize((*dList)++, norm);
+//    gSPPerspNormalize((*dList)++, norm);
     gSPMatrix((*dList)++, gGfxMtx++, G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_PROJECTION);
     guLookAt(gGfxMtx, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, -12800.0f, 0.0f, 1.0f, 0.0f);
     gSPMatrix((*dList)++, gGfxMtx++, G_MTX_NOPUSH | G_MTX_MUL | G_MTX_PROJECTION);
@@ -101,7 +108,7 @@ void Lib_InitOrtho(Gfx** dList) {
     Matrix_Copy(gGfxMatrix, &gIdentityMatrix);
 }
 
-void Lib_DmaRead(void* src, void* dst, ptrdiff_t size) {
+void Lib_DmaRead(void* src, void* dst, s32 size) {
     osInvalICache(dst, size);
     osInvalDCache(dst, size);
     while (size > 0x100) {
@@ -124,20 +131,22 @@ void Lib_FillScreen(u8 setFill) {
     if (setFill == true) {
         if (gFillScreen == false) {
             if (gFillScreenColor == 1) {
-                osViBlack(true);
+// jnmartin84 need kos black here
+                //                osViBlack(true);
             } else {
                 for (i = 0; i < 3 * SCREEN_WIDTH; i++) {
                     gFillBuffer[i] = gFillScreenColor;
                 }
-                osWritebackDCacheAll();
-                osViSwapBuffer(&gFillBuffer[SCREEN_WIDTH]);
-                osViRepeatLine(true);
+  //              osWritebackDCacheAll();
+  //              osViSwapBuffer(&gFillBuffer[SCREEN_WIDTH]);
+  //              osViRepeatLine(true);
             }
             gFillScreen = true;
         }
     } else if (gFillScreen == true) {
-        osViRepeatLine(false);
-        osViBlack(false);
+    //    osViRepeatLine(false);
+// jnmartin84 need kos black here
+//        osViBlack(false);
         gFillScreen = false;
     }
 }

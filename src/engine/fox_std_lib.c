@@ -1,6 +1,8 @@
 #include "global.h"
 #include "assets/ast_text.h"
 
+#include <stdio.h>
+
 char gGfxPrintBuffer[100];
 
 char* Graphics_ClearPrintBuffer(char* buf, s32 fill, s32 len) {
@@ -16,10 +18,10 @@ char* Graphics_ClearPrintBuffer(char* buf, s32 fill, s32 len) {
 
 s32 Graphics_Printf(const char* fmt, ...) {
     va_list args;
-
     va_start(args, fmt);
+//printf(fmt, args);
     Graphics_ClearPrintBuffer(gGfxPrintBuffer, 0, 100);
-    Lib_vsPrintf(gGfxPrintBuffer, fmt, args);
+    /* Lib_vsPrintf */vsprintf(gGfxPrintBuffer, fmt, args);
     va_end(args);
 
     return 0;
@@ -77,13 +79,13 @@ void Lib_Texture_Mottle(u16* dst, u16* src, u8 mode) {
     u8* dst8;
     u8* src8;
     s32 offset;
-
+return;
     dst = SEGMENTED_TO_VIRTUAL(dst);
     src = SEGMENTED_TO_VIRTUAL(src);
     switch (mode) {
         case 2:
             for (v = 0; v < 32 * 32; v += 32) {
-                offset = 3.0f * __sinf((s32) (((v / 32) + (gGameFrameCount / 4)) % 32U) * (2 * M_PI / 32));
+                offset = 3.0f * sinf((s32) (((v / 32) + (gGameFrameCount / 4)) % 32U) * (2 * M_PI / 32));
                 for (u = 0; u < 32; u++) {
                     dst[v + (offset + u) % 32U] = src[v + u];
                 }
@@ -92,7 +94,7 @@ void Lib_Texture_Mottle(u16* dst, u16* src, u8 mode) {
 
         case 3:
             for (v = 0; v < 22 * 64; v += 64) { // should be 32 * 64?
-                offset = __sinf((s32) (((v / 64) + (gGameFrameCount / 4)) % 32U) * (2 * M_PI / 8));
+                offset = sinf((s32) (((v / 64) + (gGameFrameCount / 4)) % 32U) * (2 * M_PI / 8));
                 for (u = 0; u < 64; u++) {
                     dst[v + (offset + u) % 64U] = src[v + u];
                 }
@@ -101,7 +103,7 @@ void Lib_Texture_Mottle(u16* dst, u16* src, u8 mode) {
 
         case 1:
             for (v = 0; v < 16 * 16; v += 16) {
-                offset = 2.0f * __sinf((s32) (((v / 16) + (gGameFrameCount / 2)) % 16U) * (2 * M_PI / 16));
+                offset = 2.0f * sinf((s32) (((v / 16) + (gGameFrameCount / 2)) % 16U) * (2 * M_PI / 16));
                 for (u = 0; u < 16; u++) {
                     dst[v + (offset + u) % 16U] = src[v + u];
                 }
@@ -110,7 +112,7 @@ void Lib_Texture_Mottle(u16* dst, u16* src, u8 mode) {
 
         case 0:
             for (v = 0; v < 32 * 32; v += 32) {
-                offset = 2.0f * __sinf((s32) (((v / 32) + (gGameFrameCount / 2)) % 32U) * (2 * M_PI / 32));
+                offset = 2.0f * sinf((s32) (((v / 32) + (gGameFrameCount / 2)) % 32U) * (2 * M_PI / 32));
                 for (u = 0; u < 32; u++) {
                     dst[v + (offset + u) % 32U] = src[v + u];
                 }
@@ -121,7 +123,7 @@ void Lib_Texture_Mottle(u16* dst, u16* src, u8 mode) {
             dst8 = (u8*) dst;
             src8 = (u8*) src;
             for (v = 0; v < 64 * 64; v += 64) {
-                offset = 4.0f * __sinf((s32) (((v / 64) + (gGameFrameCount / 4)) % 32U) * (2 * M_PI / 32));
+                offset = 4.0f * sinf((s32) (((v / 64) + (gGameFrameCount / 4)) % 32U) * (2 * M_PI / 32));
                 for (u = 0; u < 64; u++) {
                     dst8[v + (offset + u) % 64U] = src8[v + u];
                 }
@@ -163,7 +165,7 @@ void Animation_DrawLimb(s32 mode, Limb* limb, Limb** skeleton, Vec3f* jointTable
     Matrix_Push(&gGfxMatrix);
 
     if (overrideLimbDraw == NULL) {
-        override = false;
+        override = 0;
     } else {
         override = overrideLimbDraw(limbIndex - 1, &dList, &trans, &rot, data);
     }
@@ -230,7 +232,7 @@ void Animation_DrawSkeleton(s32 mode, Limb** skeletonSegment, Vec3f* jointTable,
     Matrix_Push(&gGfxMatrix);
 
     if (overrideLimbDraw == NULL) {
-        override = false;
+        override = 0;
     } else {
         override = overrideLimbDraw(rootIndex - 1, &dList, &baseTrans, &baseRot, data);
     }
@@ -267,6 +269,7 @@ s16 Animation_GetFrameData(Animation* animationSegment, s32 frame, Vec3f* frameT
     u16* frameData = SEGMENTED_TO_VIRTUAL(animation->frameData);
     s32 i;
     s32 temp;
+//printf("%s\n",__func__);
 
     temp = (frame < key->xLen) ? frameData[key->x + frame] : frameData[key->x];
     frameTable->x = (s16) temp;
@@ -340,7 +343,7 @@ void Animation_FindBoundingBox(Gfx* dList, s32 len, Vec3f* min, Vec3f* max, s32*
 }
 
 void Animation_GetDListBoundingBox(Gfx* dList, s32 len, Vec3f* min, Vec3f* max) {
-    s32 vtxFound = false;
+    s32 vtxFound = 0;
     s32 vtxCount;
     Vtx* vtxList;
 
@@ -385,7 +388,7 @@ void Animation_GetSkeletonBoundingBox(Limb** skeletonSegment, Animation* animati
         var_t6 = frameData[(s16) key[1].x];
     }
     Matrix_RotateX(gGfxMatrix, (((s32) var_t6 * 360.0f) / 65536.0f) * M_DTOR, MTXF_APPLY);
-    vtxFound = false;
+    vtxFound = 0;
     if (limb->dList != NULL) {
         Animation_FindBoundingBox(limb->dList, 8192, min, max, &vtxFound, &vtxCount, &vtxList);
         if (vtxFound) {
@@ -413,6 +416,7 @@ void Animation_GetSkeletonBoundingBox(Limb** skeletonSegment, Animation* animati
 
 f32 Math_SmoothStepToF(f32* value, f32 target, f32 scale, f32 maxStep, f32 minStep) {
     f32 step = target - *value;
+//printf("%s\n",__func__);
 
     if (step != 0.0f) {
         step *= scale;
@@ -704,6 +708,7 @@ void Lib_TextureRect_RGBA32(Gfx** gfxPtr, u32* texture, u32 width, u32 height, f
 }
 
 void Graphics_FillRectangle(Gfx** gfxPtr, s32 ulx, s32 uly, s32 lrx, s32 lry, u8 r, u8 g, u8 b, u8 a) {
+//return;
     if (a != 0) {
         gDPPipeSync((*gfxPtr)++);
         gDPSetPrimColor((*gfxPtr)++, 0x00, 0x00, r, g, b, a);
@@ -769,7 +774,7 @@ u16* Graphics_SetupTextureRender(Gfx** gfxPtr, u8 width, u8 height) {
     gDPFillRectangle((*gfxPtr)++, 0, 0, width - 1, height - 1);
     gDPPipeSync((*gfxPtr)++);
     guPerspective(gGfxMtx, &norm, gFovY, (f32) width / height, 10.0f, 12800.0f, 1.0f);
-    gSPPerspNormalize((*gfxPtr)++, norm);
+//    gSPPerspNormalize((*gfxPtr)++, norm);
     gSPMatrix((*gfxPtr)++, gGfxMtx++, G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_PROJECTION);
     guLookAt(gGfxMtx, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, -12800.0f, 0.0f, 1.0f, 0.0f);
     gSPMatrix((*gfxPtr)++, gGfxMtx++, G_MTX_NOPUSH | G_MTX_MUL | G_MTX_PROJECTION);
@@ -784,15 +789,15 @@ void Graphics_DisplayHUDNumber(s32 xPos, s32 yPos, s32 number) {
     u16* hudNumberPal[] = { D_10106A0, D_10106F0, D_1010740, D_1010790, D_10107E0,
                             D_1010830, D_1010880, D_10108D0, D_1010920, D_1010970 };
     s32 place;
-    s32 startNumber = false;
+    s32 startNumber = 0;
 
     number %= 10000000;
     place = 1000000;
     for (place = 1000000; place != 1; place /= 10) {
-        if ((number / place != 0) || (startNumber == true)) {
+        if ((number / place != 0) || (startNumber == 1)) {
             Lib_TextureRect_CI4(&gMasterDisp, hudNumberTex[number / place], hudNumberPal[number / place], 16, 8, xPos,
                                 yPos, 1.0f, 1.0f);
-            startNumber = true;
+            startNumber = 1;
             xPos += 9;
             number %= place;
         }
@@ -806,14 +811,14 @@ u8* sSmallNumberTex[] = { aSmallText_0, aSmallText_1, aSmallText_2, aSmallText_3
 
 void Graphics_DisplaySmallNumber(s32 xPos, s32 yPos, s32 number) {
     s32 place;
-    s32 startNumber = false;
+    s32 startNumber = 0;
 
     number %= 10000000;
     place = 1000000;
     for (place = 1000000; place != 1; place /= 10) {
-        if ((number / place != 0) || (startNumber == true)) {
+        if ((number / place != 0) || (startNumber == 1)) {
             Lib_TextureRect_IA8(&gMasterDisp, sSmallNumberTex[number / place], 16, 8, xPos, yPos, 1.0f, 1.0f);
-            startNumber = true;
+            startNumber = 1;
             xPos += 9;
             number %= place;
         }
@@ -852,7 +857,7 @@ void Graphics_DisplayLargeText(s32 xPos, s32 yPos, f32 xScale, f32 yScale, char*
     f32 xPosCurrent = xPos;
     s32 pad4C;
     s32 width;
-    s32 startPrint = false;
+    s32 startPrint = 0;
 
     while (text[0] != 0) {
         charIndex = 0;
@@ -860,109 +865,109 @@ void Graphics_DisplayLargeText(s32 xPos, s32 yPos, f32 xScale, f32 yScale, char*
             charIndex++;
         }
         if (sLargeChars[charIndex] == text[0]) {
-            if ((startPrint == true) && (text[-1] == 'Y') && (text[0] == 'A')) {
+            if ((startPrint == 1) && (text[-1] == 'Y') && (text[0] == 'A')) {
                 xPosCurrent -= 3.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'K') && (text[0] == 'A')) {
+            if ((startPrint == 1) && (text[-1] == 'K') && (text[0] == 'A')) {
                 xPosCurrent -= 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'A') && (text[0] == 'O')) {
+            if ((startPrint == 1) && (text[-1] == 'A') && (text[0] == 'O')) {
                 xPosCurrent -= 2.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'T') && (text[0] == 'A')) {
+            if ((startPrint == 1) && (text[-1] == 'T') && (text[0] == 'A')) {
                 xPosCurrent -= 3.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'A') && (text[0] == 'Y')) {
+            if ((startPrint == 1) && (text[-1] == 'A') && (text[0] == 'Y')) {
                 xPosCurrent -= 4.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'K') && (text[0] == 'I')) {
+            if ((startPrint == 1) && (text[-1] == 'K') && (text[0] == 'I')) {
                 xPosCurrent -= 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'K') && (text[0] == 'O')) {
+            if ((startPrint == 1) && (text[-1] == 'K') && (text[0] == 'O')) {
                 xPosCurrent -= 3.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'A') && (text[0] == 'J')) {
+            if ((startPrint == 1) && (text[-1] == 'A') && (text[0] == 'J')) {
                 xPosCurrent -= 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'W') && (text[0] == 'A')) {
+            if ((startPrint == 1) && (text[-1] == 'W') && (text[0] == 'A')) {
                 xPosCurrent -= 2.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'Y') && (text[0] == 'O')) {
+            if ((startPrint == 1) && (text[-1] == 'Y') && (text[0] == 'O')) {
                 xPosCurrent -= 3.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'A') && (text[0] == 'T')) {
+            if ((startPrint == 1) && (text[-1] == 'A') && (text[0] == 'T')) {
                 xPosCurrent -= 3.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'A') && (text[0] == 'W')) {
+            if ((startPrint == 1) && (text[-1] == 'A') && (text[0] == 'W')) {
                 xPosCurrent -= 3.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'O') && (text[0] == 'T')) {
+            if ((startPrint == 1) && (text[-1] == 'O') && (text[0] == 'T')) {
                 xPosCurrent -= 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'A') && (text[0] == 'G')) {
+            if ((startPrint == 1) && (text[-1] == 'A') && (text[0] == 'G')) {
                 xPosCurrent -= 2.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'O') && (text[0] == 'Y')) {
+            if ((startPrint == 1) && (text[-1] == 'O') && (text[0] == 'Y')) {
                 xPosCurrent -= 2.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'A') && (text[0] == 'J')) {
+            if ((startPrint == 1) && (text[-1] == 'A') && (text[0] == 'J')) {
                 xPosCurrent -= 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'T') && (text[0] == 'O')) {
+            if ((startPrint == 1) && (text[-1] == 'T') && (text[0] == 'O')) {
                 xPosCurrent -= 2.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'K') && (text[0] == 'U')) {
+            if ((startPrint == 1) && (text[-1] == 'K') && (text[0] == 'U')) {
                 xPosCurrent -= 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'A') && (text[0] == 'S')) {
+            if ((startPrint == 1) && (text[-1] == 'A') && (text[0] == 'S')) {
                 xPosCurrent -= 2.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'R') && (text[0] == 'O')) {
+            if ((startPrint == 1) && (text[-1] == 'R') && (text[0] == 'O')) {
                 xPosCurrent -= 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'K') && (text[0] == 'Y')) {
+            if ((startPrint == 1) && (text[-1] == 'K') && (text[0] == 'Y')) {
                 xPosCurrent -= 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'N') && (text[0] == 'J')) {
+            if ((startPrint == 1) && (text[-1] == 'N') && (text[0] == 'J')) {
                 xPosCurrent -= 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'K') && (text[0] == 'E')) {
+            if ((startPrint == 1) && (text[-1] == 'K') && (text[0] == 'E')) {
                 xPosCurrent -= 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'S') && (text[0] == 't')) {
+            if ((startPrint == 1) && (text[-1] == 'S') && (text[0] == 't')) {
                 xPosCurrent -= 2.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'X') && (text[0] == 'X')) {
+            if ((startPrint == 1) && (text[-1] == 'X') && (text[0] == 'X')) {
                 xPosCurrent -= 3.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'O') && (text[0] == 'X')) {
+            if ((startPrint == 1) && (text[-1] == 'O') && (text[0] == 'X')) {
                 xPosCurrent -= 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'W') && (text[0] == 'W')) {
+            if ((startPrint == 1) && (text[-1] == 'W') && (text[0] == 'W')) {
                 xPosCurrent -= 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'X') && (text[0] == 'W')) {
+            if ((startPrint == 1) && (text[-1] == 'X') && (text[0] == 'W')) {
                 xPosCurrent -= 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'W') && (text[0] == 'X')) {
+            if ((startPrint == 1) && (text[-1] == 'W') && (text[0] == 'X')) {
                 xPosCurrent -= 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'H') && (text[0] == 'O')) {
+            if ((startPrint == 1) && (text[-1] == 'H') && (text[0] == 'O')) {
                 xPosCurrent += 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'J') && (text[0] == 'I')) {
+            if ((startPrint == 1) && (text[-1] == 'J') && (text[0] == 'I')) {
                 xPosCurrent += 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'I') && (text[0] == 'N')) {
+            if ((startPrint == 1) && (text[-1] == 'I') && (text[0] == 'N')) {
                 xPosCurrent += 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'I') && (text[0] == 'M')) {
+            if ((startPrint == 1) && (text[-1] == 'I') && (text[0] == 'M')) {
                 xPosCurrent += 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'I') && (text[0] == 'D')) {
+            if ((startPrint == 1) && (text[-1] == 'I') && (text[0] == 'D')) {
                 xPosCurrent += 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'U') && (text[0] == 'K')) {
+            if ((startPrint == 1) && (text[-1] == 'U') && (text[0] == 'K')) {
                 xPosCurrent += 1.0f;
             }
             if (sLargeCharTex[charIndex] != NULL) {
@@ -973,7 +978,7 @@ void Graphics_DisplayLargeText(s32 xPos, s32 yPos, f32 xScale, f32 yScale, char*
                 Lib_TextureRect_IA8(&gMasterDisp, sLargeCharTex[charIndex], width, 15, xPosCurrent, yPos, xScale,
                                     yScale);
             }
-            startPrint = true;
+            startPrint = 1;
             xPosCurrent += (sLargeCharWidths[charIndex] * xScale) + 2.0f;
         }
         text++;
@@ -981,7 +986,7 @@ void Graphics_DisplayLargeText(s32 xPos, s32 yPos, f32 xScale, f32 yScale, char*
 }
 
 s32 Graphics_GetLargeTextWidth(char* text) {
-    s32 startPrint = false;
+    s32 startPrint = 0;
     s32 xPos = 0;
     u32 charIndex;
 
@@ -991,112 +996,112 @@ s32 Graphics_GetLargeTextWidth(char* text) {
             charIndex++;
         }
         if (sLargeChars[charIndex] == text[0]) {
-            if ((startPrint == true) && (text[-1] == 'Y') && (text[0] == 'A')) {
+            if ((startPrint == 1) && (text[-1] == 'Y') && (text[0] == 'A')) {
                 xPos -= 3.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'K') && (text[0] == 'A')) {
+            if ((startPrint == 1) && (text[-1] == 'K') && (text[0] == 'A')) {
                 xPos -= 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'A') && (text[0] == 'O')) {
+            if ((startPrint == 1) && (text[-1] == 'A') && (text[0] == 'O')) {
                 xPos -= 2.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'T') && (text[0] == 'A')) {
+            if ((startPrint == 1) && (text[-1] == 'T') && (text[0] == 'A')) {
                 xPos -= 3.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'A') && (text[0] == 'Y')) {
+            if ((startPrint == 1) && (text[-1] == 'A') && (text[0] == 'Y')) {
                 xPos -= 4.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'K') && (text[0] == 'I')) {
+            if ((startPrint == 1) && (text[-1] == 'K') && (text[0] == 'I')) {
                 xPos -= 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'K') && (text[0] == 'O')) {
+            if ((startPrint == 1) && (text[-1] == 'K') && (text[0] == 'O')) {
                 xPos -= 3.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'A') && (text[0] == 'J')) {
+            if ((startPrint == 1) && (text[-1] == 'A') && (text[0] == 'J')) {
                 xPos -= 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'W') && (text[0] == 'A')) {
+            if ((startPrint == 1) && (text[-1] == 'W') && (text[0] == 'A')) {
                 xPos -= 2.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'Y') && (text[0] == 'O')) {
+            if ((startPrint == 1) && (text[-1] == 'Y') && (text[0] == 'O')) {
                 xPos -= 3.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'A') && (text[0] == 'T')) {
+            if ((startPrint == 1) && (text[-1] == 'A') && (text[0] == 'T')) {
                 xPos -= 3.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'A') && (text[0] == 'W')) {
+            if ((startPrint == 1) && (text[-1] == 'A') && (text[0] == 'W')) {
                 xPos -= 3.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'O') && (text[0] == 'T')) {
+            if ((startPrint == 1) && (text[-1] == 'O') && (text[0] == 'T')) {
                 xPos -= 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'A') && (text[0] == 'G')) {
+            if ((startPrint == 1) && (text[-1] == 'A') && (text[0] == 'G')) {
                 xPos -= 2.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'O') && (text[0] == 'Y')) {
+            if ((startPrint == 1) && (text[-1] == 'O') && (text[0] == 'Y')) {
                 xPos -= 2.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'A') && (text[0] == 'J')) {
+            if ((startPrint == 1) && (text[-1] == 'A') && (text[0] == 'J')) {
                 xPos -= 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'T') && (text[0] == 'O')) {
+            if ((startPrint == 1) && (text[-1] == 'T') && (text[0] == 'O')) {
                 xPos -= 2.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'K') && (text[0] == 'U')) {
+            if ((startPrint == 1) && (text[-1] == 'K') && (text[0] == 'U')) {
                 xPos -= 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'A') && (text[0] == 'S')) {
+            if ((startPrint == 1) && (text[-1] == 'A') && (text[0] == 'S')) {
                 xPos -= 2.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'R') && (text[0] == 'O')) {
+            if ((startPrint == 1) && (text[-1] == 'R') && (text[0] == 'O')) {
                 xPos -= 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'K') && (text[0] == 'Y')) {
+            if ((startPrint == 1) && (text[-1] == 'K') && (text[0] == 'Y')) {
                 xPos -= 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'N') && (text[0] == 'J')) {
+            if ((startPrint == 1) && (text[-1] == 'N') && (text[0] == 'J')) {
                 xPos -= 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'K') && (text[0] == 'E')) {
+            if ((startPrint == 1) && (text[-1] == 'K') && (text[0] == 'E')) {
                 xPos -= 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'S') && (text[0] == 't')) {
+            if ((startPrint == 1) && (text[-1] == 'S') && (text[0] == 't')) {
                 xPos -= 2.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'X') && (text[0] == 'X')) {
+            if ((startPrint == 1) && (text[-1] == 'X') && (text[0] == 'X')) {
                 xPos -= 3.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'O') && (text[0] == 'X')) {
+            if ((startPrint == 1) && (text[-1] == 'O') && (text[0] == 'X')) {
                 xPos -= 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'W') && (text[0] == 'W')) {
+            if ((startPrint == 1) && (text[-1] == 'W') && (text[0] == 'W')) {
                 xPos -= 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'X') && (text[0] == 'W')) {
+            if ((startPrint == 1) && (text[-1] == 'X') && (text[0] == 'W')) {
                 xPos -= 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'W') && (text[0] == 'X')) {
+            if ((startPrint == 1) && (text[-1] == 'W') && (text[0] == 'X')) {
                 xPos -= 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'H') && (text[0] == 'O')) {
+            if ((startPrint == 1) && (text[-1] == 'H') && (text[0] == 'O')) {
                 xPos += 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'J') && (text[0] == 'I')) {
+            if ((startPrint == 1) && (text[-1] == 'J') && (text[0] == 'I')) {
                 xPos += 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'I') && (text[0] == 'N')) {
+            if ((startPrint == 1) && (text[-1] == 'I') && (text[0] == 'N')) {
                 xPos += 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'I') && (text[0] == 'M')) {
+            if ((startPrint == 1) && (text[-1] == 'I') && (text[0] == 'M')) {
                 xPos += 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'I') && (text[0] == 'D')) {
+            if ((startPrint == 1) && (text[-1] == 'I') && (text[0] == 'D')) {
                 xPos += 1.0f;
             }
-            if ((startPrint == true) && (text[-1] == 'U') && (text[0] == 'K')) {
+            if ((startPrint == 1) && (text[-1] == 'U') && (text[0] == 'K')) {
                 xPos += 1.0f;
             }
-            startPrint = true;
+            startPrint = 1;
             xPos += sLargeCharWidths[charIndex] + 2.0f;
         }
         text++;
@@ -1106,14 +1111,14 @@ s32 Graphics_GetLargeTextWidth(char* text) {
 
 void Graphics_DisplayLargeNumber(s32 xPos, s32 yPos, s32 number) {
     s32 place;
-    s32 startNumber = false;
+    s32 startNumber = 0;
 
     number %= 10000000;
     place = 1000000;
     for (place = 1000000; place != 1; place /= 10) {
-        if ((number / place != 0) || (startNumber == true)) {
+        if ((number / place != 0) || (startNumber == 1)) {
             Lib_TextureRect_IA8(&gMasterDisp, sLargeNumberTex[number / place], 16, 15, xPos, yPos, 1.0f, 1.0f);
-            startNumber = true;
+            startNumber = 1;
             xPos += 13;
             number %= place;
         }

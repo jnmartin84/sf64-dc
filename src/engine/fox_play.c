@@ -5296,7 +5296,7 @@ void Player_UpdateTankJets(Player* player) {
     }
 
     if ((player->unk_16C > 0.2f) && (player->unk_170 > 0.2f) && (player->radioDamageTimer == 0)) {
-        player->zRotBank += (((__cosf(gGameFrameCount * M_DTOR * 8.0f) * 10.0f) - player->zRotBank) * 0.1f);
+        player->zRotBank += (((cosf(gGameFrameCount * M_DTOR * 8.0f) * 10.0f) - player->zRotBank) * 0.1f);
         Math_SmoothStepToAngle(&player->rot.x, 0.0f, 0.05f, 5.0f, 0.00001f);
         Math_SmoothStepToAngle(&player->rot.z, 0.0f, 0.05f, 5.0f, 0.00001f);
         stickY = gInputPress->stick_y;
@@ -6469,6 +6469,7 @@ void Camera_SetStarfieldPos(f32 xEye, f32 yEye, f32 zEye, f32 xAt, f32 yAt, f32 
     f32 yaw;
     f32 tempf;
     f32 sp20;
+//printf("%s\n",__func__);
 
     yaw = -Math_Atan2F(xEye - xAt, zEye - zAt);
     tempf = sqrtf(SQ(zEye - zAt) + SQ(xEye - xAt));

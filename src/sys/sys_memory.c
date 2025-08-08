@@ -1,6 +1,11 @@
-#include "sys.h"
+#include "n64sys.h"
 
-s32 sMemoryBuffer[0x2200];
+#include <stdint.h>
+#include <math.h>
+#include <string.h>
+#include <stddef.h>
+#include <stdarg.h>
+s32 sMemoryBuffer[0x2200] = {0};
 s32* sMemoryPtr;
 
 void Memory_FreeAll(void) {

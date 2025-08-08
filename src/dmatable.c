@@ -1,6 +1,11 @@
 #include "sf64dma.h"
 
-DmaEntry gDmaTable[90] = {
+// 5,950,080 bytes
+u8 SEG_BUF[15][0x60D80];
+
+
+#if 1
+DmaEntry gDmaTable[81] = {
     DMA_ENTRY(makerom),
     DMA_ENTRY(main),
     DMA_ENTRY(dma_table),
@@ -56,6 +61,7 @@ DmaEntry gDmaTable[90] = {
     DMA_ENTRY(ast_ending_expert),
     DMA_ENTRY(ast_training),
     DMA_ENTRY(ast_radio),
+#if 0
     DMA_ENTRY(ovl_i1),
     DMA_ENTRY(ovl_i2),
     DMA_ENTRY(ovl_i3),
@@ -65,4 +71,6 @@ DmaEntry gDmaTable[90] = {
     DMA_ENTRY(ovl_menu),
     DMA_ENTRY(ovl_ending),
     DMA_ENTRY(ovl_unused),
+#endif
 };
+#endif

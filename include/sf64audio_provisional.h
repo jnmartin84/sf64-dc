@@ -9,6 +9,11 @@
 #include "PR/ultratypes.h"
 #include "sf64audio_external.h"
 
+#include <stdint.h>
+#include <math.h>
+#include <string.h>
+#include <stddef.h>
+#include <stdarg.h>
 typedef void (*AudioCustomUpdateFunction)(void);
 
 #define REFRESH_RATE_PAL 50
@@ -75,15 +80,6 @@ typedef void (*AudioCustomUpdateFunction)(void);
 #define AUDIOLOAD_SYNC 0
 #define AUDIOLOAD_ASYNC 1
 
-#define AUDIO_GROUP_ALL_SUBTRACKS (0xFFFF)
-
-#define AUDIO_PRELOAD_SEQ (1 << 0)
-#define AUDIO_PRELOAD_BANK (1 << 1)
-
-#define ADSR_RELEASE_FLAG (0x10)
-#define ADSR_DECAY_FLAG (0x20)
-#define ADSR_HANG_FLAG (0x40)
-
 typedef enum {
     /* 0 */ ADSR_STATE_DISABLED,
     /* 1 */ ADSR_STATE_INITIAL,
@@ -97,17 +93,8 @@ typedef enum {
 } AdsrStatus;
 
 typedef enum {
-    /* 0 */ PORTAMENTO_MODE_OFF,
-    /* 1 */ PORTAMENTO_MODE_1,
-    /* 2 */ PORTAMENTO_MODE_2,
-    /* 3 */ PORTAMENTO_MODE_3,
-    /* 4 */ PORTAMENTO_MODE_4,
-    /* 5 */ PORTAMENTO_MODE_5
-} PortamentoMode;
-
-typedef enum {
     /* 0 */ MEDIUM_RAM,
-    /* 1 */ MEDIUM_DISK,
+    /* 1 */ MEDIUM_UNK,
     /* 2 */ MEDIUM_CART,
     /* 3 */ MEDIUM_DISK_DRIVE
 } SampleMedium;
@@ -228,7 +215,7 @@ typedef struct {
 
 typedef struct {
     /* 0x0 */ s16 delay;
-    /* 0x2 */ s16 value;
+    /* 0x2 */ s16 arg;
 } EnvelopePoint; // size = 0x4
 
 typedef struct {
@@ -455,7 +442,7 @@ typedef struct SequenceChannel {
             /* 0x01 */ u8 freqMod : 1;
             /* 0x01 */ u8 volume : 1;
             /* 0x01 */ u8 pan : 1;
-        } flags;
+        } s;
         /* 0x01 */ u8 asByte;
     } changes;
     /* 0x02 */ u8 noteAllocPolicy;
@@ -842,7 +829,7 @@ typedef struct {
 
 typedef struct {
     /* 0x00 */ s16 numEntries;
-    /* 0x02 */ s16 diskParam;
+    /* 0x02 */ s16 unkMediumParam;
     /* 0x04 */ uintptr_t romAddr;
     /* 0x08 */ char pad[8];
 } AudioTableBase;
@@ -1222,7 +1209,7 @@ extern s32 gRefreshRate;
 extern s16* gAiBuffers[3];
 extern s16 gAiBuffLengths[3];
 extern u32 gAudioRandom;
-extern u32 gAudioErrorFlags;
+extern u32 D_80155D88;
 extern volatile u32 gAudioResetTimer;
 
 extern u64 gAudioContextEnd[];

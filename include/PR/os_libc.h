@@ -79,7 +79,7 @@ extern "C" {
  */
 
 /* byte string operations */
-
+#if 0
 
 extern void     bcopy(const void *, void *, int);
 extern int      bcmp(const void *, const void *, int);
@@ -89,7 +89,9 @@ extern void     bzero(void *, int);
 
 extern int		sprintf(char *s, const char *fmt, ...);
 extern void		osSyncPrintf(const char *fmt, ...);
-
+#endif
+//extern void     bzero(void *, int);
+//extern void     bcopy(const void *, void *, int);
 
 #endif  /* defined(_LANGUAGE_C) || defined(_LANGUAGE_C_PLUS_PLUS) */
 

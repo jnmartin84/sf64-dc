@@ -1,15 +1,16 @@
-#include "sys.h"
-
+#include "n64sys.h"
+#include <math.h>
+//#include <kos.h>
 f32 Math_TanF(f32 x) {
-    return __sinf(x) / __cosf(x);
+    return x == 0 ? 0 : (sinf(x) / cosf(x));
 }
 
 f32 Math_FloorF(f32 x) {
-    return __floorf(x);
+    return floorf(x);
 }
 
 f32 Math_CeilF(f32 x) {
-    return __ceilf(x);
+    return ceilf(x);
 }
 
 f64 Math_Fabs(f64 x) {
@@ -21,15 +22,15 @@ f32 Math_FabsF(f32 x) {
 }
 
 f32 Math_NearbyIntF(f32 x) {
-    return __nearbyintf(x);
+    return nearbyintf(x);
 }
 
 f32 Math_TruncF(f32 x) {
-    return __truncf(x);
+    return truncf(x);
 }
 
 f32 Math_RoundF(f32 x) {
-    return __roundf(x);
+    return roundf(x);
 }
 
 f32 Math_FAtanF(f32 x) {

@@ -87,7 +87,7 @@ OSPiHandle* osCartRomInit(void) {
     CartRomHandle.speed = 0;
 #endif
 
-    bzero(&CartRomHandle.transferInfo, sizeof(__OSTranxInfo));
+//    bzero(&CartRomHandle.transferInfo, sizeof(__OSTranxInfo));
 
     saveMask = __osDisableInt();
     CartRomHandle.next = __osPiTable;

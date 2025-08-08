@@ -8,6 +8,17 @@
 #include "assets/ast_enmy_planet.h"
 #include "assets/ast_zoness.h"
 
+
+//#define SIN_DEG(angle) sinf((M_DTOR)*(angle))
+//#define COS_DEG(angle) cosf((M_DTOR)*(angle))
+
+static void sincosdeg(float arg, float *s, float *c) {
+    float darg = M_DTOR * arg;
+    *s = sinf(darg);
+    *c = cosf(darg);
+}
+
+
 #define TRAP_ENEMY_LASERS (1000)
 
 typedef struct {
@@ -639,6 +650,7 @@ void Zoness_ZoBird_Update(ZoBird* this) {
 }
 
 void Zoness_80190790(ZoDodora* this) {
+    f32 ts, tc;
     s32 pad[2];
     f32 angle;
     PosRot* zoDodoraPosRotPtr;
@@ -652,11 +664,15 @@ void Zoness_80190790(ZoDodora* this) {
         this->counter_04E = 0;
     }
 
+    sincosdeg(this->fwork[0], &ts, &tc);
+
     this->fwork[0] += 4.0f;
-    this->vel.y = SIN_DEG(this->fwork[0]) * 20.0f;
+    this->vel.y = ts * 20.0f;
     this->orient.x = -this->vel.y * 2.5f;
     this->fwork[1] += 5.0f;
-    this->orient.z = SIN_DEG(this->fwork[1]) * 30.0f;
+    sincosdeg(this->fwork[1], &ts, &tc);
+
+    this->orient.z = ts * 30.0f;
 
     for (i = 0, otherActor = &gActors[0]; i < ARRAY_COUNT(gActors); i++, otherActor++) {
         if ((otherActor->obj.status == OBJ_ACTIVE) && (otherActor->obj.id == OBJ_ACTOR_ZO_DODORA_WP_COUNT) &&
@@ -2032,6 +2048,8 @@ f32 D_i3_801BF6C4[2] = { 330.0f, 30.0f };
 f32 D_i3_801BF6CC[2] = { 250.0f, -250.0f };
 f32 D_i3_801BF6D4[2] = { 330.0f, 30.0f };
 
+float uts,utc;
+
 void Zoness_ZoSarumarine_Update(ZoSarumarine* this) {
     f32 sp134;
     s32 sp130;
@@ -3158,9 +3176,14 @@ void Zoness_ZoSarumarine_Update(ZoSarumarine* this) {
 
     if (Play_CheckDynaFloorCollision(&sp134, &sp130, this->obj.pos.x, this->obj.pos.y - 500.0f, this->obj.pos.z) != 0) {
         Math_SmoothStepToF(&this->obj.pos.y, sp134 - 20.0f, 0.1f, this->fwork[ZO_FWK_4], 0.0f);
-        this->fwork[ZO_FWK_1] = SIN_DEG(gGameFrameCount * 7.0f) * 12.0f;
-        this->fwork[ZO_FWK_2] = COS_DEG(gGameFrameCount * 9.0f) * 12.0f;
-        this->fwork[ZO_FWK_3] = SIN_DEG(gGameFrameCount * 10.0f) * 30.0f;
+
+        sincosdeg(gGameFrameCount * 7.0f, &uts, &utc);
+
+        this->fwork[ZO_FWK_1] = /* SIN_DEG(gGameFrameCount * 7.0f) */uts * 12.0f;
+        sincosdeg(gGameFrameCount * 9.0f, &uts, &utc);
+        this->fwork[ZO_FWK_2] =/*  COS_DEG(gGameFrameCount * 9.0f)  */utc * 12.0f;
+        sincosdeg(gGameFrameCount * 10.0f, &uts, &utc);
+        this->fwork[ZO_FWK_3] =/*  SIN_DEG(gGameFrameCount * 10.0f) */uts * 30.0f;
 
         if ((this->timer_054 == 0) && (sZoSwork[ZO_BSS_5] < 2)) {
             Effect_Effect382_Spawn(this->obj.pos.x, this->obj.pos.z, 50.0f, 0.0f, 5.0f);
@@ -4953,7 +4976,7 @@ void Zoness_LevelComplete(Player* player) {
             break;
     }
 
-    PRINTF("Demo_Time %d\n", gCsFrameCount);
+    PRINTF("Demo_Time %d\n");
 
     switch (gCsFrameCount) {
         case 320:

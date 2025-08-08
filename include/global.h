@@ -1,7 +1,7 @@
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
-#include "sys.h"
+#include "n64sys.h"
 
 typedef enum OverlayCalls {
     /*  90 */ OVLCALL_FO_CS_COMPLETE = 90,
@@ -23,6 +23,7 @@ typedef enum OverlayCalls {
     /* 110 */ OVLCALL_UNKMAP_DRAW,
 } OverlayCalls;
 
+
 #include "sf64audio_external.h"
 #include "functions.h"
 #include "variables.h"
@@ -41,6 +42,13 @@ typedef enum OverlayCalls {
 #include "i6.h"
 #include "assets/ast_common.h"
 
+#include <stdint.h>
+#include <math.h>
+#include <string.h>
+#include <stddef.h>
+#include <stdarg.h>
 
+#define M_DTOR	(M_PI / 180.0f)
+#define M_RTOD	(180.0f / M_PI)
 
 #endif // GLOBAL_H

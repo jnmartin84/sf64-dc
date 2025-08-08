@@ -26,7 +26,7 @@ OSPiHandle* osLeoDiskInit() {
     LeoDiskHandle.speed = 0;
 #endif
 
-    bzero(&LeoDiskHandle.transferInfo, sizeof(__OSTranxInfo));
+//    bzero(&LeoDiskHandle.transferInfo, sizeof(__OSTranxInfo));
 
     saveMask = __osDisableInt();
     LeoDiskHandle.next = __osPiTable;

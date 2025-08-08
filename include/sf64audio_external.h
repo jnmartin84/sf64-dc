@@ -1,7 +1,7 @@
 #ifndef SF64_AUDIO_EXTERNAL_H
 #define SF64_AUDIO_EXTERNAL_H
 
-#include "sys.h"
+#include "n64sys.h"
 #include "audioseq_cmd.h"
 #include "sfx.h"
 #include "bgm.h"

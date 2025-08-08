@@ -174,8 +174,8 @@ void Ground_801B4AA8(s32* arg0, s32* arg1) {
                     for (j = 0; j < 16; j++, var_s1++) {
                         temp_fs0 = (j * 220.0f * D_i5_801BE740) - 1760.0f - unk_08;
                         if (fabsf(temp_fs0) <= unk_10) {
-                            temp_fs1 = __sinf((var_s2->unk_20 / unk_18) * (M_DTOR * 180.0f));
-                            var_fv0 = __cosf((temp_fs0 / unk_10) * (M_DTOR * 90.0f));
+                            temp_fs1 = sinf((var_s2->unk_20 / unk_18) * (M_DTOR * 180.0f));
+                            var_fv0 = cosf((temp_fs0 / unk_10) * (M_DTOR * 90.0f));
                             *var_s1 += var_fv0 * unk_14 * temp_fs1;
                         }
                     }
@@ -212,9 +212,9 @@ void Ground_801B4AA8(s32* arg0, s32* arg1) {
                     for (j = 0; j < 16; j++, var_s1++) {
                         temp_fs0 =
                             (j * 220.0f * D_i5_801BE740) - 1760.0f - var_s2->unk_08 +
-                            (__sinf(((var_s2->unk_20 * 8.0f) / var_s2->unk_18) * 2 * (M_DTOR * 180.0f)) * 500.0f);
+                            (sinf(((var_s2->unk_20 * 8.0f) / var_s2->unk_18) * 2 * (M_DTOR * 180.0f)) * 500.0f);
                         if (fabsf(temp_fs0) <= var_s2->unk_10) {
-                            temp_fa0 = __cosf((temp_fs0 / var_s2->unk_10) * (M_DTOR * 90.0f));
+                            temp_fa0 = cosf((temp_fs0 / var_s2->unk_10) * (M_DTOR * 90.0f));
                             if (temp_fa0 >= 0.7) {
                                 temp_fa0 = 0.7f;
                             }
@@ -749,7 +749,7 @@ bool Ground_801B6E20(f32 arg0, f32 arg1, f32* arg2, f32* arg3, f32* arg4) {
 
             *arg2 = -Math_Atan2F_XYAlt(var_fs1, var_fs0_2);
             if (var_fs0_2 != 0.0f) {
-                *arg4 = -Math_Atan2F_XYAlt(__sinf(Math_Atan2F_XYAlt(var_fs1, var_fs0_2)) * var_fs0_2, var_fs2);
+                *arg4 = -Math_Atan2F_XYAlt(sinf(Math_Atan2F_XYAlt(var_fs1, var_fs0_2)) * var_fs0_2, var_fs2);
             } else {
                 *arg4 = Math_Atan2F_XYAlt(var_fs1, var_fs2);
             }

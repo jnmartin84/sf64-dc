@@ -1,69 +1,69 @@
 #include "prevent_context_reordering.h"
-#include "sys.h"
+#include "n64sys.h"
 #include "sf64level.h"
 #include "sf64object.h"
 #include "sf64player.h"
 
-s32 gSceneId;
-s32 gSceneSetup;
-s32 gClearPlayerInfo; // some sort of flag
-bool D_ctx_8017782C;  // some sort of flag. all range related?
-GameState gGameState;
-s32 gNextGameStateTimer;
-s32 gVsItemSpawnTimer;
-OptionState gOptionMenuStatus;
-s32 gPlayState;
-s32 D_ctx_80177868; // some sort of state. pause-related? Also used by game over
-LevelMode gLevelMode;
-DrawMode gDrawMode;
-s32 gPlayerNum;
-s32 gCamCount;
+s32 gSceneId=0;
+s32 gSceneSetup=0;
+s32 gClearPlayerInfo=0; // some sort of flag
+bool D_ctx_8017782C=0;  // some sort of flag. all range related?
+GameState gGameState ={0};
+s32 gNextGameStateTimer=0;
+s32 gVsItemSpawnTimer=0;
+OptionState gOptionMenuStatus={0};
+s32 gPlayState=0;
+s32 D_ctx_80177868=0; // some sort of state. pause-related? Also used by game over
+LevelMode gLevelMode={0};
+DrawMode gDrawMode=0;
+s32 gPlayerNum=0;
+s32 gCamCount=0;
 /**
  * gTeamShields[1] = Falco
  * gTeamShields[2] = Slippy
  * gTeamShields[3] = Peppy
  */
-s32 gTeamShields[6];
-s32 gSavedTeamShields[6];
-s32 gPrevPlanetSavedTeamShields[6];
-s32 gTeamDamage[6];
-u8 gMissionStatus;
-f32 gGroundHeight;
-f32 D_ctx_80177950; // Related to camera z-rotations? Only set to -1 in corneria intro, where it does nothing?
-f32 gPlayerTurnRate;
-f32 gPlayerTurnStickMod;
-f32 gCsCamEyeX;
-f32 gCsCamEyeY;
-f32 gCsCamEyeZ;
-f32 gCsCamAtX;
-f32 gCsCamAtY;
-f32 gCsCamAtZ;
-Vec3f gPlayCamEye;
-Vec3f gPlayCamAt;
-bool gExpertMode;
-s32 D_ctx_80177A10[10]; // work buffer
-f32 D_ctx_80177A48[10]; // work buffer
-s32 gCsFrameCount;
-u8 gDrawGround; // some sort of flag. Used in background
-u8 gDrawBackdrop;
-u8 gAqDrawMode;
-s32 gTitleState;
-s32 gMainController;
-s32 gMapState;
-s32 gMissionNumber;
+s32 gTeamShields[6]={0};
+s32 gSavedTeamShields[6]={0};
+s32 gPrevPlanetSavedTeamShields[6]={0};
+s32 gTeamDamage[6]={0};
+u8 gMissionStatus={0};
+f32 gGroundHeight=0;
+f32 D_ctx_80177950=0; // Related to camera z-rotations? Only set to -1 in corneria intro, where it does nothing?
+f32 gPlayerTurnRate=0;
+f32 gPlayerTurnStickMod=0;
+f32 gCsCamEyeX=0;
+f32 gCsCamEyeY=0;
+f32 gCsCamEyeZ=0;
+f32 gCsCamAtX=0;
+f32 gCsCamAtY=0;
+f32 gCsCamAtZ=0;
+Vec3f gPlayCamEye={0};
+Vec3f gPlayCamAt={0};
+bool gExpertMode=0;
+s32 D_ctx_80177A10[10]={0}; // work buffer
+f32 D_ctx_80177A48[10]={0}; // work buffer
+s32 gCsFrameCount=0;
+u8 gDrawGround=0; // some sort of flag. Used in background
+u8 gDrawBackdrop=0;
+u8 gAqDrawMode=0;
+s32 gTitleState=0;
+s32 gMainController=0;
+s32 gMapState=0;
+s32 gMissionNumber=0;
 /**
  *  0x 00 FF 00 00 Peppy
  *  0x 00 00 FF 00 Slippy
  *  0x 00 00 00 FF Falco
  */
-s32 gMissionTeamStatus[7];
-s32 gMissionHitCount[7];
-PlanetId gMissionPlanet[7];
-s32 gMissionMedal[7];
+s32 gMissionTeamStatus[7]={0};
+s32 gMissionHitCount[7]={0};
+PlanetId gMissionPlanet[7]={0};
+s32 gMissionMedal[7]={0};
 #ifdef AVOID_UB
-s32 gPlanetPathStatus[24];
+s32 gPlanetPathStatus[24]={0};
 #else
-s32 gPlanetPathStatus[22]; // overruns gPrevPlanetTeamShields?
+s32 gPlanetPathStatus[22]={0}; // overruns gPrevPlanetTeamShields?
 #endif
 s32 gPrevPlanetTeamShields[6];
 s32 D_ctx_80177C58[6]; // another saved team shields. maybe this is prev planet?
@@ -85,24 +85,24 @@ f32 gRadioTextBoxScaleY;
 f32 gRadioMsgRadioId;
 UNK_TYPE F_80177D80;
 UNK_TYPE F_80177DE8;
-s32 gGameFrameCount;
-s32 gObjectLoadIndex;
-s32 gPrevEventActorIndex;
-s32 gFormationLeaderIndex;
-s32 gRingPassCount;
-Vec3f gFormationInitRot;
-Vec3f gFormationInitPos;
+s32 gGameFrameCount=0;
+s32 gObjectLoadIndex=0;
+s32 gPrevEventActorIndex=0;
+s32 gFormationLeaderIndex=0;
+s32 gRingPassCount=0;
+Vec3f gFormationInitRot={0};
+Vec3f gFormationInitPos={0};
 UNK_TYPE F_80178020;
-s32 gGroundClipMode;
-LevelId gCurrentLevel;
-s32 gLevelPhase;
-s32 gBossActive;
-bool gKillEventActors;
-s32 gUseDynaFloor;
-s32 gRadioState;
-s32 gCurrentRadioPortrait;
-s32 gRadioStateTimer;
-s32 gRadioMouthTimer;
+s32 gGroundClipMode=0;
+LevelId gCurrentLevel=0;
+s32 gLevelPhase=0;
+s32 gBossActive=0;
+bool gKillEventActors=0;
+s32 gUseDynaFloor=0;
+s32 gRadioState=0;
+s32 gCurrentRadioPortrait=0;
+s32 gRadioStateTimer=0;
+s32 gRadioMouthTimer=0;
 u8 gLeveLClearStatus[30] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };
@@ -294,13 +294,13 @@ f32 gMeMoraXrot[2][100];
 f32 gMeMoraYrot[2][100];
 f32 gMeMoraZrot[2][100];
 UNK_TYPE P_800D31A8 = 0;
-u16 gEnemyShotSpeed; // enemy shot speed?
-u8 gShowLevelClearStatusScreen;
-s32 gLevelStartStatusScreenTimer;
-s32 gLevelClearScreenTimer; // timer for mission accomplished screen
-s32 gBossHealthBar;
-s32 D_ctx_80177850;    // bonus text related. set to 15 but never read. Bonus display timer perhaps?
-s32 D_ctx_80177858[4]; // set to 3 but never used. related to VS mode customization?
+u16 gEnemyShotSpeed=0; // enemy shot speed?
+u8 gShowLevelClearStatusScreen=0;
+s32 gLevelStartStatusScreenTimer=0;
+s32 gLevelClearScreenTimer=0; // timer for mission accomplished screen
+s32 gBossHealthBar=0;
+s32 D_ctx_80177850=0;    // bonus text related. set to 15 but never read. Bonus display timer perhaps?
+s32 D_ctx_80177858[4]={0}; // set to 3 but never used. related to VS mode customization?
 PlayerForm gPlayerForms[4];
 s32 gHandicap[4];
 VsStage gVersusStage;

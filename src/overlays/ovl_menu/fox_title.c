@@ -10,7 +10,7 @@
 #include "fox_title.h"
 #include "assets/ast_title.h"
 #include "assets/ast_text.h"
-
+#include <stdio.h>
 f32 D_menu_801B7BB0;
 f32 D_menu_801B7BB4;
 f32 D_menu_801B7BB8;
@@ -161,7 +161,7 @@ void Title_Setup(void) {
     gGameFrameCount = 0;
     gTitleState = TITLE_UPDATE_ENTRY;
     gLastGameState = GSTATE_NONE;
-    D_game_800D2870 = false;
+    D_game_800D2870 = 0;
 
     gMainController = Title_CheckControllers();
 
@@ -183,7 +183,7 @@ void Title_Setup(void) {
     D_menu_801B833C = 0;
 
     sSceneState = 0;
-    sLevelStartState = false;
+    sLevelStartState = 0;
 
     sTitleTextPrimColTarget = 255.0f;
     sTitleTextPrimCol = 255.0f;
@@ -196,15 +196,15 @@ void Title_Setup(void) {
 
     Title_GetRankTotalHits();
 
-    if ((gMainController == -1) || gGoToTitle) {
+    if (/* (gMainController == -1) || */ gGoToTitle) {
         AUDIO_SET_SPEC(SFX_LAYOUT_DEFAULT, AUDIOSPEC_TITLE);
         sCutsceneState = TITLE_SCREEN;
-        gGoToTitle = false;
+        gGoToTitle = 0;
     } else {
         AUDIO_SET_SPEC(SFX_LAYOUT_DEFAULT, AUDIOSPEC_OPENING);
         sCutsceneState = TITLE_GREAT_FOX_TRAVELING;
     }
-    gControllerLock = 30;
+    gControllerLock = 0;//30;
 }
 
 void Title_Main(void) {
@@ -226,10 +226,12 @@ void Title_Main(void) {
             Title_UpdateEntry();
             break;
     }
+    //printf("framecount %d\n",gGameFrameCount);
     gGameFrameCount++;
 }
 
 void Title_UpdateEntry(void) {
+    //printf("%s\n", __func__);
     if (sTimer1 > 0) {
         sTimer1--;
     }
@@ -367,6 +369,7 @@ s32 Title_CheckControllers(void) {
 }
 
 void Title_Ranking_Update(void) {
+    //printf("%s\n", __func__);
     switch (sSceneState) {
         case 0:
             sTitleRankMaxRecords = 0;
@@ -501,12 +504,14 @@ s32 Title_GetRankTotalHits(void) {
 }
 
 void Title_Screen_Setup(void) {
-    bool allExpertMedals = true;
+//printf("%s\n",__func__);
+
+    bool allExpertMedals = 1;
     s32 i;
 
     for (i = 0; i < ARRAY_COUNT(gSaveFile.save.data.planet); i++) {
         if ((i != SAVE_SLOT_VENOM_1) && ((gSaveFile.save.data.planet[i].expertMedal & 1) == 0)) {
-            allExpertMedals = false;
+            allExpertMedals = 0;
             break;
         }
     }
@@ -604,7 +609,7 @@ void Title_Screen_Setup(void) {
     sTitleTeam[TEAM_FOX].unk_1C = 1.0f;
     sTitleTeam[TEAM_FOX].unk_20 = 0.0f;
     sTitleTeam[TEAM_FOX].unk_24 = 0.0f;
-    sTitleTeam[TEAM_FOX].unk_54 = false;
+    sTitleTeam[TEAM_FOX].unk_54 = 0;
     sTitleTeam[TEAM_FOX].unk_38 = 0.0f;
     sTitleTeam[TEAM_FOX].unk_3C = 0.0f;
     sTitleTeam[TEAM_FOX].unk_40 = 0.0f;
@@ -637,7 +642,7 @@ void Title_Screen_Setup(void) {
     sTitleTeam[TEAM_FALCO].unk_1C = 1.0f;
     sTitleTeam[TEAM_FALCO].unk_20 = 0.0f;
     sTitleTeam[TEAM_FALCO].unk_24 = -4.0f;
-    sTitleTeam[TEAM_FALCO].unk_54 = false;
+    sTitleTeam[TEAM_FALCO].unk_54 = 0;
     sTitleTeam[TEAM_FALCO].unk_38 = 0.0f;
     sTitleTeam[TEAM_FALCO].unk_3C = 0.0f;
     sTitleTeam[TEAM_FALCO].unk_40 = 0.0f;
@@ -670,7 +675,7 @@ void Title_Screen_Setup(void) {
     sTitleTeam[TEAM_PEPPY].unk_1C = 1.0f;
     sTitleTeam[TEAM_PEPPY].unk_20 = 0.0f;
     sTitleTeam[TEAM_PEPPY].unk_24 = 0.0f;
-    sTitleTeam[TEAM_PEPPY].unk_54 = false;
+    sTitleTeam[TEAM_PEPPY].unk_54 = 0;
     sTitleTeam[TEAM_PEPPY].unk_38 = 0.0f;
     sTitleTeam[TEAM_PEPPY].unk_3C = 0.0f;
     sTitleTeam[TEAM_PEPPY].unk_40 = 0.0f;
@@ -703,7 +708,7 @@ void Title_Screen_Setup(void) {
     sTitleTeam[TEAM_SLIPPY].unk_1C = 1.0f;
     sTitleTeam[TEAM_SLIPPY].unk_20 = 0.0f;
     sTitleTeam[TEAM_SLIPPY].unk_24 = 0.0f;
-    sTitleTeam[TEAM_SLIPPY].unk_54 = false;
+    sTitleTeam[TEAM_SLIPPY].unk_54 = 0;
     sTitleTeam[TEAM_SLIPPY].unk_38 = 0.0f;
     sTitleTeam[TEAM_SLIPPY].unk_3C = 0.0f;
     sTitleTeam[TEAM_SLIPPY].unk_40 = 0.0f;
@@ -728,7 +733,8 @@ void Title_Screen_Update(void) {
     s32 i;
     static f32 D_menu_801ADA64[4] = { 10.0f, 20.0f, 20.0f, 20.0f };
     static f32 D_menu_801ADA74[4] = { 2.0f, 5.0f, 4.0f, 4.0f };
-
+    //printf("%s\n", __func__);
+    //printf("\tsSceneState is %d\n", sSceneState);
     switch (sSceneState) {
         case 0:
             Title_Screen_Setup();
@@ -768,11 +774,12 @@ void Title_Screen_Update(void) {
             }
 
             while (temp_fv1 == D_menu_801B8340) {
+                //printf("temp_fv1 %f D_menu_801B8340 %f\n", temp_fv1, D_menu_801B8340);
                 D_menu_801B8340 = RAND_INT(4.0f);
             }
 
             sTitleTeam[D_menu_801B8340].unk_5C = RAND_INT(6.0f) + 5;
-            sTitleTeam[D_menu_801B8340].unk_54 = true;
+            sTitleTeam[D_menu_801B8340].unk_54 = 1;
 
             D_menu_801B82CC = 0.07f;
             sSceneState++;
@@ -780,7 +787,7 @@ void Title_Screen_Update(void) {
 
         case 4:
             if (sTimer1 == 0) {
-                sTitleTeam[D_menu_801B8340].unk_54 = false;
+                sTitleTeam[D_menu_801B8340].unk_54 = 0;
                 Math_SmoothStepToF(&sTitleTeam[D_menu_801B8340].unk_18, 0.0f, D_menu_801B82CC, 100.0f, 0.001f);
                 D_menu_801B82CC *= 1.07f;
 
@@ -968,12 +975,12 @@ void Title_CsGreatFox_Setup(void) {
     gAmbientB = 10;
 
     sTitleCorneria.pos.y = 0.0f;
-    sTitleCorneria.draw = false;
+    sTitleCorneria.draw = 0;
     sTitleCorneria.pos.x = -80.0f;
     sTitleCorneria.pos.z = 500.0f;
     sTitleCorneria.scale = 5.0f;
 
-    D_menu_801B8348 = false;
+    D_menu_801B8348 = 0;
 
     sTitleGreatFox.pos.x = 20.0f;
     sTitleGreatFox.pos.y = 0.0f;
@@ -1007,6 +1014,7 @@ void Title_CsGreatFox_Setup(void) {
 void Title_CsGreatFoxTraveling_Update(void) {
     f32 temp;
     f32 temp2;
+    //printf("%s\n", __func__);
 
     switch (sSceneState) {
         case 0:
@@ -1018,7 +1026,7 @@ void Title_CsGreatFoxTraveling_Update(void) {
             sTitleMsgFrameCount = 0;
 
             gRadioState = 0;
-            gHideRadio = false;
+            gHideRadio = 0;
             gRadioMsgPri = 0;
             break;
 
@@ -1125,7 +1133,7 @@ void Title_CsGreatFoxTraveling_Update(void) {
             }
 
             if (sTimer1 == 1) {
-                D_menu_801B8348 = true;
+                D_menu_801B8348 = 1;
             }
 
             if (sTimer1 != 0) {
@@ -1175,7 +1183,7 @@ void Title_CsGreatFoxTraveling_Update(void) {
             }
 
             if (sTimer3 == 260) {
-                sTitleCorneria.draw = true;
+                sTitleCorneria.draw = 1;
             }
 
             if (sTimer3 == 750) {
@@ -1228,7 +1236,7 @@ void Title_CsTeamRunning_Setup(void) {
     gFillScreenGreen = 0;
     gFillScreenBlue = 0;
 
-    sDrawTeamName = false;
+    sDrawTeamName = 0;
     D_menu_801B8334 = 0;
     D_menu_801B8338 = 1;
 
@@ -1335,6 +1343,7 @@ CameraPoint D_menu_801ADA94[50] = {
 
 void Title_CsTeamRunning_Update(void) {
     static s32 D_menu_801ADF44[] = { 63, 170, 268, 368 };
+    //printf("%s\n", __func__);
 
     switch (sSceneState) {
         case 0:
@@ -1375,7 +1384,7 @@ void Title_CsTeamRunning_Update(void) {
             Title_Cutscene_SetCamera(D_menu_801B8294, 34, D_menu_801B8290);
 
             if (sTimer3 == D_menu_801ADF44[D_menu_801B8340]) {
-                sDrawTeamName = true;
+                sDrawTeamName = 1;
                 sTimer1 = 40;
                 sSceneState = 3;
             }
@@ -1399,7 +1408,7 @@ void Title_CsTeamRunning_Update(void) {
 
         case 3:
             if (sTimer1 == 0) {
-                sDrawTeamName = false;
+                sDrawTeamName = 0;
                 sSceneState = 2;
                 D_menu_801B8340++;
             }
@@ -1500,6 +1509,8 @@ void Title_CsGreatFoxCloseUp_Setup(void) {
 }
 
 void Title_CsGreatFoxCloseUp_Update(void) {
+      //printf("%s\n", __func__);
+
     switch (sSceneState) {
         case 0:
             Title_CsGreatFoxCloseUp_Setup();
@@ -1604,7 +1615,7 @@ void Title_CsTakeOff_Setup(void) {
     sTitleCorneria.pos.y = 0.0f;
     sTitleCorneria.pos.z = 1000.0f;
     sTitleCorneria.scale = 2.0f;
-    sTitleCorneria.draw = false;
+    sTitleCorneria.draw = 0;
 
     D_menu_801B7BE4 = 1;
 
@@ -1629,8 +1640,8 @@ void Title_CsTakeOff_Setup(void) {
         sTitleArwing[i].unk_44 = 0.0f;
         sTitleArwing[i].vel = 0.05f;
 
-        sTitleArwing[i].drawShadow = true;
-        sTitleArwing[i].draw = true;
+        sTitleArwing[i].drawShadow = 1;
+        sTitleArwing[i].draw = 1;
     }
 
     D_menu_801B86BC = 140.0f;
@@ -1657,6 +1668,7 @@ void Title_CsTakeOff_Setup(void) {
 void Title_CsTakeOff_Update(void) {
     s32 i;
     f32 temp[4];
+    //printf("%s\n", __func__);
 
     switch (sSceneState) {
         case 0:
@@ -1726,20 +1738,20 @@ void Title_CsTakeOff_Update(void) {
 
             if (sTimer3 == 70) {
                 D_menu_801B7BE4 = 0;
-                sTitleArwing[TEAM_FOX].draw = false;
+                sTitleArwing[TEAM_FOX].draw = 0;
             }
 
             if (sTimer3 == 80) {
-                sTitleArwing[TEAM_FALCO].draw = false;
+                sTitleArwing[TEAM_FALCO].draw = 0;
 
                 for (i = 0; i < 4; i++) {
-                    sTitleArwing[i].drawShadow = false;
+                    sTitleArwing[i].drawShadow = 0;
                 }
             }
 
             if (sTimer3 == 115) {
-                sTitleArwing[TEAM_FOX].draw = true;
-                sTitleArwing[TEAM_FALCO].draw = true;
+                sTitleArwing[TEAM_FOX].draw = 1;
+                sTitleArwing[TEAM_FALCO].draw = 1;
             }
 
             if (sTimer3 == 226) {
@@ -1820,11 +1832,11 @@ void Title_CsTakeOff_Update(void) {
             }
 
             if (sTimer3 == 50) {
-                sTitleArwing[TEAM_FOX].draw = false;
+                sTitleArwing[TEAM_FOX].draw = 0;
             }
 
             if (sTimer3 == 60) {
-                sTitleArwing[TEAM_FALCO].draw = false;
+                sTitleArwing[TEAM_FALCO].draw = 0;
             }
 
             Math_SmoothStepToF(&D_menu_801B86B4, 16.0f, 0.01f, 100.0f, 0.01f);
@@ -1924,7 +1936,7 @@ void Title_CsTakeOffSpace_Setup(void) {
         D_menu_801B7CA0[i] = 0;
     }
 
-    sDrawTakeOffSpace = true;
+    sDrawTakeOffSpace = 1;
     D_menu_801B86BC = 0.0f;
     D_menu_801B86C0 = -38.0f;
     D_menu_801B86C4 = 35.0f;
@@ -1945,7 +1957,7 @@ void Title_CsTakeOffSpace_Setup(void) {
     sTitleCorneria.pos.y = -30.0f;
     sTitleCorneria.pos.z = 2000.0f;
     sTitleCorneria.scale = 8.0f;
-    sTitleCorneria.draw = false;
+    sTitleCorneria.draw = 0;
 
     sTitleGreatFox.pos.x = 0.0f;
     sTitleGreatFox.pos.y = 0.0f;
@@ -1982,8 +1994,8 @@ void Title_CsTakeOffSpace_Setup(void) {
         sTitleArwing[i].unk_3C = 1;
         sTitleArwing[i].unk_40 = 0;
         sTitleArwing[i].unk_44 = 1.2f;
-        sTitleArwing[i].drawShadow = false;
-        sTitleArwing[i].draw = false;
+        sTitleArwing[i].drawShadow = 0;
+        sTitleArwing[i].draw = 0;
     }
 
     D_menu_801B86BC = -8.0f;
@@ -2024,6 +2036,7 @@ void Title_CsTakeOffSpace_Update(void) {
     static f32 D_menu_801AE434[4] = { -15.0f, -5.0f, 5.0f, 10.0f };
     static f32 D_menu_801AE444[4] = { -50.0f, -45.0f, -55.0f, -60.0f };
     static f32 D_menu_801AE454[4] = { 265.0f, 260.0f, 255.0f, 230.0f };
+    //printf("%s\n", __func__);
 
     switch (sSceneState) {
         case 0:
@@ -2034,7 +2047,7 @@ void Title_CsTakeOffSpace_Update(void) {
 
             sTimer3 = 0;
             D_menu_801B7BEC = 0;
-            sTitleCorneria.draw = true;
+            sTitleCorneria.draw = 1;
 
             sTitleArwing[TEAM_FOX].timer = 3;
             sTitleArwing[TEAM_FALCO].timer = 23;
@@ -2057,7 +2070,7 @@ void Title_CsTakeOffSpace_Update(void) {
                     if (sTitleArwing[i].timer == 0) {
                         AUDIO_PLAY_SFX(NA_SE_PASS, sTitleArwing[i].sfxSource, 0);
                         sTitleArwing[i].timer = -1;
-                        sTitleArwing[i].draw = true;
+                        sTitleArwing[i].draw = 1;
                     }
 
                     Math_SmoothStepToF(&sTitleArwing[i].pos.y, D_menu_801AE444[i], sTitleArwing[i].vel, 100.0f, 0.001f);
@@ -2070,7 +2083,7 @@ void Title_CsTakeOffSpace_Update(void) {
                         sTitleArwing[i].scale -= 0.002f;
                         if (sTitleArwing[i].scale < 0.0f) {
                             sTitleArwing[i].scale = 0.0f;
-                            sTitleArwing[i].draw = false;
+                            sTitleArwing[i].draw = 0;
                         }
                     }
 
@@ -2099,7 +2112,7 @@ void Title_CsTakeOffSpace_Update(void) {
         case 2:
             gFillScreenAlpha = 0;
             gStarCount = 0;
-            sDrawTakeOffSpace = false;
+            sDrawTakeOffSpace = 0;
             sTimer1 = 20;
             sSceneState++;
             break;
@@ -2478,7 +2491,7 @@ void Title_GreatFox_Draw(void) {
     Matrix_SetGfxMtx(&gMasterDisp);
     RCP_SetupDL(&gMasterDisp, SETUPDL_23);
 
-    gGreatFoxIntact = true; // Unused here
+    gGreatFoxIntact = 1; // Unused here
 
     Cutscene_DrawGreatFox();
 
@@ -2786,7 +2799,7 @@ bool Title_Team_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* 
             break;
     }
 
-    return false;
+    return 0;
 }
 
 void Title_Passage_Draw(void) {
@@ -3212,6 +3225,8 @@ void Title_TitleCard_Draw(void) {
 
 // Redirect to either Title Screen or Option menu
 void Title_NextState_Check(void) {
+    //printf("%s\n", __func__);
+
     if (sCutsceneState == TITLE_SCREEN) {
         Title_NextState_OptionMenu();
     } else {
@@ -3220,14 +3235,15 @@ void Title_NextState_Check(void) {
 }
 
 void Title_NextState_TitleScreen(void) {
+    //printf("%s\n", __func__);
     switch (sLevelStartState) {
         case 0: // Wait for input
             if (gControllerPress[gMainController].button &
                 (START_BUTTON | A_BUTTON | B_BUTTON | D_CBUTTONS | L_CBUTTONS | U_CBUTTONS | R_CBUTTONS)) {
                 AUDIO_PLAY_SFX(NA_SE_DECIDE, gDefaultSfxSource, 4);
                 sWipeHeight = 0;
-                sLevelStartState = true;
-                gControllerLock = 30;
+                sLevelStartState = 1;
+                gControllerLock = 0;//30;
             }
             break;
 
@@ -3241,15 +3257,16 @@ void Title_NextState_TitleScreen(void) {
                 sSceneState = 0;
                 gDrawMode = DRAW_NONE;
                 sCutsceneState = TITLE_SCREEN;
-                gControllerLock = 30;
+                gControllerLock = 0;//30;
                 sWipeHeight = 0;
-                sLevelStartState = false;
+                sLevelStartState = 0;
             }
             break;
     }
 }
 
 void Title_NextState_OptionMenu(void) {
+    //printf("%s\n", __func__);
     if (gControllerLock == 0) {
         switch (sLevelStartState) {
             case 0: // Wait for input
@@ -3260,7 +3277,7 @@ void Title_NextState_OptionMenu(void) {
                     SEQCMD_STOP_SEQUENCE(SEQ_PLAYER_BGM, 30);
                     SEQCMD_STOP_SEQUENCE(SEQ_PLAYER_FANFARE, 30);
                     sWipeHeight = 0;
-                    sLevelStartState = true;
+                    sLevelStartState = 1;
                 }
                 break;
 
@@ -3273,9 +3290,9 @@ void Title_NextState_OptionMenu(void) {
                     gOptionMenuStatus = OPTION_WAIT;
                     gDrawMode = DRAW_NONE;
                     gStarCount = 0;
-                    sLevelStartState = false;
+                    sLevelStartState = 0;
                     sWipeHeight = 0;
-                    gControllerLock = 3;
+                    gControllerLock = 0;//3;
                 }
                 break;
         }
@@ -3285,11 +3302,12 @@ void Title_NextState_OptionMenu(void) {
 void Title_Screen_Input(void) {
     f32 stickX;
     f32 stickY;
+    //printf("%s\n", __func__);
 
     if ((D_menu_801B82B0 == 0) && !D_menu_801B9040 &&
         ((gControllerPress[gMainController].stick_x != 0) || (gControllerPress[gMainController].stick_y != 0))) {
-        D_menu_801B9040 = true;
-        D_menu_801B86A4 = false;
+        D_menu_801B9040 = 1;
+        D_menu_801B86A4 = 0;
     }
 
     stickX = gControllerPress[gMainController].stick_x;
@@ -3342,6 +3360,7 @@ void Title_SetCamUp3(bool arg0, f32* arg1, f32* arg2, f32* arg3, f32* arg4, f32*
     f32* var_t0;
     f32* var_v0;
     f32* var_v1;
+//printf("%s\n",__func__);
 
     if (arg0) {
         var_v0 = arg4;

@@ -1,6 +1,3 @@
-#include "PR/os_internal.h"
-#include "osint.h"
+#include "common.h"
 
-OSThread* __osGetActiveQueue(void) {
-    return __osActiveQueue;
-}
+#pragma GLOBAL_ASM("asm/us/rev1/nonmatchings/libultra/os/getactivequeue/__osGetActiveQueue.s")

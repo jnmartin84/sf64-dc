@@ -617,7 +617,7 @@ bool func_80099254(Vec3f* objPos, Vec3f* colliderPos, Vec3f* objVel, CollisionHe
                         hitAnglesOut[0] = Math_Atan2F_XY(polyPlane.normal.y, polyPlane.normal.z);
                         if (polyPlane.normal.z != 0.0f) {
                             hitAnglesOut[1] = -Math_Atan2F_XY(
-                                __sinf(Math_Atan2F_XY(polyPlane.normal.y, polyPlane.normal.z)) * polyPlane.normal.z,
+                                sinf(Math_Atan2F_XY(polyPlane.normal.y, polyPlane.normal.z)) * polyPlane.normal.z,
                                 polyPlane.normal.x);
                         } else if (hitAnglesOut[0] >= M_PI) {
                             hitAnglesOut[1] = Math_Atan2F_XY(polyPlane.normal.y, polyPlane.normal.x);

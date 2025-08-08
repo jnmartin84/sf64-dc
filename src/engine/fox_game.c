@@ -3,6 +3,7 @@
 #include "sf64dma.h"
 #include "assets/ast_logo.h"
 #include "mods.h"
+#include <stdio.h>
 
 f32 gNextVsViewScale;
 f32 gVsViewScale;
@@ -20,8 +21,8 @@ f32 gFovY;
 f32 gProjectNear;
 f32 gProjectFar;
 
-bool gShowReticles[4] = { true, true, true, true };
-bool D_game_800D2870 = false;
+bool gShowReticles[4] = { 1, 1, 1, 1 };
+bool D_game_800D2870 = 0;
 s32 sVsCameraULx[] = { 0, SCREEN_WIDTH / 2, 0, SCREEN_WIDTH / 2 };
 s32 sVsCameraLRx[] = { SCREEN_WIDTH / 2 - 1, SCREEN_WIDTH - 1, SCREEN_WIDTH / 2 - 1, SCREEN_WIDTH - 1 };
 s32 sVsCameraULy[] = { 0, 0, SCREEN_HEIGHT / 2, SCREEN_HEIGHT / 2 };
@@ -49,24 +50,16 @@ s32 sLevelSceneIds[] = {
     /* LEVEL_VENOM_2 */ SCENE_VENOM_2,
     /* LEVEL_VERSUS */ SCENE_VERSUS,
 };
-
+#include <stdio.h>
 void Game_Initialize(void) {
+
+    //printf("%s()\n", __func__);
+
     Memory_FreeAll();
     Rand_Init();
     Rand_SetSeed(1, 29000, 9876);
     gGameState = GSTATE_BOOT;
-#ifdef MODS_BOOT_STATE
-    gNextGameState = GSTATE_INIT;
-    if (Save_Read() != 0) {
-#ifdef AVOID_UB
-        gSaveFile.save = gDefaultSave;
-        gSaveFile.backup = gDefaultSave;
-#else
-        gSaveFile = *((SaveFile*) &gDefaultSave);
-#endif
-        Save_Write();
-    }
-#endif
+
     gNextGameStateTimer = 0;
     gBgColor = 0;
     gBlurAlpha = 255;
@@ -77,7 +70,7 @@ void Game_Initialize(void) {
     gSceneId = SCENE_LOGO;
     gSceneSetup = 0;
     Load_InitDmaAndMsg();
-    gGameStandby = true;
+    gGameStandby = 1;
 }
 
 void Game_SetGameState(void) {
@@ -95,7 +88,7 @@ void Game_SetGameState(void) {
             gLevelPhase = gNextLevelPhase;
             gNextLevelPhase = 0;
             if ((gLevelPhase != 0) && (gCurrentLevel != LEVEL_VENOM_ANDROSS)) {
-                D_ctx_8017782C = false;
+                D_ctx_8017782C = 0;
             }
             break;
         case GSTATE_MAP:
@@ -132,7 +125,8 @@ void Game_SetGameState(void) {
     Audio_SetEnvSfxReverb(0);
 }
 
-bool Game_ChangeScene(void) {
+s32 Game_ChangeScene(void) {
+    //printf("%s\n", __func__);
     static u8 sHoldTimer = 0;
     static u8 sSceneSelect = SCENE_LOGO;
     static u8 sCurrentSceneId = SCENE_LOGO;
@@ -150,12 +144,14 @@ bool Game_ChangeScene(void) {
 
     if (sHoldTimer) {
         sHoldTimer--;
-        return true;
+        return 1;
     }
-    return false;
+    return 0;
 }
 
 void Game_InitMasterDL(Gfx** dList) {
+
+    //printf("%s\n", __func__);
     gSPDisplayList((*dList)++, gRcpInitDL);
     gDPSetScissor((*dList)++, G_SC_NON_INTERLACE, SCREEN_MARGIN, SCREEN_MARGIN, SCREEN_WIDTH - SCREEN_MARGIN,
                   SCREEN_HEIGHT - SCREEN_MARGIN);
@@ -177,13 +173,15 @@ void Game_InitMasterDL(Gfx** dList) {
         gDPSetFillColor((*dList)++, FILL_COLOR(gBgColor | 1));
     }
 
-    gDPFillRectangle((*dList)++, SCREEN_MARGIN, SCREEN_MARGIN, SCREEN_WIDTH - SCREEN_MARGIN - 1,
+   gDPFillRectangle((*dList)++, SCREEN_MARGIN, SCREEN_MARGIN, SCREEN_WIDTH - SCREEN_MARGIN - 1,
                      SCREEN_HEIGHT - SCREEN_MARGIN);
     gDPPipeSync((*dList)++);
     gDPSetColorDither((*dList)++, G_CD_MAGICSQ);
 }
 
 void Game_InitStandbyDL(Gfx** dList) {
+        //printf("%s\n", __func__);
+
     gSPDisplayList((*dList)++, gRcpInitDL);
     gDPSetScissor((*dList)++, G_SC_NON_INTERLACE, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT * 3);
     gDPSetFillColor((*dList)++, FILL_COLOR(0x0001));
@@ -201,6 +199,7 @@ void Game_InitFullViewport(void) {
 }
 
 void Game_InitViewport(Gfx** dList, u8 camCount, u8 camIndex) {
+//printf("%s\n", __func__);
     switch (camCount) {
         case 4:
             switch (camIndex) {
@@ -266,6 +265,7 @@ void Game_InitViewport(Gfx** dList, u8 camCount, u8 camIndex) {
 }
 
 void Game_Draw(s32 playerNum) {
+    //printf("GAMEDRAW(%d)\n",playerNum);
     switch (gDrawMode) {
         case DRAW_NONE:
             break;
@@ -302,9 +302,11 @@ void Game_Draw(s32 playerNum) {
             Ending_Draw();
             break;
     }
+    //printf("\tdone.\n");
 }
 
 void Game_SetScene(void) {
+    //printf("%s\n", __func__);
     switch (gGameState) {
         case GSTATE_INIT:
             gSceneId = SCENE_TITLE;
@@ -342,25 +344,28 @@ void Game_Update(void) {
     s32 i;
     u8 partialFill;
     u8 soundMode;
-
+//printf("in game_update\n");
     Game_SetGameState();
 
     if (gGameStandby) {
         Game_InitStandbyDL(&gUnkDisp1);
-        gGameStandby = false;
+        gGameStandby = 0;
         return;
     }
 
     Game_InitMasterDL(&gUnkDisp1);
     Game_SetScene();
-
-    if (Game_ChangeScene() != true) {
+    s32 scene_changed = Game_ChangeScene();
+    if (scene_changed != 1) {
+        //printf("scene change was %d\n", scene_changed);
         Lib_InitPerspective(&gUnkDisp1);
         Game_InitViewport(&gUnkDisp1, gCamCount, 0);
 
         if (gNextGameStateTimer != 0) {
             gNextGameStateTimer--;
         }
+
+//        printf("gGameState %d gNextGameStateTimer %d\n", gGameState, gNextGameStateTimer);
 
         switch (gGameState) {
             case GSTATE_BOOT:
@@ -386,6 +391,7 @@ void Game_Update(void) {
                 break;
 
             case GSTATE_CHECK_SAVE:
+
                 if (Save_Read() != 0) {
 #ifdef AVOID_UB
                     gSaveFile.save = gDefaultSave;
@@ -396,8 +402,9 @@ void Game_Update(void) {
                     Save_Write();
                 }
                 gGameState++;
-                Timer_CreateTask(MSEC_TO_CYCLES(1000), Timer_Increment, (s32*) &gGameState, 1);
+                Timer_CreateTask(/* MSEC_TO_CYCLES(1000) */1000, Timer_Increment, (s32*) &gGameState, 1);
                 /* fallthrough */
+
             case GSTATE_LOGO_WAIT:
                 RCP_SetupDL(&gMasterDisp, SETUPDL_76);
                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255);
@@ -406,6 +413,9 @@ void Game_Update(void) {
                 Lib_TextureRect_IA8(&gMasterDisp, &aNintendoLogoTex[128 * 16 * 2], 128, 16, 100.0f, 118.0f, 1.0f, 1.0f);
                 Lib_TextureRect_IA8(&gMasterDisp, &aNintendoLogoTex[128 * 16 * 3], 128, 16, 100.0f, 134.0f, 1.0f, 1.0f);
                 Lib_TextureRect_IA8(&gMasterDisp, &aNintendoLogoTex[128 * 16 * 4], 128, 10, 100.0f, 150.0f, 1.0f, 1.0f);
+//                gGameState++;
+  //                              gGameState = //GSTATE_PLAY;//105;
+  
                 break;
 
             case GSTATE_START:
@@ -417,7 +427,7 @@ void Game_Update(void) {
             case GSTATE_INIT:
                 gGameState = GSTATE_TITLE;
                 gTitleState = 1;
-                gClearPlayerInfo = true;
+                gClearPlayerInfo = 1;
                 Memory_FreeAll();
                 Play_ClearObjectData();
                 gCamCount = 1;
@@ -442,7 +452,7 @@ void Game_Update(void) {
 
                     D_ctx_80177858[i] = 3;
                     gPlayerForms[i] = FORM_ARWING;
-                    gShowReticles[i] = true;
+                    gShowReticles[i] = 1;
                     gPlayerGlareAlphas[i] = 0;
                 }
 
@@ -454,7 +464,7 @@ void Game_Update(void) {
                     gLeveLClearStatus[i] = 0;
                 }
 
-                gExpertMode = false;
+                gExpertMode = 0;
                 gOptionSoundMode = gSaveFile.save.data.soundMode;
 
                 switch (gOptionSoundMode) {
@@ -521,12 +531,14 @@ void Game_Update(void) {
         Game_Draw(0);
 
         if (gCamCount == 2) {
+            //printf("gCamCount == 2\n");
             Game_InitViewport(&gMasterDisp, gCamCount, 1);
             Game_Draw(1);
             gDPPipeSync(gMasterDisp++);
             gDPSetScissor(gMasterDisp++, G_SC_NON_INTERLACE, SCREEN_MARGIN, SCREEN_MARGIN, SCREEN_WIDTH - SCREEN_MARGIN,
                           SCREEN_HEIGHT - SCREEN_MARGIN);
         } else if ((gCamCount == 4) && (gDrawMode != DRAW_NONE)) {
+            //printf("gCamCount == 4 && !DRAW_NONE\n");
             Game_InitViewport(&gMasterDisp, gCamCount, 3);
             Game_Draw(3);
             Game_InitViewport(&gMasterDisp, gCamCount, 2);
@@ -554,15 +566,16 @@ void Game_Update(void) {
             }
             gDPFillRectangle(gMasterDisp++, SCREEN_WIDTH / 2 - 1 - 1, SCREEN_MARGIN, SCREEN_WIDTH / 2 + 1,
                              SCREEN_HEIGHT - SCREEN_MARGIN);
-            gDPFillRectangle(gMasterDisp++, SCREEN_MARGIN, SCREEN_HEIGHT / 2 - 1 - 1, SCREEN_WIDTH - SCREEN_MARGIN,
+        gDPFillRectangle(gMasterDisp++, SCREEN_MARGIN, SCREEN_HEIGHT / 2 - 1 - 1, SCREEN_WIDTH - SCREEN_MARGIN,
                              SCREEN_HEIGHT / 2 + 1);
 
             HUD_8008CB8C();
         }
 
-        partialFill = false;
+        partialFill = 0;
 
         if (gCamCount == 1) {
+            //printf("gCamCount == 1\n");
             Graphics_FillRectangle(&gMasterDisp, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, gPlayerGlareReds[0],
                                    gPlayerGlareGreens[0], gPlayerGlareBlues[0], gPlayerGlareAlphas[0]);
             if ((gDrawMode == DRAW_PLAY) || (gDrawMode == DRAW_ENDING)) {
@@ -573,14 +586,17 @@ void Game_Update(void) {
                 }
                 HUD_DrawBossHealth();
             }
+            //printf("gCamCount == 1 path\n");
         } else {
+            //printf("gCamCount == %d path\n", gCamCount);
+
             for (i = 0; i < gCamCount; i++) {
                 if (gPlayer[i].dmgEffectTimer != 0) {
 
                     Graphics_FillRectangle(&gMasterDisp, sVsCameraULx[i], sVsCameraULy[i], sVsCameraLRx[i],
                                            sVsCameraLRy[i], gFillScreenRed, gFillScreenGreen, gFillScreenBlue,
                                            gFillScreenAlpha);
-                    partialFill = true;
+                    partialFill = 1;
                 } else {
                     Graphics_FillRectangle(&gMasterDisp, sVsCameraULx[i], sVsCameraULy[i], sVsCameraLRx[i],
                                            sVsCameraLRy[i], gPlayerGlareReds[i], gPlayerGlareGreens[i],
@@ -604,7 +620,10 @@ void Game_Update(void) {
                                    gFillScreenGreen, gFillScreenBlue, gFillScreenAlpha);
         }
         Audio_dummy_80016A50();
-#if MODS_RAM_MOD == 1
+
+
+#if 0
+        #if MODS_RAM_MOD == 1
         RamMod_Update();
 #endif
 #if MODS_FPS_COUNTER == 1
@@ -612,6 +631,7 @@ void Game_Update(void) {
 #endif
 #if MODS_SPAWNER == 1
         Spawner();
+#endif
 #endif
     }
 }

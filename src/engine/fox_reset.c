@@ -36,7 +36,8 @@ void Graphics_NMIWipe(void) {
 
     sWipeBarLength += SCREEN_WIDTH / 7;
     if (sWipeBarLength >= SCREEN_WIDTH * 85 / 8 / 7) { // Why 85 / 8 == 3400 / 320 == 10.625? Has to do with NMI timing?
-        osViBlack(true);
+// jnmartin84 need kos black here
+        //        osViBlack(true);
         gStopTasks = true;
     }
 

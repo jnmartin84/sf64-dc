@@ -1,4 +1,15 @@
-#include "sys.h"
+#include "n64sys.h"
+
+#include <stdint.h>
+#include <math.h>
+#include <string.h>
+#include <stddef.h>
+#include <stdarg.h>
+
+//#define M_DTOR	(M_PI / 180.0f)
+#define M_RTOD	(180.0f / M_PI)
+
+
 
 Mtx gIdentityMtx = { {
     {
@@ -66,6 +77,7 @@ void Matrix_Mult(Matrix* mtx, Matrix* tf, u8 mode) {
         ry = mtx->m[1][0];
         rz = mtx->m[2][0];
         rw = mtx->m[3][0];
+
 
         for (i0 = 0; i0 < 4; i0++) {
             mtx->m[i0][0] = (rx * tf->m[i0][0]) + (ry * tf->m[i0][1]) + (rz * tf->m[i0][2]) + (rw * tf->m[i0][3]);
@@ -158,8 +170,8 @@ void Matrix_RotateX(Matrix* mtx, f32 angle, u8 mode) {
     f32 rz;
     s32 i;
 
-    sn = __sinf(angle);
-    cs = __cosf(angle);
+    sn = sinf(angle);
+    cs = cosf(angle);
     if (mode == 1) {
         for (i = 0; i < 4; i++) {
             ry = mtx->m[1][i];
@@ -186,8 +198,8 @@ void Matrix_RotateY(Matrix* mtx, f32 angle, u8 mode) {
     f32 rz;
     s32 i;
 
-    sn = __sinf(angle);
-    cs = __cosf(angle);
+    sn = sinf(angle);
+    cs = cosf(angle);
     if (mode == 1) {
         for (i = 0; i < 4; i++) {
             rx = mtx->m[0][i];
@@ -214,8 +226,8 @@ void Matrix_RotateZ(Matrix* mtx, f32 angle, u8 mode) {
     f32 ry;
     s32 i;
 
-    sn = __sinf(angle);
-    cs = __cosf(angle);
+    sn = sinf(angle);
+    cs = cosf(angle);
     if (mode == 1) {
         for (i = 0; i < 4; i++) {
             rx = mtx->m[0][i];
@@ -264,8 +276,8 @@ void Matrix_RotateAxis(Matrix* mtx, f32 angle, f32 axisX, f32 axisY, f32 axisZ, 
         axisX /= norm;
         axisY /= norm;
         axisZ /= norm;
-        sinA = __sinf(angle);
-        cosA = __cosf(angle);
+        sinA = sinf(angle);
+        cosA = cosf(angle);
         xx = axisX * axisX;
         yy = axisY * axisY;
         zz = axisZ * axisZ;
@@ -329,8 +341,25 @@ void Matrix_RotateAxis(Matrix* mtx, f32 angle, f32 axisX, f32 axisY, f32 axisZ, 
     }
 }
 
+
+void Matrix_ToMtx(Mtx* m) {
+    int r, c;
+    s32 tmp1;
+    s32 tmp2;
+    s32* m1 = &m->m[0][0];
+    s32* m2 = &m->m[2][0];
+    for (r = 0; r < 4; r++) {
+        for (c = 0; c < 2; c++) {
+            tmp1 = gGfxMatrix->m[r][2 * c] * 65536.0f;
+            tmp2 = gGfxMatrix->m[r][2 * c + 1] * 65536.0f;
+            *m1++ = (tmp1 & 0xffff0000) | ((tmp2 >> 0x10) & 0xffff);
+            *m2++ = ((tmp1 << 0x10) & 0xffff0000) | (tmp2 & 0xffff);
+        }
+    }
+}
+
 // Converts the current Gfx matrix to a Mtx
-void Matrix_ToMtx(Mtx* dest) {
+void old_Matrix_ToMtx(Mtx* dest) {
     s32 intVal;
     u16(*iPart)[4] = dest->u.i;
     u16(*fPart)[4] = dest->u.f;

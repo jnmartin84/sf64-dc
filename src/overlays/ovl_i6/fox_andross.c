@@ -109,7 +109,7 @@ void Andross_Backdrop_RotEffect(void) {
     backdropTex2 = SEGMENTED_TO_VIRTUAL(&aAndBackdrop1Tex2);
 
     for (i = 0; i < 32 * 32; i += 32) {
-        rotOffset = 4.0f * __sinf((s32) (((i / 32) + (gGameFrameCount / 2)) % 32U) * (2 * M_PI / 32));
+        rotOffset = 4.0f * sinf((s32) (((i / 32) + (gGameFrameCount / 2)) % 32U) * (2 * M_PI / 32));
 
         for (j = 0; j < 32; j++) {
             backdropTex1[i + ((rotOffset + j) % 32U)] = backdropTex2[i + j];
@@ -4198,8 +4198,8 @@ void Andross_LevelComplete(Player* player) {
 
             sp80 = RAND_FLOAT(40.0f);
             for (i = 0; i < 36; i += 4) {
-                sp8C = __sinf((i * 10.0f * M_DTOR) + sp80) * D_ctx_80177A48[2];
-                sp84 = __cosf((i * 10.0f * M_DTOR) + sp80) * D_ctx_80177A48[2];
+                sp8C = sinf((i * 10.0f * M_DTOR) + sp80) * D_ctx_80177A48[2];
+                sp84 = cosf((i * 10.0f * M_DTOR) + sp80) * D_ctx_80177A48[2];
                 Effect_FireSmoke1_SpawnMoving(sp8C, 300.0f, sp84, 0.0f, 0.0f, 0.0f, RAND_FLOAT(5.5f) + 15.5f);
             }
 

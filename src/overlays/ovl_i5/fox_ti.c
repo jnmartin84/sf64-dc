@@ -1268,6 +1268,12 @@ void Titania_8018C72C(TiDesertCrawler* this) {
 
 Vec3f D_i5_801B766C = { 0.0f, 0.0f, 15.0f };
 
+static void sincos(float arg, float *s, float *c) {
+    *s = sinf(arg);
+    *c = cosf(arg);
+}
+                                             float ts,tc;
+
 void Titania_TiDesertCrawler_Update(TiDesertCrawler* this) {
     s32 i;
     f32 sp170;
@@ -1619,9 +1625,10 @@ void Titania_TiDesertCrawler_Update(TiDesertCrawler* this) {
                             actorPtr->obj.rot.y = var_s1->unk_00.rot.y + this->obj.rot.y;
                             actorPtr->obj.rot.z = var_s1->unk_00.rot.z + this->obj.rot.z;
                             sp170 = Math_Atan2F(var_s1->unk_00.pos.z, var_s1->unk_00.pos.x);
-                            actorPtr->vel.x = __sinf(sp170) * (7.0f + RAND_FLOAT(5.0f));
-                            actorPtr->vel.z = __cosf(sp170) * (7.0f + RAND_FLOAT(5.0f));
+                            sincos(sp170,&ts,&tc);
+                            actorPtr->vel.x = ts * (7.0f + RAND_FLOAT(5.0f));
                             actorPtr->vel.y = 7.0f + RAND_FLOAT(10.0f);
+                            actorPtr->vel.z = tc * (7.0f + RAND_FLOAT(5.0f));
                             actorPtr->iwork[0] = 1;
                             actorPtr->iwork[1] = 1;
                             if (i != 8) {
@@ -1655,8 +1662,10 @@ void Titania_TiDesertCrawler_Update(TiDesertCrawler* this) {
                                 actorPtr->obj.rot.y = var_s1->unk_00.rot.y + this->obj.rot.y;
                                 actorPtr->obj.rot.z = var_s1->unk_00.rot.z + this->obj.rot.z;
                                 sp170 = Math_Atan2F(var_s1->unk_00.pos.z, var_s1->unk_00.pos.x);
-                                actorPtr->vel.x = __sinf(sp170) * (7.0f + RAND_FLOAT(5.0f));
-                                actorPtr->vel.z = __cosf(sp170) * (7.0f + RAND_FLOAT(5.0f));
+                                                            sincos(sp170,&ts,&tc);
+
+                                actorPtr->vel.x = ts * (7.0f + RAND_FLOAT(5.0f));
+                                actorPtr->vel.z = tc * (7.0f + RAND_FLOAT(5.0f));
                                 actorPtr->vel.y = 7.0f + RAND_FLOAT(10.0f);
                                 actorPtr->iwork[0] = 1;
                                 actorPtr->iwork[1] = 1;
@@ -2744,7 +2753,7 @@ bool Titania_80190A08(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* 
                         if (D_i5_801BBEF4[2] != 0.0f) {
                             rot->z += D_i5_801BBEF4[2];
                             if (D_i5_801BBEF4[3] != 0.0f) {
-                                rot->z += __sinf((D_i5_801BBEF4[3] / D_i5_801BBEF4[5]) * 360.0f * M_DTOR) *
+                                rot->z += sinf((D_i5_801BBEF4[3] / D_i5_801BBEF4[5]) * 360.0f * M_DTOR) *
                                           D_i5_801BBEF4[3] / 6.0f;
                             }
                         }
@@ -2785,7 +2794,7 @@ bool Titania_80190A08(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* 
 
                 if (spA0 != 0) {
                     spA8 = D_i5_801B7960[temp_v1][0];
-                    sp9C = ((__sinf(D_i5_801BD6B0[temp_v1] * M_DTOR) * D_i5_801BD668[temp_v1]) /
+                    sp9C = ((sinf(D_i5_801BD6B0[temp_v1] * M_DTOR) * D_i5_801BD668[temp_v1]) /
                             D_i5_801B7960[temp_v1][1]) *
                            D_i5_801B7960[temp_v1][2];
                     switch (spA8) {
@@ -2941,7 +2950,7 @@ bool Titania_80190A08(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* 
 
                 if ((limbIndex == 51) || (limbIndex == 66)) {
                     if (D_i5_801BBEF0[1] != 0) {
-                        sp68 = 1.1f - (fabsf(__sinf(((f32) D_i5_801BBEF0[0] / D_i5_801BBEF0[1]) * 360.0f * M_DTOR))) *
+                        sp68 = 1.1f - (fabsf(sinf(((f32) D_i5_801BBEF0[0] / D_i5_801BBEF0[1]) * 360.0f * M_DTOR))) *
                                           D_i5_801BBEF4[0];
                         Matrix_Push(&gCalcMatrix);
                         Matrix_Scale(gCalcMatrix, sp68, sp68, sp68, MTXF_APPLY);
@@ -4515,7 +4524,7 @@ void Titania_80193DF0(TiGoras* this) {
                 ((this->animFrame >= 62) && (this->animFrame < 80))) {
                 D_i5_801BBEF4[12] =
                     Math_Atan2F(gPlayer[0].pos.x - this->obj.pos.x, gPlayer[0].pos.z - this->obj.pos.z) * M_RTOD;
-                D_i5_801BBEF4[11] = __cosf(D_i5_801BBEF4[12] * M_DTOR) * 580.0f;
+                D_i5_801BBEF4[11] = cosf(D_i5_801BBEF4[12] * M_DTOR) * 580.0f;
             }
             if ((this->animFrame >= 37) && (this->animFrame < 41) && (this->swork[11] > 0)) {
                 spD4.x = this->obj.pos.x + D_i5_801BBEF4[68];

@@ -1,6 +1,6 @@
 
 
-#include "sys.h"
+#include "n64sys.h"
 
 SaveFile gSaveIOBuffer;
 SaveFile sPrevSaveData;

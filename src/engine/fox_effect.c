@@ -1132,8 +1132,8 @@ void Effect_WaterSpray_SetupCircle(EffectWaterSpray* this, f32 xPos, f32 unused_
 }
 
 void Effect_WaterSpray_SpawnCircle(f32 xPos, f32 yPos, f32 zPos, f32 scale2, f32 scale1) {
-    f32 cosf;
-    f32 sinf;
+    f32 vcosf;
+    f32 vsinf;
     f32 yRot;
     s32 i;
     s32 j;
@@ -1141,9 +1141,9 @@ void Effect_WaterSpray_SpawnCircle(f32 xPos, f32 yPos, f32 zPos, f32 scale2, f32
     for (yRot = 11.25f, i = 0; i < 16; i++, yRot += 22.5f) {
         for (j = 0; j < ARRAY_COUNT(gEffects); j++) {
             if (gEffects[j].obj.status == OBJ_FREE) {
-                sinf = SIN_DEG(yRot) * scale1 * 20.0f;
-                cosf = COS_DEG(yRot) * scale1 * 20.0f;
-                Effect_WaterSpray_SetupCircle(&gEffects[j], xPos + sinf, yPos, zPos + cosf, scale2, scale1, yRot);
+                vsinf = SIN_DEG(yRot) * scale1 * 20.0f;
+                vcosf = COS_DEG(yRot) * scale1 * 20.0f;
+                Effect_WaterSpray_SetupCircle(&gEffects[j], xPos + vsinf, yPos, zPos + vcosf, scale2, scale1, yRot);
                 break;
             }
         }
@@ -2753,8 +2753,8 @@ void Effect_Effect348_Update(Effect348* this) {
         randfloat = RAND_FLOAT(30.0f);
         for (i = 0; i < 36; i += 2) {
             temp = (i * 10.0f * M_DTOR) + randfloat;
-            sin = __sinf(temp) * this->scale2 * 8.0f;
-            cos = __cosf(temp) * this->scale2 * 8.0f;
+            sin = sinf(temp) * this->scale2 * 8.0f;
+            cos = cosf(temp) * this->scale2 * 8.0f;
             yPos = gGroundHeight + 40.0f;
 
             if (gGroundType == GROUND_4) {
@@ -2800,8 +2800,8 @@ void Effect_Effect349_Update(Effect349* this) {
         randFloat = RAND_FLOAT(144.0f);
         for (i = 0; i < 5; i++) {
             temp = (i * 72.0f * M_DTOR) + randFloat;
-            sin = __sinf(temp) * this->scale2 * 16.0f;
-            cos = __cosf(temp) * this->scale2 * 16.0f;
+            sin = sinf(temp) * this->scale2 * 16.0f;
+            cos = cosf(temp) * this->scale2 * 16.0f;
             yPos = gGroundHeight + 10.0f;
 
             if (gGroundType == GROUND_4) {
@@ -2841,8 +2841,8 @@ void Effect_Effect350_Update(Effect350* this) {
         randFloat = RAND_FLOAT(144.0f);
         for (i = 0; i < 10; i++) {
             temp = (i * 36.0f * M_DTOR) + randFloat;
-            sin = __sinf(temp) * this->scale2 * 16.0f;
-            cos = __cosf(temp) * this->scale2 * 16.0f;
+            sin = sinf(temp) * this->scale2 * 16.0f;
+            cos = cosf(temp) * this->scale2 * 16.0f;
             yPos = gGroundHeight + 10.0f;
             Effect_Effect362_Spawn(this->obj.pos.x + sin, yPos, this->obj.pos.z + cos, 12.0f);
         }

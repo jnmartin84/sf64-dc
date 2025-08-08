@@ -2,7 +2,7 @@
 #define SF64_MESG
 
 #include "libultra/ultra64.h"
-#include "libc/stdbool.h"
+//#include "libc/stdbool.h"
 
 typedef struct {
     s32 msgId;

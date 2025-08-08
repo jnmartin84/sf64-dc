@@ -1,7 +1,7 @@
 #ifndef SFX_H
 #define SFX_H
 
-#include "sys.h"
+#include "n64sys.h"
 
 extern f32 gDefaultSfxSource[];
 extern f32 gDefaultMod;

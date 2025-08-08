@@ -1,7 +1,7 @@
 #ifndef BGM_H
 #define BGM_H
 
-#include "sys.h"
+#include "n64sys.h"
 
 void Audio_SetBgmParam(s8 bgmParam);
 void Audio_PlaySequence(u8 seqPlayId, u16 seqId, u8 fadeinTime, u8 bgmParam);

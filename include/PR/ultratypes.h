@@ -57,6 +57,7 @@ typedef volatile long long		vs64;	/* signed 64-bit */
 typedef float				f32;	/* single prec floating point */
 typedef double				f64;	/* double prec floating point */
 
+#if 0
 #if !defined(_SIZE_T) && !defined(_SIZE_T_) && !defined(_SIZE_T_DEF)
 #define _SIZE_T
 #define _SIZE_T_DEF			/* exeGCC size_t define label */
@@ -67,9 +68,13 @@ typedef unsigned int    size_t;
 typedef unsigned long   size_t;
 #endif
 #endif
-
+#endif
 #endif  /* _LANGUAGE_C */
 
+
+#define true 1
+#define false 0
+#define bool s32
 
 /*************************************************************************
  * Common definitions

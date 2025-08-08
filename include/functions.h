@@ -1,7 +1,7 @@
 #ifndef FUNCTIONS_H
 #define FUNCTIONS_H
 
-#include "sys.h"
+#include "n64sys.h"
 #include "sf64object.h"
 #include "sf64player.h"
 #include "sf64mesg.h"

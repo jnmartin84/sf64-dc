@@ -688,7 +688,7 @@ void func_tank_80045678(Player* player) {
             Audio_KillSfxBySourceAndId(player->sfxSource, NA_SE_TANK_BURNER_HALF);
             AUDIO_PLAY_SFX(NA_SE_TANK_GO_UP, player->sfxSource, 0);
         }
-        player->zRotBank += ((__cosf(gGameFrameCount * M_DTOR * 8.0f) * 10.0f) - player->zRotBank) * 0.1f;
+        player->zRotBank += ((cosf(gGameFrameCount * M_DTOR * 8.0f) * 10.0f) - player->zRotBank) * 0.1f;
         temp = -gInputPress->stick_y;
         Math_SmoothStepToF(&player->rot.x, temp * 0.3f, 0.05f, 5.0f, 0.00001f);
         Math_SmoothStepToF(&player->boostSpeed, 15.0f, 0.5f, 5.0f, 0.0f);

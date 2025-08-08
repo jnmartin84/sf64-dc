@@ -1,4 +1,4 @@
-#include "sys.h"
+#include "n64sys.h"
 #include "sf64audio_provisional.h"
 
 #define DMEM_WET_SCRATCH 0x470
@@ -128,8 +128,8 @@ void AudioSynth_InverseDiscreteCosineTransform(f32* buffer0, f32* buffer1, s32 l
         var_fs0 = 0.0f;
         temp_ft0 = D_PI / (f32) (2 * size);
         for (i = 0; i < half; i++) {
-            *buf2half2++ = (__cosf(var_fs0) - __sinf(var_fs0)) * 0.707107f;
-            *buf2half3++ = (__cosf(var_fs0) + __sinf(var_fs0)) * 0.707107f;
+            *buf2half2++ = (cosf(var_fs0) - sinf(var_fs0)) * 0.707107f;
+            *buf2half3++ = (cosf(var_fs0) + sinf(var_fs0)) * 0.707107f;
             var_fs0 += temp_ft0;
         }
     }
@@ -251,10 +251,10 @@ void AudioSynth_HartleyTransform(f32* arg0, s32 arg1, f32* arg2) {
 
                 var_fs0 = 6.283186f / length;
                 for (spCC = 0; spCC < sp58; spCC++) {
-                    *var_s0++ = __cosf(var_fs0);
-                    *var_s1++ = __sinf(var_fs0);
-                    *var_s2++ = __cosf(3.0f * var_fs0);
-                    *var_s3++ = __sinf(3.0f * var_fs0);
+                    *var_s0++ = cosf(var_fs0);
+                    *var_s1++ = sinf(var_fs0);
+                    *var_s2++ = cosf(3.0f * var_fs0);
+                    *var_s3++ = sinf(3.0f * var_fs0);
                     var_fs0 += 6.283186f / length;
                 }
             }
@@ -640,7 +640,6 @@ void AudioSynth_SyncSampleStates(s32 updateIndex) {
     }
 }
 
-// Original name: Nas_smzAudioFrame
 Acmd* AudioSynth_Update(Acmd* aList, s32* cmdCount, s16* aiBufStart, s32 aiBufLen) {
     Acmd* aCmdPtr;
     s32* aiBufPtr;
@@ -1053,13 +1052,13 @@ Acmd* AudioSynth_ProcessNote(s32 noteIndex, NoteSubEu* noteSub, NoteSynthesisSta
 
                 if (numSamplesProcessed == 0) {
                     switch (bookSample->codec) {
-                        case CODEC_ADPCM:
+                        case 0:
                             aSetBuffer(aList++, 0, addr + sampleDataChunkAlignPad, DMEM_UNCOMPRESSED_NOTE,
                                        numSamplesToDecode * SAMPLE_SIZE);
                             aADPCMdec(aList++, flags, OS_K0_TO_PHYSICAL(synthState->synthesisBuffers));
                             break;
 
-                        case CODEC_S8:
+                        case 1:
                             aSetBuffer(aList++, 0, addr + sampleDataChunkAlignPad, DMEM_UNCOMPRESSED_NOTE,
                                        numSamplesToDecode * SAMPLE_SIZE);
                             aS8Dec(aList++, flags, OS_K0_TO_PHYSICAL(synthState->synthesisBuffers));
@@ -1070,13 +1069,13 @@ Acmd* AudioSynth_ProcessNote(s32 noteIndex, NoteSubEu* noteSub, NoteSynthesisSta
                 } else {
                     aligned = ALIGN16(dmemUncompressedAddrOffset1 + SAMPLES_PER_FRAME);
                     switch (bookSample->codec) {
-                        case CODEC_ADPCM:
+                        case 0:
                             aSetBuffer(aList++, 0, addr + sampleDataChunkAlignPad, DMEM_UNCOMPRESSED_NOTE + aligned,
                                        numSamplesToDecode * SAMPLE_SIZE);
                             aADPCMdec(aList++, flags, OS_K0_TO_PHYSICAL(synthState->synthesisBuffers));
                             break;
 
-                        case CODEC_S8:
+                        case 1:
                             aSetBuffer(aList++, 0, addr + sampleDataChunkAlignPad, DMEM_UNCOMPRESSED_NOTE + aligned,
                                        numSamplesToDecode * SAMPLE_SIZE);
                             aS8Dec(aList++, flags, OS_K0_TO_PHYSICAL(synthState->synthesisBuffers));

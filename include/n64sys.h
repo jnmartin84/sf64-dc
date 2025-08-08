@@ -1,15 +1,21 @@
 #ifndef SYS_H
 #define SYS_H
 
-#include "PR/xstdio.h"
+
+#define true 1
+#define false 0
+#define bool s32
+
+
+//#include "PR/xstdio.h"
 #include "PR/controller.h"
 #include "libultra/ultra64.h"
-#include "libc/math.h"
-#include "libc/stdarg.h"
-#include "libc/stdbool.h"
-#include "libc/stdint.h"
-#include "libc/stddef.h"
-#include "libc/string.h"
+//#include "libc/math.h"
+//#include "libc/stdarg.h"
+////#include "libc/stdbool.h"
+//#include "libc/stdint.h"
+//#include "libc/stddef.h"
+//#include "libc/string.h"
 #include "macros.h"
 #include "sf64math.h"
 #include "gfx.h"
@@ -21,7 +27,7 @@
 
 typedef s32 (*CompareFunc)(void*, void*);
 
-s32 Lib_vsPrintf(char* dst, const char* fmt, va_list args);
+//s32 Lib_vsPrintf(char* dst, const char* fmt, va_list args);
 void Lib_vTable(s32 index, void (**table)(s32, s32), s32 arg0, s32 arg1);
 void Lib_QuickSort(u8* first, u32 length, u32 size, CompareFunc cFunc);
 void Lib_InitPerspective(Gfx** dList);
@@ -35,7 +41,7 @@ void* Memory_Allocate(s32);
 OSPiHandle * osDriveRomInit(void);
 void RdRam_CheckIPL3(void);
 void Mio0_Decompress(void* header, u8* dst);
-s32 vsprintf(char* dst, const char* fmt, va_list args);
+//s32 vsprintf(char* dst, const char* fmt, va_list args);
 
 void Game_Initialize(void);
 void Game_Update(void);

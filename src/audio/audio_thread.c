@@ -1,4 +1,4 @@
-#include "sys.h"
+#include "n64sys.h"
 #include "sf64audio_provisional.h"
 #include "audiothread_cmd.h"
 
@@ -39,6 +39,8 @@ static const char devstr12[] = "Undefined Port Command %d\n";
 static const char devstr13[] = "specchg conjunction error (Msg:%d Cur:%d)\n";
 static const char devstr14[] = "Error : Queue is not empty ( %x ) \n";
 
+#define SAMPLES_LEFT 454
+
 SPTask* AudioThread_CreateTask(void) {
     static s32 gMaxAbiCmdCnt = 128;
     static SPTask* gWaitingAudioTask = NULL;
@@ -65,10 +67,10 @@ SPTask* AudioThread_CreateTask(void) {
     gCurAiBuffIndex %= 3;
 
     aiBuffIndex = (gCurAiBuffIndex + 1) % 3;
-    aiSamplesLeft = osAiGetLength() / 4;
+    aiSamplesLeft = SAMPLES_LEFT;//osAiGetLength() / 4;
 
     if ((gAudioResetTimer < 16) && (gAiBuffLengths[aiBuffIndex] != 0)) {
-        osAiSetNextBuffer(gAiBuffers[aiBuffIndex], gAiBuffLengths[aiBuffIndex] * 4);
+//        osAiSetNextBuffer(gAiBuffers[aiBuffIndex], gAiBuffLengths[aiBuffIndex] * 4);
     }
 
     if (gCurAudioFrameDmaCount && gCurAudioFrameDmaCount) {} //! FAKE ?
@@ -127,13 +129,13 @@ SPTask* AudioThread_CreateTask(void) {
 
     task->type = 2;
     task->flags = 0;
-    task->ucode_boot = rspbootTextStart;
-    task->ucode_boot_size = (uintptr_t) rspbootTextEnd - (uintptr_t) rspbootTextStart;
+    task->ucode_boot = NULL;//rspbootTextStart;
+    task->ucode_boot_size = 0;//(uintptr_t) rspbootTextEnd - (uintptr_t) rspbootTextStart;
 
-    task->ucode = aspMainTextStart;
-    task->ucode_data = aspMainDataStart;
+    task->ucode = NULL;//aspMainTextStart;
+    task->ucode_data = NULL;//aspMainDataStart;
     task->ucode_size = SP_UCODE_SIZE;
-    task->ucode_data_size = (aspMainDataEnd - aspMainDataStart) * 8;
+    task->ucode_data_size = 0;//(aspMainDataEnd - aspMainDataStart) * 8;
 
     task->dram_stack = NULL;
     task->dram_stack_size = 0;
@@ -159,7 +161,6 @@ SPTask* AudioThread_CreateTask(void) {
     }
 }
 
-// Original name: Nap_AudioSysProcess
 void AudioThread_ProcessGlobalCmd(AudioCmd* cmd) {
     s32 i;
 
@@ -229,7 +230,6 @@ void AudioThread_ProcessGlobalCmd(AudioCmd* cmd) {
     }
 }
 
-// Original name: __Nas_GroupFadeOut
 void AudioThread_SetFadeOutTimer(s32 seqPlayId, s32 fadeTime) {
     if (fadeTime == 0) {
         fadeTime = 1;
@@ -240,7 +240,6 @@ void AudioThread_SetFadeOutTimer(s32 seqPlayId, s32 fadeTime) {
     gSeqPlayers[seqPlayId].fadeVelocity = -(gSeqPlayers[seqPlayId].fadeVolume / fadeTime);
 }
 
-// Original name: Nas_GroupFadeIn
 void AudioThread_SetFadeInTimer(s32 seqPlayId, s32 fadeTime) {
     if (fadeTime != 0) {
         gSeqPlayers[seqPlayId].state = 1;
@@ -251,7 +250,6 @@ void AudioThread_SetFadeInTimer(s32 seqPlayId, s32 fadeTime) {
     }
 }
 
-// Original name: Nap_AudioPortInit
 void AudioThread_InitQueues(void) {
     gThreadCmdWritePos = 0;
     gThreadCmdReadPos = 0;
@@ -261,7 +259,6 @@ void AudioThread_InitQueues(void) {
     osCreateMesgQueue(gAudioResetQueue, sAudioResetMsg, 1);
 }
 
-// Original name: Nap_PortSet
 void AudioThread_QueueCmd(u32 opArgs, void** data) {
     AudioCmd* audioCmd = &gThreadCmdBuffer[gThreadCmdWritePos & 0xFF];
 
@@ -274,42 +271,36 @@ void AudioThread_QueueCmd(u32 opArgs, void** data) {
     }
 }
 
-// Original name: Nap_SetF32
 void AudioThread_QueueCmdF32(u32 opArgs, f32 val) {
     AudioThread_QueueCmd(opArgs, (void**) &val);
 }
 
-// Original name: Nap_SetS32
 void AudioThread_QueueCmdS32(u32 opArgs, u32 val) {
     AudioThread_QueueCmd(opArgs, (void**) &val);
 }
 
-// Original name: Nap_SetS8
 void AudioThread_QueueCmdS8(u32 opArgs, s8 val) {
     s32 data = val << 0x18;
 
     AudioThread_QueueCmd(opArgs, (void**) &data);
 }
 
-// Original name: Nap_SendStart
 void AudioThread_ScheduleProcessCmds(void) {
-    static s32 sMaxPendingAudioCmds = 0;
+    static s32 D_800C7C70 = 0;
     s32 msg;
 
-    if (sMaxPendingAudioCmds < (u8) (gThreadCmdWritePos - gThreadCmdReadPos + 0x100)) {
-        sMaxPendingAudioCmds = (u8) (gThreadCmdWritePos - gThreadCmdReadPos + 0x100);
+    if (D_800C7C70 < (u8) (gThreadCmdWritePos - gThreadCmdReadPos + 0x100)) {
+        D_800C7C70 = (u8) (gThreadCmdWritePos - gThreadCmdReadPos + 0x100);
     }
     msg = (((gThreadCmdReadPos & 0xFF) << 8) | (gThreadCmdWritePos & 0xFF));
     osSendMesg(gThreadCmdProcQueue, (OSMesg) msg, OS_MESG_NOBLOCK);
     gThreadCmdReadPos = gThreadCmdWritePos;
 }
 
-// Original name: Nap_FlushPort
 void AudioThread_ResetCmdQueue(void) {
     gThreadCmdReadPos = gThreadCmdWritePos;
 }
 
-// Original name: Nap_AudioPortProcess
 void AudioThread_ProcessCmds(u32 msg) {
     static u8 gCurCmdReadPos = 0;
     static u8 gThreadCmdQueueFinished = false;
@@ -364,25 +355,25 @@ void AudioThread_ProcessCmds(u32 msg) {
                         case AUDIOCMD_OP_CHANNEL_SET_VOL_SCALE:
                             if (channel->volumeMod != cmd->asFloat) {
                                 channel->volumeMod = cmd->asFloat;
-                                channel->changes.flags.volume = true;
+                                channel->changes.s.volume = true;
                             }
                             break;
                         case AUDIOCMD_OP_CHANNEL_SET_VOL:
                             if (channel->volume != cmd->asFloat) {
                                 channel->volume = cmd->asFloat;
-                                channel->changes.flags.volume = true;
+                                channel->changes.s.volume = true;
                             }
                             break;
                         case AUDIOCMD_OP_CHANNEL_SET_PAN:
                             if (channel->newPan != cmd->asSbyte) {
                                 channel->newPan = cmd->asSbyte;
-                                channel->changes.flags.pan = true;
+                                channel->changes.s.pan = true;
                             }
                             break;
                         case AUDIOCMD_OP_CHANNEL_SET_FREQ_SCALE:
                             if (channel->freqMod != cmd->asFloat) {
                                 channel->freqMod = cmd->asFloat;
-                                channel->changes.flags.freqMod = true;
+                                channel->changes.s.freqMod = true;
                             }
                             break;
                         case AUDIOCMD_OP_CHANNEL_SET_REVERB_VOLUME:
@@ -421,7 +412,6 @@ u8* AudioThread_GetFontsForSequence(s32 seqId, u32* outNumFonts) {
     return AudioLoad_GetFontsForSequence(seqId, outNumFonts);
 }
 
-// Original name: Nap_CheckSpecChange
 bool AudioThread_ResetComplete(void) {
     s32 pad;
     s32 sp18;
@@ -435,7 +425,6 @@ bool AudioThread_ResetComplete(void) {
     return true;
 }
 
-// Original name: Nap_StartSpecChange
 void AudioThread_ResetAudioHeap(s32 specId) {
     MQ_CLEAR_QUEUE(gAudioResetQueue);
 
@@ -443,14 +432,12 @@ void AudioThread_ResetAudioHeap(s32 specId) {
     osSendMesg(gAudioSpecQueue, (OSMesg) specId, OS_MESG_NOBLOCK);
 }
 
-// Original name: Nap_StartReset
 void AudioThread_PreNMIReset(void) {
     gAudioResetTimer = 1;
     AudioThread_ResetAudioHeap(AUDIOSPEC_CO);
     gAudioResetStep = 0;
 }
 
-// Original name: Nas_InitGAudio
 void AudioThread_Init(void) {
     AudioThread_InitQueues();
 }

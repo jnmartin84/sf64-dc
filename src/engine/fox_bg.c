@@ -144,8 +144,8 @@ void Background_DrawStarfield(void) {
             starCount = 1000;
         }
 
-        zCos = __cosf(gStarfieldRoll);
-        zSin = __sinf(gStarfieldRoll);
+        zCos =cosf(gStarfieldRoll);
+        zSin =sinf(gStarfieldRoll);
 
         for (i = 0; i < starCount; i++, yStar++, xStar++, color++) {
             bx = *xStar + xField;
@@ -214,8 +214,8 @@ void Background_DrawPartialStarfield(s32 yMin, s32 yMax) {
     sp58 = gStarFillColors;
     var_s2 = 500;
 
-    cos = __cosf(gStarfieldRoll);
-    sin = __sinf(gStarfieldRoll);
+    cos = cosf(gStarfieldRoll);
+    sin = sinf(gStarfieldRoll);
 
     for (i = 0; i < var_s2; i++, sp5C++, sp60++, sp58++) {
         bx = *sp60 + spf68;
@@ -482,12 +482,12 @@ void Background_DrawBackdrop(void) {
 
                     if ((gCurrentLevel == LEVEL_TITANIA) && (gPlayer[0].state == PLAYERSTATE_LEVEL_INTRO) &&
                         (gPlayer[0].csState < 3)) {
-                        D_bg_8015F968 += __sinf(gPlayer[0].camYaw) * 20.0f;
+                        D_bg_8015F968 += sinf(gPlayer[0].camYaw) * 20.0f;
                         bgXpos2 += D_bg_8015F968;
                     }
                     if ((gCurrentLevel == LEVEL_SOLAR) && (gPlayer[0].state == PLAYERSTATE_LEVEL_INTRO) &&
                         (gPlayer[0].csState >= 2) && (gPlayer[0].cam.eye.z <= -1900.0f)) {
-                        D_bg_8015F968 = __sinf(gPlayer[0].camPitch) * 7000.0f;
+                        D_bg_8015F968 = sinf(gPlayer[0].camPitch) * 7000.0f;
                         bgYpos -= fabsf(D_bg_8015F968);
                     }
 
@@ -879,8 +879,9 @@ void Background_DrawLensFlare(void) {
     }
     Matrix_Pop(&gGfxMatrix);
 }
-
+#include <stdio.h>
 void Background_dummy_80040CDC(void) {
+//    printf("%s\n",__func__);
 }
 
 void Background_DrawGround(void) {

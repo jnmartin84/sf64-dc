@@ -1,3 +1,4 @@
+#if 0
 #ifndef OBJECT_RAM_H
 #define OBJECT_RAM_H
 
@@ -175,4 +176,5 @@ typedef enum EditMode {
 
 u32 ObjectRam_GetData(RamEntry* entry);
 
+#endif
 #endif

@@ -1,7 +1,7 @@
 #ifndef I5_H
 #define I5_H
 
-#include "libc/stdbool.h"
+//#include "libc/stdbool.h"
 #include "sf64object.h"
 #include "sf64thread.h"
 #include "sf64player.h"

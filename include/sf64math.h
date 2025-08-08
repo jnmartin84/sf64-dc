@@ -141,8 +141,8 @@ f32 Math_FAtan2F(f32, f32);
 f32 Math_FAsinF(f32);
 f32 Math_FAcosF(f32);
 
-f32 __sinf(f32);
-f32 __cosf(f32);
+//f32 __sinf(f32);
+//f32 __cosf(f32);
 
 s64 __ull_div(s64, s64);
 s64 __ll_mul(s64, s64);

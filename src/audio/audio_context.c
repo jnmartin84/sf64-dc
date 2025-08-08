@@ -1,106 +1,107 @@
-#include "sys.h"
+#include "n64sys.h"
 #include "sf64audio_provisional.h"
 
 u64 gAudioContextStart[2];
-SynthesisReverb gSynthReverbs[4];
-u8 sAudioContextPad10[0x10]; // 0x10
-u16 D_8014C1B0;
-s8 D_8014C1B2;
-s8 gNumSynthReverbs;
-s16 D_8014C1B4; // IDCT related
-NoteSubEu* gNoteSubsEu;
+
+SynthesisReverb gSynthReverbs[4] = {0};
+u8 sAudioContextPad10[0x10] = {0}; // 0x10
+u16 D_8014C1B0 = {0};
+s8 D_8014C1B2 = {0};
+s8 gNumSynthReverbs = {0};
+s16 D_8014C1B4 = {0};
+NoteSubEu* gNoteSubsEu = {0};
 // 0x4
-AudioAllocPool gSessionPool;
-AudioAllocPool gInitPool;
-AudioAllocPool gMiscPool;
-u8 gAudioContextPad20[0x20]; // 0x20
-AudioAllocPool gCachePool;
-AudioAllocPool gPersistentCommonPool;
-AudioAllocPool gTemporaryCommonPool;
-AudioCache gSeqCache;        // seqCache
-AudioCache gFontCache;       // fontCache
-AudioCache gSampleBankCache; // sampleBankCache
-PermanentCache gPermanentPool;
-AudioSampleCache gPersistentSampleCache;
+AudioAllocPool gSessionPool = {0};
+AudioAllocPool gInitPool = {0};
+AudioAllocPool gMiscPool = {0};
+u8 gAudioContextPad20[0x20] = {0}; // 0x20
+AudioAllocPool gCachePool = {0};
+AudioAllocPool gPersistentCommonPool = {0};
+AudioAllocPool gTemporaryCommonPool = {0};
+AudioCache gSeqCache = {0};        // seqCache
+AudioCache gFontCache = {0};       // fontCache
+AudioCache gSampleBankCache = {0}; // sampleBankCache
+PermanentCache gPermanentPool = {0};
+AudioSampleCache gPersistentSampleCache = {0};
 // 0x4
-AudioSampleCache gTemporarySampleCache;
+AudioSampleCache gTemporarySampleCache = {0};
 // 0x4
-AudioSessionPoolSplit gSessionPoolSplit;
-AudioCachePoolSplit gCachePoolSplit;
-AudioCommonPoolSplit gPersistentCommonPoolSplit;
+AudioSessionPoolSplit gSessionPoolSplit = {0};
+AudioCachePoolSplit gCachePoolSplit = {0};
+AudioCommonPoolSplit gPersistentCommonPoolSplit = {0};
 // 0x4
-AudioCommonPoolSplit gTemporaryCommonPoolSplit;
+AudioCommonPoolSplit gTemporaryCommonPoolSplit = {0};
 // 0x4
-u8 gSampleFontLoadStatus[64];
-u8 gFontLoadStatus[64];
-u8 gSeqLoadStatus[256];
-volatile u8 gAudioResetStep;
-u8 gAudioSpecId;
-s32 gResetFadeoutFramesLeft;
-u8 sAudioContextPad1000[0x1000]; // 0x1000 gap
-Note* gNotes;
+u8 gSampleFontLoadStatus[64] = {0};
+u8 gFontLoadStatus[64] = {0};
+u8 gSeqLoadStatus[256] = {0};
+volatile u8 gAudioResetStep = {0};
+u8 gAudioSpecId = {0};
+s32 gResetFadeoutFramesLeft = {0};
+u8 sAudioContextPad1000[0x1000] = {0}; // 0x1000 gap
+Note* gNotes = {0};
 // 0x4
-SequencePlayer gSeqPlayers[SEQ_PLAYER_MAX];
-SequenceChannel gSeqChannels[48];
-SequenceLayer gSeqLayers[64];
-SequenceChannel gSeqChannelNone;
-AudioListItem gLayerFreeList;
-NotePool gNoteFreeLists;
-Sample* gUsedSamples[128];
-AudioPreloadReq gPreloadSampleStack[128];
-s32 gNumUsedSamples;
-s32 gPreloadSampleStackTop;
-AudioAsyncLoad gAsyncLoads[16];
-OSMesgQueue gExternalLoadQueue;
-OSMesg gExternalLoadMsg[16];
-OSMesgQueue gPreloadSampleQueue;
-OSMesg gPreloadSampleMsg[16];
-OSMesgQueue gCurAudioFrameDmaQueue;
-OSMesg gCurAudioFrameDmaMsg[64];
-OSIoMesg gCurAudioFrameDmaIoMsgBuf[64];
-OSMesgQueue gSyncDmaQueue;
-OSMesg gSyncDmaMsg[1];
+SequencePlayer gSeqPlayers[SEQ_PLAYER_MAX] = {0};
+SequenceChannel gSeqChannels[48] = {0};
+SequenceLayer gSeqLayers[64] = {0};
+SequenceChannel gSeqChannelNone = {0};
+AudioListItem gLayerFreeList = {0};
+NotePool gNoteFreeLists = {0};
+Sample* gUsedSamples[128] = {0};
+AudioPreloadReq gPreloadSampleStack[128] = {0};
+s32 gNumUsedSamples = {0};
+s32 gPreloadSampleStackTop = {0};
+AudioAsyncLoad gAsyncLoads[16] = {0};
+OSMesgQueue gExternalLoadQueue = {0};
+OSMesg gExternalLoadMsg[16] = {0};
+OSMesgQueue gPreloadSampleQueue = {0};
+OSMesg gPreloadSampleMsg[16] = {0};
+OSMesgQueue gCurAudioFrameDmaQueue = {0};
+OSMesg gCurAudioFrameDmaMsg[64] = {0};
+OSIoMesg gCurAudioFrameDmaIoMsgBuf[64] = {0};
+OSMesgQueue gSyncDmaQueue = {0};
+OSMesg gSyncDmaMsg[1] = {0};
 // 0x4
-OSIoMesg gSyncDmaIoMsg;
-SampleDma gSampleDmas[0x100];
-u32 gSampleDmaCount;
-u32 gSampleDmaListSize1;
-s32 D_80155A50;
+OSIoMesg gSyncDmaIoMsg = {0};
+SampleDma gSampleDmas[0x100] = {0};
+u32 gSampleDmaCount = {0};
+u32 gSampleDmaListSize1 = {0};
+s32 D_80155A50 = {0};
 // 0x4
-u8 gSampleDmaReuseQueue1[0x100];
-u8 gSampleDmaReuseQueue2[0x100];
-u8 gSampleDmaReuseQueue1RdPos;
-u8 gSampleDmaReuseQueue2RdPos;
-u8 gSampleDmaReuseQueue1WrPos;
-u8 gSampleDmaReuseQueue2WrPos;
-AudioTable* gSequenceTable;
-AudioTable* gSoundFontTable;
-AudioTable* gSampleBankTable;
-u8* gSeqFontTable;
-s16 gNumSequences;
-SoundFont* gSoundFontList;
+u8 gSampleDmaReuseQueue1[0x100] = {0};
+u8 gSampleDmaReuseQueue2[0x100] = {0};
+u8 gSampleDmaReuseQueue1RdPos = {0};
+u8 gSampleDmaReuseQueue2RdPos = {0};
+u8 gSampleDmaReuseQueue1WrPos = {0};
+u8 gSampleDmaReuseQueue2WrPos = {0};
+AudioTable* gSequenceTable = {0};
+AudioTable* gSoundFontTable = {0};
+AudioTable* gSampleBankTable = {0};
+u8* gSeqFontTable = {0};
+s16 gNumSequences = {0};
+SoundFont* gSoundFontList = {0};
 // 0x4
-AudioBufferParameters gAudioBufferParams;
-s32 gSampleDmaBuffSize;
-s32 gMaxAudioCmds;
-s32 gNumNotes;
-s16 gMaxTempo;
-s8 gAudioSoundMode;
-volatile s32 gAudioTaskCountQ;
-s32 gCurAudioFrameDmaCount;
-s32 gAudioTaskIndexQ;
-s32 gCurAiBuffIndex;
-Acmd* gAbiCmdBuffs[2];
-Acmd* gCurAbiCmdBuffer;
-SPTask* gAudioCurTask;
-SPTask gAudioRspTasks[2];
-f32 gMaxTempoTvTypeFactors;
-s32 gRefreshRate;
-s16* gAiBuffers[3];
-s16 gAiBuffLengths[3];
-u32 gAudioRandom;
-u32 gAudioErrorFlags;
-volatile u32 gAudioResetTimer;
+AudioBufferParameters gAudioBufferParams = {0};
+s32 gSampleDmaBuffSize = {0};
+s32 gMaxAudioCmds = {0};
+s32 gNumNotes = {0};
+s16 gMaxTempo = {0};
+s8 gAudioSoundMode = {0};
+volatile s32 gAudioTaskCountQ = {0};
+s32 gCurAudioFrameDmaCount = {0};
+s32 gAudioTaskIndexQ = {0};
+s32 gCurAiBuffIndex = {0};
+Acmd* gAbiCmdBuffs[2] = {0};
+Acmd* gCurAbiCmdBuffer = {0};
+SPTask* gAudioCurTask = {0};
+SPTask gAudioRspTasks[2] = {0};
+f32 gMaxTempoTvTypeFactors = {0};
+s32 gRefreshRate = {0};
+s16* gAiBuffers[3] = {0};
+s16 gAiBuffLengths[3] = {0};
+u32 gAudioRandom = {0};
+u32 D_80155D88 = {0};
+volatile u32 gAudioResetTimer = {0};
 
 u64 gAudioContextEnd[2];
 

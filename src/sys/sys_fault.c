@@ -1,7 +1,8 @@
-#include "sys.h"
+#include "n64sys.h"
 #include "PR/os_internal.h"
 #include "mods.h"
-
+#include <stddef.h>
+#include <string.h>
 FaultMgr gFaultMgr;
 
 u8 sFaultCharIndex[0x80] = {
@@ -95,6 +96,7 @@ char* Fault_PrOut(char* buffer, const char* fmt, size_t size) {
 }
 
 void Fault_Printf(s32 xPos, s32 yPos, const char* fmt, ...) {
+#if 0
     u8* charPtr;
     s32 i;
     u8 buffer[0x100];
@@ -119,6 +121,7 @@ void Fault_Printf(s32 xPos, s32 yPos, const char* fmt, ...) {
     label:; // fake, probably
     }
     va_end(args);
+#endif
 }
 
 void Fault_Wait(s32 msec) {
@@ -157,6 +160,7 @@ void Fault_DisplayFloatException(u32 exceptFlags) {
 #define CAUSE_INDEX(cause) ((cause >> CAUSE_EXCSHIFT) & (CAUSE_EXCMASK >> CAUSE_EXCSHIFT))
 
 void Fault_DisplayDebugInfo(OSThread* thread) {
+#if 0
     __OSThreadContext* context = &thread->context;
     s16 causeIndex = CAUSE_INDEX(context->cause);
 
@@ -203,9 +207,11 @@ void Fault_DisplayDebugInfo(OSThread* thread) {
     osViBlack(false);
     osViRepeatLine(false);
     osViSwapBuffer(gFaultMgr.fb);
+#endif
 }
 
 OSThread* func_80007CEC(void) {
+#if 0
     OSThread* queue = __osGetActiveQueue();
 
     while (queue->priority != -1) {
@@ -214,10 +220,12 @@ OSThread* func_80007CEC(void) {
         }
         queue = queue->tlnext;
     }
+#endif
     return NULL;
 }
-
+#include <stdlib.h>
 void Fault_ThreadEntry(void* arg) {
+#if 0
     OSMesg dummy;
     OSThread* faultedThread;
     s32 codeTimer;
@@ -319,6 +327,8 @@ void Fault_ThreadEntry(void* arg) {
     while (true) {
         ;
     }
+#endif
+    exit(-1);
 }
 
 void Fault_SetFrameBuffer(FrameBuffer* buffer, u16 width, u16 height) {

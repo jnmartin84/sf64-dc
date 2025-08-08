@@ -140,6 +140,7 @@ u16 Save_Checksum(Save* arg0) {
 }
 
 s32 Save_Write(void) {
+#if 0
     OSMesg sp1C;
 
     gSaveFile.save.checksum = Save_Checksum(&gSaveFile.save);
@@ -151,9 +152,12 @@ s32 Save_Write(void) {
         return -1;
     }
     return 0;
+#endif
+return -1;
 }
 
 s32 Save_Read(void) {
+#if 0
     OSMesg sp24;
     s32 i;
 
@@ -185,4 +189,6 @@ s32 Save_Read(void) {
         PRINTF("ＥＥＰＲＯＭ ＲＯＭ［０］ ＆ ＲＯＭ［1］ 異常\n");
         return -1;
     }
+#endif
+    return -1;
 }

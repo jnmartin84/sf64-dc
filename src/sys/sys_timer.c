@@ -1,6 +1,6 @@
-#include "sys.h"
-
-TimerTask sTimerTasks[16];
+#include "n64sys.h"
+#include <stdio.h>
+TimerTask sTimerTasks[16]={0};
 
 TimerTask* Timer_AllocateTask(void) {
     s32 i;
@@ -19,7 +19,7 @@ s32 Timer_CreateTask(u64 time, TimerAction action, s32* address, s32 value) {
     if (task == NULL) {
         return -1;
     }
-    task->active = true;
+    task->active = 1;
     task->action = action;
     task->address = address;
     task->value = value;
@@ -27,6 +27,7 @@ s32 Timer_CreateTask(u64 time, TimerAction action, s32* address, s32 value) {
 }
 
 void Timer_Increment(s32* address, s32 value) {
+    printf("ran timer increment\n");
     *address += value;
 }
 

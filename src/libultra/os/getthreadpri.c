@@ -1,10 +1,3 @@
-#include "PR/os_internal.h"
-#include "osint.h"
+#include "common.h"
 
-OSPri osGetThreadPri(OSThread* thread) {
-    if (thread == NULL) {
-        thread = __osRunningThread;
-    }
-
-    return thread->priority;
-}
+#pragma GLOBAL_ASM("asm/us/rev1/nonmatchings/libultra/os/getthreadpri/osGetThreadPri.s")

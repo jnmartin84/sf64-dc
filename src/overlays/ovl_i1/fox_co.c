@@ -604,6 +604,14 @@ void Corneria_CoGranga_1UpCheck(CoGranga* this) {
     }
 }
 
+static void sincosdeg(float arg, float *s, float *c) {
+    float darg = M_DTOR * arg;
+    *s = sinf(darg);
+    *c = cosf(darg);
+}
+
+float cots,cotc;
+
 void Corneria_CoGranga_Update(CoGranga* this) {
     Vec3f sp21C = { 0.0f, 0.0f, 0.0f };
     s32 sp218;
@@ -713,19 +721,27 @@ void Corneria_CoGranga_Update(CoGranga* this) {
 
         Corneria_CoGranga_HandleDamage(this);
 
+sincosdeg(this->swork[GRANGA_SWK_18] * 50.0f, &cots, &cotc);
+        
         this->fwork[GRANGA_FWK_00] =
-            SIN_DEG(this->swork[GRANGA_SWK_18] * 50.0f) * Corneria_80187A88(this->swork[GRANGA_SWK_18]);
+            /* SIN_DEG(this->swork[GRANGA_SWK_18] * 50.0f) */cots * Corneria_80187A88(this->swork[GRANGA_SWK_18]);
+sincosdeg(this->swork[GRANGA_SWK_19] * 50.0f, &cots, &cotc);
         this->fwork[GRANGA_FWK_01] =
-            SIN_DEG(this->swork[GRANGA_SWK_19] * 50.0f) * Corneria_80187A88(this->swork[GRANGA_SWK_19]);
+            /* SIN_DEG(this->swork[GRANGA_SWK_19] * 50.0f) */cots * Corneria_80187A88(this->swork[GRANGA_SWK_19]);
+sincosdeg(this->swork[GRANGA_SWK_20] * 50.0f, &cots, &cotc);
         this->fwork[GRANGA_FWK_02] =
-            SIN_DEG(this->swork[GRANGA_SWK_20] * 50.0f) * Corneria_80187A88(this->swork[GRANGA_SWK_20]);
+            /* SIN_DEG(this->swork[GRANGA_SWK_20] * 50.0f) */cots * Corneria_80187A88(this->swork[GRANGA_SWK_20]);
+sincosdeg(this->swork[GRANGA_SWK_21] * 50.0f, &cots, &cotc);
         this->fwork[GRANGA_FWK_03] =
-            SIN_DEG(this->swork[GRANGA_SWK_21] * 50.0f) * Corneria_80187A88(this->swork[GRANGA_SWK_21]);
+        /* SIN_DEG(this->swork[GRANGA_SWK_21] * 50.0f) */cots * Corneria_80187A88(this->swork[GRANGA_SWK_21]);
+sincosdeg(this->swork[GRANGA_SWK_22] * 50.0f, &cots, &cotc);
+
         this->fwork[GRANGA_FWK_04] =
-            SIN_DEG(this->swork[GRANGA_SWK_22] * 50.0f) * Corneria_80187A88(this->swork[GRANGA_SWK_22]);
+            /* SIN_DEG(this->swork[GRANGA_SWK_22] * 50.0f) */cots * Corneria_80187A88(this->swork[GRANGA_SWK_22]);
 
         if (this->state < GRANGA_FALL_TO_LEFT) {
-            sp5C = SIN_DEG(this->swork[GRANGA_SWK_23] * 12.0f) * Corneria_80187A88(this->swork[GRANGA_SWK_23]) * 0.3f;
+sincosdeg(this->swork[GRANGA_SWK_23] * 12.0f, &cots, &cotc);
+            sp5C = /* SIN_DEG(this->swork[GRANGA_SWK_23] * 12.0f) */cots * Corneria_80187A88(this->swork[GRANGA_SWK_23]) * 0.3f;
             Math_SmoothStepToF(&this->obj.rot.z, sp5C, 0.2f, 100.0f, 0.001f);
         }
 

@@ -5,6 +5,8 @@
 #include "assets/ast_versus.h"
 #include "assets/ast_sector_z.h"
 
+uint8_t gBackToMap = 0;
+
 Vec3f D_display_801613B0[4];
 Vec3f D_display_801613E0[4];
 s16 gReflectY;
@@ -1912,4 +1914,24 @@ void Display_Update(void) {
     Display_DrawHelpAlert();
     sPlayersVisible[gPlayerNum] = false;
     Matrix_Pop(&gGfxMatrix);
+
+                 gLaserStrength[0] = 2;
+    gLifeCount[0] = 9;
+    gBombCount[0] = 9;
+
+    {
+    if ((gControllerHold[0].button & Z_TRIG) && (gControllerHold[0].button & R_TRIG) &&
+        (gControllerPress[0].button & U_CBUTTONS)) {
+        gShowLevelClearStatusScreen = false;
+        gLevelStartStatusScreenTimer = 0;
+        gStarCount = 0;
+        gGameState = GSTATE_MAP;
+        gNextGameStateTimer = 2;
+        gMapState = 0;
+        gLastGameState = GSTATE_NONE;
+        gDrawMode = DRAW_NONE;
+        gControllerLock = 3;
+        gBackToMap = 1;
+    }
+}
 }

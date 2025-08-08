@@ -1,6 +1,7 @@
 #include "sf64math.h"
 #include "fox_hud.h"
 #include "prevent_bss_reordering.h"
+#include <stdio.h>
 
 Vec3f D_801616A0;
 Vec3f D_801616B0;
@@ -699,9 +700,9 @@ void HUD_Number_Draw(f32 xPos, f32 yPos, s32 k, f32 scale, bool skipLeadingZeroe
     };
 
     if (skipLeadingZeroes) {
-        shouldDraw = false;
+        shouldDraw = 0;
     } else {
-        shouldDraw = true;
+        shouldDraw = 1;
     }
 
     i = maxNumber + 1;
@@ -709,11 +710,11 @@ void HUD_Number_Draw(f32 xPos, f32 yPos, s32 k, f32 scale, bool skipLeadingZeroe
 
     for (i /= 10; i != 1; i /= 10) {
         j = k / i;
-        if ((j != 0) || (shouldDraw == true)) {
+        if ((j != 0) || (shouldDraw == 1)) {
             Lib_TextureRect_IA8(&gMasterDisp, sNumber[j], 16, 15, xPos, yPos, scale, scale);
             xPos += 13.0f * scale;
             k %= i;
-            shouldDraw = true;
+            shouldDraw = 1;
         }
     }
     Lib_TextureRect_IA8(&gMasterDisp, sNumber[k], 16, 15, xPos, yPos, scale, scale);
@@ -725,7 +726,7 @@ void HUD_MsgWindowBg_Draw2(f32 xPos, f32 yPos, f32 xScale, f32 yScale) {
     gDPSetAlphaDither(gMasterDisp++, G_AD_DISABLE);
     Lib_TextureRect_CI8(&gMasterDisp, aMsgWindowBgTex, aMsgWindowBgTLUT, 24, 17, xPos, yPos, xScale, yScale);
 }
-
+#include <stdio.h>
 void HUD_DrawLevelStartStatusScreen(void) {
     char pad;
     f32 sp18;
@@ -752,6 +753,7 @@ void HUD_DrawLevelStartStatusScreen(void) {
 
         HUD_TitleCard_Draw(temp, sp18 - 24.0f);
     }
+    //printf("ok levestart\n");
 }
 
 f32 D_800D1CFC = 0.0f;
@@ -867,6 +869,7 @@ void HUD_DrawLevelClearScreen(void) {
         y = 64.0f;
     }
 
+        //printf("levelClearState %d\n",levelClearState);
     switch (levelClearState) {
         case LEVEL_CLEAR_STATE_1:
             if (missionStatus != MISSION_COMPLETE) {
@@ -917,6 +920,7 @@ void HUD_DrawLevelClearScreen(void) {
         default:
             break;
     }
+    //printf("left levelclear\n");
 }
 
 // Used in gameplay hud
@@ -1059,12 +1063,16 @@ void HUD_LevelClearStatusScreen_Draw(void) {
     f32 y5;
     f32 y6;
 
-    if (gShowLevelClearStatusScreen == false) {
+//printf("gGameState when enteinrg %s is %d\n", __func__, gGameState);
+
+    if (gShowLevelClearStatusScreen == 0) {
+        //printf("kill shields up\n");
         Audio_KillSfxById(NA_SE_TEAM_SHIELD_UP);
         D_801617C0[0] = 0;
     }
 
-    if ((gPlayState != PLAY_PAUSE) && (gShowLevelClearStatusScreen == true) && (D_801617E8[0] == 0)) {
+    if ((gPlayState != PLAY_PAUSE) && (gShowLevelClearStatusScreen == 1) && (D_801617E8[0] == 0)) {
+        //printf("not pause D_801617C0[0] == %d\n", D_801617C0[0]);
         switch (D_801617C0[0]) {
             case 0:
                 D_801617C0[5] = gHitCount;
@@ -1182,7 +1190,7 @@ void HUD_LevelClearStatusScreen_Draw(void) {
         D_801617C0[6]--;
     }
 
-    if (gShowLevelClearStatusScreen == true) {
+    if (gShowLevelClearStatusScreen == 1) {
         x0 = 128.0f;
         y0 = 30.0f;
 
@@ -1236,16 +1244,16 @@ void HUD_LevelClearStatusScreen_Draw(void) {
         RCP_SetupDL(&gMasterDisp, SETUPDL_76);
 
         gDPSetPrimColor(gMasterDisp++, 0, 0, 90, 160, 200, 255);
-        HUD_Number_Draw(24.0f, 30.0f + 3.0f, D_801617C0[5], 1.0f, false, 999);
+        HUD_Number_Draw(24.0f, 30.0f + 3.0f, D_801617C0[5], 1.0f, 0, 999);
 
         gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
         Lib_TextureRect_IA8(&gMasterDisp, aTextEnemiesDown, 64, 25, x0, y0 + 4.0f, 1.0f, 1.0f);
 
-        HUD_Number_Draw(x1, y1 + 12.0f, D_801617C0[1], 1.0f, true, 999);
+        HUD_Number_Draw(x1, y1 + 12.0f, D_801617C0[1], 1.0f, 1, 999);
 
         Lib_TextureRect_IA8(&gMasterDisp, aTextAccumTotal, 128, 10, x3, y3, 1.0f, 1.0f);
 
-        HUD_Number_Draw(x4 + 4.0f, y4 + 3.0f, D_801617C0[2], 1.00f, true, 9999);
+        HUD_Number_Draw(x4 + 4.0f, y4 + 3.0f, D_801617C0[2], 1.00f, 1, 9999);
 
         if ((D_801617C0[6] % 2) == 0) {
             HUD_LivesCount2_Draw(232.0f, 90.0f, D_801617C0[3]);
@@ -1312,8 +1320,9 @@ void HUD_Bolse_Area6_SaveData(void) {
         Save_Write();
     }
 }
-
 void HUD_DrawStatusScreens(void) {
+    //printf("%s\n",__func__);
+
     s32 i;
 
     for (i = 0; i < 5; i++) {
@@ -1321,10 +1330,12 @@ void HUD_DrawStatusScreens(void) {
             D_801617E8[i]--;
         }
     }
+    #if 1
     HUD_DrawLevelStartStatusScreen();
     HUD_DrawLevelClearScreen();
     HUD_LevelClearStatusScreen_Draw();
-}
+#endif
+    }
 
 s32 HUD_PauseScreenInput(void) {
     s32 ret = 0;
@@ -1419,7 +1430,7 @@ void HUD_PauseScreen_Update(void) {
     }
 
     if (sPauseScreenIwork[0] >= 2) {
-        gPauseEnabled = false;
+        gPauseEnabled = 0;
     }
 
     player = &gPlayer[gPlayerNum];
@@ -1473,7 +1484,7 @@ void HUD_PauseScreen_Update(void) {
 
                 Play_ClearObjectData();
 
-                gShowBossHealth = false;
+                gShowBossHealth = 0;
                 gFillScreenAlpha = 255;
 
                 if (gLifeCount[gPlayerNum] == 0) {
@@ -1570,7 +1581,7 @@ void HUD_PauseScreen_Update(void) {
 
                 gSavedPathProgress = 0.0f;
                 gAllRangeCheckpoint = 0;
-                gSavedZoSearchlightStatus = false;
+                gSavedZoSearchlightStatus = 0;
 
                 gSavedHitCount = gSavedObjectLoadIndex = 0;
 
@@ -1901,7 +1912,7 @@ void HUD_RadarMark_Draw(s32 type) {
             break;
 
         case RADARMARK_SUPPIES:
-            if (gVersusMode == true) {
+            if (gVersusMode == 1) {
                 HUD_RadarMark_Item_Draw();
             } else {
                 HUD_RadarMark_Supplies_Draw();
@@ -1963,7 +1974,7 @@ void HUD_RadarMarks_Setup(void) {
         if (gPlayer[i].state == PLAYERSTATE_NEXT) {
             continue;
         }
-        gRadarMarks[i].enabled = true;
+        gRadarMarks[i].enabled = 1;
         gRadarMarks[i].type = i;
         gRadarMarks[i].yRot = gPlayer[i].yRot_114 + gPlayer[i].rot.y;
         gRadarMarks[i].pos.z = gPlayer[i].trueZpos;
@@ -1990,10 +2001,10 @@ void HUD_RadarMarks_Setup(void) {
         }
     }
 
-    if (gVersusMode == true) {
+    if (gVersusMode == 1) {
         for (i = 0, item = &gItems[0]; i < ARRAY_COUNT(gItems); i++, item++) {
             if (item->obj.status >= OBJ_ACTIVE) {
-                gRadarMarks[item->index + 50].enabled = true;
+                gRadarMarks[item->index + 50].enabled = 1;
                 gRadarMarks[item->index + 50].type = 103;
                 gRadarMarks[item->index + 50].pos.x = item->obj.pos.x;
                 gRadarMarks[item->index + 50].pos.y = item->obj.pos.y;
@@ -2164,7 +2175,7 @@ s32 HUD_RadarMarks_Update(void) {
         HUD_RadarMark_Draw(gRadarMarks[i].type);
         Matrix_Pop(&gGfxMatrix);
 
-        gRadarMarks[i].enabled = false;
+        gRadarMarks[i].enabled = 0;
     }
 
     Matrix_Pop(&gGfxMatrix);
@@ -2687,7 +2698,7 @@ void HUD_Texture_Wave(u16* srcTexture, u16* dstTexture) {
 
     rowPhase = 0.0f;
 
-    for (i = halfHeight - 1; true; i--) {
+    for (i = halfHeight - 1; 1; i--) {
         rowPhase += 90.0f / halfHeight;
         if (rowPhase > 90.0f) {
             break;
@@ -2807,10 +2818,10 @@ void HUD_EdgeArrows_Update(void) {
             j = (D_800D2048[i] ^ 0xFF) & j;
 
             if (gGameFrameCount & 4) {
-                HUD_EdgeArrows_Draw(i, false);
+                HUD_EdgeArrows_Draw(i, 0);
             }
             if ((gGameFrameCount - 2) & 4) {
-                HUD_EdgeArrows_Draw(i, true);
+                HUD_EdgeArrows_Draw(i, 1);
             }
         }
         HUD_Texture_Scroll(D_1024A58, 8, 8, 2);
@@ -3298,7 +3309,7 @@ void HUD_Score_Update(f32 xPos, f32 yPos) {
             break;
 
         default:
-            medalStatus = false;
+            medalStatus = 0;
             break;
     }
 
@@ -3658,7 +3669,7 @@ void HUD_Draw(void) {
                 break;
 
             default:
-                medalStatus = false;
+                medalStatus = 0;
                 break;
         }
         if (medalStatus != gMedalStatus) {
@@ -3868,19 +3879,19 @@ void FoBase_Update(FoBase* this) {
 }
 
 bool ActorTeamBoss_SetTarget(ActorTeamBoss* this) {
-    bool ret = false;
+    bool ret = 0;
     Boss* boss;
     s32 i;
 
     if (this->aiIndex != 0) {
-        return true;
+        return 1;
     }
 
     boss = &gBosses[1];
 
     for (i = 1; i < ARRAY_COUNT(gBosses); i++, boss++) {
         if (boss->obj.status == OBJ_ACTIVE) {
-            ret = true;
+            ret = 1;
             if (this->aiIndex == 0) {
                 this->aiIndex = i;
             } else if (Rand_ZeroOne() > 0.4f) {
@@ -3964,11 +3975,11 @@ bool ActorTeamBoss_SlippyEscapeFromTiBoss(ActorTeamBoss* this) {
             }
             break;
     }
-    return false;
+    return 0;
 }
 
 bool ActorTeamBoss_Attack(ActorTeamBoss* this) {
-    bool ret = false;
+    bool ret = 0;
 
     if (ActorTeamBoss_SetTarget(this)) {
         this->fwork[6] = gBosses[this->aiIndex].obj.pos.z;
@@ -3991,7 +4002,7 @@ bool ActorTeamBoss_Attack(ActorTeamBoss* this) {
     if ((fabsf(this->obj.pos.x - this->fwork[4]) < 700.0f) && (fabsf(this->obj.pos.x - this->fwork[4]) < 700.0f)) {
         this->state = 1;
         this->iwork[6] = 0;
-        ret = true;
+        ret = 1;
     }
 
     if (this->timer_0BE == 0) {
@@ -4003,7 +4014,7 @@ bool ActorTeamBoss_Attack(ActorTeamBoss* this) {
         this->state = 1;
         this->aiIndex = 0;
         this->iwork[6] = 0;
-        ret = true;
+        ret = 1;
     }
 
     return ret;
@@ -4049,7 +4060,7 @@ s32 ActorTeamBoss_FlyAroundAllRange(ActorTeamBoss* this) {
         this->timer_0BE = RAND_INT(200.0f) + 200;
         this->fwork[10] = 30.0f;
     }
-    return false;
+    return 0;
 }
 
 bool ActorTeamBoss_FlyAroundOnRails(ActorTeamBoss* this) {
@@ -4080,7 +4091,7 @@ bool ActorTeamBoss_FlyAroundOnRails(ActorTeamBoss* this) {
         this->timer_0BE = RAND_INT(200.0f) + 200;
         this->fwork[10] = 30.0f;
     }
-    return false;
+    return 0;
 }
 
 void ActorTeamBoss_FlyAround(ActorTeamBoss* this) {
@@ -4102,7 +4113,7 @@ bool ActorTeamBoss_FlyAlongPlayer(ActorTeamBoss* this) {
         this->fwork[1] = gPlayer[0].baseSpeed - 10.0f;
         this->fwork[3] = 1.2f;
     }
-    return false;
+    return 0;
 }
 
 bool ActorTeamBoss_Retreat(ActorTeamBoss* this) {
@@ -4145,7 +4156,7 @@ bool ActorTeamBoss_Retreat(ActorTeamBoss* this) {
             }
             break;
     }
-    return false;
+    return 0;
 }
 
 void ActorTeamBoss_SetAction(ActorTeamBoss* this) {
@@ -4190,7 +4201,7 @@ bool ActorTeamBoss_ObstacleCheck(ActorTeamBoss* this) {
     Vec3f vec;
     Boss* boss;
     Scenery360* scenery360;
-    bool ret = false;
+    bool ret = 0;
 
     Math_Vec3fFromAngles(&vec, 0.0f, this->orient.y, 650.0f + this->fwork[9] * 10.0f);
 
@@ -4209,13 +4220,13 @@ bool ActorTeamBoss_ObstacleCheck(ActorTeamBoss* this) {
             }
 
             if (this->obj.pos.y + vec.y < 650.0f) {
-                ret = true;
+                ret = 1;
             }
         }
     }
 
     if (ret) {
-        return true;
+        return 1;
     }
 
     boss = &gBosses[0];
@@ -4232,7 +4243,7 @@ bool ActorTeamBoss_ObstacleCheck(ActorTeamBoss* this) {
     if (!(fabsf(boss->obj.pos.x - (this->obj.pos.x + vec.x)) > 1000.0f) &&
         !(fabsf(boss->obj.pos.z - (this->obj.pos.z + vec.z)) > 1000.0f) &&
         !(fabsf(boss->obj.pos.y - (this->obj.pos.y)) > y)) {
-        ret = true;
+        ret = 1;
     }
 
     return ret;
@@ -4294,7 +4305,7 @@ bool ActorTeamBoss_SetFlyingAngle(ActorTeamBoss* this) {
         Math_SmoothStepToAngle(&this->obj.rot.z, sp3C, 0.1f, 3.0f, 0.01f);
     }
 
-    return false;
+    return 0;
 }
 
 bool ActorTeamBoss_SetFlyingSpeed(ActorTeamBoss* this) {
@@ -4322,7 +4333,7 @@ bool ActorTeamBoss_SetFlyingSpeed(ActorTeamBoss* this) {
     }
     this->vel.z -= gPathVelZ;
 
-    return false;
+    return 0;
 }
 
 bool ActorTeamBoss_SetBoost(ActorTeamBoss* this) {
@@ -4341,7 +4352,7 @@ bool ActorTeamBoss_SetBoost(ActorTeamBoss* this) {
     if (this->fwork[10] < 0.1f) {
         this->iwork[ACTOR_ENGINE_GLOW] = 1;
     }
-    return false;
+    return 0;
 }
 
 bool ActorTeamBoss_Shoot(ActorTeamBoss* this) {
@@ -4358,7 +4369,7 @@ bool ActorTeamBoss_Shoot(ActorTeamBoss* this) {
                                this->obj.pos.z + (dest.z * 1.5), dest.x, dest.y, dest.z, this->obj.rot.x,
                                this->obj.rot.y, this->obj.rot.z);
     }
-    return false;
+    return 0;
 }
 
 bool ActorTeamBoss_HandleDamage(ActorTeamBoss* this) {
@@ -4369,7 +4380,7 @@ bool ActorTeamBoss_HandleDamage(ActorTeamBoss* this) {
     this->dmgType = DMG_NONE;
 
     if ((this->state == 3) || (prevDmgType == DMG_EXPLOSION)) {
-        return false;
+        return 0;
     }
 
     this->health -= this->damage;
@@ -4402,7 +4413,7 @@ bool ActorTeamBoss_HandleDamage(ActorTeamBoss* this) {
     gTeamShields[this->aiType] = this->health;
 
     if (gRadioState != 0) {
-        return false;
+        return 0;
     }
 
     if ((this->dmgType == DMG_COLLISION) && (this->dmgSource == AI360_FOX + 1)) {
@@ -4448,11 +4459,11 @@ bool ActorTeamBoss_HandleDamage(ActorTeamBoss* this) {
     }
     this->iwork[8] = 20;
 
-    return false;
+    return 0;
 }
 
 void ActorTeamBoss_Radarmarks_Init(ActorTeamBoss* this) {
-    gRadarMarks[this->index].enabled = true;
+    gRadarMarks[this->index].enabled = 1;
     gRadarMarks[this->index].type = this->aiType;
     gRadarMarks[this->index].pos.x = this->obj.pos.x;
     gRadarMarks[this->index].pos.y = this->obj.pos.y;
@@ -4492,7 +4503,7 @@ bool ActorTeamBoss_SomerSault(ActorTeamBoss* this) {
     Vec3f src;
     Vec3f dest;
     f32 var_fv0;
-    bool ret = false;
+    bool ret = 0;
 
     if (this->iwork[7] == 0) {
         this->vwork[29].x = this->obj.rot.x;
@@ -4521,7 +4532,7 @@ bool ActorTeamBoss_SomerSault(ActorTeamBoss* this) {
     if (Math_SmoothStepToF(&this->fwork[19], 360.0f, 0.1f, 5.0f, 0.01f) == 0.0f) {
         this->obj.rot.x = this->vwork[29].x;
         this->fwork[19] = this->vwork[29].x = 0.0f;
-        ret = true;
+        ret = 1;
         this->iwork[7] = 0;
         this->fwork[29] = 1.0f;
     }
@@ -4558,7 +4569,7 @@ bool ActorTeamBoss_UTurn(ActorTeamBoss* this) {
     Vec3f dest;
     f32 sp54;
     f32 sp50;
-    bool ret = false;
+    bool ret = 0;
 
     if (this->iwork[ACTOR_ENGINE_GLOW] == 0) {
         this->work_046 = 0;
@@ -4656,7 +4667,7 @@ bool ActorTeamBoss_UTurn(ActorTeamBoss* this) {
                 }
 
                 if (this->timer_0BC == 0) {
-                    ret = true;
+                    ret = 1;
                     this->iwork[ACTOR_ENGINE_GLOW] = 0;
                     this->work_046 = 0;
                     this->fwork[28] = 0.0f;
@@ -4706,7 +4717,7 @@ void ActorTeamBoss_Init(ActorTeamBoss* this) {
     this->iwork[ACTOR_ENGINE_GLOW] = 1;
 
     if (gLevelType == LEVELTYPE_PLANET) {
-        this->drawShadow = true;
+        this->drawShadow = 1;
     }
 
     AUDIO_PLAY_SFX(NA_SE_ARWING_ENGINE_FG, this->sfxSource, 4);
@@ -4952,7 +4963,7 @@ void Aquas_CsLevelStart(Player* player) {
             gCsFrameCount = 0;
             gDrawBackdrop = 1;
             gAqDrawMode = 1;
-            player->draw = false;
+            player->draw = 0;
             player->csState = 1;
             player->unk_208 = 0;
             player->baseSpeed = 0.0f;
@@ -5249,7 +5260,7 @@ void Aquas_CsLevelStart(Player* player) {
 
             player->rot.y = 0.0f;
             player->baseSpeed = 20.0f;
-            player->draw = true;
+            player->draw = 1;
             player->csState = 6;
 
             player->csTimer = 1000;
@@ -5441,7 +5452,7 @@ void HUD_Score_Draw(f32 x, f32 y) {
         temp4 = gDisplayedHitCount;
     }
 
-    boolTemp = false;
+    boolTemp = 0;
     i = 1000;
     temp3 %= i;
     temp4 %= i;
@@ -5454,7 +5465,7 @@ void HUD_Score_Draw(f32 x, f32 y) {
         temp = temp3 / i;
         temp2 = temp4 / i;
 
-        if ((temp != 0) || (boolTemp == true)) {
+        if ((temp != 0) || (boolTemp == 1)) {
             if (temp != temp2) {
                 D_hud_80161720[j] += 0.4f;
                 if (D_hud_80161720[j] <= 0.9f) {
@@ -5490,7 +5501,7 @@ void HUD_Score_Draw(f32 x, f32 y) {
             if (xScale != 0.0f) {
                 Lib_TextureRect_IA8(&gMasterDisp, D_800D24DC[temp], 16, 15, x1, y1, xScale, 1.0f);
             }
-            boolTemp = true;
+            boolTemp = 1;
         }
 
         if (!boolTemp && (xScale != 0.0f)) {
@@ -5749,7 +5760,7 @@ void Aquas_CsLevelComplete(Player* player) {
             break;
 
         case 10:
-            player->draw = true;
+            player->draw = 1;
             gAqDrawMode = 2;
             player->csState = 11;
 
@@ -5953,11 +5964,11 @@ void Aquas_CsLevelComplete(Player* player) {
             break;
 
         case 1000:
-            gShowLevelClearStatusScreen = true;
+            gShowLevelClearStatusScreen = 1;
             break;
 
         case 1200:
-            gShowLevelClearStatusScreen = false;
+            gShowLevelClearStatusScreen = 0;
             break;
     }
 

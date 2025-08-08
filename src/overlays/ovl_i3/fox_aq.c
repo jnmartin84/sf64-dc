@@ -1403,8 +1403,8 @@ void Aquas_Bubble_Update(EffectBubble* this) {
             }
             this->scale1 += 33.0f;
             waveAmplitude = COS_DEG(this->scale1) * 1.5f;
-            this->vel.x = __cosf(gPlayer[0].camYaw) * waveAmplitude;
-            this->vel.z = __sinf(gPlayer[0].camYaw) * waveAmplitude;
+            this->vel.x = cosf(gPlayer[0].camYaw) * waveAmplitude;
+            this->vel.z = sinf(gPlayer[0].camYaw) * waveAmplitude;
             break;
 
         case 1:
@@ -1428,8 +1428,8 @@ void Aquas_Bubble_Update(EffectBubble* this) {
             }
             this->scale1 += 55.0f;
             waveAmplitude = COS_DEG(this->scale1) * 2.5f;
-            this->vel.x = __cosf(gPlayer[0].camYaw) * waveAmplitude;
-            this->vel.z = __sinf(gPlayer[0].camYaw) * waveAmplitude;
+            this->vel.x = cosf(gPlayer[0].camYaw) * waveAmplitude;
+            this->vel.z = sinf(gPlayer[0].camYaw) * waveAmplitude;
             break;
     }
 }
@@ -2344,8 +2344,8 @@ void Aquas_AqBacconBarnacle_Update(AqBacconBarnacle* this) {
 
                 if (((gGameFrameCount % 4) == 0)) {
                     for (i = 0; i < 36; i += 2) {
-                        sp6C = __sinf(sp70 + (i * 10.0f * M_DTOR)) * this->fwork[6] * 10.0f;
-                        sp68 = __cosf(sp70 + (i * 10.0f * M_DTOR)) * this->fwork[6] * 10.0f;
+                        sp6C = sinf(sp70 + (i * 10.0f * M_DTOR)) * this->fwork[6] * 10.0f;
+                        sp68 = cosf(sp70 + (i * 10.0f * M_DTOR)) * this->fwork[6] * 10.0f;
                         pad64 = gGroundHeight + 30.0f;
                         Effect_Effect364_Spawn(this->obj.pos.x + sp6C, pad64, this->obj.pos.z + sp68, 20.0f);
                     }

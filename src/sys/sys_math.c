@@ -1,5 +1,6 @@
-#include "sys.h"
+#include "n64sys.h"
 #include "prevent_bss_reordering.h"
+#include <math.h>
 
 s32 sSeededRandSeed3;
 s32 sRandSeed1;
@@ -56,9 +57,9 @@ f32 Math_Atan2F(f32 y, f32 x) {
 
     if (x < 0.0f) {
         if (y < 0.0f) {
-            return -(M_PI - Math_FAtanF(fabs(y / x)));
+            return -(M_PI - Math_FAtanF(fabsf(y / x)));
         } else {
-            return M_PI - Math_FAtanF(fabs(y / x));
+            return M_PI - Math_FAtanF(fabsf(y / x));
         }
     } else {
         return Math_FAtanF(y / x);
@@ -88,9 +89,9 @@ f32 Math_Atan2F_XY(f32 x, f32 y) {
 
     if (x < 0.0f) {
         if (y < 0.0f) {
-            return -(M_PI - Math_FAtanF(fabs(x / y)));
+            return -(M_PI - Math_FAtanF(fabsf(x / y)));
         } else {
-            return M_PI - Math_FAtanF(fabs(x / y));
+            return M_PI - Math_FAtanF(fabsf(x / y));
         }
     } else {
         return Math_FAtanF(x / y);

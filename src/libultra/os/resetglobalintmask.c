@@ -1,9 +1,3 @@
-#include "PR/os_internal.h"
+#include "common.h"
 
-void __osResetGlobalIntMask(OSHWIntr mask) {
-    register u32 saveMask = __osDisableInt();
-
-    __OSGlobalIntMask &= ~(mask & ~OS_IM_RCP);
-
-    __osRestoreInt(saveMask);
-}
+#pragma GLOBAL_ASM("asm/us/rev1/nonmatchings/libultra/os/resetglobalintmask/__osResetGlobalIntMask.s")

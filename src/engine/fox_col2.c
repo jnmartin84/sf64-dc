@@ -74,7 +74,7 @@ bool func_col2_800A36FC(Vec3f* objPos, Vec3f* colliderPos, CollisionHeader2* col
 
         hitDataOut->x = Math_Atan2F_XY(norm.y, norm.z);
         if (norm.z != 0.0f) {
-            hitDataOut->z = -Math_Atan2F_XY(__sinf(Math_Atan2F_XY(norm.y, norm.z)) * norm.z, norm.x);
+            hitDataOut->z = -Math_Atan2F_XY(sinf(Math_Atan2F_XY(norm.y, norm.z)) * norm.z, norm.x);
         } else if (hitDataOut->x >= M_PI) {
             hitDataOut->z = Math_Atan2F_XY(norm.y, norm.x);
         } else {

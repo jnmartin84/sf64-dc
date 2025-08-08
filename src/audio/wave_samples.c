@@ -1,4 +1,4 @@
-#include "sys.h"
+#include "n64sys.h"
 
 // clang-format off
 ALIGNED(16) s16 gSawtoothWaveSample[] = {

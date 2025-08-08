@@ -14,9 +14,6 @@
 #include "PR/ultratypes.h"
 #include "PR/guint.h"
 
-extern f32 __cosf(f32);
-extern f32 __sinf(f32);
-
 void guPerspectiveF(float mf[4][4], u16* perspNorm, float fovy, float aspect, float near, float far, float scale) {
     float cot;
     int i, j;
@@ -24,7 +21,7 @@ void guPerspectiveF(float mf[4][4], u16* perspNorm, float fovy, float aspect, fl
     guMtxIdentF(mf);
 
     fovy *= 3.1415926 / 180.0;
-    cot = __cosf(fovy / 2) / __sinf(fovy / 2);
+    cot = cosf(fovy / 2) / sinf(fovy / 2);
 
     mf[0][0] = cot / aspect;
     mf[1][1] = cot;

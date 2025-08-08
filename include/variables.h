@@ -1,7 +1,7 @@
 #ifndef VARIABLES_H
 #define VARIABLES_H
 
-#include "sys.h"
+#include "n64sys.h"
 #include "sf64level.h"
 #include "sf64object.h"
 #include "sf64player.h"

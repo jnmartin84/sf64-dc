@@ -2,7 +2,7 @@
 #define SF64_DMA
 
 #include "PR/ultratypes.h"
-#include "libc/stdbool.h"
+//#include "libc/stdbool.h"
 
 #define DECLARE_VRAM_SEGMENT(name) \
     extern u8 name ## _VRAM[]; \
