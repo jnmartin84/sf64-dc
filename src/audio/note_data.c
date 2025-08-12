@@ -198,14 +198,13 @@ u8 gDefaultShortNoteGateTimeTable[] = {
     229, 203, 177, 151, 139, 126, 113, 100, 87, 74, 61, 48, 36, 23, 10, 0,
 };
 
-#define BOMSWAP32_CONST(x) \
-    ((((x) >> 24) & 0x000000FF) | (((x) >> 8) & 0x0000FF00) | (((x) << 8) & 0x00FF0000) | (((x) << 24) & 0xFF000000))
+#define BOMSWAP16_CONST(x) ((((x) >> 8) & 0x00FF) | (((x) << 8) & 0xFF00))
 
 EnvelopePoint gDefaultEnvelope[] = {
-    { BOMSWAP32_CONST(4), BOMSWAP32_CONST(32000) },
-    { BOMSWAP32_CONST(1000), BOMSWAP32_CONST(32000) },
-    { BOMSWAP32_CONST(ADSR_HANG), BOMSWAP32_CONST(0) },
-    { BOMSWAP32_CONST(ADSR_DISABLE), BOMSWAP32_CONST(0) },
+    { BOMSWAP16_CONST(4), BOMSWAP16_CONST(32000) },
+    { BOMSWAP16_CONST(1000), BOMSWAP16_CONST(32000) },
+    { BOMSWAP16_CONST(ADSR_HANG), BOMSWAP16_CONST(0) },
+    { BOMSWAP16_CONST(ADSR_DISABLE), BOMSWAP16_CONST(0) },
 };
 
 NoteSubEu gZeroNoteSub = { 0 };

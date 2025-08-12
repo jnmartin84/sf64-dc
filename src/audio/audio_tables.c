@@ -58,7 +58,8 @@ AudioTable gSeqTableInit = {
         { 0x37C80, 0x250, MEDIUM_CART, CACHEPOLICY_3 },      { 0x37ED0, 0x6F0, MEDIUM_CART, CACHEPOLICY_3 },
         { 0x385C0, 0xFB0, MEDIUM_CART, CACHEPOLICY_3 },      { 0x39570, 0x1780, MEDIUM_CART, CACHEPOLICY_3 },
     },
-};
+}; // 66 things
+
 #define SOUNDFONT_ENTRY(offset, size, medium, cachePolicy, bank1, bank2, numInst, numDrums) \
     {                                                                                       \
         offset, size, medium, cachePolicy, (((bank1) &0xFF) << 8) | ((bank2) &0xFF),        \
