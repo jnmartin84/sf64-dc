@@ -23,6 +23,15 @@
 #include "assets/ast_enmy_planet.h"
 #include "assets/ast_zoness.h"
 
+#define gSPEffect342(pkt)                                       \
+    {                                                                                   \
+        Gfx* _g = (Gfx*) (pkt);                                                         \
+                                                                                        \
+        _g->words.w0 = 0x424C4E44; \
+        _g->words.w1 = 0x4655434B;                                           \
+    }
+
+
 // rodata
 const char D_800D7230[] = "Enm->wrk3=<%d>\n";
 const char D_800D7240[] = "a=<%d>\n";
@@ -401,8 +410,10 @@ void Effect_Bubble_Draw(EffectBubble* this) {
 void Effect_Effect367_Draw(Effect367* this) {
     if (this->timer_50 == 0) {
         Graphics_SetScaleMtx(this->scale2);
+        gSPEffect342(gMasterDisp++);
         gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, this->alpha);
         gSPDisplayList(gMasterDisp++, D_BG_PLANET_20112C0);
+        gSPEffect342(gMasterDisp++);
     }
 }
 
@@ -456,8 +467,10 @@ void Effect_SmallRock_Draw(EffectSmallRock* this) {
 
 void Effect_Effect348_Draw(Effect348* this) {
     Graphics_SetScaleMtx(this->scale2);
+        gSPEffect342(gMasterDisp++);
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, this->alpha);
     gSPDisplayList(gMasterDisp++, D_BG_PLANET_20112C0);
+        gSPEffect342(gMasterDisp++);
 }
 
 void func_effect_80078AE0(Effect* this) {
@@ -1423,6 +1436,7 @@ void Effect_Effect364_Draw(Effect364* this) {
         RCP_SetupDL(&gMasterDisp, SETUPDL_4);
     }
 
+
     Graphics_SetScaleMtx(this->scale2);
 
     if (gCurrentLevel != LEVEL_MACBETH) {
@@ -1439,6 +1453,7 @@ void Effect_Effect364_Draw(Effect364* this) {
     if (gControllerHold[3].button & Z_TRIG) {
         RCP_SetupDL(&gMasterDisp, SETUPDL_64);
     }
+
 }
 
 void Effect_Effect362_Setup(Effect362* this, f32 xPos, f32 yPos, f32 zPos, f32 scale2) {
@@ -1529,9 +1544,11 @@ void Effect_Effect360_Update(Effect360* this) {
 }
 
 void Effect_Effect360_361_362_Draw(Effect* this) {
+gSPEffect342(gMasterDisp++);
     Graphics_SetScaleMtx(this->scale2);
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, this->unk_4A);
     gSPDisplayList(gMasterDisp++, D_BG_PLANET_2010A30);
+gSPEffect342(gMasterDisp++);
 }
 
 void Effect_Effect_Effect386_Setup(Effect386* this, f32 xPos, f32 yPos, f32 zPos, f32 xVel, f32 yVel, f32 zVel,
@@ -1801,6 +1818,7 @@ void Effect_Effect343_Update(Effect343* this) {
 }
 
 void Effect_Effect343_Draw(Effect343* this) {
+    gSPEffect342(gMasterDisp++);
     Graphics_SetScaleMtx(this->scale2);
     if (this->alpha == 0) {
         gDPSetPrimColor(gMasterDisp++, 0, 0, 0, 0, 0, this->unk_4A);
@@ -1811,6 +1829,7 @@ void Effect_Effect343_Draw(Effect343* this) {
         gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, this->unk_4A);
         gSPDisplayList(gMasterDisp++, D_BG_PLANET_20031B0);
     }
+    gSPEffect342(gMasterDisp++);
 }
 
 void Effect_FireSmoke1_Setup(EffectFireSmoke* this, f32 xPos, f32 yPos, f32 zPos, f32 scale2) {
@@ -2084,25 +2103,33 @@ void Effect_FireSmoke_Draw(EffectFireSmoke* this) {
 
     Graphics_SetScaleMtx(this->scale2);
 
-    if (gLevelType == LEVELTYPE_PLANET) {
+if (gLevelType == LEVELTYPE_PLANET) {
+gSPEffect342(gMasterDisp++);
         gDPSetPrimColor(gMasterDisp++, 0, 0, D_800D184C[this->unk_4C].r, D_800D184C[this->unk_4C].g,
                         D_800D184C[this->unk_4C].b, D_800D184C[this->unk_4C].a);
         scale = D_800D17F8[this->unk_4C] - 0.5f;
         Matrix_Scale(gGfxMatrix, scale, scale, 1.0f, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
         gSPDisplayList(gMasterDisp++, D_800D17A4[this->unk_4C]);
+    gSPEffect342(gMasterDisp++);
         return;
     }
 
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 100, this->alpha);
 
     if (this->unk_4C == 0) {
+gSPEffect342(gMasterDisp++);
         Matrix_Scale(gGfxMatrix, 2.5f, 2.5f, 2.5f, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
         gSPDisplayList(gMasterDisp++, D_800D18A0[this->unk_4C]);
+    gSPEffect342(gMasterDisp++);
         return;
     }
+
+    gSPEffect342(gMasterDisp++);
     gSPDisplayList(gMasterDisp++, D_800D18A0[this->unk_4C]);
+    gSPEffect342(gMasterDisp++);
+
 }
 
 void Effect_FireSmoke2_Update(Effect340* this) {
@@ -2326,12 +2353,20 @@ void Effect_Effect342_Update(Effect342* this) {
 
 void Effect_Effect342_Draw(Effect342* this) {
     Graphics_SetScaleMtx(this->scale2);
+    gSPEffect342(gMasterDisp++);
+            gDPSetCombineMode(gMasterDisp++, G_CC_DECALRGBA, G_CC_DECALRGBA);
+
     if (this->alpha == 0) {
-        gDPSetPrimColor(gMasterDisp++, 0, 0, 0, 0, 0, this->unk_4A);
-    } else {
-        gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, this->unk_4A);
-    }
+//jnmartin84
+             //   gDPSetPrimColor(gMasterDisp++, 0, 0, 0, 0, 0, this->unk_4A);
+        gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, this->unk_4A / 4);
+
+} else {
+//        gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, this->unk_4A);
+          gDPSetPrimColor(gMasterDisp++, 0, 0, 0, 0, 0, this->unk_4A / 4);
+  }
     gSPDisplayList(gMasterDisp++, D_BG_PLANET_2010A30);
+    gSPEffect342(gMasterDisp++);
 }
 
 void Effect_TorpedoTrail_Update(EffectTorpedoTrail* this) {
@@ -2382,8 +2417,10 @@ void Effect_Effect365_Update(Effect365* this) {
 
 void Effect_Effect365_Draw(Effect365* this) {
     Graphics_SetScaleMtx(this->scale2);
-    gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, this->alpha);
+    gSPEffect342(gMasterDisp++);
+    gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, this->alpha / 4);
     gSPDisplayList(gMasterDisp++, D_BG_PLANET_2010A30);
+    gSPEffect342(gMasterDisp++);
 }
 
 void Effect_Effect367_Update(Effect367* this) {

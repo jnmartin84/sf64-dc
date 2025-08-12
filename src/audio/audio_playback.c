@@ -160,9 +160,10 @@ TunedSample* Audio_GetInstrumentTunedSample(Instrument* instrument, s32 semitone
     }
     return sample;
 }
-
+#include <stdio.h>
 Instrument* Audio_GetInstrument(s32 fontId, s32 instId) {
     Instrument* instrument;
+
 
     if ((gFontLoadStatus[fontId] < 2) != 0) {
         D_80155D88 = fontId + 0x10000000;
@@ -173,6 +174,9 @@ Instrument* Audio_GetInstrument(s32 fontId, s32 instId) {
         return NULL;
     }
     instrument = gSoundFontList[fontId].instruments[instId];
+
+//    printf("fontId %d instId %d instrument %08x\n", fontId, instId, instrument);
+
     if (instrument == NULL) {
         D_80155D88 = (fontId << 8) + instId + 0x01000000;
         return instrument;

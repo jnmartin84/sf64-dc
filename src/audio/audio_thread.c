@@ -40,7 +40,61 @@ static const char devstr13[] = "specchg conjunction error (Msg:%d Cur:%d)\n";
 static const char devstr14[] = "Error : Queue is not empty ( %x ) \n";
 
 #define SAMPLES_LEFT 454
+#include <stdio.h>
+void AudioThread_CreateNextAudioBuffer(s16* samples, u32 num_samples) {
+    static s32 gMaxAbiCmdCnt = 128;
+    static SPTask* gWaitingAudioTask = NULL;
+    s32 abiCmdCount;
+    OSMesg specId;
+    OSMesg msg;
 
+    gCurAiBuffIndex++;
+    gCurAiBuffIndex %= 3;
+
+    gCurAudioFrameDmaCount = 0;
+    AudioLoad_DecreaseSampleDmaTtls();
+    AudioLoad_ProcessLoads(gAudioResetStep);
+
+//printf(".\n");
+
+    if (osRecvMesg(gAudioSpecQueue, &specId, 0) != -1) {
+        if (gAudioResetStep == 0) {
+            gAudioResetStep = 5;
+        }
+        gAudioSpecId = (u8)specId;
+    }
+
+    if ((gAudioResetStep != 0) && (AudioHeap_ResetStep() == 0)) {
+        if (gAudioResetStep == 0) {
+            osSendMesg(gAudioResetQueue, gAudioSpecId, OS_MESG_NOBLOCK);
+        }
+        gWaitingAudioTask = NULL;
+        return;
+    }
+//printf("gAudioREsetTimer %d\n",gAudioResetTimer);
+    if (gAudioResetTimer > 16) {
+        return;
+    }
+    if (gAudioResetTimer != 0) {
+        gAudioResetTimer++;
+    }
+
+    while (MQ_GET_MESG(gThreadCmdProcQueue, &msg)) {
+        AudioThread_ProcessCmds((u32)msg);
+    }
+
+    AudioSynth_Update(gCurAbiCmdBuffer, &abiCmdCount, samples, num_samples);
+//for(int i=0;i<num_samples;i++) {
+//    if(samples[i])
+//    printf("%d -> %04x\n", samples[i]);
+//}
+    // Spectrum Analyzer fix
+    memcpy(gAiBuffers[gCurAiBuffIndex], samples, 2 * num_samples * sizeof(s16));
+
+    gAudioRandom = osGetCount() * (gAudioRandom + gAudioTaskCountQ);
+}
+
+#if 0
 SPTask* AudioThread_CreateTask(void) {
     static s32 gMaxAbiCmdCnt = 128;
     static SPTask* gWaitingAudioTask = NULL;
@@ -160,10 +214,11 @@ SPTask* AudioThread_CreateTask(void) {
         return NULL;
     }
 }
+#endif
 
 void AudioThread_ProcessGlobalCmd(AudioCmd* cmd) {
     s32 i;
-
+//printf("process global cmd %08x op %08x\n", cmd, cmd->op);
     switch (cmd->op) {
         case AUDIOCMD_OP_GLOBAL_SYNC_LOAD_SEQ_PARTS:
             AudioLoad_SyncLoadSeqParts(cmd->arg1, 3);
@@ -308,7 +363,7 @@ void AudioThread_ProcessCmds(u32 msg) {
     SequenceChannel* channel;
     SequencePlayer* player;
     u8 writePos;
-
+//printf("%s\n",__func__);
     if (!gThreadCmdQueueFinished) {
         gCurCmdReadPos = (msg >> 8) & 0xFF;
     }
@@ -319,6 +374,9 @@ void AudioThread_ProcessCmds(u32 msg) {
             break;
         }
         cmd = &gThreadCmdBuffer[gCurCmdReadPos & 0xFF];
+
+//printf("process cmds %08x op %08x\n", cmd, cmd->op);
+
         gCurCmdReadPos++;
         if (cmd->op == AUDIOCMD_OP_GLOBAL_STOP_AUDIOCMDS) {
             gThreadCmdQueueFinished = true;
@@ -361,6 +419,7 @@ void AudioThread_ProcessCmds(u32 msg) {
                         case AUDIOCMD_OP_CHANNEL_SET_VOL:
                             if (channel->volume != cmd->asFloat) {
                                 channel->volume = cmd->asFloat;
+                                //printf("channel->volume %f\n", channel->volume);
                                 channel->changes.s.volume = true;
                             }
                             break;

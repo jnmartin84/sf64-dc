@@ -484,9 +484,9 @@ void Game_Update(void) {
                 }
 
                 SEQCMD_SET_SOUND_MODE(soundMode);
-                gVolumeSettings[AUDIO_TYPE_MUSIC] = gSaveFile.save.data.musicVolume;
-                gVolumeSettings[AUDIO_TYPE_VOICE] = gSaveFile.save.data.voiceVolume;
-                gVolumeSettings[AUDIO_TYPE_SFX] = gSaveFile.save.data.sfxVolume;
+                gVolumeSettings[AUDIO_TYPE_MUSIC] = 99;//gSaveFile.save.data.musicVolume;
+                gVolumeSettings[AUDIO_TYPE_VOICE] = 99;//gSaveFile.save.data.voiceVolume;
+                gVolumeSettings[AUDIO_TYPE_SFX] = 99;//gSaveFile.save.data.sfxVolume;
 
                 if (gVolumeSettings[AUDIO_TYPE_MUSIC] > 99) {
                     gVolumeSettings[AUDIO_TYPE_MUSIC] = 99;

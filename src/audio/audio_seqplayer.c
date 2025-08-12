@@ -1,6 +1,6 @@
 #include "n64sys.h"
 #include "sf64audio_provisional.h"
-
+#include <stdio.h>
 #define PORTAMENTO_IS_SPECIAL(x) ((x).mode & 0x80)
 #define PORTAMENTO_MODE(x) ((x).mode & ~0x80)
 
@@ -144,6 +144,7 @@ void AudioSeq_SeqLayerDisable(SequenceLayer* layer) {
 }
 
 void AudioSeq_SeqLayerFree(SequenceChannel* channel, s32 layerIndex) {
+if (layerIndex < 4) {
     SequenceLayer* layer = channel->layers[layerIndex];
 
     if (layer != NULL) {
@@ -151,6 +152,7 @@ void AudioSeq_SeqLayerFree(SequenceChannel* channel, s32 layerIndex) {
         AudioSeq_SeqLayerDisable(layer);
         channel->layers[layerIndex] = NULL;
     }
+}
 }
 
 void AudioSeq_SequenceChannelDisable(SequenceChannel* channel) {
@@ -614,7 +616,12 @@ void AudioSeq_SeqLayerProcessScript(SequenceLayer* layer) {
                     layer->pan = drum->pan;
                 }
                 layer->tunedSample = &drum->tunedSample;
-                layer->freqMod = layer->tunedSample->tuning;
+                float _tuning = layer->tunedSample->tuning;
+                uint32_t *stuning = (uint32_t *)&_tuning;
+                *stuning = __builtin_bswap32(*stuning);
+
+                layer->freqMod = _tuning;//layer->tunedSample->tuning;
+                //printf("layer->freqMod %f\n", layer->freqMod);
             } else {
                 cmd += seqPlayer->transposition + channel->transposition + layer->transposition;
                 if (cmd >= 0x80) {
@@ -638,6 +645,9 @@ void AudioSeq_SeqLayerProcessScript(SequenceLayer* layer) {
                             sp40 = (sample == layer->tunedSample);
                             layer->tunedSample = sample;
                             tuning = sample->tuning;
+                            uint32_t *stuning = (uint32_t *)&tuning;
+                            *stuning = __builtin_bswap32(*stuning);
+                                            //printf("tuning %f\n", tuning);
                         } else {
                             tuning = 1.0f;
                             layer->tunedSample = NULL;
@@ -685,7 +695,12 @@ void AudioSeq_SeqLayerProcessScript(SequenceLayer* layer) {
                         sample = Audio_GetInstrumentTunedSample(instrument, cmd);
                         sp40 = (sample == layer->tunedSample);
                         layer->tunedSample = sample;
-                        layer->freqMod = gPitchFrequencies[cmd] * sample->tuning;
+                        float _tuning = sample->tuning;
+                        uint32_t *stuning = (uint32_t *)&_tuning;
+                        *stuning = __builtin_bswap32(*stuning);
+                        layer->freqMod = gPitchFrequencies[cmd] * _tuning;//sample->tuning;
+                                                                    //printf("layer->freqMod %f\n", layer->freqMod);
+
                     } else {
                         layer->tunedSample = NULL;
                         layer->freqMod = gPitchFrequencies[cmd];
@@ -1010,7 +1025,7 @@ void AudioSeq_SequenceChannelProcessScript(SequenceChannel* channel) {
 
                     case 0xC6:
                         cmd = AudioSeq_ScriptReadU8(state);
-                        sp52 = __builtin_bswap16(((u16*) gSeqFontTable)[seqPlayer->seqId]);
+                        sp52 = /* __builtin_bswap16 */(((u16*) gSeqFontTable)[seqPlayer->seqId]);
                         loBits = gSeqFontTable[sp52];
                         cmd = gSeqFontTable[sp52 + loBits - cmd];
                         if (AudioHeap_SearchCaches(FONT_TABLE, CACHE_EITHER, cmd) != NULL) {

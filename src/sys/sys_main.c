@@ -3,7 +3,8 @@
 //#include "mods.h"
 #include <stdio.h>
 #include <kos/thread.h>
-
+#include <kos/genwait.h>
+#include <dc/vblank.h>
 #include "gfx/gfx_pc.h"
 #include "gfx/gfx_opengl.h"
 #include "gfx/gfx_dc.h"
@@ -15,6 +16,31 @@ static struct GfxRenderingAPI *rendering_api = &gfx_opengl_api;
 
 extern void gfx_run(Gfx *commands);
 char *fnpre;
+#include "src/dcaudio/audio_api.h"
+#include "src/dcaudio/audio_dc.h"
+volatile int inited = 0;
+extern struct AudioAPI audio_dc;
+s16 audio_buffer[533 * 2 * 2 * 2] __attribute__((aligned(64)));
+static struct AudioAPI *audio_api = NULL;
+void AudioThread_CreateNextAudioBuffer(s16* samples, u32 num_samples);
+
+void *SPINNING_THREAD(UNUSED void *arg);
+
+static volatile uint64_t vblticker=0;
+
+void vblfunc(uint32_t c, void *d) {
+	(void)c;
+	(void)d;
+    vblticker++;
+    genwait_wake_one((void *)&vblticker);
+}
+
+void _AudioInit(void) {
+    if (audio_api == NULL) {
+        audio_api = &audio_dc;
+        audio_api->init();
+    }
+}
 
 
 s32 sGammaMode = 1;
@@ -121,13 +147,14 @@ void Main_Initialize(void) {
     }
 }
 
-void Audio_ThreadEntry(void* arg0) {
+void *Audio_ThreadEntry(void* arg0) {
     SPTask* task;
 //printf("%s()\n", __func__);
-
-    AudioLoad_Init();
-    Audio_InitSounds();
-
+inited = 1;
+while(1) {
+    thd_pass();
+}
+    #if 0
     task = AudioThread_CreateTask();
     if (task != NULL) {
         task->mesgQueue = &gAudioTaskMesgQueue;
@@ -150,6 +177,8 @@ void Audio_ThreadEntry(void* arg0) {
         }
         MQ_WAIT_FOR_MESG(&gAudioVImesgQueue, NULL);
     }
+#endif
+    return NULL;
 }
 
 int called = 0;
@@ -285,7 +314,38 @@ void *Graphics_ThreadEntry(void* arg0) {
     u8 visPerFrame;
     u8 validVIsPerFrame;
 //printf("%s()\n", __func__);
-    gfx_init(wm_api, rendering_api, "Star Fox 64", false);
+   gfx_init(wm_api, rendering_api, "Star Fox 64", false);
+
+   _AudioInit();
+    AudioLoad_Init();
+    Audio_InitSounds();
+    vblank_handler_add(&vblfunc, NULL);
+
+// #define MEMTEST
+#if defined(MEMTEST)
+    for(int mi=0;mi<16*1048576;mi+=65536) {
+        void *test_m = malloc(mi);
+        if (test_m != NULL) {
+            free(test_m);
+            test_m = NULL;
+            continue;
+        } else {
+            int bi = mi - 65536;
+            for (; bi < 16 * 1048576; bi++) {
+                test_m = malloc(bi);
+                if (test_m != NULL) {
+                    free(test_m);
+                    test_m = NULL;
+                    continue;
+                } else {
+                    printf("free ram for malloc: %d\n", bi);
+                    goto run_game_loop;
+                }
+            }
+        }
+    }
+run_game_loop:
+#endif
     Game_Initialize();
     osSendMesg(&gSerialThreadMesgQueue, (OSMesg) SI_READ_CONTROLLER, OS_MESG_NOBLOCK);
     Graphics_InitializeTask(gSysFrameCount);
@@ -343,7 +403,7 @@ gfx_start_frame();
       //      MQ_WAIT_FOR_MESG(&gGfxVImesgQueue, NULL);
         }
 
-//        Audio_Update();
+        Audio_Update();
 gfx_end_frame();     
 thd_pass();
     }
@@ -505,7 +565,7 @@ void Main_ThreadEntry(void* arg0) {
 	main_attr3.prio = 11;
 	main_attr3.label = "SerialInterface";
     thd_create_ex(&main_attr3, &SerialInterface_ThreadEntry, arg0);
-
+#if 0
     kthread_attr_t main_attr;
     main_attr.create_detached = 1;
 	main_attr.stack_size = 32768;
@@ -513,7 +573,8 @@ void Main_ThreadEntry(void* arg0) {
 	main_attr.prio = 11;
 	main_attr.label = "Graphics";
     thd_create_ex(&main_attr, &Graphics_ThreadEntry, arg0);
-#if 1
+#endif
+    #if 1
     kthread_attr_t main_attr2;
     main_attr2.create_detached = 1;
 	main_attr2.stack_size = 32768;
@@ -522,6 +583,14 @@ void Main_ThreadEntry(void* arg0) {
 	main_attr2.label = "Timer";
     thd_create_ex(&main_attr2, &Timer_ThreadEntry, arg0);
 #endif
+
+    kthread_attr_t main_attr5;
+    main_attr5.create_detached = 1;
+	main_attr5.stack_size = 32768;
+	main_attr5.stack_ptr = NULL;
+	main_attr5.prio = 11;
+	main_attr5.label = "SPINNING";
+    thd_create_ex(&main_attr5, &SPINNING_THREAD, arg0);
 
 
 #if 0
@@ -538,8 +607,17 @@ void Main_ThreadEntry(void* arg0) {
                    gSerialThreadStack + sizeof(gSerialThreadStack), 20);
     osStartThread(&gSerialThread);
 #endif
-    Main_InitMesgQueues();
 
+    Main_InitMesgQueues();
+/*     kthread_attr_t main_attr4;
+    main_attr4.create_detached = 1;
+	main_attr4.stack_size = 32768;
+	main_attr4.stack_ptr = NULL;
+	main_attr4.prio = 11;
+	main_attr4.label = "Audio";
+    thd_create_ex(&main_attr4, &Audio_ThreadEntry, arg0); */
+
+#if 0
     while (true) {
 //        printf(".");
 //        MQ_WAIT_FOR_MESG(&gMainThreadMesgQueue, &osMesg);
@@ -568,6 +646,106 @@ void Main_ThreadEntry(void* arg0) {
     }
     thd_pass();
     }
+#endif
+{
+    u8 i;
+    u8 visPerFrame;
+    u8 validVIsPerFrame;
+//printf("%s()\n", __func__);
+   gfx_init(wm_api, rendering_api, "Star Fox 64", false);
+
+   _AudioInit();
+    AudioLoad_Init();
+    Audio_InitSounds();
+    vblank_handler_add(&vblfunc, NULL);
+
+// #define MEMTEST
+#if defined(MEMTEST)
+    for(int mi=0;mi<16*1048576;mi+=65536) {
+        void *test_m = malloc(mi);
+        if (test_m != NULL) {
+            free(test_m);
+            test_m = NULL;
+            continue;
+        } else {
+            int bi = mi - 65536;
+            for (; bi < 16 * 1048576; bi++) {
+                test_m = malloc(bi);
+                if (test_m != NULL) {
+                    free(test_m);
+                    test_m = NULL;
+                    continue;
+                } else {
+                    printf("free ram for malloc: %d\n", bi);
+                    goto run_game_loop;
+                }
+            }
+        }
+    }
+run_game_loop:
+#endif
+    Game_Initialize();
+    osSendMesg(&gSerialThreadMesgQueue, (OSMesg) SI_READ_CONTROLLER, OS_MESG_NOBLOCK);
+    Graphics_InitializeTask(gSysFrameCount);
+    {
+//        gSPSegment(gUnkDisp1++, 0, 0);
+        gSPDisplayList(gMasterDisp++, gGfxPool->unkDL1);
+        Game_Update();
+        gSPEndDisplayList(gUnkDisp1++);
+        gSPEndDisplayList(gUnkDisp2++);
+        gSPDisplayList(gMasterDisp++, gGfxPool->unkDL2);
+  //      gDPFullSync(gMasterDisp++);
+        gSPEndDisplayList(gMasterDisp++);
+    }
+    Graphics_SetTask();
+    while (true) {
+//                printf("x");
+gfx_start_frame();
+        gSysFrameCount++;
+        Graphics_InitializeTask(gSysFrameCount);
+//        MQ_WAIT_FOR_MESG(&gControllerMesgQueue, NULL);
+//        osSendMesg(&gSerialThreadMesgQueue, (OSMesg) SI_RUMBLE, OS_MESG_NOBLOCK);
+        Controller_UpdateInput();
+        Controller_Rumble();
+    //    osSendMesg(&gSerialThreadMesgQueue, (OSMesg) SI_READ_CONTROLLER, OS_MESG_NOBLOCK);
+      //  if (gControllerPress[3].button & U_JPAD) {
+        //    Main_SetVIMode();
+        //}
+        {
+            gSPSegment(gUnkDisp1++, 0, 0);
+            gSPDisplayList(gMasterDisp++, gGfxPool->unkDL1);
+            Game_Update();
+//            printf("did yo uget out\n");
+//            if (gStartNMI == 1) {
+//                Graphics_NMIWipe();
+  //          }
+            gSPEndDisplayList(gUnkDisp1++);
+            gSPEndDisplayList(gUnkDisp2++);
+            gSPDisplayList(gMasterDisp++, gGfxPool->unkDL2);
+            gDPFullSync(gMasterDisp++);
+            gSPEndDisplayList(gMasterDisp++);
+        }
+//        MQ_WAIT_FOR_MESG(&gGfxTaskMesgQueue, NULL);
+
+        Graphics_SetTask();
+
+        if (!gFillScreen) {
+////            osViSwapBuffer(&gFrameBuffers[(gSysFrameCount - 1) % 3]);
+        }
+
+    //    Fault_SetFrameBuffer(&gFrameBuffers[(gSysFrameCount - 1) % 3], SCREEN_WIDTH, 16);
+
+        visPerFrame = MIN(gVIsPerFrame, 4);
+        validVIsPerFrame = MAX(visPerFrame, gGfxVImesgQueue.validCount + 1);
+        for (i = 0; i < validVIsPerFrame; i += 1) { // Can't be ++
+      //      MQ_WAIT_FOR_MESG(&gGfxVImesgQueue, NULL);
+        }
+
+        Audio_Update();
+gfx_end_frame();     
+thd_pass();
+    }    
+}
 }
 
 void Idle_ThreadEntry(void* arg0) {
@@ -584,6 +762,8 @@ Main_ThreadEntry(NULL);
     osSetThreadPri(NULL, OS_PRIORITY_IDLE);
     for (;;) {}
 }
+
+extern void AudioLoad_LoadFiles(void);
 
 //void bootproc(void) {
 int main(int argc, char **argv) {
@@ -612,8 +792,11 @@ int main(int argc, char **argv) {
     }
 
     fclose(fntest);
-
+    printf("loading audio files\n");
+AudioLoad_LoadFiles();
+printf("\tdone.\n");
 Main_Initialize();
+
 
 //    osCreateThread(&sIdleThread, THREAD_ID_IDLE, &Idle_ThreadEntry, NULL, sIdleThreadStack + sizeof(sIdleThreadStack),
   //                 255);
@@ -628,3 +811,35 @@ Main_Initialize();
 #if MODS_ISVIEWER == 1
 #include "../mods/isviewer.c"
 #endif
+
+#define SAMPLES_HIGH 544
+void *SPINNING_THREAD(UNUSED void *arg) {
+    uint64_t last_vbltick = vblticker;
+  //  uint64_t last_output_tick = vblticker;
+//return NULL;
+//while (!inited) {thd_pass();}
+    while (1) {
+        {
+            irq_disable_scoped();
+            while (vblticker <= last_vbltick + 1)
+                genwait_wait((void*)&vblticker, NULL, 15, NULL);
+        }
+
+        last_vbltick = vblticker;
+
+//#define AUDIO_FRAMES_PER_UPDATE (gVIsPerFrame > 0 ? gVIsPerFrame : 1)
+irq_disable();
+//        AudioThread_CreateNextAudioBuffer(audio_buffer, SAMPLES_HIGH);
+//for (int i = 0; i < AUDIO_FRAMES_PER_UPDATE; i++) {
+            AudioThread_CreateNextAudioBuffer(audio_buffer /* + i * (SAMPLES_HIGH * 2) */,
+                                              SAMPLES_HIGH);
+  //      }
+        AudioThread_CreateNextAudioBuffer(audio_buffer + (SAMPLES_HIGH * 2), SAMPLES_HIGH);
+
+        audio_api->play((u8 *)audio_buffer, (SAMPLES_HIGH * 2 * 2 * 2));//  * AUDIO_FRAMES_PER_UPDATE));
+irq_enable();
+        thd_pass();
+    }
+
+    return NULL;
+}

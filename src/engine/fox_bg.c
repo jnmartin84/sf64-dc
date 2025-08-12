@@ -884,6 +884,17 @@ void Background_dummy_80040CDC(void) {
 //    printf("%s\n",__func__);
 }
 
+extern void gfx_texture_cache_invalidate(void *addr);
+//Effect_Effect342_Draw
+
+#define gSPWaterHelen(pkt)                                       \
+    {                                                                                   \
+        Gfx* _g = (Gfx*) (pkt);                                                         \
+                                                                                        \
+        _g->words.w0 = 0x424C4E44; \
+        _g->words.w1 = 0x4655434C;                                           \
+    }
+
 void Background_DrawGround(void) {
     f32 zPos;
     s32 i;
@@ -966,6 +977,10 @@ void Background_DrawGround(void) {
 
     switch (gCurrentLevel) {
         case LEVEL_CORNERIA:
+            if (gGroundSurface == SURFACE_WATER) {
+                gSPWaterHelen(gMasterDisp++);
+            }
+        
             if (gGroundClipMode != 0) {
                 RCP_SetupDL_29(gFogRed, gFogGreen, gFogBlue, gFogAlpha, gFogNear, gFogFar);
             } else {
@@ -995,6 +1010,7 @@ void Background_DrawGround(void) {
                         RCP_SetupDL_45(gFogRed, gFogGreen, gFogBlue, gFogAlpha, gFogNear, gFogFar);
                         gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 128);
                         gDPLoadTileTexture(gMasterDisp++, D_CO_6028A60, G_IM_FMT_RGBA, G_IM_SIZ_16b, 32, 32);
+
                         gBgColor = 0x190F; // 24, 32, 56
                         break;
                 }
@@ -1008,6 +1024,11 @@ void Background_DrawGround(void) {
                 Matrix_Scale(gGfxMatrix, 1.0f, 1.0f, 0.5f, MTXF_APPLY);
                 Matrix_SetGfxMtx(&gMasterDisp);
                 gSPDisplayList(gMasterDisp++, aCoGroundOnRailsDL);
+
+                            if (gGroundSurface == SURFACE_WATER) {
+                gSPWaterHelen(gMasterDisp++);
+            }
+
             } else {
                 gGroundSurface = SURFACE_GRASS;
                 gBgColor = 0x845; // 8, 8, 32
@@ -1019,6 +1040,7 @@ void Background_DrawGround(void) {
                     Matrix_Pop(&gGfxMatrix);
                 }
             }
+
             break;
 
         case LEVEL_VENOM_1:
@@ -1225,6 +1247,7 @@ void Background_DrawGround(void) {
             Matrix_Translate(gGfxMatrix, 0.0f, 0.0f, -1500.0f, MTXF_APPLY);
             Matrix_Scale(gGfxMatrix, 3.0f, 2.0f, 3.0f, MTXF_APPLY);
             Matrix_SetGfxMtx(&gMasterDisp);
+            gfx_texture_cache_invalidate(aZoWaterTex);
             if ((gGameFrameCount % 2) != 0) {
                 gSPDisplayList(gMasterDisp++, aZoWater1DL);
             } else {

@@ -65,6 +65,8 @@ uint32_t oops_texture_id;
 
 #define RATIO_X (gfx_current_dimensions.width / (2.0f * HALF_SCREEN_WIDTH))
 #define RATIO_Y (gfx_current_dimensions.height / (2.0f * HALF_SCREEN_HEIGHT))
+uint8_t er,eg,eb,ea;
+uint8_t pr,pg,pb,pa;
 
 // enough to submit the nintendo logo in one go
 //#define MAX_BUFFERED (384)
@@ -128,35 +130,30 @@ struct TextureHashmapNode {
 	struct TextureHashmapNode* next;
 	// 4
 	uint32_t texture_id;
-#if 0
 	// 8
 	const uint8_t* texture_addr;
+	// 12
+	uint32_t tmem;
 	// 16
 	uint16_t uls;
 	// 18
 	uint16_t ult;
 	// 20
 	uint8_t fmt, siz;
-#endif
-	// 8
-	uint64_t key;
-	// 16
-	uint32_t tmem;
-	// 20
-	uint8_t dirty;
-	// 21
-	uint8_t linear_filter;
 	// 22
-	uint8_t cms, cmt;
+	uint8_t dirty;
 	// 23
-	uint8_t pad1;
+	uint8_t linear_filter;
 	// 24
-	uint32_t pad2;
+	uint8_t cms, cmt;
+	// 26
+	uint8_t pal;
+	// 27
+	uint8_t pad11;
 	// 28
-	uint32_t pad3;
-	// 28
-//	uint32_t pad3;
+	uint32_t pad41;
 };
+
 
 uint32_t last_palette = 0;
 
@@ -225,6 +222,7 @@ static struct RDP {
 		uint8_t cms, cmt;
 		uint16_t uls, ult, lrs, lrt; // U10.2
 		uint32_t line_size_bytes;
+		uint16_t masks, maskt;
 	} texture_tile;
 	uint8_t textures_changed[2];
 
@@ -372,46 +370,23 @@ void reset_texcache(void) {
 //	memset(&gfx_texture_cache, 0, sizeof(gfx_texture_cache));
 }
 
-static inline uint32_t unpack_A(uint64_t key) {
-    // Extract 19-bit field
-    uint32_t a19 = (uint32_t)((key >> 42) & 0x7FFFF);
-
-    // Shift back to original position (restore the lost low 5 bits as 0s)
-//    uint32_t a = (a19 << 5);
-
-    // Restore the constant top 8 bits (0x8C per your earlier note)
-//    a |= 0x8C000000;
-
-    return a19;
-}
-
-static inline uint64_t hash64(uint64_t key) {
-    uint64_t h = 1469598103934665603ULL; // FNV offset basis
-    h ^= key; 
-    h *= 1099511628211ULL;               // FNV prime
-    return h;
-}
 
 void gfx_texture_cache_invalidate(void* orig_addr) {
-	return;
  	void* segaddr = segmented_to_virtual(orig_addr);
 
 	size_t hash = (uintptr_t) segaddr;
 	hash = (hash >> 5) & 0x3ff;
-
-
-	uintptr_t addrcomp = ((uintptr_t)segaddr>>5)&0x7FFFF;
 	struct TextureHashmapNode** node = &gfx_texture_cache.hashmap[hash];
 	uintptr_t last_node = &gfx_texture_cache.pool[gfx_texture_cache.pool_pos];
 	while (*node != NULL && ((uintptr_t)*node < last_node)) {
 		__builtin_prefetch((*node)->next);
-		uintptr_t unpaddr = (uintptr_t)unpack_A((*node)->key);
-		if (unpaddr == addrcomp) {
+		if ((*node)->texture_addr == segaddr) {
 			(*node)->dirty = 1;
 		}
 		node = &(*node)->next;
 	}
 }
+
 
 void gfx_opengl_replace_texture(const uint8_t* rgba32_buf, int width, int height, unsigned int type);
 
@@ -423,9 +398,7 @@ static  __attribute__((noinline)) uint8_t gfx_texture_cache_lookup(int tile, str
 										uint32_t tmem, uint32_t fmt, uint32_t siz, uint16_t uls, uint16_t ult,uint8_t pal) {
 	void* segaddr = segmented_to_virtual((void *)orig_addr);
 	size_t hash = (uintptr_t) segaddr;
-	hash = (hash >> 5) & 0x7ff;
-
-	uint64_t newkey = pack_key(segaddr,uls,ult,fmt,siz,pal);
+	hash = (hash >> 5) & 0x3ff;
 
 	struct TextureHashmapNode** node = &gfx_texture_cache.hashmap[hash];
 	if ((uintptr_t)rdp.loaded_texture[tile].addr < 0x8c010000u) {
@@ -434,14 +407,13 @@ static  __attribute__((noinline)) uint8_t gfx_texture_cache_lookup(int tile, str
 		return 1;
 	}
 	__builtin_prefetch(*node);
-#if 1
+
 	uintptr_t last_node = &gfx_texture_cache.pool[gfx_texture_cache.pool_pos];
 	while (*node != NULL && ((uintptr_t)*node < last_node)) {
 		__builtin_prefetch((*node)->next);
 
-		if ((*node)->key == newkey
-			/* (*node)->texture_addr == segaddr && (*node)->ult == ult && (*node)->uls == uls &&
-			(*node)->fmt == fmt && (*node)->siz == siz */) {
+		if ((*node)->texture_addr == segaddr && (*node)->ult == ult && (*node)->uls == uls &&
+			(*node)->fmt == fmt && (*node)->siz == siz && (*node)->pal == pal) {
 			gfx_rapi->select_texture(tile, (*node)->texture_id);
 			gfx_opengl_set_tile_addr(tile, segaddr);
 
@@ -455,7 +427,7 @@ static  __attribute__((noinline)) uint8_t gfx_texture_cache_lookup(int tile, str
 		}
 		node = &(*node)->next;
 	}
-#endif
+
 	if (gfx_texture_cache.pool_pos == sizeof(gfx_texture_cache.pool) / sizeof(struct TextureHashmapNode)) {
 // jnmartin84
 //		printf("FUCK\n");
@@ -467,27 +439,20 @@ static  __attribute__((noinline)) uint8_t gfx_texture_cache_lookup(int tile, str
 	}
 
 	*node = &gfx_texture_cache.pool[gfx_texture_cache.pool_pos++];
-//	if (gfx_texture_cache.pool_pos > max_lookup) {
-//		max_lookup = gfx_texture_cache.pool_pos;
-//		printf("max pool pos %d\n", max_lookup);
-//	}
-//	if ((*node)->texture_addr == NULL) {
-	if ((*node)->key == 0) {
+	if ((*node)->texture_addr == NULL) {
 		(*node)->texture_id = gfx_rapi->new_texture();
 	}
 	gfx_rapi->select_texture(tile, (*node)->texture_id);
 	gfx_opengl_set_tile_addr(tile, segaddr);
 
 	gfx_rapi->set_sampler_parameters(tile, 0, 0, 0);
-#if 0
+
 	(*node)->texture_addr = segaddr;
 	(*node)->fmt = fmt;
 	(*node)->siz = siz;
 	(*node)->uls = uls;
 	(*node)->ult = ult;
-#endif
-	(*node)->key = pack_key(segaddr,uls,ult,fmt,siz,pal);
-
+	(*node)->pal = pal;
 	(*node)->dirty = 0;
 
 	(*node)->tmem = tmem;
@@ -496,6 +461,7 @@ static  __attribute__((noinline)) uint8_t gfx_texture_cache_lookup(int tile, str
 	(*node)->linear_filter = 0;
 	(*node)->next = NULL;
 	*n = *node;
+
 
 	return 0;
 }
@@ -731,6 +697,10 @@ static void import_texture_ia8(int tile) {
 	uint32_t height = rdp.loaded_texture[tile].size_bytes / rdp.texture_tile.line_size_bytes;
 	memset(rgba16_buf, 0, width*height*2);//8192*2);
 
+	uint8_t* start = (uint8_t*) rdp.loaded_texture[tile]
+						 .addr;
+
+#if 0
 	uint8_t* start = (uint8_t*) &rdp.loaded_texture[tile]
 						 .addr[((rdp.texture_tile.ult >> G_TEXTURE_IMAGE_FRAC) * (last_set_texture_image_width + 1)) +
 							   (rdp.texture_tile.uls >> G_TEXTURE_IMAGE_FRAC)];
@@ -753,7 +723,14 @@ static void import_texture_ia8(int tile) {
 		start += src_width;
 		tex16 += src_width;
 	}
-
+#endif
+	uint16_t *tex16 = rgba16_buf;
+	for (uint32_t i = 0; i < rdp.loaded_texture[tile].size_bytes; i++) {
+			uint8_t val = start[i];
+			uint8_t in = ((val >> 4) & 0xf);
+			uint8_t al = (val & 0xf);
+			tex16[i] = (al << 12) | (in << 8) | (in << 4) | in;
+	}
 	gfx_rapi->upload_texture((uint8_t*) rgba16_buf, width, height, GL_UNSIGNED_SHORT_4_4_4_4_REV);
 }
 
@@ -2004,16 +1981,17 @@ static void  __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx
     uint8_t use_noise = (rdp.other_mode_l & G_AC_DITHER) == G_AC_DITHER;
 
     if (texture_edge) {
-        use_alpha = 1;
     }
 
     if (use_alpha)
         cc_id |= SHADER_OPT_ALPHA;
     if (use_fog)
         cc_id |= SHADER_OPT_FOG;
-    if (texture_edge)
+    if (texture_edge) {
         cc_id |= SHADER_OPT_TEXTURE_EDGE;
-    if (use_noise)
+        use_alpha = 0;
+	}
+		if (use_noise)
         cc_id |= SHADER_OPT_NOISE;
 
     if (!use_alpha) {
@@ -2050,6 +2028,13 @@ static void  __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx
                 import_texture(i);
                 rdp.textures_changed[i] = 0;
             }
+/* 			if (rdp.texture_tile.masks > 0) {
+rdp.texture_tile.cms = G_TX_MIRROR;
+}
+if (rdp.texture_tile.maskt > 0) {
+rdp.texture_tile.cmt = G_TX_MIRROR;
+}
+ */
             uint8_t linear_filter = (rdp.other_mode_h & (3U << G_MDSFT_TEXTFILT)) != G_TF_POINT;
             if (linear_filter != rendering_state.textures[i]->linear_filter ||
                 rdp.texture_tile.cms != rendering_state.textures[i]->cms ||
@@ -2081,6 +2066,9 @@ static void  __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx
         buf_vbo[buf_num_vert].vert.y = v_arr[i]->y;
         buf_vbo[buf_num_vert].vert.z = v_arr[i]->z;
 
+
+
+
         if (use_texture) {
             float u = (v_arr[i]->u - (float)(rdp.texture_tile.uls << 3)) * 0.03125f;
             // / 32.0f;
@@ -2091,7 +2079,16 @@ static void  __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx
                 u += 0.5f;
                 v += 0.5f;
             }
-            buf_vbo[buf_num_vert].texture.u = u / (float) tex_width;
+/* 
+if (rdp.texture_tile.masks > 0) {
+u = fmodf(u, (float)((1 << rdp.texture_tile.masks) << 3));
+}
+if (rdp.texture_tile.maskt > 0) {
+v = fmodf(v, (float)((1 << rdp.texture_tile.maskt) << 3));
+}
+ */
+
+			buf_vbo[buf_num_vert].texture.u = u / (float) tex_width;
             buf_vbo[buf_num_vert].texture.v = v / (float) tex_height;
         }
 
@@ -2101,6 +2098,279 @@ static void  __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx
         uint32_t color_g = 0;
         uint32_t color_b = 0;
         uint32_t color_a = 0;
+#if 0
+
+//static inline uint32_t color_comb(uint32_t a, uint32_t b, uint32_t c, uint32_t d) {
+//	return color_comb_component(a) | (color_comb_component(b) << 3) | (color_comb_component(c) << 6) |
+//		   (color_comb_component(d) << 9);
+//}
+//static void gfx_dp_set_combine_mode(uint32_t rgb, uint32_t alpha) {
+//	rdp.combine_mode = rgb | (alpha << 12);
+//}
+		uint8_t cc_a,cc_b,cc_c,cc_d;
+		uint8_t cc_aa,cc_ba,cc_ca,cc_da;
+
+		uint32_t cc_rgb = rdp.combine_mode & 0xFFF;
+		uint32_t cc_alpha = (rdp.combine_mode >> 12) & 0xFFF;
+
+		cc_a = cc_rgb & 0x7;
+		cc_b = (cc_rgb>>3) & 0x7;
+		cc_c = (cc_rgb>>6) & 0x7;
+		cc_d = (cc_rgb>>9) & 0x7;
+
+		cc_aa = cc_alpha & 0x7;
+		cc_ba = (cc_alpha>>3) & 0x7;
+		cc_ca = (cc_alpha>>6) & 0x7;
+		cc_da = (cc_alpha>>9) & 0x7;
+
+//		if (cc_a == G_CCMUX_1 && cc_b == G_CCMUX_ENVIRONMENT && cc_c == G_CCMUX_TEXEL0 && cc_d == G)
+
+		uint32_t fake_r=0,fake_g=0,fake_b=0,fake_a=0;
+		switch (cc_a) {
+			case G_CCMUX_0:
+				fake_r = 0;
+				fake_g = 0;
+				fake_b = 0;
+				break;
+			case G_CCMUX_1:
+				fake_r = 255;
+				fake_g = 255;
+				fake_b = 255;
+				break;
+			case G_CCMUX_PRIMITIVE:
+				fake_r = pr;
+				fake_g = pg;
+				fake_b = pb;
+				break;
+			case G_CCMUX_ENVIRONMENT:
+				fake_r = er;
+				fake_g = eg;
+				fake_b = eb;
+				break;
+			case G_CCMUX_SHADE:
+				fake_r = v_arr[i]->color.r;
+				fake_g = v_arr[i]->color.g;
+                fake_b = v_arr[i]->color.b;
+				break;
+			default:
+				fake_r = fake_g = fake_b = 255;
+				break;
+		}
+
+		switch (cc_b) {
+			case G_CCMUX_0:
+				fake_r -= 0;
+				fake_g -= 0;
+				fake_b -= 0;
+				break;
+			case G_CCMUX_1:
+				fake_r -= 255;
+				fake_g -= 255;
+				fake_b -= 255;
+				break;
+			case G_CCMUX_PRIMITIVE:
+				fake_r -= pr;
+				fake_g -= pg;
+				fake_b -= pb;
+				break;
+			case G_CCMUX_ENVIRONMENT:
+				fake_r -= er;
+				fake_g -= eg;
+				fake_b -= eb;
+				break;
+			case G_CCMUX_SHADE:
+				fake_r -= v_arr[i]->color.r;
+				fake_g -= v_arr[i]->color.g;
+                fake_b -= v_arr[i]->color.b;
+				break;
+			default:
+				fake_r -= 0;
+				fake_g -= 0;
+				fake_b -= 0;
+				break;
+		}
+
+		switch (cc_c) {
+			case G_CCMUX_0:
+				fake_r *= 0;
+				fake_g *= 0;
+				fake_b *= 0;
+				break;
+			case G_CCMUX_1:
+				fake_r *= 255;
+				fake_g *= 255;
+				fake_b *= 255;
+				break;
+			case G_CCMUX_PRIMITIVE:
+				fake_r *= pr;
+				fake_g *= pg;
+				fake_b *= pb;
+				break;
+			case G_CCMUX_ENVIRONMENT:
+				fake_r *= er;
+				fake_g *= eg;
+				fake_b *= eb;
+				break;
+			case G_CCMUX_SHADE:
+				fake_r *= v_arr[i]->color.r;
+				fake_g *= v_arr[i]->color.g;
+                fake_b *= v_arr[i]->color.b;
+				break;
+			default:
+				fake_r *= 255;
+				fake_g *= 255;
+				fake_b *= 255;
+				break;
+		}
+
+		fake_r >>= 8;
+		fake_g >>= 8;
+		fake_b >>= 8;
+
+		switch (cc_d) {
+			case G_CCMUX_0:
+				fake_r += 0;
+				fake_g += 0;
+				fake_b += 0;
+				break;
+			case G_CCMUX_1:
+				fake_r += 255;
+				fake_g += 255;
+				fake_b += 255;
+				break;
+			case G_CCMUX_PRIMITIVE:
+				fake_r += pr;
+				fake_g += pg;
+				fake_b += pb;
+				break;
+			case G_CCMUX_ENVIRONMENT:
+				fake_r += er;
+				fake_g += eg;
+				fake_b += eb;
+				break;
+			case G_CCMUX_SHADE:
+				fake_r += v_arr[i]->color.r;
+				fake_g += v_arr[i]->color.g;
+                fake_b += v_arr[i]->color.b;
+				break;
+			default:
+				//
+				break;
+		}
+
+		switch (cc_aa) {
+			case G_CCMUX_0:
+				fake_a = 0;
+				break;
+			case G_CCMUX_1:
+				fake_a = 255;
+				break;
+			case G_CCMUX_PRIMITIVE_ALPHA:
+				fake_a = pa;
+				break;
+			case G_CCMUX_ENV_ALPHA:
+				fake_a = ea;
+				break;
+			case G_CCMUX_SHADE_ALPHA:	
+                fake_a = v_arr[i]->color.a;
+				break;
+			default:
+				fake_a = 255;
+				break;
+		}
+
+		switch (cc_ba) {
+			case G_CCMUX_0:
+				break;
+			case G_CCMUX_1:
+				fake_a -= 255;
+				break;
+			case G_CCMUX_PRIMITIVE_ALPHA:
+				fake_a -= pa;
+				break;
+			case G_CCMUX_ENV_ALPHA:
+				fake_a -= ea;
+				break;
+			case G_CCMUX_SHADE_ALPHA:
+                fake_a -= v_arr[i]->color.a;
+				break;
+			default:
+				break;
+		}
+
+		switch (cc_ca) {
+			case G_CCMUX_0:
+				fake_a *= 0;
+				break;
+			case G_CCMUX_1:
+				fake_a *= 255;
+				break;
+			case G_CCMUX_PRIMITIVE_ALPHA:
+				fake_a *= pa;
+				break;
+			case G_CCMUX_ENV_ALPHA:
+				fake_a *= ea;
+				break;
+			case G_CCMUX_SHADE_ALPHA:
+                fake_a *= v_arr[i]->color.a;
+				break;
+			default:
+				fake_a *= 255;
+				break;
+		}
+
+		fake_a >>= 8;
+
+		switch (cc_da) {
+			case G_CCMUX_0:
+				break;
+			case G_CCMUX_1:
+				fake_a += 255;
+				break;
+			case G_CCMUX_PRIMITIVE_ALPHA:
+				fake_a += pa;
+				break;
+			case G_CCMUX_ENV_ALPHA:
+				fake_a += ea;
+				break;
+			case G_CCMUX_SHADE_ALPHA:
+                fake_a += v_arr[i]->color.a;
+				break;
+			default:
+				//
+				break;
+		}
+
+                uint32_t max_c = 255;
+                if (fake_r > max_c)
+                    max_c = fake_r;
+                if (fake_g > max_c)
+                    max_c = fake_g;
+                if (fake_b > max_c)
+                    max_c = fake_b;
+                if (fake_a > max_c)
+                    max_c = fake_a;
+
+                float rn, gn, bn, an;
+                rn = (float) fake_r;
+                gn = (float) fake_g;
+                bn = (float) fake_b;
+                an = (float) fake_a;
+                float maxc = 255.0f / (float) max_c;
+                rn *= maxc;
+                gn *= maxc;
+                bn *= maxc;
+                an *= maxc;
+
+				fake_r = rn;
+				fake_g = gn;
+				fake_b = bn;
+				fake_a = rn;
+
+buf_vbo[buf_num_vert].color.packed =
+                                PACK_ARGB8888(fake_r,fake_g,fake_b,fake_a);
+#endif
+		#if 1
 
 		if (num_inputs > 1) {
             int i0 = comb->shader_input_mapping[0][1] == CC_PRIM;
@@ -2207,17 +2477,32 @@ static void  __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx
                 for (k = 0; k < 1 + (use_alpha ? 1 : 0); k++) {
                     switch (comb->shader_input_mapping[k][j]) {
                         case CC_PRIM:
-                            buf_vbo[buf_num_vert].color.packed =
+							//if (!k)	color_r = pr;
+							//if (!k)	color_g = pg;
+							//if (!k)	color_b = pb;
+							//if (k)	color_r = pa;
+
+
+							buf_vbo[buf_num_vert].color.packed =
                                 PACK_ARGB8888(rdp.prim_color.r, rdp.prim_color.g, rdp.prim_color.b, k ? rdp.prim_color.a : 255);
                             break;
                         case CC_SHADE:
-                            buf_vbo[buf_num_vert].color.packed = PACK_ARGB8888(v_arr[i]->color.r, v_arr[i]->color.g,
+  //  							if (!k)	color_r = v_arr[i]->color.r;
+	//						if (!k)	color_g = v_arr[i]->color.g;
+	//						if (!k)	color_b = v_arr[i]->color.b;
+	//						if (k)	color_r = v_arr[i]->color.a;
+                        buf_vbo[buf_num_vert].color.packed = PACK_ARGB8888(v_arr[i]->color.r, v_arr[i]->color.g,
                                                                                v_arr[i]->color.b, k ? v_arr[i]->color.a : 255);
                             break;
                         case CC_ENV:
                             buf_vbo[buf_num_vert].color.packed =
                                 PACK_ARGB8888(rdp.env_color.r, rdp.env_color.g, rdp.env_color.b, k ? rdp.env_color.a : 255);
-                            break;
+  //						if (!k)	color_r = er;
+	//						if (!k)	color_g = eg;
+	//						if (!k)	color_b = eb;
+	//						if (k)	color_r = ea;
+               
+  break;
                         case CC_LOD: {
                             float distance_frac = (v1->w - 3000.0f) / 3000.0f;
                             if (distance_frac < 0.0f)
@@ -2226,10 +2511,16 @@ static void  __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx
                                 distance_frac = 1.0f;
                             const uint8_t frac = (uint8_t) (distance_frac * 255.0f);
                             buf_vbo[buf_num_vert].color.packed = PACK_ARGB8888(frac, frac, frac, k ? frac : 255);
-                            break;
+//						if (!k)	color_r = frac;
+//							if (!k)	color_g = frac;
+//							if (!k)	color_b = frac;
+//							if (k)	color_r = frac;
+  
+break;
                         }
                         default:
-                            buf_vbo[buf_num_vert].color.packed = PACK_ARGB8888(0xff, 0xff, 0xff, 0xff);
+//color_r = color_g = color_b = color_a = 255;
+						                            buf_vbo[buf_num_vert].color.packed = PACK_ARGB8888(0xff, 0xff, 0xff, 0xff);
                             // fix the alpha on the Nintendo logo model
 /*                             if (in_intro) {
                                 buf_vbo[buf_num_vert].color.packed =
@@ -2239,10 +2530,12 @@ static void  __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx
                     }
                 }
             }
+//			buf_vbo[buf_num_vert].color.packed = PACK_ARGB8888(color_r, color_g, color_b, color_a);
 #endif
 //	buf_vbo[buf_num_vert].color.packed = PACK_ARGB8888(255,255,255,255);
         }
-	nextvert:
+#endif
+		nextvert:
 		buf_num_vert++;
         buf_vbo_len += sizeof(dc_fast_t);
     }
@@ -2356,6 +2649,13 @@ static void  __attribute__((noinline)) gfx_sp_quad_2d(uint8_t vtx1_idx, uint8_t 
 				rdp.textures_changed[i] = 0;
 			}
 			uint8_t linear_filter = (rdp.other_mode_h & (3U << G_MDSFT_TEXTFILT)) != G_TF_POINT;
+/* if (rdp.texture_tile.masks > 0) {
+rdp.texture_tile.cms = G_TX_MIRROR;
+}
+if (rdp.texture_tile.maskt > 0) {
+rdp.texture_tile.cmt = G_TX_MIRROR;
+}
+ */
 			if (linear_filter != rendering_state.textures[i]->linear_filter ||
 				rdp.texture_tile.cms != rendering_state.textures[i]->cms ||
 				rdp.texture_tile.cmt != rendering_state.textures[i]->cmt) {
@@ -2578,8 +2878,8 @@ static void gfx_dp_set_texture_image(UNUSED uint32_t format, uint32_t size, UNUS
 
 
 static void  gfx_dp_set_tile(uint8_t fmt, uint32_t siz, uint32_t line, uint32_t tmem, uint8_t tile,
-							uint32_t palette, uint32_t cmt, UNUSED uint32_t maskt, UNUSED uint32_t shiftt,
-							uint32_t cms, UNUSED uint32_t masks, UNUSED uint32_t shifts) {
+							uint32_t palette, uint32_t cmt,  uint32_t maskt,  uint32_t shiftt,
+							uint32_t cms, uint32_t masks, UNUSED uint32_t shifts) {
 	if (tile == G_TX_RENDERTILE) {
 		//SUPPORT_CHECK(palette == 0); // palette should set upper 4 bits of color index in 4b mode
 		rdp.texture_tile.fmt = fmt;
@@ -2591,6 +2891,8 @@ static void  gfx_dp_set_tile(uint8_t fmt, uint32_t siz, uint32_t line, uint32_t 
 		if (cmt == G_TX_WRAP && maskt == G_TX_NOMASK) {
 			cmt = G_TX_CLAMP;
 		}
+		rdp.texture_tile.masks = masks;
+		rdp.texture_tile.maskt = maskt;
 		rdp.texture_tile.cms = cms;
 		rdp.texture_tile.cmt = cmt;
 		rdp.texture_tile.line_size_bytes = line * 8;
@@ -2662,16 +2964,11 @@ static void  __attribute__((noinline)) gfx_dp_load_tlut(UNUSED uint8_t tile, uin
 	uint16_t* tlp = tlut;
 	for (int i = 0; i < high_index; i++) {
 		uint16_t c = *srcp++;
-		uint8_t a = c&1;//!!(c & 0x100);
-		if (a) {
-//			c = (c << 8) | ((c >> 8) & 0xff);
+		uint8_t a = c&1;
 			uint8_t r = c >> 11;
 			uint8_t g = (c >> 6) & 0x1f;
 			uint8_t b = (c >> 1) & 0x1f;
-			*tlp++ = 0x8000 | (r << 10) | (g << 5) | (b);
-		} else {
-			*tlp++ = 0;
-		}
+				*tlp++ = (a << 15) | (r << 10) | (g << 5) | (b);
 	}
 #endif
 }
@@ -2761,7 +3058,6 @@ static inline uint32_t color_comb(uint32_t a, uint32_t b, uint32_t c, uint32_t d
 static void gfx_dp_set_combine_mode(uint32_t rgb, uint32_t alpha) {
 	rdp.combine_mode = rgb | (alpha << 12);
 }
-uint8_t er,eg,eb,ea;
 
 static void  gfx_dp_set_env_color(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
 	er = rdp.env_color.r = r;
@@ -2770,7 +3066,6 @@ static void  gfx_dp_set_env_color(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
 	ea = rdp.env_color.a = a;
 }
 
-uint8_t pr,pg,pb,pa;
 
 static void gfx_dp_set_prim_color(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
 	pr = rdp.prim_color.r = r;
@@ -3009,7 +3304,8 @@ static inline void* seg_addr(uintptr_t w1) {
 #define C1(pos, width) ((cmd->words.w1 >> (pos)) & ((1U << width) - 1))
 #define G_QUAD (G_IMMFIRST - 10)
 
-int use_one_inv = 0;
+
+int water_helen = 0;
 int depth_off = 0;
 static void  __attribute__((noinline)) gfx_run_dl(Gfx* cmd) {
 	//printf("starting at %08x\n", cmd);
@@ -3017,7 +3313,7 @@ static void  __attribute__((noinline)) gfx_run_dl(Gfx* cmd) {
 	cmd = seg_addr((uintptr_t) cmd);
 	for (;;) {
 		uint32_t opcode = cmd->words.w0 >> 24;
-#if 0
+#if 1
 		// custom f3d opcodes, sorry
 		if (cmd->words.w0 == 0x424C4E44) {
 			if (cmd->words.w1 == 0x4655434B) {
@@ -3025,9 +3321,9 @@ static void  __attribute__((noinline)) gfx_run_dl(Gfx* cmd) {
 				blend_fuck ^= 1;
 			} else if(cmd->words.w1 == 0x4655434C) {
 				// gSPBlendOneInv
-				use_one_inv ^= 1;
+				water_helen ^= 1;
 			} else if(cmd->words.w1 == 0x4655434D) {
-				depth_off ^= 1;
+	//			depth_off ^= 1;
 			}
 			++cmd;
 			continue;

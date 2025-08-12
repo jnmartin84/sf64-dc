@@ -451,7 +451,7 @@ void* AudioHeap_SearchCaches(s32 tableType, s32 cache, s32 id) {
         return ramAddr;
     }
     if (cache == CACHE_PERMANENT) {
-        return NULL;
+//        return NULL;
     }
     return AudioHeap_SearchRegularCaches(tableType, cache, id);
 }
@@ -664,7 +664,7 @@ void AudioHeap_Init(void) {
     gNumNotes = spec->numNotes;
     D_8014C1B0 = spec->unk_14;
     gMaxTempo = (u16) ((gAudioBufferParams.ticksPerUpdate * 2880000.0f / gSeqTicksPerBeat) / gMaxTempoTvTypeFactors);
-    gAudioBufferParams.numBuffers = spec->numBuffers;
+    gAudioBufferParams.numBuffers = 1;// spec->numBuffers;
     gAudioBufferParams.samplesPerFrameTarget *= gAudioBufferParams.numBuffers;
     gAudioBufferParams.maxAiBufferLength *= gAudioBufferParams.numBuffers;
     gAudioBufferParams.minAiBufferLength *= gAudioBufferParams.numBuffers;

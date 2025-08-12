@@ -21,6 +21,8 @@
 #include "assets/ast_ve1_boss.h"
 #include "assets/ast_zoness.h"
 
+extern void gfx_texture_cache_invalidate(void *addr);
+
 s32 gTeamEventActorIndex[4] = { 0, 0, 0, 0 };
 s32 gCallVoiceParam = 0;
 s32 gCallTimer;
@@ -110,6 +112,7 @@ void CoWaterfall_Update(CoWaterfall* this) {
     Vec3f sp18;
 
     Lib_Texture_Scroll(D_CO_60038F8, 32, 32, 1);
+    gfx_texture_cache_invalidate(D_CO_60038F8);
     if ((gGameFrameCount % 4) == 0) {
         Matrix_RotateY(gCalcMatrix, this->obj.rot.y * M_DTOR, MTXF_NEW);
 

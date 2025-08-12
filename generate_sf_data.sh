@@ -2,6 +2,8 @@ SF_DATA_PATH=sf_data
 
 mkdir -p $SF_DATA_PATH
 
+cp bin/us/rev1/audio*.bin $SF_DATA_PATH
+
 sh-elf-ld -EL -t -e 0 -Ttext=05000000 build/src/assets/ast_text/ast_text.o -o build/src/assets/ast_text/ast_text.elf
 sh-elf-objcopy -O binary --only-section=.data build/src/assets/ast_text/ast_text.elf $SF_DATA_PATH/ast_text.bin
 

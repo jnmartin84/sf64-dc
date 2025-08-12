@@ -738,7 +738,7 @@ void Option_Entry_Setup(void) {
             break;
     }
 }
-
+extern void sphere_inval(void *startaddr);
 // Initialize the Planet textures before any drawing occurs
 void Option_PlanetTextures_Setup(void) {
     s32 i;
@@ -763,6 +763,7 @@ void Option_PlanetTextures_Setup(void) {
         D_menu_801CD818[i] = 0.0f;
         Map_Texture_Sphere(gBSSMapPlanetTextures[i], SEGMENTED_TO_VIRTUAL(gAssetMapPlanetTextures[i]),
                            &D_menu_801CD818[i]);
+        sphere_inval(gBSSMapPlanetTextures[i]);
     }
 }
 
@@ -770,6 +771,7 @@ void Option_ScrollPlanetTexture(void) {
     if (D_menu_801B93E8 == 5) {
         Map_Texture_Sphere(gBSSMapPlanetTextures[8], SEGMENTED_TO_VIRTUAL(gAssetMapPlanetTextures[8]),
                            &D_menu_801CD818[8]);
+        sphere_inval(gBSSMapPlanetTextures[8]);
         D_menu_801B93E8 = 0;
     } else {
         D_menu_801B93E8++;
@@ -778,10 +780,12 @@ void Option_ScrollPlanetTexture(void) {
     Map_Texture_Sphere(gBSSMapPlanetTextures[D_menu_801B93EC * 2],
                        SEGMENTED_TO_VIRTUAL(gAssetMapPlanetTextures[D_menu_801B93EC * 2]),
                        &D_menu_801CD818[D_menu_801B93EC * 2]);
+        sphere_inval(gBSSMapPlanetTextures[D_menu_801B93EC * 2]);
 
     Map_Texture_Sphere(gBSSMapPlanetTextures[(D_menu_801B93EC * 2) + 1],
                        SEGMENTED_TO_VIRTUAL(gAssetMapPlanetTextures[(D_menu_801B93EC * 2) + 1]),
                        &D_menu_801CD818[(D_menu_801B93EC * 2) + 1]);
+        sphere_inval(gBSSMapPlanetTextures[(D_menu_801B93EC * 2)+1]);
 
     D_menu_801B93EC++;
     if (D_menu_801B93EC >= 4) {
@@ -1316,9 +1320,9 @@ void Option_Sound_Setup(void) {
     gOptionSoundMode = gSaveFile.save.data.soundMode;
     SEQCMD_SET_SOUND_MODE(sSoundMode[gOptionSoundMode]);
 
-    gVolumeSettings[AUDIO_TYPE_MUSIC] = gSaveFile.save.data.musicVolume;
-    gVolumeSettings[AUDIO_TYPE_VOICE] = gSaveFile.save.data.voiceVolume;
-    gVolumeSettings[AUDIO_TYPE_SFX] = gSaveFile.save.data.sfxVolume;
+    gVolumeSettings[AUDIO_TYPE_MUSIC] = 99;//gSaveFile.save.data.musicVolume;
+    gVolumeSettings[AUDIO_TYPE_VOICE] = 99;//gSaveFile.save.data.voiceVolume;
+    gVolumeSettings[AUDIO_TYPE_SFX] = 99;//gSaveFile.save.data.sfxVolume;
 
     if (gVolumeSettings[AUDIO_TYPE_MUSIC] > 99) {
         gVolumeSettings[AUDIO_TYPE_MUSIC] = 99;

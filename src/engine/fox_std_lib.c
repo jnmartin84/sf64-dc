@@ -26,13 +26,13 @@ s32 Graphics_Printf(const char* fmt, ...) {
 
     return 0;
 }
-
+extern void gfx_texture_cache_invalidate(void *addr);
 void Lib_Texture_Scroll(u16* texture, s32 width, s32 height, u8 mode) {
     u16* pixel = SEGMENTED_TO_VIRTUAL(texture);
     u16 tempPxl;
     s32 u;
     s32 v;
-
+    gfx_texture_cache_invalidate(pixel);
     switch (mode) {
         case 0:
             for (u = 0; u < width; u++) {
@@ -76,27 +76,29 @@ void Lib_Texture_Scroll(u16* texture, s32 width, s32 height, u8 mode) {
 void Lib_Texture_Mottle(u16* dst, u16* src, u8 mode) {
     s32 u;
     s32 v;
+    u16 *vdst;
+    u16 *vsrc;
     u8* dst8;
     u8* src8;
     s32 offset;
-return;
-    dst = SEGMENTED_TO_VIRTUAL(dst);
-    src = SEGMENTED_TO_VIRTUAL(src);
+
+    vdst = SEGMENTED_TO_VIRTUAL(dst);
+    vsrc = SEGMENTED_TO_VIRTUAL(src);
     switch (mode) {
         case 2:
             for (v = 0; v < 32 * 32; v += 32) {
                 offset = 3.0f * sinf((s32) (((v / 32) + (gGameFrameCount / 4)) % 32U) * (2 * M_PI / 32));
                 for (u = 0; u < 32; u++) {
-                    dst[v + (offset + u) % 32U] = src[v + u];
+                    vdst[v + (offset + u) % 32U] = vsrc[v + u];
                 }
             }
             break;
 
         case 3:
-            for (v = 0; v < 22 * 64; v += 64) { // should be 32 * 64?
+            for (v = 0; v < 32 * 64; v += 64) { // should be 32 * 64?
                 offset = sinf((s32) (((v / 64) + (gGameFrameCount / 4)) % 32U) * (2 * M_PI / 8));
                 for (u = 0; u < 64; u++) {
-                    dst[v + (offset + u) % 64U] = src[v + u];
+                    vdst[v + (offset + u) % 64U] = vsrc[v + u];
                 }
             }
             break;
@@ -105,7 +107,7 @@ return;
             for (v = 0; v < 16 * 16; v += 16) {
                 offset = 2.0f * sinf((s32) (((v / 16) + (gGameFrameCount / 2)) % 16U) * (2 * M_PI / 16));
                 for (u = 0; u < 16; u++) {
-                    dst[v + (offset + u) % 16U] = src[v + u];
+                    vdst[v + (offset + u) % 16U] = vsrc[v + u];
                 }
             }
             break;
@@ -114,14 +116,14 @@ return;
             for (v = 0; v < 32 * 32; v += 32) {
                 offset = 2.0f * sinf((s32) (((v / 32) + (gGameFrameCount / 2)) % 32U) * (2 * M_PI / 32));
                 for (u = 0; u < 32; u++) {
-                    dst[v + (offset + u) % 32U] = src[v + u];
+                    vdst[v + (offset + u) % 32U] = vsrc[v + u];
                 }
             }
             break;
 
         case 5:
-            dst8 = (u8*) dst;
-            src8 = (u8*) src;
+            dst8 = (u8*) vdst;
+            src8 = (u8*) vsrc;
             for (v = 0; v < 64 * 64; v += 64) {
                 offset = 4.0f * sinf((s32) (((v / 64) + (gGameFrameCount / 4)) % 32U) * (2 * M_PI / 32));
                 for (u = 0; u < 64; u++) {

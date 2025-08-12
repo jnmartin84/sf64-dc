@@ -41,7 +41,6 @@ Scene sCurrentScene = {
 #endif
 
 // 5,950,080 bytes
-extern u8 SEG_BUF[15][0x60D80];
 #if 0
 void Load_RomFile(void* vRomAddress, void* dest, ptrdiff_t size) {
     s32 i;
@@ -62,7 +61,7 @@ void Load_RomFile(void* vRomAddress, void* dest, ptrdiff_t size) {
     }
 }
 #endif
-
+extern u8 *SEG_BUF[15];
 #include <stdio.h>
 char fullfn[256];
 void Load_RomFile(char *fname, int snum) {

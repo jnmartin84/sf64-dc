@@ -25,9 +25,9 @@
 UNK_TYPE D_800D2F50 = 0; // unused
 s32 sOverheadCam = 0;
 f32 sOverheadCamDist = 0.0f;
-f32 sMusicVolume = 0.0f;
-f32 sVoiceVolume = 0.0f;
-f32 sSfxVolume = 0.0f;
+f32 sMusicVolume = 1.0f;
+f32 sVoiceVolume = 1.0f;
+f32 sSfxVolume = 1.0f;
 u8 gVenomHardClear = 0;
 u8 sSaveSlotFromLevel[20] = {
     PLANET_CORNERIA, PLANET_METEO,      PLANET_SECTOR_X, PLANET_AREA_6,   PLANET_AREA_6,
@@ -67,7 +67,7 @@ s32 Play_GetMaxShields(void) {
     }
     return 255;
 }
-
+#include <stdio.h>
 void Play_UpdateDynaFloor(void) {
     Vec3f spC4;
     Vec3f spB8;
@@ -139,6 +139,7 @@ void Play_UpdateDynaFloor(void) {
         }
 
         spB4[*spB0].n.ob[1] = (s16) *var_s3 + (s16) *var_s0;
+//        printf("%d\n", (s16) *var_s3 + (s16) *var_s0);
 
         Matrix_RotateZ(gCalcMatrix, *var_s3 * sp88 * M_DTOR, MTXF_NEW);
 
@@ -6673,7 +6674,7 @@ void Camera_SetupLights(Player* player) {
     gLight2y = dest.y;
     gLight2z = dest.z;
 }
-
+void gfx_texture_cache_invalidate(void *addr);
 void Play_UpdateLevel(void) {
     s32 cycleMask;
     s32 sp40;
@@ -6761,6 +6762,7 @@ void Play_UpdateLevel(void) {
             HUD_Texture_Wave(D_CO_603EB38, D_CO_6028A60);
             if ((gGameFrameCount % 2) != 0) {
                 Lib_Texture_Scroll(D_CO_600CBD8, 64, 32, 3);
+                gfx_texture_cache_invalidate(D_CO_600CBD8);
             }
             break;
 
@@ -6773,11 +6775,14 @@ void Play_UpdateLevel(void) {
 
             for (gPathTexScroll; gPathTexScroll >= 10.0f; gPathTexScroll -= 10.0f) {
                 Lib_Texture_Scroll(aSoLavaTex, 32, 32, 1);
+                gfx_texture_cache_invalidate(aSoLavaTex);
             }
             if (gPlayer[0].state == PLAYERSTATE_NEXT) {
                 Lib_Texture_Scroll(aSoLavaTex, 32, 32, 1);
+                gfx_texture_cache_invalidate(aSoLavaTex);
             }
             Lib_Texture_Mottle(aSoBackdropTex, D_SO_6020F60, 3);
+            gfx_texture_cache_invalidate(aSoBackdropTex);
 
             if (gPlayer[0].pos.y > 600.0f) {
                 cycleMask = 8 - 1;
@@ -6839,12 +6844,15 @@ void Play_UpdateLevel(void) {
             Play_UpdateDynaFloor();
             for (gPathTexScroll; gPathTexScroll >= 20.0f; gPathTexScroll -= 20.0f) {
                 Lib_Texture_Scroll(D_ZO_602C2CC, 32, 32, 1);
+                gfx_texture_cache_invalidate(D_ZO_602C2CC);
             }
             if (gPlayer[0].state == PLAYERSTATE_NEXT) {
                 Lib_Texture_Scroll(D_ZO_602C2CC, 32, 32, 1);
+                gfx_texture_cache_invalidate(D_ZO_602C2CC);
             }
 
             HUD_Texture_Wave(D_ZO_602C2CC, aZoWaterTex);
+                gfx_texture_cache_invalidate(aZoWaterTex);
 
             if (Play_CheckDynaFloorCollision(&sp3C, &sp40, gPlayer[0].cam.eye.x, gPlayer[0].cam.eye.y,
                                              gPlayer[0].cam.eye.z - gPathProgress)) {

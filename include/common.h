@@ -17,9 +17,5 @@ typedef float f32;
 
 #define NULL 0
 
-double fabsf(double f);
-#pragma intrinsic(fabsf)
-
-
 #endif
 

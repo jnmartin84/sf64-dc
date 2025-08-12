@@ -182,9 +182,9 @@ static inline GLenum texenv_set_texture_color(struct ShaderProgram* prg) {
         case 0x00045A00: // peach letter
             mode = GL_DECAL;
             break;
-            case 0x01045045:
+//            case 0x01045045:
         case 0x01a00a00: // intro copyright fade in
-            mode = GL_MODULATE;
+            mode = GL_DECAL;
 //            if (!blend_fuck) blend_fuck = 2;
             break;
         case 0x00000551: // goddard
@@ -210,8 +210,8 @@ static void gfx_opengl_apply_shader(struct ShaderProgram* prg) {
     glVertexPointer(3, GL_FLOAT, sizeof(dc_fast_t), &cur_buf[0].vert);
     glTexCoordPointer(2, GL_FLOAT, sizeof(dc_fast_t), &cur_buf[0].texture);
     glColorPointer(GL_BGRA, GL_UNSIGNED_BYTE, sizeof(dc_fast_t), &cur_buf[0].color);
-if(shader_debug_toggle) {
-    int shaderfound=0;
+//if(shader_debug_toggle) {
+ /*    int shaderfound=0;
 for(int i=0;i<shaderidx;i++) {
 if(shaderlist[i] == prg->shader_id) {
     shaderfound = 1;
@@ -220,8 +220,8 @@ if(shaderlist[i] == prg->shader_id) {
 }
 if (!shaderfound) {
     shaderlist[shaderidx++] = prg->shader_id;
-}
-}
+} */
+//}
     // have texture(s), specify same texcoords for every active texture
     if (prg->texture_used[0] || prg->texture_used[1]) {
         glEnable(GL_TEXTURE_2D);
@@ -255,9 +255,11 @@ if (!shaderfound) {
         // ^-- uhhh yeah no I think that's wrong and a bug
                // prg->enabled = 1;
 #if 0
+
         if (prg->shader_id & SHADER_OPT_TEXTURE_EDGE) {
             glEnable(GL_ALPHA_TEST);
-            glAlphaFunc(GL_GREATER, 0.0333f);
+            glAlphaFunc(GL_GREATER, 1.0f/3.0f);
+            glDisable(GL_BLEND);
         } else {
             glDisable(GL_ALPHA_TEST);
         }
@@ -278,6 +280,8 @@ if (!shaderfound) {
                 mode = texenv_set_color(prg);
                 break;
         }
+
+
         glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, mode);
     }
 }
@@ -346,6 +350,17 @@ static void gfx_opengl_shader_get_info(struct ShaderProgram* prg, uint8_t* num_i
     *num_inputs = prg->num_inputs;
     used_textures[0] = prg->texture_used[0];
     used_textures[1] = prg->texture_used[1];
+
+       int shaderfound=0;
+for(int i=0;i<shaderidx;i++) {
+if(shaderlist[i] == prg->shader_id) {
+    shaderfound = 1;
+    break;
+}
+}
+if (!shaderfound) {
+    shaderlist[shaderidx++] = prg->shader_id;
+}
 }
 
 GLuint newest_texture;
@@ -379,6 +394,7 @@ static uint32_t gfx_opengl_new_texture(void) {
 
 void gfx_opengl_set_tile_addr(int tile, GLuint addr) {
     tmu_state[tile].srcaddr = (GLuint) addr;
+
 }
 
 static void gfx_opengl_select_texture(int tile, uint32_t texture_id) {
@@ -477,12 +493,20 @@ static inline GLenum gfx_cm_to_opengl(uint32_t val) {
 
     return (val & G_TX_MIRROR) ? GL_MIRRORED_REPEAT : GL_REPEAT;
 }
-
+extern u16 D_BG_PLANET_2010AB8[];
 static inline void gfx_opengl_apply_tmu_state(const int tile) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, tmu_state[tile].min_filter);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, tmu_state[tile].mag_filter);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, tmu_state[tile].wrap_s);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, tmu_state[tile].wrap_t);
+/* 
+    if (tmu_state[tile].srcaddr == D_BG_PLANET_2010AB8) {
+                glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+            glEnable(GL_ALPHA_TEST);
+            glAlphaFunc(GL_GREATER, 1.0f/3.0f);
+            glDisable(GL_BLEND);
+    } */
+
 }
 
 static void gfx_opengl_set_sampler_parameters(int tile, uint8_t linear_filter, uint32_t cms, uint32_t cmt) {
@@ -552,20 +576,6 @@ static inline void gfx_opengl_pass_mix_texture(UNUSED int buf_vbo_num_tris) {
     ;
 }
 
-// toads turnpike used shaders
-// 01200200, 01045200, 07a00a00, 03200045, 05141548, 01045551, 05a00a00
-// lakitu sprites
-// if (cur_shader->shader_id != 0x05a00a00)
-// ????
-// if (cur_shader->shader_id != 0x01045551)
-// the kart
-// if (cur_shader->shader_id != 0x05141548)
-// the entire world basically except guardrails
-// if (cur_shader->shader_id != 0x03200045)
-// the guardrails
-// if (cur_shader->shader_id != 0x07a00a00)
-// 4 bit font AND the stars, goddamnit
-// if (cur_shader->shader_id != 0x01045200)
 
 // prim color
 extern uint8_t pr, pg, pb, pa;
@@ -596,22 +606,7 @@ static void skybox_setup_post(void) {
 
 // 0x01a00200
 static void over_skybox_setup_pre(void) {
-#if 0
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-    glDisable(GL_DEPTH_TEST);
-    glDepthMask(GL_TRUE);
-    glDepthFunc(GL_LEQUAL);
-    glPushMatrix();
-    glTranslatef(0.0f, 0.0f, -3000.0f);
-#endif
-//    glDepthMask(GL_FALSE);
-  //  glDepthFunc(GL_LEQUAL);
-    //glEnable(GL_BLEND);
-    //gDisable(GL_FOG);
-    //glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-  //  glPushMatrix();
-//    glTranslatef(0.0f, 0.0f, -500.0f);
+
 glDisable(GL_BLEND);
 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -620,23 +615,15 @@ glDepthFunc(GL_ALWAYS);
     }
 
 static void over_skybox_setup_post(void) {
-#if 0
-    glEnable(GL_DEPTH_TEST);
-
-    glDepthMask(GL_TRUE);
-    glDepthFunc(GL_LESS);
-    glPopMatrix();
-#endif
     glDepthMask(GL_TRUE);
     glDepthFunc(GL_LESS);
     glEnable(GL_BLEND);
     glEnable(GL_FOG);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    //glPopMatrix();
-
     }
 
 static void zmode_decal_setup_pre(void) {
+    return;
     // Adjust depth values slightly for zmode_decal objects
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
@@ -652,78 +639,21 @@ static void zmode_decal_setup_post(void) {
     glDepthFunc(GL_LESS);
 }
 
-static void particle_blend_setup_pre(void) {
-    #if 0
-    // the outer test here discards kart smoke and other white smokes
-    if (!((pr == 251) && (pg == 255) && (pb == 251))) {
-        // discard other gray smokes
-        if (!((pr == pg) && (pr == pb))) {
-            // boost flames
-            if ((pb > 50 && pb < 135) ||
-                // flames on the cave wall in DK Jungle
-                ((er == 255) && (eg == 95) && (eb == 0)) ||
-                // green shell trail
-                ((er == 255) && (eg == 0) && (eb == 0)) ||
-                // red shell trail
-                ((er == 0) && (eg == 0) && (eb == 255)) ||
-                // blue shell trail
-                ((er == 255) && (eg == 0) && (eb == 150))) {
-
-                if ((er == 255) && (eg == 95) && (eb == 0)) {
-                    glEnable(GL_DEPTH_TEST);
-                    glDepthFunc(GL_EQUAL);
-                    glDepthMask(GL_TRUE);
-                }
-         #endif
-                // MAKE IT BRIGHT MAKE IT BURN
+static void particle_blend_setup_pre() {
                 glEnable(GL_BLEND);
-                glBlendFunc(GL_ONE, GL_ONE);
-#if 0
-            }
-        }
-    }
-#endif
+glBlendFunc(GL_SRC_ALPHA, GL_ONE/* _MINUS_SRC_ALPHA */);
+glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 }
 
 static void particle_blend_setup_post(void) {
-    // boost flames
-/*    if ((pb > 50 && pb < 135) ||
-        // flames on the cave wall in DK Jungle
-        ((er == 255) && (eg == 95) && (eb == 0)) ||
-        // green shell trail
-        ((er == 255) && (eg == 0) && (eb == 0)) ||
-        // red shell trail
-        ((er == 0) && (eg == 0) && (eb == 255)) ||
-        // blue shell trail
-        ((er == 255) && (eg == 0) && (eb == 150))) {
-
-        if ((er == 255) && (eg == 95) && (eb == 0)) {
-            glEnable(GL_DEPTH_TEST);
-            glDepthFunc(GL_LESS);
-            glDepthMask(GL_TRUE);
-        }
-*/
-        // restore default blend mode
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  //  }
 }
 
 static void star_effect_particle_blend_setup_pre(void) {
-    // shades of orange for the player when star item active
-    if (pr > 200 && pg > 200 && pb < 150) {
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-    } else if (pr < 190 && pg < 190 && pb < 190) {
-        if (!((eg + 60) < er && (4 * eb) < eg)) {
-            if (!((eg + 30) < er && (eb + 30) < eg)) {
-                // I don't know this actually runs
-                // can't remember why it is here
                 glEnable(GL_BLEND);
-                glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-            }
-        }
-    }
+glBlendFunc(GL_SRC_ALPHA, GL_ONE/* _MINUS_SRC_ALPHA */);
+glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 }
 
 static void star_effect_particle_blend_setup_post(void) {
@@ -766,6 +696,12 @@ static void one_minus_env_plus_prim_setup_pre(void* vbo, size_t num_tris) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     // modulate texture
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+     
+    glEnable(GL_BLEND);
+    glDisable(GL_TEXTURE_2D);
+    glBlendFunc(GL_ONE, GL_ONE);
+    // render opaque black untextured polys first to reset bg alpha
+    
     // store copy of original vertex colors
     // AND
     // set them to solid black with 255 alpha
@@ -777,16 +713,19 @@ static void one_minus_env_plus_prim_setup_pre(void* vbo, size_t num_tris) {
         tris[i].color.array.b = 0;
         tris[i].color.array.a = 255;
     }
-    glEnable(GL_BLEND);
+    glDrawArrays(GL_TRIANGLES, 0, 3 * num_tris);
+    
+    glEnable(GL_TEXTURE_2D);
     // generate a solid "inverse cutout" texture
     // all opaque pixels become one solid color
     // transparent stay transparent
     glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDrawArrays(GL_TRIANGLES, 0, 3 * num_tris);
-
-    // now that we've drawn the cutout version
-    // set the vert colors to PRIM color
+    
+    // now that we've drawn the cutout version 
+    // set the vert colors to PRIM color  
     for (size_t i = 0; i < 3 * num_tris; i++) {
+
         tris[i].color.array.r = pr;
         tris[i].color.array.g = pg;
         tris[i].color.array.b = pb;
@@ -825,121 +764,99 @@ static void one_minus_env_plus_prim_setup_post(void) {
 }
 
 static float depbump = 0.0f;
-
+extern int water_helen;
+extern int blend_fuck;
 static void gfx_opengl_draw_triangles(float buf_vbo[], UNUSED size_t buf_vbo_len, size_t buf_vbo_num_tris) {
     cur_buf = (void*) buf_vbo;
 
     gfx_opengl_apply_shader(cur_shader);
 
-    // if there's two textures, set primary texture first
     if (cur_shader->texture_used[1]) {
         glBindTexture(GL_TEXTURE_2D, tmu_state[cur_shader->texture_ord[0]].tex);
     }
-#if 1
-    if (cur_shader->shader_id == 0x01200200)
-        skybox_setup_pre();
 
-    if (cur_shader->shader_id == 0x01a00a00)
-        over_skybox_setup_pre();
+//    glEnable(GL_BLEND);
+//    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+//    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    glEnable(GL_BLEND);
 
     if (is_zmode_decal)
         zmode_decal_setup_pre();
 
-    if (cur_shader->shader_id == 0x01045551)
+    if (cur_shader->shader_id == 0x01045551) {
         particle_blend_setup_pre();
-
-    //if (cur_shader->shader_id == 0x09045551)
-      //  star_effect_particle_blend_setup_pre();
-
-        #if 0
-    if (cur_shader->shader_id == 0x01045200 && 
-        (cur_shader->texture_used[0] || cur_shader->texture_used[1]) &&
-        (tmu_state[0].srcaddr == (GLuint) segmented_to_virtual(D_0D0293D8) ||
-         tmu_state[1].srcaddr == (GLuint) segmented_to_virtual(D_0D0293D8)))
-        twinkling_star_setup_pre();
-
-    if (use_one_inv)
-        one_inv_setup_pre();
-
-    if (depth_off) {
-        depbump += 0.01f;
-        glPushMatrix();
-        glTranslatef(0.0f, 0.0f, depbump);
+        dc_fast_t* tris = (dc_fast_t*) buf_vbo;
+        for (size_t i = 0; i < 3 * buf_vbo_num_tris; i++) {
+            tris[i].color.array.a = pa;
+        }
     } 
-#endif
-    //if (((cur_shader->shader_id & 0x00ffffff) == 0x00141548) && (pr || pg || pb))
-      //  one_minus_env_plus_prim_setup_pre(buf_vbo, buf_vbo_num_tris);
-#if 0
-    if (depth_off) {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    }
-#endif
-#endif
+if (blend_fuck) {
+            glEnable(GL_BLEND);
+glBlendFunc(GL_SRC_ALPHA, GL_ONE/* _MINUS_SRC_ALPHA */);
+glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+        dc_fast_t* tris = (dc_fast_t*) buf_vbo;
+        for (size_t i = 0; i < 3 * buf_vbo_num_tris; i++) {
+            tris[i].color.array.a = pa;
+        }
+}
 
-/*dc_fast_t* tris = (dc_fast_t*) buf_vbo;
-for (size_t i = 0; i < 3 * buf_vbo_num_tris; i++) {
-        backups[i] = tris[i].color.packed;
-        tris[i].color.array.r = 255;
-        tris[i].color.array.g = 0;
-        tris[i].color.array.b = 0;
-        tris[i].color.array.a = 255;
-    }
-*/
-if(cur_shader->shader_id == 0x01045045)
-glEnable(GL_BLEND);
+    if (water_helen) {
+//        printf("water helen?\n");
+        glEnable(GL_BLEND);
+glBlendFunc(GL_SRC_ALPHA, GL_ONE/* _MINUS_SRC_ALPHA */);
+glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+        dc_fast_t* tris = (dc_fast_t*) buf_vbo;
+        for (size_t i = 0; i < 3 * buf_vbo_num_tris; i++) {
+            tris[i].color.array.a = 127;
+        }
+    } 
 
+    #if 1
+    //else if (cur_shader->shader_id == 0x03a00045) {
+//        if (pa != 255) {
+  //          if (pa < 20) pa = 20;
+      //          dc_fast_t* tris = (dc_fast_t*) buf_vbo;
+        //         for (size_t i = 0; i < 3 * buf_vbo_num_tris; i++) {
+          //      tris[i].color.array.a = pa;
+          //}
+      //} 
+   // }
+#endif
     glDrawArrays(GL_TRIANGLES, 0, 3 * buf_vbo_num_tris);
-#if 1
-    //if (((cur_shader->shader_id & 0x00ffffff) == 0x00141548) && (pr || pg || pb))
-      //  one_minus_env_plus_prim_setup_post();
-#if 0
-    if (depth_off) {
-        glPopMatrix();
-    } 
 
-    if (use_one_inv)
-        one_inv_setup_post();
-#endif
-    if (is_zmode_decal)
+//if(water_helen) {
+  //          glEnable(GL_BLEND);
+    //    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+//}
+
+//if (blend_fuck) {
+  //          glEnable(GL_BLEND);
+    //    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+//}
+
+if (is_zmode_decal)
         zmode_decal_setup_post();
-
-    if (cur_shader->shader_id == 0x01200200)
-        skybox_setup_post();
-
-    if (cur_shader->shader_id == 0x01a00a00)
-        over_skybox_setup_post();
-#if 0
-    if (cur_shader->shader_id == 0x01045200 &&
-        (cur_shader->texture_used[0] || (cur_shader->texture_used[1])) &&
-        (tmu_state[0].srcaddr == (GLuint) segmented_to_virtual(D_0D0293D8) ||
-         tmu_state[1].srcaddr == (GLuint) segmented_to_virtual(D_0D0293D8)))
-        twinkling_star_setup_post();
-#endif
     if (cur_shader->shader_id == 0x01045551)
         particle_blend_setup_post();
-   // if (cur_shader->shader_id == 0x09045551)
-     //   star_effect_particle_blend_setup_post();
-        #endif
 }
 
 extern void gfx_opengl_2d_projection(void);
 extern void gfx_opengl_reset_projection(void);
 void gfx_opengl_draw_triangles_2d(void* buf_vbo, UNUSED size_t buf_vbo_len, size_t buf_vbo_num_tris) {
-//    return;
     glDisable(GL_FOG);
     gfx_opengl_2d_projection();
 
     dc_fast_t* tris = buf_vbo;
 
     gfx_opengl_apply_shader(cur_shader);
-glEnable(GL_BLEND);
+    glEnable(GL_BLEND);
 
     glVertexPointer(3, GL_FLOAT, sizeof(dc_fast_t), &tris[0].vert);
     glTexCoordPointer(2, GL_FLOAT, sizeof(dc_fast_t), &tris[0].texture);
     glColorPointer(GL_BGRA, GL_UNSIGNED_BYTE, sizeof(dc_fast_t), &tris[0].color);
-//gfx_opengl_set_depth_mask(0);
-//    glEnable(GL_BLEND);
+
     if (buf_vbo_num_tris) {
         glEnable(GL_TEXTURE_2D);
         // if there's two textures, set primary texture first
@@ -948,169 +865,25 @@ glEnable(GL_BLEND);
     } else {
         glDisable(GL_TEXTURE_2D);
     }
-    glEnable(GL_BLEND);
-        if (cur_shader->shader_id == 0x01200200)
+
+    if (cur_shader->shader_id == 0x01200200)
         skybox_setup_pre();
-if(cur_shader->shader_id == 0x01045045)
-glEnable(GL_BLEND);
-    if (cur_shader->shader_id == 0x01a00a00)
-        over_skybox_setup_pre();
-
-    if (cur_shader->shader_id == 0x01045551)
-        particle_blend_setup_pre();
-
-//skybox_setup_pre();
-#if 0
-#if 1
-    if (in_intro &&
-        cur_shader->shader_id == 0x01200200) { // 18874437){ // 0x1200045, skybox  // may need to relook at this
-        glDepthMask(GL_FALSE);
-        glDepthFunc(GL_LEQUAL);
-        glDisable(GL_BLEND);
-        glDisable(GL_FOG);
-    }
-
-#if 1
-    if (in_intro && cur_shader->shader_id == 0x01a00200) { // clouds over skybox
-        glEnable(GL_BLEND);
-        glEnable(GL_DEPTH_TEST);
-        glDepthMask(GL_TRUE);
-        glDepthFunc(GL_LEQUAL);
-        glPushMatrix();
-        glTranslatef(0.0f, 0.0f, -3500.0f);
-    }
-#endif
-    if (in_intro && is_zmode_decal) {
-        // Adjust depth values slightly for zmode_decal objects
-        glEnable(GL_DEPTH_TEST);
-        glDepthFunc(GL_LEQUAL);
-        glDepthMask(GL_TRUE);
-
-        // Push the geometry slightly towards the camera
-        glPushMatrix();
-        glTranslatef(0.0f, 2.1f, 0.9f); // magic values need fine tuning.
-    }
-#endif
-#endif
-#if 0
-    if (!in_intro) {
-        if (blend_fuck) {
-            for (int i = 0; i < 6; i++) {
-                tris[i].color.packed = 0xff000000;
-            }
-            if (blend_fuck == 2)
-                blend_fuck = 0;
-        }
-    }
-#endif
-#if 0
-    if (cur_shader->shader_id == 0x01a00200) {
-        for (int i = 0; i < 6; i++) {
-            tris[i].color.packed = 0xffffffff;
-        }
-    }
-#endif
-    #if 0
-    if (use_one_inv) {
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-    }
-#endif
-#if 0
-    if (pr || pg || pb) {
-        printf("shader 0x%08x\n", cur_shader->shader_id);
-    }
-
-    if (((cur_shader->shader_id & 0x00ffffff) != 0x00141548) || (!(pr || pg || pb))) {
-#endif
+//    if(cur_shader->shader_id == 0x01045045)
+  //      glEnable(GL_BLEND);
+    //if (cur_shader->shader_id == 0x01a00a00)
+      //  over_skybox_setup_pre();
+    //if (cur_shader->shader_id == 0x01045551)
+      //  particle_blend_setup_pre();
     
     glDrawArrays(GL_TRIANGLES, 0, 6);
     if (cur_shader->shader_id == 0x01200200)
         skybox_setup_post();
 
-    if (cur_shader->shader_id == 0x01045551)
-        particle_blend_setup_post();
-    if (cur_shader->shader_id == 0x01a00a00)
-        over_skybox_setup_post();
+//    if (cur_shader->shader_id == 0x01045551)
+  //      particle_blend_setup_post();
+   // if (cur_shader->shader_id == 0x01a00a00)
+     //   over_skybox_setup_post();
 
-//skybox_setup_post();
-    
-#if 0
-    if (use_one_inv) {
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    }
-#endif
-
-#if 0
-    } else if ((cur_shader->shader_id & 0x00ffffff) == 0x00141548) {
-        dc_fast_t* tris = buf_vbo;
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-        for (int i = 0; i < 3 * 2; i++) {
-            backups[i] = tris[i].color.packed;
-            tris[i].color.array.r = 0;
-            tris[i].color.array.g = 0;
-            tris[i].color.array.b = 0;
-            tris[i].color.array.a = 255;
-        }
-
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glDrawArrays(GL_TRIANGLES, 0, 3 * 2);
-
-        for (int i = 0; i < 3 * 2; i++) {
-            tris[i].color.array.r = pr;
-            tris[i].color.array.g = pg;
-            tris[i].color.array.b = pb;
-            tris[i].color.array.a = 255;
-        }
-        glEnable(GL_DEPTH_TEST);
-        glDepthMask(GL_TRUE);
-        glDepthFunc(GL_EQUAL);
-        glDisable(GL_TEXTURE_2D);
-        glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA);
-
-        glDrawArrays(GL_TRIANGLES, 0, 3 * 2);
-        for (int i = 0; i < 3 * 2; i++) {
-            tris[i].color.packed = backups[i];
-        }
-        glEnable(GL_TEXTURE_2D);
-        glBlendFunc(GL_ONE, GL_ONE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glDrawArrays(GL_TRIANGLES, 0, 3 * 2);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glDepthFunc(GL_LESS);     
-    }
-#endif
-
-#if 0
-    if (!in_intro) {
-        glDepthMask(GL_TRUE);
-        glDepthFunc(GL_LESS);
-    }
-#if 1
-    if (in_intro && is_zmode_decal) {
-        glPopMatrix();
-        glDepthFunc(GL_LESS); // Reset depth function
-    }
-
-    if (in_intro && cur_shader->shader_id == 0x01200200) { // 18874437){ // 0x1200045, skybox
-        //        glPopMatrix();
-        glDepthMask(GL_TRUE);
-        glDepthFunc(GL_LESS);
-        glEnable(GL_BLEND);
-        glEnable(GL_FOG);
-    }
-
-    if (in_intro && cur_shader->shader_id == 0x01a00200) {
-        glPopMatrix();
-    }
-#endif
-#endif
-    glEnable(GL_BLEND);
-glEnable(GL_FOG);
     gfx_opengl_reset_projection();
 }
 

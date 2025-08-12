@@ -2871,7 +2871,7 @@ void Corneria_CsTeamSetup(ActorCutscene* this, s32 teamIdx) {
     this->info.cullDistance = 200.0f;
     AUDIO_PLAY_SFX(NA_SE_ARWING_ENGINE_FG, this->sfxSource, 4);
 }
-
+extern void gfx_texture_cache_invalidate(void *addr);
 void Corneria_LevelStart(Player* player) {
     s32 i;
     ActorCutscene* falco = &gActors[0];
@@ -2955,7 +2955,7 @@ void Corneria_LevelStart(Player* player) {
             Lib_Texture_Scroll(aAwCockpitGlassClouldReflextionTex, 64, 32, 1);
         }
     }
-
+gfx_texture_cache_invalidate(aAwCockpitGlassClouldReflextionTex);
     D_ctx_80177A48[4] = Math_RadToDeg(sp2C);
     D_ctx_80177A48[5] = Math_RadToDeg(sp30);
 

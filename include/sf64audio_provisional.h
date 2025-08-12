@@ -75,7 +75,8 @@ typedef void (*AudioCustomUpdateFunction)(void);
 // Must be the same amount of samples as copied by aDuplicate() (audio microcode)
 #define WAVE_SAMPLE_COUNT 64
 
-#define AUDIO_RELOCATED_ADDRESS_START K0BASE
+#define AUDIO_RELOCATED_ADDRESS_START 0x8C010000
+//K0BASE
 
 #define AUDIOLOAD_SYNC 0
 #define AUDIOLOAD_ASYNC 1
@@ -229,7 +230,7 @@ typedef struct {
     /* 0x00 */ s32 order;
     /* 0x04 */ s32 numPredictors;
 #ifdef AVOID_UB
-    /* 0x08 */ u64 book[]; // size 8 * order * numPredictors.
+    /* 0x08 */ u64 book[128]; // size 8 * order * numPredictors.
 #else
     /* 0x08 */ u64 book[1]; // size 8 * order * numPredictors.
 #endif
@@ -773,11 +774,15 @@ typedef struct {
     /* 0x0 */ union {
         u32 opArgs;
         struct {
-            u8 op;
-            u8 arg0;
-            u8 arg1;
-            u8 arg2;
-        };
+//            u8 op;
+  //          u8 arg0;
+    //        u8 arg1;
+      //      u8 arg2;
+u8 arg2;
+u8 arg1;
+u8 arg0;
+u8 op;
+    };
     };
     /* 0x4 */ union {
         void* data;

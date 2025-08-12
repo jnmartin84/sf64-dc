@@ -70,5 +70,8 @@ typedef enum OptionState {
     OPTION_SETUP,
     OPTION_UPDATE
 } OptionState;
+#define true 1
+#define false 0
+#define bool s32
 
 #endif

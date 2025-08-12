@@ -1,5 +1,9 @@
 #include "n64sys.h"
 #include "sf64audio_provisional.h"
+#undef VIRTUAL_TO_PHYSICAL2
+#undef OS_K0_TO_PHYSICAL
+
+#include "mixer.h"
 
 #define DMEM_WET_SCRATCH 0x470
 #define DMEM_COMPRESSED_ADPCM_DATA 0x990
@@ -639,14 +643,14 @@ void AudioSynth_SyncSampleStates(s32 updateIndex) {
         }
     }
 }
-
+#include <stdio.h>
 Acmd* AudioSynth_Update(Acmd* aList, s32* cmdCount, s16* aiBufStart, s32 aiBufLen) {
     Acmd* aCmdPtr;
     s32* aiBufPtr;
     s32 chunkLen;
     s32 i;
     s32 j;
-
+//printf("%s(%08x, %08x, %08x, %d\n)", __func__,aList,cmdCount,aiBufStart,aiBufLen);
     aCmdPtr = aList;
     for (i = gAudioBufferParams.ticksPerUpdate; i > 0; i--) {
         AudioSeq_ProcessSequences(i - 1);
@@ -665,16 +669,23 @@ Acmd* AudioSynth_Update(Acmd* aList, s32* cmdCount, s16* aiBufStart, s32 aiBufLe
             chunkLen = gAudioBufferParams.samplesPerTick;
         }
 
-        for (j = 0; j < gNumSynthReverbs; j++) {
+         for (j = 0; j < gNumSynthReverbs; j++) {
             if (gSynthReverbs[j].useReverb) {
                 AudioSynth_InitNextRingBuf(chunkLen, gAudioBufferParams.ticksPerUpdate - i, j);
             }
-        }
+        } 
 
         aCmdPtr =
             AudioSynth_DoOneAudioUpdate((s16*) aiBufPtr, chunkLen, aCmdPtr, gAudioBufferParams.ticksPerUpdate - i);
-        aiBufLen -= chunkLen;
+        s32 prevLen = aiBufLen;
+            aiBufLen -= chunkLen;
+        if (aiBufLen < 0) {
+            chunkLen = chunkLen + aiBufLen;
+            aiBufLen = chunkLen;
+        }
+//            if (aiBufLen < 0) aiBufLen = chunkLen + aiBufLen;
         aiBufPtr += chunkLen;
+//        if (aiBufLen < 0) break;
     }
 
     for (j = 0; j < gNumSynthReverbs; j++) {
@@ -702,7 +713,7 @@ Acmd* AudioSynth_LoadReverbSamples(Acmd* aList, s32 aiBufLen, s16 reverbIndex, s
             aList =
                 AudioSynth_LoadRingBufferPart(aList, sp64->lengthA + DMEM_WET_LEFT_CH, 0, sp64->lengthB, reverbIndex);
         }
-        aAddMixer(aList++, 0x300, DMEM_WET_LEFT_CH, DMEM_LEFT_CH, 0x7FFF);
+        aAddMixer(aList++, 0x300, DMEM_WET_LEFT_CH, DMEM_LEFT_CH);//, 0x7FFF);
         aMix(aList++, 0x30, gSynthReverbs[reverbIndex].decayRatio + 0x8000, DMEM_WET_LEFT_CH, DMEM_WET_LEFT_CH);
     } else {
         sp62 = (sp64->startPos & 7) * 2;
@@ -718,7 +729,7 @@ Acmd* AudioSynth_LoadReverbSamples(Acmd* aList, s32 aiBufLen, s16 reverbIndex, s
         aSetBuffer(aList++, 0, sp62 + DMEM_UNCOMPRESSED_NOTE, DMEM_WET_RIGHT_CH, aiBufLen * 2);
         aResample(aList++, gSynthReverbs[reverbIndex].resampleFlags, gSynthReverbs[reverbIndex].unk_0A,
                   OS_K0_TO_PHYSICAL(gSynthReverbs[reverbIndex].unk_34));
-        aAddMixer(aList++, 0x300, DMEM_WET_LEFT_CH, DMEM_LEFT_CH, 0x7FFF);
+        aAddMixer(aList++, 0x300, DMEM_WET_LEFT_CH, DMEM_LEFT_CH);//, 0x7FFF);
         aMix(aList++, 0x30, gSynthReverbs[reverbIndex].decayRatio + 0x8000, DMEM_WET_LEFT_CH, DMEM_WET_LEFT_CH);
     }
 
@@ -727,6 +738,7 @@ Acmd* AudioSynth_LoadReverbSamples(Acmd* aList, s32 aiBufLen, s16 reverbIndex, s
         aMix(aList++, DMEM_1CH_SIZE >> 4, gSynthReverbs[reverbIndex].leakRtL, DMEM_WET_RIGHT_CH, DMEM_WET_LEFT_CH);
         aMix(aList++, DMEM_1CH_SIZE >> 4, gSynthReverbs[reverbIndex].leakLtR, DMEM_WET_SCRATCH, DMEM_WET_RIGHT_CH);
     }
+
     return aList;
 }
 
@@ -764,14 +776,13 @@ Acmd* AudioSynth_DoOneAudioUpdate(s16* aiBuf, s32 aiBufLen, Acmd* aList, s32 upd
     s32 j;
 
     count = 0;
-    if (gNumSynthReverbs == 0) {
-        if (gSynthReverbs[i].useReverb) {} // fake?
+//    if (gNumSynthReverbs == 0) {
         for (j = 0; j < gNumNotes; j++) {
             if (gNoteSubsEu[gNumNotes * updateIndex + j].bitField0.enabled) {
                 sp84[count++] = j;
             }
         }
-    } else {
+/*     } else {
         for (i = 0; i < gNumSynthReverbs; i++) {
             for (j = 0; j < gNumNotes; j++) {
                 temp_v0 = &gNoteSubsEu[gNumNotes * updateIndex + j];
@@ -786,12 +797,13 @@ Acmd* AudioSynth_DoOneAudioUpdate(s16* aiBuf, s32 aiBufLen, Acmd* aList, s32 upd
                 sp84[count++] = j;
             }
         }
-    }
+    } */
 
     aClearBuffer(aList++, DMEM_LEFT_CH, DMEM_2CH_SIZE);
 
     j = 0;
-    for (i = 0; i < gNumSynthReverbs; i++) {
+#if 0
+     for (i = 0; i < gNumSynthReverbs; i++) {
         D_8014C1B2 = gSynthReverbs[i].useReverb;
         if (D_8014C1B2) {
             aList = AudioSynth_LoadReverbSamples(aList, aiBufLen, i, updateIndex);
@@ -807,8 +819,8 @@ Acmd* AudioSynth_DoOneAudioUpdate(s16* aiBuf, s32 aiBufLen, Acmd* aList, s32 upd
         if (gSynthReverbs[i].useReverb) {
             aList = AudioSynth_SaveReverbSamples(aList, i, updateIndex);
         }
-    }
-
+    } 
+#endif
     while (j < count) {
         aList = AudioSynth_ProcessNote(sp84[j], &gNoteSubsEu[updateIndex * gNumNotes + sp84[j]],
                                        &gNotes[sp84[j]].synthesisState, aiBuf, aiBufLen, aList, updateIndex);
@@ -822,62 +834,62 @@ Acmd* AudioSynth_DoOneAudioUpdate(s16* aiBuf, s32 aiBufLen, Acmd* aList, s32 upd
 
     return aList;
 }
-
+void aLoadBufferImpl_swap(const void* source_addr, uint16_t dest_addr, uint16_t nbytes);
 Acmd* AudioSynth_ProcessNote(s32 noteIndex, NoteSubEu* noteSub, NoteSynthesisState* synthState, s16* aiBuf,
                              s32 aiBufLen, Acmd* aList, s32 updateIndex) {
-    s32 pad11C[3];
-    Sample* bookSample;
-    AdpcmLoop* loopInfo;
-    void* currentBook;
-    s32 pad104[2];
-    bool sampleFinished;
-    bool loopToPoint;
-    s32 flags;
-    u16 resampleRateFixedPoint;
-    s32 numSamplesToLoad;
-    s32 padE8[3];
-    s32 skipBytes;
-    s32 padD8[3];
-    u32 sampleAddr;
-    s32 padC8;
-    s32 numSamplesToLoadAdj;
-    s32 numSamplesProcessed;
-    u32 endPos;
-    s32 nSamplesToProcess;
-    s32 padB4[5];
-    s32 numTrailingSamplesToIgnore;
-    s32 pad9C[3];
-    s32 frameSize;
-    s32 pad8C;
-    s32 skipInitialSamples;
-    s32 sampleDmaStart;
-    s32 pad80;
-    s32 numParts;
-    s32 curPart;
-    s32 numSamplesInThisIteration;
-    s32 sampleDataChunkAlignPad;
-    s32 resampledTempLen;
-    u16 noteSamplesDmemAddrBeforeResampling;
-    s32 pasdasd;
-    s32 frameIndex;
-    s32 sampleDataOffset;
-    Note* note;
-    u16 sp56;
-    s32 numSamplesInFirstFrame;
-    s32 delaySide;
-    s32 padasdsa;
-    s32 nFramesToDecode;
-    s32 nFirstFrameSamplesToIgnore;
-    s32 dmemUncompressedAddrOffset1;
-    u32 sampleslenFixedPoint;
-    u8* samplesToLoadAddr;
-    s32 buffAddr;
-    s32 gain;
-    u32 nEntries;
-    s32 aligned;
-    s16 addr;
-    s32 samplesRemaining;
-    s32 numSamplesToDecode;
+    s32 pad11C[3] = {0};
+    Sample* bookSample = NULL;
+    AdpcmLoop* loopInfo = NULL;
+    void* currentBook = NULL;
+    s32 pad104[2] = {0};
+    bool sampleFinished = 0;
+    bool loopToPoint = 0;
+    s32 flags = 0;
+    u16 resampleRateFixedPoint = 0;
+    s32 numSamplesToLoad = 0;
+    s32 padE8[3] = {0};
+    s32 skipBytes = 0;
+    s32 padD8[3] = {0};
+    u32 sampleAddr = 0;
+    s32 padC8 = 0;
+    s32 numSamplesToLoadAdj = 0;
+    s32 numSamplesProcessed = 0;
+    u32 endPos = 0;
+    s32 nSamplesToProcess = 0;
+    s32 padB4[5] = {0};
+    s32 numTrailingSamplesToIgnore = 0;
+    s32 pad9C[3] = {0};
+    s32 frameSize = 0;
+    s32 pad8C = 0;
+    s32 skipInitialSamples = 0;
+    s32 sampleDmaStart = 0;
+    s32 pad80 = 0;
+    s32 numParts = 0;
+    s32 curPart = 0;
+    s32 numSamplesInThisIteration = 0;
+    s32 sampleDataChunkAlignPad = 0;
+    s32 resampledTempLen = 0;
+    u16 noteSamplesDmemAddrBeforeResampling = 0;
+    s32 pasdasd = 0;
+    s32 frameIndex = 0;
+    s32 sampleDataOffset = 0;
+    Note* note = NULL;
+    u16 sp56 = 0;
+    s32 numSamplesInFirstFrame = 0;
+    s32 delaySide = 0;
+    s32 padasdsa = 0;
+    s32 nFramesToDecode = 0;
+    s32 nFirstFrameSamplesToIgnore = 0;
+    s32 dmemUncompressedAddrOffset1 = 0;
+    u32 sampleslenFixedPoint = 0;
+    u8* samplesToLoadAddr = NULL;
+    s32 buffAddr = 0;
+    s32 gain = 0;
+    u32 nEntries = 0;
+    s32 aligned = 0;
+    s16 addr = 0;
+    s32 samplesRemaining = 0;
+    s32 numSamplesToDecode = 0;
 
     currentBook = NULL;
     note = &gNotes[noteIndex];
@@ -920,7 +932,7 @@ Acmd* AudioSynth_ProcessNote(s32 noteIndex, NoteSubEu* noteSub, NoteSynthesisSta
         bookSample = *((Sample**) noteSub->waveSampleAddr);
         loopInfo = bookSample->loop;
 
-        endPos = loopInfo->end;
+        endPos = __builtin_bswap32(loopInfo->end);
         sampleAddr = bookSample->sampleAddr;
         resampledTempLen = 0;
 
@@ -952,7 +964,7 @@ Acmd* AudioSynth_ProcessNote(s32 noteIndex, NoteSubEu* noteSub, NoteSynthesisSta
                         break;
                 }
 
-                nEntries = (SAMPLES_PER_FRAME * bookSample->book->order) * bookSample->book->numPredictors;
+                nEntries = (SAMPLES_PER_FRAME * __builtin_bswap32(bookSample->book->order)) * __builtin_bswap32(bookSample->book->numPredictors);
                 aLoadADPCM(aList++, nEntries, OS_K0_TO_PHYSICAL(currentBook));
             }
 
@@ -1010,8 +1022,7 @@ Acmd* AudioSynth_ProcessNote(s32 noteIndex, NoteSubEu* noteSub, NoteSynthesisSta
                     case CODEC_S16_INMEMORY:
                         buffAddr = func_800097A8(bookSample, numSamplesToLoadAdj, flags,
                                                  &synthState->synthesisBuffers->unk_40);
-                        if (0) {}
-                        aLoadBuffer(aList++, OS_K0_TO_PHYSICAL(buffAddr), DMEM_UNCOMPRESSED_NOTE,
+                        aLoadBufferImpl_swap(OS_K0_TO_PHYSICAL(buffAddr), DMEM_UNCOMPRESSED_NOTE,
                                     (numSamplesToLoadAdj + SAMPLES_PER_FRAME) * 2);
                         flags = A_CONTINUE;
                         skipBytes = 0;
@@ -1126,7 +1137,7 @@ Acmd* AudioSynth_ProcessNote(s32 noteIndex, NoteSubEu* noteSub, NoteSynthesisSta
 
                 if (loopToPoint) {
                     synthState->restart = true;
-                    synthState->samplePosInt = loopInfo->start;
+                    synthState->samplePosInt = __builtin_bswap32(loopInfo->start);
                 } else {
                     synthState->samplePosInt += nSamplesToProcess;
                 }
@@ -1191,7 +1202,7 @@ Acmd* AudioSynth_ProcessNote(s32 noteIndex, NoteSubEu* noteSub, NoteSynthesisSta
         if (gain < 0x10) {
             gain = 0x10;
         }
-        aHiLoGain(aList++, gain, (aiBufLen + SAMPLES_PER_FRAME) * SAMPLE_SIZE, DMEM_TEMP, 0);
+//        aHiLoGain(aList++, gain, (aiBufLen + SAMPLES_PER_FRAME) * SAMPLE_SIZE, DMEM_TEMP, 0);
     }
 
     if ((noteSub->leftDelaySize != 0) || (synthState->prevHaasEffectLeftDelaySize != 0)) {
@@ -1242,6 +1253,7 @@ Acmd* AudioSynth_LoadWaveSamples(Acmd* aList, NoteSubEu* noteSub, NoteSynthesisS
 Acmd* AudioSynth_FinalResample(Acmd* aList, NoteSynthesisState* synthState, s32 size, u16 pitch, u16 inpDmem,
                                u32 resampleFlags) {
     if (pitch == 0) {
+//        printf("0 pitch\n");
         aClearBuffer(aList++, DMEM_TEMP, size);
     } else {
         aSetBuffer(aList++, 0, inpDmem, DMEM_TEMP, size);
@@ -1302,25 +1314,29 @@ Acmd* AudioSynth_ProcessEnvelope(Acmd* aList, NoteSubEu* noteSub, NoteSynthesisS
 
         switch (delaySide) {
             case HAAS_EFFECT_DELAY_LEFT:
-                aEnvMixer(aList++, dmemSrc, aiBufLen, 0, 0, ((sourceReverbVol & 0x80) >> 7),
-                          noteSub->bitField0.stereoStrongRight, noteSub->bitField0.stereoStrongLeft, 0x65B1C9E1);
-                break;
 
+aEnvMixer(aList++, dmemSrc, aiBufLen, ((sourceReverbVol & 0x80) >> 7),
+                          noteSub->bitField0.stereoStrongRight, noteSub->bitField0.stereoStrongLeft,
+                          (DMEM_WET_LEFT_CH << 16) | DMEM_LEFT_CH, DMEM_HAAS_TEMP << 16, 2,
+                          0x65B1C9E1);
+                break;
             case HAAS_EFFECT_DELAY_RIGHT:
-                aEnvMixer(aList++, dmemSrc, aiBufLen, 0, 0, ((sourceReverbVol & 0x80) >> 7),
-                          noteSub->bitField0.stereoStrongRight, noteSub->bitField0.stereoStrongLeft, 0x9965C9E1);
+                aEnvMixer(aList++, dmemSrc, aiBufLen, ((sourceReverbVol & 0x80) >> 7),
+                          noteSub->bitField0.stereoStrongRight, noteSub->bitField0.stereoStrongLeft,
+                          (DMEM_WET_LEFT_CH << 16) | DMEM_LEFT_CH, DMEM_HAAS_TEMP, 2, 0x9965C9E1);
                 break;
 
             default: // HAAS_EFFECT_DELAY_NONE
-                aEnvMixer(aList++, dmemSrc, aiBufLen, 0, 0, ((sourceReverbVol & 0x80) >> 7),
-                          noteSub->bitField0.stereoStrongRight, noteSub->bitField0.stereoStrongLeft, 0x99B1C9E1);
+                aEnvMixer(aList++, dmemSrc, aiBufLen, ((sourceReverbVol & 0x80) >> 7),
+                          noteSub->bitField0.stereoStrongRight, noteSub->bitField0.stereoStrongLeft,
+                          (DMEM_WET_LEFT_CH << 16) | DMEM_LEFT_CH, 0, 2, 0x99B1C9E1);
                 break;
         }
     } else {
         aEnvSetup1(aList++, (sourceReverbVol & 0x7F), rampReverb, rampLeft, rampRight);
         aEnvSetup2(aList++, curVolLeft, curVolRight);
-        aEnvMixer(aList++, dmemSrc, aiBufLen, 0, 0, ((sourceReverbVol & 0x80) >> 7),
-                  noteSub->bitField0.stereoStrongRight, noteSub->bitField0.stereoStrongLeft, 0x99B1C9E1);
+        aEnvMixer(aList++, dmemSrc, aiBufLen, ((sourceReverbVol & 0x80) >> 7), noteSub->bitField0.stereoStrongRight,
+                  noteSub->bitField0.stereoStrongLeft, (DMEM_WET_LEFT_CH << 16) | DMEM_LEFT_CH, 0,2, 0x99B1C9E1);
     }
 
     return aList;
@@ -1386,7 +1402,7 @@ Acmd* AudioSynth_ApplyHaasEffect(Acmd* aList, NoteSubEu* noteSub, NoteSynthesisS
                     ALIGN16(haasEffectDelaySize));
     }
 
-    aAddMixer(aList++, ALIGN64(size), DMEM_HAAS_TEMP, dmemDest, 0x7FFF);
+    aAddMixer(aList++, ALIGN64(size), DMEM_HAAS_TEMP, dmemDest);//, 0x7FFF);
 
     return aList;
 }

@@ -70,7 +70,7 @@ LD_SCRIPT := linker_scripts/$(VERSION)/$(REV)/$(TARGET).ld
 # are safe to be used can avoid using GLOBAL_ASM which doesn't work with gcc.
 ifeq ($(COMPILER),kos-cc)
   $(warning WARNING: GCC support is experimental. Use at your own risk.)
-  CFLAGS += -DCOMPILER_GCC -O1 -Wno-int-conversion -fno-lto -fno-data-sections -DAVOID_UB=1 -MMD -MP
+  CFLAGS += -DCOMPILER_GCC -O1 -Wno-int-conversion -fno-lto -fno-data-sections -DAVOID_UB=1 -MMD -MP -Wno-incompatible-pointer-types
   NON_MATCHING := 1
 endif
 
@@ -340,6 +340,8 @@ $(shell mkdir -p $(BUILD_DIR)/linker_scripts/$(VERSION)/$(REV) $(BUILD_DIR)/link
 ifeq ($(COMPILER),ido)
 
 # directory flags
+build/src/audio/mixer.o: OPTFLAGS := -O3 -g0
+build/src/gfx/gfx_retro_dc.o: OPTFLAGS := -O3 -g0
 build/src/libultra/gu/%.o: OPTFLAGS := -O3 -g0
 build/src/libultra/io/%.o: OPTFLAGS := -O1 -g0
 build/src/libultra/os/%.o: OPTFLAGS := -O1 -g0

@@ -1367,6 +1367,14 @@ s32 HUD_PauseScreenInput(void) {
     return ret;
 }
 
+#define gSPEffect342(pkt)                                       \
+    {                                                                                   \
+        Gfx* _g = (Gfx*) (pkt);                                                         \
+                                                                                        \
+        _g->words.w0 = 0x424C4E44; \
+        _g->words.w1 = 0x4655434B;                                           \
+    }
+
 void HUD_LoseLifeExplosion_Draw(s32 animFrames) {
     Gfx* sLoseLifePlanetAnimDLs[] = {
         D_BG_PLANET_200B630, D_BG_PLANET_200A5A0, D_BG_PLANET_2009510, D_BG_PLANET_2008480, D_BG_PLANET_20073F0,
@@ -1386,6 +1394,7 @@ void HUD_LoseLifeExplosion_Draw(s32 animFrames) {
     if (animFrames != 0) {
         animFrames--;
         RCP_SetupDL(&gMasterDisp, SETUPDL_36);
+        gSPEffect342(gMasterDisp++);
         gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, sLoseLifePrimColors[animFrames]);
         Matrix_Push(&gGfxMatrix);
         Matrix_Translate(gGfxMatrix, 3.9f, -3.3f, -100.0f, MTXF_NEW);
@@ -1399,6 +1408,8 @@ void HUD_LoseLifeExplosion_Draw(s32 animFrames) {
         }
 
         Matrix_Pop(&gGfxMatrix);
+                gSPEffect342(gMasterDisp++);
+
     }
 }
 
@@ -2676,7 +2687,7 @@ void HUD_Texture_Scroll(u8* texturePtr, s32 xPos, s32 yPos, u8 type) {
             break;
     }
 }
-
+#include <string.h>
 void HUD_Texture_Wave(u16* srcTexture, u16* dstTexture) {
     u16 *src, *dst;
     u16 buffer[1024];

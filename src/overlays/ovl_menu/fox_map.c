@@ -1268,6 +1268,15 @@ void Map_Main(void) {
     }
 }
 
+void gfx_texture_cache_invalidate(void *addr);
+
+void sphere_inval(void *startaddr) {
+    int i;
+    for (i=0;i<12;i++) {
+        gfx_texture_cache_invalidate((void*)((uintptr_t)startaddr + (96 * 8 * i)));
+    }
+}
+
 void Map_Setup(void) {
     s32 i;
     s32 j;
@@ -1413,8 +1422,9 @@ void Map_Setup(void) {
 
     for (i = 0; i < ARRAY_COUNT(gBSSMapPlanetTextures); i++) {
         D_menu_801CD818[i] = 0.0f;
-        //Map_Texture_Sphere(gBSSMapPlanetTextures[i], SEGMENTED_TO_VIRTUAL(gAssetMapPlanetTextures[i]),
-          //                 &D_menu_801CD818[i]);
+        Map_Texture_Sphere(gBSSMapPlanetTextures[i], SEGMENTED_TO_VIRTUAL(gAssetMapPlanetTextures[i]),
+                           &D_menu_801CD818[i]);
+        sphere_inval(gBSSMapPlanetTextures[i]);
     }
 
     D_menu_801CD810 = 0;
@@ -1971,7 +1981,9 @@ void Map_Draw(void) {
     if (D_menu_801CEEC8 == 0) {
         Map_Texture_Sphere(gBSSMapPlanetTextures[8], SEGMENTED_TO_VIRTUAL(gAssetMapPlanetTextures[8]),
                            &D_menu_801CD818[8]);
-        D_menu_801CEEC8 = 5;
+        sphere_inval(gBSSMapPlanetTextures[8]);
+
+                           D_menu_801CEEC8 = 5;
     } else {
         D_menu_801CEEC8--;
     }
@@ -1979,16 +1991,20 @@ void Map_Draw(void) {
     Map_Texture_Sphere(gBSSMapPlanetTextures[D_menu_801CEEC4 * 2],
                        SEGMENTED_TO_VIRTUAL(gAssetMapPlanetTextures[D_menu_801CEEC4 * 2]),
                        &D_menu_801CD818[D_menu_801CEEC4 * 2]);
-    Map_Texture_Sphere(gBSSMapPlanetTextures[(D_menu_801CEEC4 * 2) + 1],
+        sphere_inval(gBSSMapPlanetTextures[D_menu_801CEEC4 * 2]);
+
+                       Map_Texture_Sphere(gBSSMapPlanetTextures[(D_menu_801CEEC4 * 2) + 1],
                        SEGMENTED_TO_VIRTUAL(gAssetMapPlanetTextures[(D_menu_801CEEC4 * 2) + 1]),
                        &D_menu_801CD818[(D_menu_801CEEC4 * 2) + 1]);
+        sphere_inval(gBSSMapPlanetTextures[(D_menu_801CEEC4 * 2) + 1]);
 
     D_menu_801CEEC4++;
     if (D_menu_801CEEC4 > 3) {
         D_menu_801CEEC4 = 0;
     }
 
-    Lib_Texture_Mottle((u16*) aMapVenomCloud1Tex, (u16*) D_MAP_6048F80, 5);
+    Lib_Texture_Mottle((u16*)aMapVenomCloudEffectTex, (u16*) D_MAP_6048F80, 5);
+    gfx_texture_cache_invalidate(aMapVenomCloudEffectTex);
 }
 
 s32 Map_801A05B4(void) {
@@ -4748,7 +4764,18 @@ void Map_VenomCloud_Draw(f32* zAngle, f32 next, f32 scale) {
 
     Matrix_SetGfxMtx(&gMasterDisp);
 
-    gSPDisplayList(gMasterDisp++, aMapVenomCloudDL);
+//    gSPDisplayList(gMasterDisp++, aMapVenomCloudDL);
+// @port This should be aMapVenomCloudDL but torch is stupid sometimes
+    u8* buffer = SEGMENTED_TO_VIRTUAL(aMapVenomCloudEffectTex);
+    gfx_texture_cache_invalidate(aMapVenomCloudEffectTex);
+    gfx_texture_cache_invalidate((uintptr_t)aMapVenomCloudEffectTex + (64*32));
+    gSPVertex(gMasterDisp++, ast_map_seg6_vtx_47F00, 8, 0);
+    gDPLoadTextureBlock(gMasterDisp++, buffer, G_IM_FMT_IA, G_IM_SIZ_8b, 64, 33, 0, G_TX_NOMIRROR | G_TX_WRAP,
+                        G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
+    gSP2Triangles(gMasterDisp++, 1, 2, 3, 0, 1, 3, 0, 0);
+    gDPLoadTextureBlock(gMasterDisp++, buffer + 64 * 32, G_IM_FMT_IA, G_IM_SIZ_8b, 64, 32, 0, G_TX_NOMIRROR | G_TX_WRAP,
+                        G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
+    gSP2Triangles(gMasterDisp++, 5, 6, 7, 0, 5, 7, 4, 0);
 
     Matrix_Pop(&gGfxMatrix);
 
