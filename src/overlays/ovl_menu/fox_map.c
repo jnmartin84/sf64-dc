@@ -1901,6 +1901,8 @@ void Map_Update(void) {
 #endif
 }
 
+extern u8 aMapVenomCloudEffectTex[];
+
 void Map_Draw(void) {
     s32 i;
     s32* ptr;
