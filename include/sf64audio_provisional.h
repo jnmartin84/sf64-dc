@@ -95,7 +95,7 @@ typedef enum {
 
 typedef enum {
     /* 0 */ MEDIUM_RAM,
-    /* 1 */ MEDIUM_UNK,
+    /* 1 */ MEDIUM_DISK,
     /* 2 */ MEDIUM_CART,
     /* 3 */ MEDIUM_DISK_DRIVE
 } SampleMedium;
@@ -231,19 +231,40 @@ typedef struct {
     /* 0x00 */ s32 order;
     /* 0x04 */ s32 numPredictors;
 #ifdef AVOID_UB
-//    /* 0x08 */ u64 book[128]; // size 8 * order * numPredictors.
-    s16 book[512];
+    /* 0x08 */ u64 book[128]; // size 8 * order * numPredictors.
+//    s16 book[512];
 #else
     /* 0x08 */ u64 book[1]; // size 8 * order * numPredictors.
 #endif
 } AdpcmBook; // size >= 8, 0x8 aligned
 
+
+#if 0
 typedef struct {
-    /* 0x00 */ u32 codec : 4;       // The state of compression or decompression
-    /* 0x00 */ u32 medium : 2;      // Medium where sample is currently stored
-    /* 0x00 */ u32 unk_bit26 : 1;
+#if 1
     /* 0x00 */ u32 isRelocated : 1; // Has the sample header been relocated (offsets to pointers)
+    /* 0x00 */ u32 unk_bit26 : 1;
+    /* 0x00 */ u32 medium : 2;      // Medium where sample is currently stored
+    /* 0x00 */ u32 codec : 4;       // The state of compression or decompression
     /* 0x01 */ u32 size : 24;       // Size of the sample
+#endif
+    /* 0x04 */ u8* sampleAddr;      // Raw sample data. Offset from the start of the sample bank or absolute address to
+                                    // either rom or ram
+    /* 0x08 */ AdpcmLoop*
+        loop; // Adpcm loop parameters used by the sample. Offset from the start of the sound font / pointer to ram
+    /* 0x0C */ AdpcmBook*
+        book; // Adpcm book parameters used by the sample. Offset from the start of the sound font / pointer to ram
+} Sample;     // size = 0x10
+#endif
+
+
+typedef struct {
+    /* 0x00 */ u32 isRelocated : 1; // Has the sample header been relocated (offsets to pointers)
+    /* 0x00 */ u32 unk_bit26 : 1;
+    /* 0x00 */ u32 medium : 2;      // Medium where sample is currently stored
+    /* 0x00 */ u32 codec : 4;       // The state of compression or decompression
+    /* 0x01 */ u32 size : 24;       // Size of the sample
+
     /* 0x04 */ u8* sampleAddr;      // Raw sample data. Offset from the start of the sample bank or absolute address to
                                     // either rom or ram
     /* 0x08 */ AdpcmLoop*
@@ -865,7 +886,7 @@ typedef struct {
 
 typedef struct {
     /* 0x00 */ s16 numEntries;
-    /* 0x02 */ s16 unkMediumParam;
+    /* 0x02 */ s16 diskParam;
     /* 0x04 */ uintptr_t romAddr;
     /* 0x08 */ char pad[8];
 } AudioTableBase;
@@ -873,16 +894,20 @@ typedef struct {
 typedef struct {
     /* 0x00 */ uintptr_t romAddr;
     /* 0x04 */ u32 size;
-    /* 0x08 */ s8 medium;
-    /* 0x09 */ s8 cachePolicy;
-    /* 0x0A */ s16 shortData1;
-    /* 0x0C */ s16 shortData2;
-    /* 0x0E */ s16 shortData3;
+    /* 0x08 */ u8 medium;
+    /* 0x09 */ u8 cachePolicy;
+    u8 bank1;
+    u8 bank2;
+    u8 numInstr;
+    u8 numDrums;
+//    /* 0x0A */ s16 shortData1;
+//    /* 0x0C */ s16 shortData2;
+    /* 0x0E */ u16 shortData3;
 } AudioTableEntry; // size = 0x10
 
 typedef struct {
     /* 0x00 */ AudioTableBase base;
-    /* 0x10 */ AudioTableEntry entries[]; // (dynamic size)
+    /* 0x10 */ AudioTableEntry entries[66]; // (dynamic size)
 } AudioTable; // size >= 0x20
 
 typedef struct SampleDma {
@@ -926,10 +951,10 @@ typedef struct {
 } PermanentCache; // size = 0x190
 
 typedef struct {
-    /* 0x00 */ s32 sampleBankId1;
-    /* 0x04 */ s32 sampleBankId2;
-    /* 0x08 */ s32 baseAddr1;
-    /* 0x0C */ s32 baseAddr2;
+    /* 0x00 */ u32 sampleBankId1;
+    /* 0x04 */ u32 sampleBankId2;
+    /* 0x08 */ uintptr_t baseAddr1;
+    /* 0x0C */ uintptr_t baseAddr2;
     /* 0x10 */ u32 medium1;
     /* 0x14 */ u32 medium2;
 } SampleBankRelocInfo; // size = 0x18
@@ -1245,7 +1270,7 @@ extern s32 gRefreshRate;
 extern s16* gAiBuffers[3];
 extern s16 gAiBuffLengths[3];
 extern u32 gAudioRandom;
-extern u32 D_80155D88;
+extern u32 gAudioErrorFlags;
 extern volatile u32 gAudioResetTimer;
 
 extern u64 gAudioContextEnd[];

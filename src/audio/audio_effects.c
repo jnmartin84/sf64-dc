@@ -39,7 +39,7 @@ void Audio_SequenceChannelProcessSound(SequenceChannel* channel, s32 updateVolum
     }
     channel->changes.asByte = 0;
 }
-
+#include <stdio.h>
 void Audio_SequencePlayerProcessSound(SequencePlayer* seqplayer) {
     s32 i;
 
@@ -67,6 +67,10 @@ void Audio_SequencePlayerProcessSound(SequencePlayer* seqplayer) {
         }
     }
     seqplayer->recalculateVolume = 0;
+            //if (seqplayer == &gSeqPlayers[0]) {
+            //    printf("process sound for player 0");
+            //}
+
 }
 
 f32 Audio_GetPortamentoFreqScale(Portamento* portamento) {

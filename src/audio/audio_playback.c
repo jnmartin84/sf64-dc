@@ -135,21 +135,18 @@ TunedSample* Audio_GetInstrumentTunedSample(Instrument* instrument, s32 semitone
 Instrument* Audio_GetInstrument(s32 fontId, s32 instId) {
     Instrument* instrument;
 
-
-    if ((gFontLoadStatus[fontId] < 2) != 0) {
-        D_80155D88 = fontId + 0x10000000;
+    if (gFontLoadStatus[fontId] < 2) {
+        gAudioErrorFlags = fontId + 0x10000000;
         return NULL;
     }
     if (instId >= gSoundFontList[fontId].numInstruments) {
-        D_80155D88 = (fontId << 8) + instId + 0x03000000;
+        gAudioErrorFlags = (fontId << 8) + instId + 0x03000000;
         return NULL;
     }
+
     instrument = gSoundFontList[fontId].instruments[instId];
-
-//    printf("fontId %d instId %d instrument %08x\n", fontId, instId, instrument);
-
     if (instrument == NULL) {
-        D_80155D88 = (fontId << 8) + instId + 0x01000000;
+        gAudioErrorFlags = (fontId << 8) + instId + 0x01000000;
         return instrument;
     }
     return instrument;
@@ -158,20 +155,22 @@ Instrument* Audio_GetInstrument(s32 fontId, s32 instId) {
 Drum* Audio_GetDrum(s32 fontId, s32 drumId) {
     Drum* drum;
 
-    if ((gFontLoadStatus[fontId] < 2) != 0) {
-        D_80155D88 = fontId + 0x10000000;
+    if (gFontLoadStatus[fontId] < 2) {
+        gAudioErrorFlags = fontId + 0x10000000;
         return NULL;
     }
     if (drumId >= gSoundFontList[fontId].numDrums) {
-        D_80155D88 = (fontId << 8) + drumId + 0x04000000;
+        gAudioErrorFlags = (fontId << 8) + drumId + 0x04000000;
         return NULL;
     }
+
     if ((u32) gSoundFontList[fontId].drums < AUDIO_RELOCATED_ADDRESS_START) {
         return NULL;
     }
+
     drum = gSoundFontList[fontId].drums[drumId];
     if (gSoundFontList[fontId].drums[drumId] == NULL) {
-        D_80155D88 = (fontId << 8) + drumId + 0x05000000;
+        gAudioErrorFlags = (fontId << 8) + drumId + 0x05000000;
     }
     return drum;
 }
@@ -219,9 +218,9 @@ void Audio_ProcessNotes(void) {
 
         playbackState = &note->playbackState;
         if ((playbackState->parentLayer != NO_LAYER)) {
-//            if ((u32) playbackState->parentLayer < 0x8c010000) {
-//                continue;
-//            }
+            if ((u32) playbackState->parentLayer < 0x8c010000) {
+                continue;
+            }
 
             if ((note != playbackState->parentLayer->note) && (playbackState->unk_04 == 0)) {
                 playbackState->adsr.action.asByte |= 0x10;
@@ -578,8 +577,8 @@ Note* Audio_FindNodeWithPrioLessThan(AudioListItem* item, s32 priority) {
     if (nextItem == item) {
         return NULL;
     }
-    priorityItem = nextItem;
-    for (/* nextItem */; nextItem != item; nextItem = nextItem->next) {
+
+    for (priorityItem = nextItem; nextItem != item; nextItem = nextItem->next) {
         if (((Note*) nextItem->u.value)->playbackState.priority <=
             ((Note*) priorityItem->u.value)->playbackState.priority) {
             priorityItem = nextItem;
@@ -668,15 +667,14 @@ Note* Audio_AllocNoteFromActive(NotePool* pool, SequenceLayer* layer) {
     s32 rPriority;
     s32 aPriority;
 
-    rPriority = aPriority = 0x10;
-    rNote = Audio_FindNodeWithPrioLessThan(&pool->releasing, layer->channel->notePriority);
+    rPriority = aPriority = 16;
 
+    rNote = Audio_FindNodeWithPrioLessThan(&pool->releasing, layer->channel->notePriority);
     if (rNote != NULL) {
         rPriority = rNote->playbackState.priority;
     }
 
     aNote = Audio_FindNodeWithPrioLessThan(&pool->active, layer->channel->notePriority);
-
     if (aNote != NULL) {
         aPriority = aNote->playbackState.priority;
     }
@@ -691,10 +689,11 @@ Note* Audio_AllocNoteFromActive(NotePool* pool, SequenceLayer* layer) {
         AudioSeq_AudioListPushBack(&pool->releasing, &aNote->listItem);
         aNote->playbackState.priority = layer->channel->notePriority;
         return aNote;
+    } else {
+        rNote->playbackState.wantedParentLayer = layer;
+        rNote->playbackState.priority = layer->channel->notePriority;
+        return rNote;
     }
-    rNote->playbackState.wantedParentLayer = layer;
-    rNote->playbackState.priority = layer->channel->notePriority;
-    return rNote;
 }
 
 Note* Audio_AllocNote(SequenceLayer* layer) {

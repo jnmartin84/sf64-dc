@@ -9,6 +9,10 @@
 #include "gfx/gfx_opengl.h"
 #include "gfx/gfx_dc.h"
 #include <stdlib.h>
+
+
+uintptr_t arch_stack_32m = 0x8d000000;
+
 extern struct GfxWindowManagerAPI gfx_glx;
 extern struct GfxRenderingAPI gfx_opengl_api;
 static struct GfxWindowManagerAPI *wm_api = &gfx_dc;
@@ -54,7 +58,24 @@ SPTask* sNewAudioTasks[2];
 SPTask* sNewAudioTasks[1];
 #endif
 SPTask* sNewGfxTasks[2];
-u32 gSegments[16];          // 800E1FD0
+u32 gSegments[16] = {
+0x8c010000,
+0x8c010000,
+0x8c010000,
+0x8c010000,
+0x8c010000,
+0x8c010000,
+0x8c010000,
+0x8c010000,
+0x8c010000,
+0x8c010000,
+0x8c010000,
+0x8c010000,
+0x8c010000,
+0x8c010000,
+0x8c010000,
+0x8c010000,
+};          // 800E1FD0
 OSMesgQueue gPiMgrCmdQueue; // 800E2010
 OSMesg sPiMgrCmdBuff[50];   // 800E2028
 
@@ -641,7 +662,7 @@ Main_Initialize();
 #include "../mods/isviewer.c"
 #endif
 
-#define SAMPLES_HIGH 544
+#define SAMPLES_HIGH 533
 void *SPINNING_THREAD(UNUSED void *arg) {
     uint64_t last_vbltick = vblticker;
   //  uint64_t last_output_tick = vblticker;
@@ -650,7 +671,7 @@ void *SPINNING_THREAD(UNUSED void *arg) {
     while (1) {
         {
             irq_disable_scoped();
-            while (vblticker <= last_vbltick + 1)
+            while (vblticker <= last_vbltick  + 1 )
                 genwait_wait((void*)&vblticker, NULL, 15, NULL);
         }
 
@@ -667,7 +688,7 @@ irq_disable();
 irq_enable();
 
         audio_api->play((u8 *)audio_buffer, (SAMPLES_HIGH * 2 * 2 * 2));//  * AUDIO_FRAMES_PER_UPDATE));
-        thd_pass();
+//        thd_pass();
     }
 
     return NULL;

@@ -1223,7 +1223,7 @@ void Texture_BlendRGBA16(f32 weight, u16 size, u16* src1, u16* src2, u16* dst) {
     f32 red;
     f32 grn;
     f32 blu;
-    g2 = RGBA16_GRN(temp2); // mega fake
+//    g2 = RGBA16_GRN(temp2); // mega fake
 
     for (i = 0; i < size; i++) {
         temp1 = var_a1[i];
@@ -1243,6 +1243,6 @@ void Texture_BlendRGBA16(f32 weight, u16 size, u16* src1, u16* src2, u16* dst) {
         blu = (b2 - b1) * weight / 100.0f + b1;
 
         var_a3[i] = ((u16) (red * 2048.0f) & 0xF800) | ((u16) (grn * 64.0f) & 0x7C0) | ((u16) (blu * 2.0f) & 0x3E) |
-                    (temp1 | a2 & 1);
+                    (temp1 | (a2 & 1));
     }
 }

@@ -158,7 +158,7 @@ void AudioSeq_SequencePlayerSetupChannels(SequencePlayer* seqPlayer, u16 channel
             }
             channel = AudioSeq_RequestFreeSeqChannel();
             if (IS_SEQUENCE_CHANNEL_VALID(channel) == 0) {
-                D_80155D88 = i + 0x10000;
+                gAudioErrorFlags = i + 0x10000;
                 seqPlayer->channels[i] = channel;
             } else {
                 AudioSeq_InitSequenceChannel(channel);
@@ -1224,14 +1224,12 @@ void AudioSeq_SequencePlayerProcessSequence(SequencePlayer* seqPlayer) {
     u8* pad2;
     s32 pad3;
 
-//    gSeqLoadStatus[seqPlayer->seqId] = LOAD_STATUS_COMPLETE;
-
     if (!seqPlayer->enabled) {
         return;
     }
 
-    if (((gSeqLoadStatus[seqPlayer->seqId] < 2) != 0) ||
-        ((seqPlayer->defaultFont != 0xFF) && ((gFontLoadStatus[seqPlayer->defaultFont] < 2) != 0))) {
+    if ((gSeqLoadStatus[seqPlayer->seqId] < LOAD_STATUS_COMPLETE) ||
+        ((seqPlayer->defaultFont != 0xFF) && (gFontLoadStatus[seqPlayer->defaultFont] < LOAD_STATUS_COMPLETE))) {
         AudioSeq_SequencePlayerDisable(seqPlayer);
         return;
     }
@@ -1501,7 +1499,7 @@ void AudioSeq_SequencePlayerProcessSequence(SequencePlayer* seqPlayer) {
     }
 }
 
-void AudioSeq_ProcessSequences(s32 arg0) {
+void AudioSeq_ProcessSequences(UNUSED s32 arg0) {
     s32 i;
 
     for (i = 0; i < ARRAY_COUNT(gSeqPlayers); i++) {
@@ -1545,8 +1543,8 @@ void AudioSeq_InitSequencePlayers(void) {
 #ifdef AVOID_UB
         for (j = 0; j < ARRAY_COUNT(gSeqChannels->layers); j++) {
 #else
-        for (j = 0; j < 64;
-             j++) { // bug: this is ARRAY_COUNT(gSeqLayers) instead of ARRAY_COUNT(gSeqChannels[i].layers)
+        // bug: this is ARRAY_COUNT(gSeqLayers) instead of ARRAY_COUNT(gSeqChannels[i].layers)
+        for (j = 0; j < 64; j++) { 
 #endif
             gSeqChannels[i].layers[j] = NULL;
         }

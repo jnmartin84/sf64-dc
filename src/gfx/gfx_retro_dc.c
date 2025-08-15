@@ -3237,7 +3237,7 @@ static void  __attribute__((noinline)) gfx_dp_texture_rectangle(int32_t ulx, int
 
 static void  __attribute__((noinline)) gfx_dp_fill_rectangle(int32_t ulx, int32_t uly, int32_t lrx, int32_t lry) {
 	int i;
-//	return;
+	return;
 	do_fill_rect = 1;
 //return;
 	if (rdp.color_image_address == rdp.z_buf_address) {

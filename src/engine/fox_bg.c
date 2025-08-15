@@ -809,7 +809,13 @@ void Background_DrawSun(void) {
         Matrix_Pop(&gGfxMatrix);
     }
 }
-
+#define gSPEffect342(pkt)                                       \
+    {                                                                                   \
+        Gfx* _g = (Gfx*) (pkt);                                                         \
+                                                                                        \
+        _g->words.w0 = 0x424C4E44; \
+        _g->words.w1 = 0x4655434B;                                           \
+    }
 void Background_DrawLensFlare(void) {
     s32 i;
     Color_RGB8* lensFlareColor;
@@ -874,7 +880,6 @@ void Background_DrawLensFlare(void) {
         gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, lensFlareColor->r, lensFlareColor->g, lensFlareColor->b,
                         (s32) alpha);
         gSPDisplayList(gMasterDisp++, *lensFlareDL);
-
         Matrix_Pop(&gGfxMatrix);
     }
     Matrix_Pop(&gGfxMatrix);

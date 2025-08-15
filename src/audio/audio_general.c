@@ -3,8 +3,7 @@
 #include "context.h"
 #include "audiothread_cmd.h"
 #include "audioseq_cmd.h"
-
-#define AUDIO_STUBBED 0
+#include <stdio.h>
 
 void Audio_SetModulationAndPlaySfx(f32* sfxSource, u32 sfxId, f32 freqMod);
 s32 Audio_GetCurrentVoice(void);
@@ -91,7 +90,7 @@ f32 sSfxVolMod = 1.0f; // never modified
 u8 sPlaylistIndex = 255;
 s32 sPlaylistTimer = 0;
 u8 sPlaylistCmdIndex = 0;
-u32 sEventSfx[] = {
+u32 sEventSfx[23] = {
     NA_SE_OB_SLIDE_OPEN,        NA_SE_OB_SLIDE_CLOSE,
     NA_SE_OB_STEELFRAME,        NA_SE_OB_HEAVY_BOUND,
     NA_SE_ITEM_APPEAR,          NA_SE_OB_BLOCK_APPEAR,
@@ -105,7 +104,7 @@ u32 sEventSfx[] = {
     NA_SE_OB_ROUTEGATE_CLOSE_S, NA_SE_OB_LIFT,
     NA_SE_OB_PLATE_ROLL,
 };
-SoundTestTrack sSoundTestTracks[] = {
+SoundTestTrack sSoundTestTracks[45] = {
     /*  0 */ { NA_BGM_OPENING, AUDIOSPEC_OPENING | (SFX_LAYOUT_DEFAULT << 8), -1 },
     /*  1 */ { NA_BGM_TITLE, AUDIOSPEC_TITLE | (SFX_LAYOUT_DEFAULT << 8), -1 },
     /*  2 */ { NA_BGM_SELECT, AUDIOSPEC_TITLE | (SFX_LAYOUT_DEFAULT << 8), -1 },
@@ -153,7 +152,7 @@ SoundTestTrack sSoundTestTracks[] = {
     /* 44 */ { NA_BGM_STAFF_ROLL, AUDIOSPEC_ENDING | (SFX_LAYOUT_DEFAULT << 8), -1 },
 };
 
-PlaylistCmd sPlaylists[][100] = {
+PlaylistCmd sPlaylists[5][100] = {
     {
         { 0, 0, NA_BGM_START_DEMO, 0, 255, 1620 },     { 0, 0, NA_BGM_STAGE_CO, 0, 255, 2490 },
         { 1, 0, NA_BGM_STAGE_CO, 50, 255, 50 },        { 0, 0, NA_BGM_BOSS_CO, 0, 255, 1600 },
@@ -615,12 +614,10 @@ void Audio_ResetSfxChannelState(void) {
         sSfxChannelState[i].pan = 64;
     }
 }
-#include <stdio.h>
+
 void Audio_StartSequence(u8 seqPlayId, u8 seqId, u8 seqArgs, u16 fadeInTime) {
     u8 i;
     s32 pad;
-printf("start seq %d %d\n", seqPlayId, seqId);
-printf("\tsStartSeqDisabled %d\n", sStartSeqDisabled);
     if (!sStartSeqDisabled || (seqPlayId == SEQ_PLAYER_SFX)) {
         AUDIOCMD_GLOBAL_INIT_SEQPLAYER((u32) seqPlayId, (u32) seqId, 0, fadeInTime);
         sActiveSequences[seqPlayId].prevSeqId = sActiveSequences[seqPlayId].seqId = seqId | ((seqArgs) << 8);
@@ -644,7 +641,7 @@ void Audio_StopSequence(u8 seqPlayId, u16 fadeOutTime) {
     AUDIOCMD_GLOBAL_DISABLE_SEQPLAYER(seqPlayId, fadeOutTime);
     sActiveSequences[seqPlayId].seqId = SEQ_ID_NONE;
 }
-#include <stdio.h>
+void* AudioLoad_SyncLoadFont(s32 fontId);
 void Audio_ProcessSeqCmd(u32 seqCmd) {
     u16 flag;
     u16 channelDisableMask;
@@ -667,15 +664,12 @@ void Audio_ProcessSeqCmd(u32 seqCmd) {
     u8* tempPtr2;
     u32 sp4C;
 
-    seqPlayId = (seqCmd & 0x0F000000) >> 0x18;
-    printf("seqPlayId %08x\n", seqPlayId);
-    printf("\t(seqCmd >> 0x1C) & 0xFF %08x\n", (seqCmd >> 0x1C) & 0xFF);
-    switch ((seqCmd >> 0x1C) & 0xFF) {
+    seqPlayId = (seqCmd & 0x0F000000) >> 24;
+    switch ((seqCmd >> 28) & 0xFF) {
         case SEQCMD_OP_PLAY_SEQUENCE:
             seqNumber = seqCmd & 0xFF;
             seqArgs = (seqCmd & 0xFF00) >> 8;
             fadeTimer = (seqCmd & 0xFF0000) >> 13;
-            printf("seq no %02x args %02x fadeTimer %d\n", seqNumber, seqArgs, fadeTimer);
             if (!sActiveSequences[seqPlayId].isWaitingForFonts) {
                 if (seqArgs < 0x80) {
                     Audio_StartSequence(seqPlayId, seqNumber, seqArgs, fadeTimer);
@@ -685,12 +679,14 @@ void Audio_ProcessSeqCmd(u32 seqCmd) {
                     Audio_StopSequence(seqPlayId, 1);
                     if (sActiveSequences[seqPlayId].prevSeqId != SEQ_ID_NONE) {
                         tempptr = AudioThread_GetFontsForSequence(seqNumber, &sp4C);
-                        tempPtr2 = AudioThread_GetFontsForSequence(sActiveSequences[seqPlayId].prevSeqId & 0xFF, &sp4C);
+                        tempPtr2 = AudioThread_GetFontsForSequence(__builtin_bswap16(sActiveSequences[seqPlayId].prevSeqId) & 0xFF, &sp4C);
                         if (tempptr[0] != tempPtr2[0]) {
                             AUDIOCMD_GLOBAL_DISCARD_SEQ_FONTS(seqNumber);
                         }
                     }
                     AUDIOCMD_GLOBAL_ASYNC_LOAD_FONT(seqNumber, 20, (s8) (seqPlayId + 1));
+  //                  AudioLoad_SyncLoadFont(seqNumber);
+                    //Audio_StartSequence(seqPlayId, seqNumber, seqArgs, fadeTimer);
                 }
             }
             break;
@@ -706,14 +702,14 @@ void Audio_ProcessSeqCmd(u32 seqCmd) {
             for (i = 0; i < sNumSeqRequests[seqPlayId]; i++) {
                 if (seqNumber == sSeqRequests[seqPlayId][i].seqId) {
                     if (i == 0) {
-                        Audio_StartSequence(seqPlayId, seqNumber, seqArgs, fadeTimer);
+                        Audio_StartSequence(seqPlayId, seqNumber, priority, fadeTimer);
                     }
                     return;
                 }
             }
             found = sNumSeqRequests[seqPlayId];
             for (i = 0; i < sNumSeqRequests[seqPlayId]; i++) {
-                if (seqArgs >= sSeqRequests[seqPlayId][i].priority) {
+                if (priority >= sSeqRequests[seqPlayId][i].priority) {
                     found = i;
                     i = sNumSeqRequests[seqPlayId];
                 }
@@ -726,11 +722,11 @@ void Audio_ProcessSeqCmd(u32 seqCmd) {
                     sSeqRequests[seqPlayId][i].priority = sSeqRequests[seqPlayId][i - 1].priority;
                     sSeqRequests[seqPlayId][i].seqId = sSeqRequests[seqPlayId][i - 1].seqId;
                 }
-                sSeqRequests[seqPlayId][found].priority = seqArgs;
+                sSeqRequests[seqPlayId][found].priority = priority;
                 sSeqRequests[seqPlayId][found].seqId = seqNumber;
             }
             if (found == 0) {
-                Audio_StartSequence(seqPlayId, seqNumber, seqArgs, fadeTimer);
+                Audio_StartSequence(seqPlayId, seqNumber, priority, fadeTimer);
             }
             break;
         case SEQCMD_OP_UNQUEUE_SEQUENCE:
@@ -949,7 +945,7 @@ void Audio_SetSequenceFade(u8 seqPlayId, u8 fadeModId, u8 fadeMod, u8 fadeTime) 
     sActiveSequences[seqPlayId].mainVolume.fadeTimer = fadeTime;
     sActiveSequences[seqPlayId].mainVolume.fadeActive = 1;
 }
-#include <stdio.h>
+
 void Audio_UpdateActiveSequences(void) {
     u8 seqPlayId;
     u8 i;
@@ -973,15 +969,12 @@ void Audio_UpdateActiveSequences(void) {
 
     for (seqPlayId = 0; seqPlayId < SEQ_PLAYER_MAX; seqPlayId++) {
         if (sActiveSequences[seqPlayId].isWaitingForFonts) {
-            printf("seqPlayId %d waiting for fonts\n", seqPlayId);
             switch ((s32) AudioThread_GetAsyncLoadStatus(&out)) {
                 case SEQ_PLAYER_BGM + 1:
                 case SEQ_PLAYER_FANFARE + 1:
                 case SEQ_PLAYER_SFX + 1:
                 case SEQ_PLAYER_VOICE + 1:
-                    //printf("OUT %08x\n", out);
                     sActiveSequences[seqPlayId].isWaitingForFonts = 0;
-                    printf("\tsActiveSequences[seqPlayId].startSeqCmd %08x\n", sActiveSequences[seqPlayId].startSeqCmd);
                     Audio_ProcessSeqCmd(sActiveSequences[seqPlayId].startSeqCmd);
                     break;
             }
@@ -1120,7 +1113,6 @@ void Audio_UpdateActiveSequences(void) {
                         SEQCMD_UNQUEUE_SEQUENCE(seqPlayId, 0, sActiveSequences[seqPlayId].seqId);
                         break;
                     case SEQCMD_SUB_OP_SETUP_RESTART_SEQ:
-                        printf("restart_seq %d %d\n", setupSeqPlayId, sActiveSequences[setupSeqPlayId].seqId);
                         SEQCMD_PLAY_SEQUENCE(setupSeqPlayId, 1, 0, sActiveSequences[setupSeqPlayId].seqId);
                         sActiveSequences[setupSeqPlayId].mainVolume.fadeActive = 1;
                         sActiveSequences[setupSeqPlayId].mainVolume.fadeMod[1] = 127;
@@ -1133,7 +1125,6 @@ void Audio_UpdateActiveSequences(void) {
                         break;
                     case SEQCMD_SUB_OP_SETUP_PLAY_SEQ:
                         seqId = sActiveSequences[seqPlayId].setupCmd[i] & 0xFFFF;
-                        printf("setup_play_seq %d %d\n", setupSeqPlayId, seqId);
                         SEQCMD_PLAY_SEQUENCE(setupSeqPlayId, sActiveSequences[setupSeqPlayId].setupFadeTimer, 0, seqId);
                         Audio_SetSequenceFade(setupSeqPlayId, 1, 127, 0);
                         sActiveSequences[setupSeqPlayId].setupFadeTimer = 0;
@@ -1229,11 +1220,9 @@ void Audio_ResetActiveSequencesAndVolume(void) {
     }
     Audio_ResetActiveSequences();
 }
-#include <stdio.h>
 
 void Audio_SetSfxBanksMute(u16 muteFlags) {
     u8 i;
-//printf("set sfx banks mute %08x\n", muteFlags);
     for (i = 0; i < SFX_BANK_MAX; i++) {
         sSfxBankMuted[i] = (muteFlags & 1) ? 1 : 0;
         muteFlags = muteFlags >> 1;
@@ -1241,7 +1230,6 @@ void Audio_SetSfxBanksMute(u16 muteFlags) {
 }
 
 void Audio_ClearBGMMute(u8 channelIndex) {
-    //printf("clear bgm mute\n");
     sChannelMuteFlags &= (1 << channelIndex) ^ 0xFFFF;
     if (sChannelMuteFlags == 0) {
         Audio_SetSequenceFade(SEQ_PLAYER_BGM, 2, 127, 15);
@@ -1250,7 +1238,6 @@ void Audio_ClearBGMMute(u8 channelIndex) {
 void Audio_PlaySfx(u32 sfxId, f32* sfxSource, u8 token, f32* freqMod, f32* volMod, s8* reverbAdd) {
    if (sSfxBankMuted[SFX_BANK_ALT(sfxId)] == 0) {
         SfxRequest* request = &sSfxRequests[sSfxRequestWriteIndex];
-        //printf("playsfx %08x on %d\n", sfxId, sSfxRequestWriteIndex);
         request->sfxId = sfxId;
         request->source = sfxSource;
         request->token = token;
@@ -1262,9 +1249,9 @@ void Audio_PlaySfx(u32 sfxId, f32* sfxSource, u8 token, f32* freqMod, f32* volMo
 }
 
 void Audio_RemoveMatchingSfxRequests(u8 aspect, SfxBankEntry* data) {
-    u8 i = sSfxRequestReadIndex;
+    u8 i;// = sSfxRequestReadIndex;
 
-    for (i; i != sSfxRequestWriteIndex; i++) {
+    for (i = sSfxRequestReadIndex; i != sSfxRequestWriteIndex; i++) {
         s32 found = 0;
         SfxRequest* request = &sSfxRequests[i];
 
@@ -1306,7 +1293,7 @@ void Audio_RemoveMatchingSfxRequests(u8 aspect, SfxBankEntry* data) {
         }
     }
 }
-#include <stdio.h>
+
 void Audio_ProcessSfxRequest(void) {
     SfxRequest* request = &sSfxRequests[sSfxRequestReadIndex];
     u8 next;
@@ -1323,38 +1310,28 @@ void Audio_ProcessSfxRequest(void) {
     next = sSfxBanks[bankId][0].next;
     count = 0;
 
-    //printf("process sfx request\n");
-
     while ((next != 0xFF) && (next != 0)) {
         if (&request->source[0] == sSfxBanks[bankId][next].xPos) {
-            //printf("\txpos == test\n");
             if (request->sfxId == sSfxBanks[bankId][next].sfxId) {
-                //printf("\t\tsfxId == test \n");
                 count = sMaxSfxRequests[sSfxLayout][bankId];
             } else {
                 if (count == 0) {
-                    //printf("\t\tcount == 0\n");
                     evict = next;
                     sfxId = sSfxBanks[bankId][next].sfxId;
                 } else if ((sSfxBanks[bankId][next].sfxId & SFX_IMPORT_MASK) < (sfxId & SFX_IMPORT_MASK)) {
-                    //printf("\t\tmasked sfxId < test \n");
                     evict = next;
                     sfxId = sSfxBanks[bankId][next].sfxId;
                 }
                 count++;
                 if (count == sMaxSfxRequests[sSfxLayout][bankId]) {
-                    //printf("\\ttcount == sMaxSfxRequests[sSfxLayout][bankId]\n");
                     if ((request->sfxId & SFX_IMPORT_MASK) >= (sfxId & SFX_IMPORT_MASK)) {
-                        //printf("\t\t\tmasked sfxId >= test \n");
                         next = evict;
                     } else {
-                        //printf("\t\t\tnext = 0\n");
                         next = 0;
                     }
                 }
             }
             if (count == sMaxSfxRequests[sSfxLayout][bankId]) {
-                //printf("\t\tcount == maxrequests\n");
                 if ((request->sfxId & SFX_FLAG_27) || (request->sfxId & SFX_FLAG_18) || (next == evict)) {
                     if ((sSfxBanks[bankId][next].sfxId & SFX_FLAG_19) && (sSfxBanks[bankId][next].state != 1)) {
                         Audio_ClearBGMMute(sSfxBanks[bankId][next].channelIndex);
@@ -1366,7 +1343,6 @@ void Audio_ProcessSfxRequest(void) {
                     sSfxBanks[bankId][next].freqMod = request->freqMod;
                     sSfxBanks[bankId][next].volMod = request->volMod;
                     sSfxBanks[bankId][next].reverbAdd = request->reverbAdd;
-                    //printf("1 set up sfx banks?\n");
                 }
                 next = 0;
             }
@@ -1376,7 +1352,6 @@ void Audio_ProcessSfxRequest(void) {
         }
     }
     if ((sSfxBanks[bankId][sSfxBankFreeListStart[bankId]].next != 0xFF) && (next != 0)) {
-                    //printf("2 set up sfx banks?\n");
         next = sSfxBankFreeListStart[bankId];
         entry = &sSfxBanks[bankId][next];
         entry->xPos = &request->source[0];
@@ -1733,7 +1708,6 @@ void Audio_KillSfxById(u32 sfxId) {
 
 void Audio_ProcessSfxRequests(void) {
     while (sSfxRequestWriteIndex != sSfxRequestReadIndex) {
-        //printf("write %d read %d\n", sSfxRequestWriteIndex, sSfxRequestReadIndex);
         Audio_ProcessSfxRequest();
         sSfxRequestReadIndex++;
     }
@@ -2750,12 +2724,11 @@ void Audio_StartReset(u8 oldSpecId) {
     } else {
         sAudioResetStatus = AUDIORESET_WAIT;
     }
-//    AUDIOCMD_GLOBAL_UNMUTE(1);
-sAudioResetStatus = AUDIORESET_WAIT;
-
     AUDIOCMD_GLOBAL_UNMUTE(1);
+    //sAudioResetStatus = AUDIORESET_WAIT;
+    //AUDIOCMD_GLOBAL_UNMUTE(1);
 
-Audio_ResetVoicesAndPlayers();
+    Audio_ResetVoicesAndPlayers();
     Audio_ResetSfxChannelState();
     Audio_ResetActiveSequences();
     Audio_ResetSfx();

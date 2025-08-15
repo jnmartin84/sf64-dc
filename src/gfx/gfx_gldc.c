@@ -623,7 +623,7 @@ static void over_skybox_setup_post(void) {
     }
 
 static void zmode_decal_setup_pre(void) {
-    return;
+//    return;
     // Adjust depth values slightly for zmode_decal objects
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
@@ -799,7 +799,7 @@ glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
             tris[i].color.array.a = pa;
         }
 }
-
+#if 0
     if (water_helen) {
 //        printf("water helen?\n");
         glEnable(GL_BLEND);
@@ -810,7 +810,7 @@ glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
             tris[i].color.array.a = 127;
         }
     } 
-
+#endif
     #if 1
     //else if (cur_shader->shader_id == 0x03a00045) {
 //        if (pa != 255) {
@@ -823,11 +823,11 @@ glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
    // }
 #endif
     glDrawArrays(GL_TRIANGLES, 0, 3 * buf_vbo_num_tris);
-
+//
 //if(water_helen) {
   //          glEnable(GL_BLEND);
     //    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
+//
 //}
 
 //if (blend_fuck) {
@@ -838,7 +838,8 @@ glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
 if (is_zmode_decal)
         zmode_decal_setup_post();
-    if (cur_shader->shader_id == 0x01045551)
+ 
+        if (cur_shader->shader_id == 0x01045551)
         particle_blend_setup_post();
 }
 

@@ -30,8 +30,8 @@ void AudioThread_CreateNextAudioBuffer(s16* samples, u32 num_samples) {
     OSMesg specId;
     OSMesg msg;
 
-    gCurAiBuffIndex++;
-    gCurAiBuffIndex %= 3;
+    //gCurAiBuffIndex++;
+    //gCurAiBuffIndex %= 3;
 
     gCurAudioFrameDmaCount = 0;
     AudioLoad_DecreaseSampleDmaTtls();
@@ -43,6 +43,7 @@ void AudioThread_CreateNextAudioBuffer(s16* samples, u32 num_samples) {
         if (gAudioResetStep == 0) {
             gAudioResetStep = 5;
         }
+        printf("new spec id message %08x\n", specId);
         gAudioSpecId = specId;
     }
 
@@ -313,17 +314,17 @@ void AudioThread_QueueCmdS32(u32 opArgs, u32 val) {
 }
 
 void AudioThread_QueueCmdS8(u32 opArgs, s8 val) {
-    s32 data = val << 0x18;
+    s32 data = val << 24;
 
     AudioThread_QueueCmd(opArgs, (void**) &data);
 }
 
 void AudioThread_ScheduleProcessCmds(void) {
-    static s32 D_800C7C70 = 0;
+    static s32 sMaxPendingAudioCmds = 0;
     s32 msg;
 
-    if (D_800C7C70 < (u8) (gThreadCmdWritePos - gThreadCmdReadPos + 0x100)) {
-        D_800C7C70 = (u8) (gThreadCmdWritePos - gThreadCmdReadPos + 0x100);
+    if (sMaxPendingAudioCmds < (u8) (gThreadCmdWritePos - gThreadCmdReadPos + 0x100)) {
+        sMaxPendingAudioCmds = (u8) (gThreadCmdWritePos - gThreadCmdReadPos + 0x100);
     }
     msg = (((gThreadCmdReadPos & 0xFF) << 8) | (gThreadCmdWritePos & 0xFF));
     osSendMesg(gThreadCmdProcQueue, (OSMesg) msg, OS_MESG_NOBLOCK);
@@ -333,7 +334,7 @@ void AudioThread_ScheduleProcessCmds(void) {
 void AudioThread_ResetCmdQueue(void) {
     gThreadCmdReadPos = gThreadCmdWritePos;
 }
-
+extern int font24;
 void AudioThread_ProcessCmds(u32 msg) {
     static u8 gCurCmdReadPos = 0;
     static u8 gThreadCmdQueueFinished = 0;
@@ -365,6 +366,9 @@ void AudioThread_ProcessCmds(u32 msg) {
             AudioThread_ProcessGlobalCmd(cmd);
         } else if (cmd->arg0 < ARRAY_COUNT(gSeqPlayers)) {
             player = &gSeqPlayers[cmd->arg0];
+            if (cmd->arg0 == 0 && font24) {
+                printf("in the process cmds for the song\n");
+            }
             if (cmd->op & 0x80) {
                 AudioThread_ProcessGlobalCmd(cmd);
             } else if (cmd->op & 0x40) {
@@ -392,24 +396,36 @@ void AudioThread_ProcessCmds(u32 msg) {
                         case AUDIOCMD_OP_CHANNEL_SET_VOL_SCALE:
                             if (channel->volumeMod != cmd->asFloat) {
                                 channel->volumeMod = cmd->asFloat;
-                                channel->changes.s.volume = 1;
+                                if (font24 && player == &gSeqPlayers[0]) {
+                                    printf(" volumeMod %f\n", channel->volumeMod);
+                                }
+                                    channel->changes.s.volume = 1;
                             }
                             break;
                         case AUDIOCMD_OP_CHANNEL_SET_VOL:
                             if (channel->volume != cmd->asFloat) {
                                 channel->volume = cmd->asFloat;
+                                if (font24&& player == &gSeqPlayers[0]) {
+                                    printf("set vol %f\n", channel->volume);
+                                }
                                 channel->changes.s.volume = 1;
                             }
                             break;
                         case AUDIOCMD_OP_CHANNEL_SET_PAN:
                             if (channel->newPan != cmd->asSbyte) {
                                 channel->newPan = cmd->asSbyte;
-                                channel->changes.s.pan = 1;
+                                 if (font24&& player == &gSeqPlayers[0]) {
+                                    printf(" set pan %d\n", channel->newPan);
+                                }
+                               channel->changes.s.pan = 1;
                             }
                             break;
                         case AUDIOCMD_OP_CHANNEL_SET_FREQ_SCALE:
                             if (channel->freqMod != cmd->asFloat) {
                                 channel->freqMod = cmd->asFloat;
+                                if (font24&& player == &gSeqPlayers[0]) {
+                                    printf(" freqMod %f\n", channel->freqMod);
+                                }
                                 channel->changes.s.freqMod = 1;
                             }
                             break;
@@ -423,8 +439,12 @@ void AudioThread_ProcessCmds(u32 msg) {
                                 channel->seqScriptIO[cmd->arg2] = cmd->asSbyte;
                             }
                             break;
-                        case AUDIOCMD_OP_CHANNEL_SET_MUTE:
+                        case AUDIOCMD_OP_CHANNEL_SET_MUTE: 
                             channel->muted = cmd->asSbyte;
+                                                        if (font24&& player == &gSeqPlayers[0]) {
+                                    printf(" muted %d\n", channel->muted);
+                                }
+
                             break;
                     }
                 }
@@ -442,8 +462,8 @@ u32 AudioThread_GetAsyncLoadStatus(u32* outData) {
         return 0;
     }
     printf("loadStatus from external load queue %08x\n", loadStatus);
-    *outData = loadStatus & 0xFFFFFF;
-    return loadStatus >> 0x18;
+    *outData = loadStatus & 0x00FFFFFF;
+    return loadStatus >> 24;
 }
 
 u8* AudioThread_GetFontsForSequence(s32 seqId, u32* outNumFonts) {
@@ -456,7 +476,7 @@ s32 AudioThread_ResetComplete(void) {
     if (!MQ_GET_MESG(gAudioResetQueue, &sp18)) {
         return 0;
     }
-    if ((u8)sp18 != gAudioSpecId) {
+    if ((u8)(uintptr_t)sp18 != gAudioSpecId) {
         return 0;
     }
 

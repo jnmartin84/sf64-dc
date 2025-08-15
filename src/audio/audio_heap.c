@@ -162,15 +162,15 @@ void AudioHeap_InitTemporaryPoolsAndCaches(AudioCommonPoolSplit* split) {
 }
 
 void* AudioHeap_AllocCached(s32 tableType, s32 size, s32 cache, s32 id) {
-    AudioCache* loadedCache;
-    AudioTemporaryCache* temporaryCache;
-    AudioAllocPool* temporaryPool;
-    void* persistentRamAddr;
-    void* temporaryRamAddr;
-    u8 loadStatusEntry0;
-    u8 loadStatusEntry1;
-    s32 i;
-    u8* loadStatus;
+    AudioCache* loadedCache = NULL;
+    AudioTemporaryCache* temporaryCache = NULL;
+    AudioAllocPool* temporaryPool = NULL;
+    void* persistentRamAddr = NULL;
+    void* temporaryRamAddr = NULL;
+    u8 loadStatusEntry0 = 0;
+    u8 loadStatusEntry1 = 0;
+    s32 i = 0;
+    u8* loadStatus = NULL;
 
     switch (tableType) {
         case SEQUENCE_TABLE:
@@ -400,10 +400,10 @@ void* AudioHeap_SearchCaches(s32 tableType, s32 cache, s32 id) {
 }
 
 void* AudioHeap_SearchRegularCaches(s32 tableType, s32 cache, s32 id) {
-    u32 i;
-    AudioCache* loadedCache;
-    AudioTemporaryCache* temporary;
-    AudioPersistentCache* persistent;
+    u32 i = 0;
+    AudioCache* loadedCache = NULL;
+    AudioTemporaryCache* temporary = NULL;
+    AudioPersistentCache* persistent = NULL;
 
     switch (tableType) {
         case SEQUENCE_TABLE:
@@ -504,19 +504,19 @@ void AudioHeap_ClearCurrentAiBuffer(void) {
 s32 AudioHeap_ResetStep(void) {
     s32 i;
     s32 j;
-    s32 sp24;
+    s32 numBuffers;
 
     if (gAudioBufferParams.numBuffers == 2) {
-        sp24 = 2;
+        numBuffers = 2;
     } else {
-        sp24 = 1;
+        numBuffers = 1;
     }
     switch (gAudioResetStep) {
         case 5:
             for (i = 0; i < ARRAY_COUNT(gSeqPlayers); i++) {
                 AudioSeq_SequencePlayerDisable(&gSeqPlayers[i]);
             }
-            gResetFadeoutFramesLeft = 4 / sp24;
+            gResetFadeoutFramesLeft = 4 / numBuffers;
             gAudioResetStep--;
             break;
         case 4:
@@ -531,7 +531,7 @@ s32 AudioHeap_ResetStep(void) {
                     }
                 }
 
-                gResetFadeoutFramesLeft = 16 / sp24;
+                gResetFadeoutFramesLeft = 16 / numBuffers;
                 gAudioResetStep--;
             }
             break;
@@ -545,7 +545,7 @@ s32 AudioHeap_ResetStep(void) {
                         gAiBuffers[i][j] = 0;
                     }
                 }
-                gResetFadeoutFramesLeft = 4 / sp24;
+                gResetFadeoutFramesLeft = 4 / numBuffers;
                 gAudioResetStep--;
                 break; // needed to match
             }
@@ -855,15 +855,15 @@ void AudioHeap_DiscardSampleCacheEntry(SampleCacheEntry* entry) {
     Instrument* instrument;
     s32 instId;
     s32 drumId;
-    s32 sampleBankId2;
-    s32 sampleBankId1;
+    u8 sampleBankId2;
+    u8 sampleBankId1;
 
     numFonts = gSoundFontTable->base.numEntries;
     for (fondId = 0; fondId < numFonts; fondId++) {
         sampleBankId1 = gSoundFontList[fondId].sampleBankId1;
         sampleBankId2 = gSoundFontList[fondId].sampleBankId2;
-        if (((sampleBankId1 != SAMPLES_NONE) && (entry->sampleBankId == sampleBankId1)) ||
-            ((sampleBankId2 != SAMPLES_NONE) && (entry->sampleBankId == sampleBankId2)) ||
+        if (((sampleBankId1 != SAMPLES_NONE_U) && (entry->sampleBankId == sampleBankId1)) ||
+            ((sampleBankId2 != SAMPLES_NONE_U) && (entry->sampleBankId == sampleBankId2)) ||
             (entry->sampleBankId == SAMPLES_SFX)) {
             if (((void*)AudioHeap_SearchCaches(FONT_TABLE, CACHE_EITHER, fondId) != NULL) &&
                 ((gFontLoadStatus[fondId] > 1) != 0)) {
@@ -919,8 +919,8 @@ void AudioHeap_DiscardSampleCaches(void) {
     s32 i;
     s32 numFonts = gSoundFontTable->base.numEntries;
     s32 pad;
-    s32 sampleBankId2;
-    s32 sampleBankId1;
+    u8 sampleBankId2;
+    u8 sampleBankId1;
     s32 instId;
     s32 drumId;
     Drum* drum;
@@ -935,7 +935,7 @@ void AudioHeap_DiscardSampleCaches(void) {
         sampleBankId1 = gSoundFontList[fontId].sampleBankId1;
         sampleBankId2 = gSoundFontList[fontId].sampleBankId2;
         if (((sampleBankId1 != SAMPLES_NONE_U) && (entry->sampleBankId == sampleBankId1)) ||
-            ((sampleBankId2 != SAMPLES_NONE) && (entry->sampleBankId == sampleBankId2)) ||
+            ((sampleBankId2 != SAMPLES_NONE_U) && (entry->sampleBankId == sampleBankId2)) ||
             (entry->sampleBankId == SAMPLES_SFX)) {
             if (((void *)AudioHeap_SearchCaches(FONT_TABLE, CACHE_PERMANENT, fontId) != NULL) &&
                 ((gFontLoadStatus[fontId] > 1) != 0)) {
