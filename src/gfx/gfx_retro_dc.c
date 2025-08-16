@@ -571,14 +571,18 @@ static void import_texture_rgba32(int tile) {
 	// mk64 has one 32-bit texture and it is "Mario Kart 64" on the title screen
 	// it only needs one bit of alpha, just make it argb1555
 	for (uint32_t i = 0; i < wxh; i++) {
-		uint8_t r = rdp.loaded_texture[tile].addr[(4 * i) + 0] >> 3;
-		uint8_t g = rdp.loaded_texture[tile].addr[(4 * i) + 1] >> 3;
-		uint8_t b = rdp.loaded_texture[tile].addr[(4 * i) + 2] >> 3;
-		uint8_t a = !!rdp.loaded_texture[tile].addr[(4 * i) + 3];
-		rgba16_buf[i] = (a << 15) | (r << 10) | (g << 5) | (b);
+		uint8_t r = (rdp.loaded_texture[tile].addr[(4 * i) + 0] >> 4)&0xf;
+		uint8_t g = (rdp.loaded_texture[tile].addr[(4 * i) + 1] >> 4)&0xf;
+		uint8_t b = (rdp.loaded_texture[tile].addr[(4 * i) + 2] >> 4)&0xf;
+		uint8_t a = (rdp.loaded_texture[tile].addr[(4 * i) + 3] >> 4)&0xf;
+		if (((r < 3) && (g < 3) && (b < 3))) {
+			rgba16_buf[i] = 0;
+		} else {
+			rgba16_buf[i] = (a << 12) | (r << 8) | (g << 4) | (b);
+		}
 	}
 
-	gfx_rapi->upload_texture((uint8_t*) rgba16_buf, width, height, GL_UNSIGNED_SHORT_1_5_5_5_REV);
+	gfx_rapi->upload_texture((uint8_t*) rgba16_buf, width, height, GL_UNSIGNED_SHORT_4_4_4_4_REV);
 }
 #if 0
 static void import_texture_ia4_block(int tile) {
@@ -729,7 +733,10 @@ static void import_texture_ia8(int tile) {
 			uint8_t val = start[i];
 			uint8_t in = ((val >> 4) & 0xf);
 			uint8_t al = (val & 0xf);
-			tex16[i] = (al << 12) | (in << 8) | (in << 4) | in;
+			if (in < 3)
+				tex16[i] = 0;
+			else
+				tex16[i] = (al << 12) | (in << 8) | (in << 4) | in;
 	}
 	gfx_rapi->upload_texture((uint8_t*) rgba16_buf, width, height, GL_UNSIGNED_SHORT_4_4_4_4_REV);
 }
@@ -775,7 +782,10 @@ static void import_texture_ia16(int tile) {
 			uint16_t np = start[x];//++;
 			uint8_t al = (np >> 12)&0xf;
 			uint8_t in = (np >>  4)&0xf;
-			tex16[x] = (al << 12) | (in << 8) | (in << 4) | in;
+			if (in < 3)
+				tex16[x] = 0;
+			else
+				tex16[x] = (al << 12) | (in << 8) | (in << 4) | in;
 		}
 		start += src_width;
 		tex16 += src_width;
@@ -1989,7 +1999,7 @@ static void  __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx
         cc_id |= SHADER_OPT_FOG;
     if (texture_edge) {
         cc_id |= SHADER_OPT_TEXTURE_EDGE;
-        use_alpha = 0;
+//        use_alpha = 0;
 	}
 		if (use_noise)
         cc_id |= SHADER_OPT_NOISE;
@@ -2965,7 +2975,7 @@ static void  __attribute__((noinline)) gfx_dp_load_tlut(UNUSED uint8_t tile, uin
 	for (int i = 0; i < high_index; i++) {
 		uint16_t c = *srcp++;
 		uint8_t a = c&1;
-			uint8_t r = c >> 11;
+			uint8_t r = (c >> 11) & 0x1f;
 			uint8_t g = (c >> 6) & 0x1f;
 			uint8_t b = (c >> 1) & 0x1f;
 				*tlp++ = (a << 15) | (r << 10) | (g << 5) | (b);
@@ -3304,8 +3314,8 @@ static inline void* seg_addr(uintptr_t w1) {
 #define C1(pos, width) ((cmd->words.w1 >> (pos)) & ((1U << width) - 1))
 #define G_QUAD (G_IMMFIRST - 10)
 
-
-int water_helen = 0;
+extern volatile int do_backdrop;
+volatile int do_reticle = 0;
 int depth_off = 0;
 static void  __attribute__((noinline)) gfx_run_dl(Gfx* cmd) {
 	//printf("starting at %08x\n", cmd);
@@ -3319,12 +3329,14 @@ static void  __attribute__((noinline)) gfx_run_dl(Gfx* cmd) {
 			if (cmd->words.w1 == 0x4655434B) {
 				// gSPSignaling
 				blend_fuck ^= 1;
-			} else if(cmd->words.w1 == 0x4655434C) {
-				// gSPBlendOneInv
-				water_helen ^= 1;
-			} else if(cmd->words.w1 == 0x4655434D) {
-	//			depth_off ^= 1;
-			}
+			} else if(cmd->words.w1 == 0x46554340) {
+				depth_off ^= 1;
+			} else if(cmd->words.w1 == 0x46554350) {
+				do_reticle ^= 1;
+			} else if(cmd->words.w1 == 0x46554360) {
+				do_backdrop ^= 1;
+//				printf("switch to backdrop mode?! %d\n",  do_backdrop);
+			}  
 			++cmd;
 			continue;
 		}

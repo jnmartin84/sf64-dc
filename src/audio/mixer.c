@@ -120,7 +120,7 @@ n64copy1:
 #define ROUND_UP_8(v) (((v) + 7) & ~7)
 #define ROUND_DOWN_16(v) ((v) & ~0xf)
 
-#define DMEM_BUF_SIZE 131072
+#define DMEM_BUF_SIZE 4096
 #define BUF_U8(a) (rspa.buf.as_u8 + (a))
 #define BUF_S16(a) (rspa.buf.as_s16 + (a) / sizeof(int16_t))
 
@@ -546,46 +546,21 @@ void aClearBufferImpl(uint16_t addr, int nbytes) {
     memset(BUF_U8(addr&~3), 0, ROUND_UP_16(nbytes));
 }
 
-
 void aLoadBufferImpl(const void* source_addr, uint16_t dest_addr, uint16_t nbytes) {
-//    printf("aLoadBufferImpl(%08x, %04x, %d)\n\t", source_addr, dest_addr, nbytes);
-    n64_memcpy(BUF_U8(dest_addr & ~3), source_addr, ROUND_DOWN_16(nbytes));
-  //  for (int i=0;i<8;i++) {
-    //    printf("%02x ", BUF_U8(dest_addr & ~3)[i]);
-    //}
-//    printf("\n");
-}
-
-void aLoadBufferImpl_swap(const void* source_addr, uint16_t dest_addr, uint16_t nbytes) {
-//    printf("aLoadBufferImpl(%08x, %04x, %d)\n\t", source_addr, dest_addr, nbytes);
-    n64_memcpy(BUF_U8(dest_addr & ~3), source_addr, ROUND_DOWN_16(nbytes));
-  //  for (int i=0;i<8;i++) {
-    //    printf("%02x ", BUF_U8(dest_addr & ~3)[i]);
-    //}
-//    printf("\n");
-//u16 *src16 = (u16*)source_addr;
-//u16 *dest16 = (uint16_t*)BUF_U8(dest_addr & ~3);
-  //  for (int i=0;i<nbytes/2;i++) {
-    //    dest16[i] = __builtin_bswap16(src16[i]);
-    //}
+    n64_memcpy((void *)BUF_U8(dest_addr & ~3), source_addr, ROUND_DOWN_16(nbytes));
 }
 
 
 void aSaveBufferImpl(uint16_t source_addr, int16_t* dest_addr, uint16_t nbytes) {
-    //printf("aSaveBufferImpl(%04x, %08x, %d)\n\t", source_addr, dest_addr, nbytes);
-    n64_memcpy(dest_addr, BUF_S16(source_addr & ~3), ROUND_DOWN_16(nbytes));
-//for(int i=0;i<8;i++)
-//printf("%04x ", dest_addr[i]);
-//printf("\n");
+    n64_memcpy((void *)dest_addr, (const void *)BUF_S16(source_addr & ~3), ROUND_DOWN_16(nbytes));
 }
 
 void aLoadADPCMImpl(int num_entries_times_16, const int16_t* book_source_addr) {
     float* aptr = (float*) rspa.adpcm_table;
     short tmp[8];
-//printf("ADPCM load %d %08x\n", num_entries_times_16, book_source_addr);
     __builtin_prefetch(book_source_addr);
 
-    for (int i = 0; i < num_entries_times_16 / 2; i += 8) {
+    for (size_t i = 0; i < num_entries_times_16 / 2; i += 8) {
         __builtin_prefetch(&aptr[i]);
 
         tmp[0] = (short) __builtin_bswap16((uint16_t) book_source_addr[i + 0]);
@@ -620,8 +595,6 @@ void aInterleaveImpl(uint16_t left, uint16_t right) {
     int count = ROUND_UP_16(rspa.nbytes) / sizeof(int16_t) / 8;
     int16_t* l = BUF_S16(left&~3);
     int16_t* r = BUF_S16(right&~3);
-//    printf("interleave left %04x right %04x out %04x nbytes %d\n", left, right, rspa.out, rspa.nbytes);
-//if(count > 1024) return;
     uint32_t* d = (uint32_t*) (((uintptr_t) BUF_S16(rspa.out)) & ~3);
     __builtin_prefetch(r);
 
@@ -665,21 +638,15 @@ void aInterleaveImpl(uint16_t left, uint16_t right) {
 }
 
 void aDMEMMoveImpl(uint16_t in_addr, uint16_t out_addr, int nbytes) {
-    // printf("dmemmove in %04x out %04x nbytes %d\n", in_addr, out_addr, nbytes);
-
     memmove(BUF_U8(out_addr&~3), BUF_U8(in_addr&~3), ROUND_UP_16(nbytes));
 }
 
 void aDMEMCopyImpl(uint16_t in_addr, uint16_t out_addr, int nbytes) {
-    // printf("dmemcopy in %04x out %04x nbytes %d\n", in_addr, out_addr, nbytes);
-
     n64_memcpy(BUF_U8(out_addr&~3), BUF_U8(in_addr&~3), ROUND_UP_16(nbytes));
 }
 
 void aSetLoopImpl(ADPCM_STATE* adpcm_loop_state) {
-    // rspa.adpcm_loop_state = adpcm_loop_state;
-//    n64_memcpy(rspa.adpcm_loop_state, adpcm_loop_state, 16 * sizeof(int16_t));
-    for (int i = 0; i < 16; i++) {
+    for (size_t i = 0; i < 16; i++) {
         rspa.adpcm_loop_state[i] = (int16_t)__builtin_bswap16(adpcm_loop_state[i]);
     }
 }
@@ -916,7 +883,7 @@ void aADPCMdecImpl(uint8_t flags, ADPCM_STATE state) {
         }
         MEM_BARRIER_PREF(in);
 
-        for (int i = 0; i < 2; i++) {
+        for (size_t i = 0; i < 2; i++) {
             const float *ins = instr[i];
             shz_vec4_t acc_vec[2];
             float *accf = (float *)acc_vec;
@@ -950,7 +917,7 @@ void aADPCMdecImpl(uint8_t flags, ADPCM_STATE state) {
                 accf[4] += (tbl[1][0] * ins3);
             }
 
-            for (int j = 0; j < 6; ++j)
+            for (size_t j = 0; j < 6; ++j)
                 *out++ = clamp16f(accf[j]);
 
             prev2  = clamp16f(accf[6]);
@@ -1057,46 +1024,15 @@ void aEnvSetup2Impl(uint16_t initial_vol_left, uint16_t initial_vol_right) {
     rspa.vol[0] = initial_vol_left;
     rspa.vol[1] = initial_vol_right;
 }
-#if 0
-void aEnvMixerImpl(uint16_t in_addr, uint16_t n_samples, UNUSED int swap_reverb, UNUSED int neg_left,
-                   UNUSED int neg_right, uint16_t dry_left_addr, uint16_t dry_right_addr, UNUSED uint16_t wet_left_addr,
-                   UNUSED uint16_t wet_right_addr) {
-    int16_t* in = BUF_S16(in_addr);
-    int16_t* dry[2] = { BUF_S16(dry_left_addr), BUF_S16(dry_right_addr) };
-    int n = ROUND_UP_16(n_samples);
 
-    printf("envmixer in %04x dry1 %04x dry2 %04x nsamp %d\n", in_addr, dry_left_addr, dry_right_addr, n_samples);
-
-    uint16_t vols[2] = { rspa.vol[0], rspa.vol[1] };
-    uint16_t rates[2] = { rspa.rate[0], rspa.rate[1] };
-    __builtin_prefetch(in);
-    do {
-        for (int i = 0; i < 8; i++) {
-            int16_t sample = *in++;
-
-            int32_t dsampl1 = *dry[0] + (sample * vols[0] >> 16);
-            int32_t dsampl2 = *dry[1] + (sample * vols[1] >> 16);
-#if 1
-            asm volatile("" : : : "memory");
-#endif
-            *dry[0]++ = clamp16(dsampl1);
-            *dry[1]++ = clamp16(dsampl2);
-        }
-        __builtin_prefetch(in);
-        vols[0] += rates[0];
-        vols[1] += rates[1];
-        n -= 8;
-    } while (n > 0);
-}
-#endif
 void aEnvMixerImpl(uint16_t in_addr, uint16_t n_samples, UNUSED bool swap_reverb, UNUSED bool neg_left,
                    UNUSED bool neg_right, uint32_t wet_dry_addr, uint32_t haas_temp_addr, uint32_t num_channels,
                    uint32_t cutoff_freq_lfe) {
     // Note: max number of samples is 192 (192 * 2 = 384 bytes = 0x180)
-    int max_num_samples = 192;
+    size_t max_num_samples = 192;
 
     int16_t* in = BUF_S16(in_addr);
-    int n = ROUND_UP_16(n_samples);
+    size_t n = ROUND_UP_16(n_samples);
 
     int dry_addr_start = wet_dry_addr & 0xFFFF;
 
@@ -1104,21 +1040,25 @@ void aEnvMixerImpl(uint16_t in_addr, uint16_t n_samples, UNUSED bool swap_reverb
     uint16_t rates[2] = { rspa.rate[0], rspa.rate[1] };
     uint16_t vols[2] = { rspa.vol[0], rspa.vol[1] };
 
+#if 0
     // Account for haas effect
     int haas_addr_left = haas_temp_addr >> 16;
     int haas_addr_right = haas_temp_addr & 0xFFFF;
+#endif
     __builtin_prefetch(in);
 
+#if 0
     if (haas_addr_left) {
         dry[0] = BUF_S16(haas_addr_left);
     } else if (haas_addr_right) {
         dry[1] = BUF_S16(haas_addr_right);
     }
+#endif
 
-    for (int i = 0; i < n / 8; i++) {
+    for (size_t i = 0; i < n; i+=8) {
         __builtin_prefetch(in);
         // printf("i %d\n",i);
-        for (int k = 0; k < 8; k++) {
+        for (size_t k = 0; k < 8; k++) {
 
             int16_t sample = *in++;
 
@@ -1325,7 +1265,7 @@ void aUnkCmd19Impl(uint8_t f, uint16_t count, uint16_t out_addr, uint16_t in_add
 
     n64_memcpy(tbl, in, 32 * sizeof(int16_t));
     do {
-        for (int i = 0; i < 32; i++) {
+        for (size_t i = 0; i < 32; i++) {
             out[i] = clamp16(out[i] * tbl[i]);
         }
         out += 32;
@@ -1338,14 +1278,15 @@ void aDuplicateImpl(uint16_t count, uint16_t in_addr, uint16_t out_addr) {
     uint8_t* in = BUF_U8(in_addr);
     uint8_t* out = BUF_U8(out_addr);
 
-    uint8_t tmp[128];
-    n64_memcpy(tmp, in, 128);
+    // no overlap as called, dont do temp copy
     do {
-        n64_memcpy(out, tmp, 128);
+        n64_memcpy(out, in, 128);
         out += 128;
     } while (count-- > 0);
 }
 
+// this gets used
+#if 1
 void aInterlImpl(uint16_t in_addr, uint16_t out_addr, uint16_t n_samples) {
     int16_t* in = BUF_S16(in_addr);
     int16_t* out = BUF_S16(out_addr);
@@ -1372,11 +1313,44 @@ void aInterlImpl(uint16_t in_addr, uint16_t out_addr, uint16_t n_samples) {
         n -= 8;
     } while (n > 0);
 }
+#else
+void aInterlImpl(uint16_t in_addr, uint16_t out_addr, uint16_t n_samples) {
+    uint32_t* in  = (uint32_t*)BUF_S16(in_addr&~3);  // two 16-bit samples per word
+    uint32_t* out = (uint32_t*)BUF_S16(out_addr&~3);
+    int n = ROUND_UP_8(n_samples);
 
+    asm volatile("pref @%0" : : "r"(in) : "memory");
 
+    do {
+        asm volatile("pref @%0" : : "r"(out) : "memory");
+        /* For 8 output samples:
+           read 8 words from in (16 samples), extract every other halfword,
+           write 4 packed words to out.
+         */
+        uint32_t w0 = *in++; // samples in[0],in[1]
+        uint32_t w1 = *in++; // samples in[2],in[3]
+        uint32_t w2 = *in++;
+        uint32_t w3 = *in++;
+        uint32_t w4 = *in++;
+        uint32_t w5 = *in++;
+        uint32_t w6 = *in++;
+        uint32_t w7 = *in++;
+        asm volatile("pref @%0" : : "r"(in) : "memory");
+
+        /* Pack lower half-word from w0 and w1 -> out word0,
+           from w2 and w3 -> out word1, ...  */
+        *out++ = (w0 & 0xFFFF) | ((w1 & 0xFFFF) << 16);
+        *out++ = (w2 & 0xFFFF) | ((w3 & 0xFFFF) << 16);
+        *out++ = (w4 & 0xFFFF) | ((w5 & 0xFFFF) << 16);
+        *out++ = (w6 & 0xFFFF) | ((w7 & 0xFFFF) << 16);
+
+        n -= 8;
+    } while (n > 0);
+}
+#endif
+#if 0
 
 void aHiLoGainImpl(uint8_t g, uint16_t count, uint16_t addr) {
-#if 0
     int16_t* samples = BUF_S16(addr);
     int nbytes = ROUND_UP_32(count);
 
@@ -1400,11 +1374,11 @@ void aHiLoGainImpl(uint8_t g, uint16_t count, uint16_t addr) {
 
         nbytes -= 8;
     } while (nbytes > 0);
-#endif
 }
+#endif
 
 
-
+#if 0
 void aMixImpl(uint16_t count, int16_t gain, uint16_t in_addr, uint16_t out_addr) {
     int nbytes = ROUND_UP_32(ROUND_DOWN_16(count << 4));
     int16_t* in = BUF_S16(in_addr);
@@ -1433,3 +1407,4 @@ void aMixImpl(uint16_t count, int16_t gain, uint16_t in_addr, uint16_t out_addr)
         nbytes -= 16 * sizeof(int16_t);
     }
 }
+#endif

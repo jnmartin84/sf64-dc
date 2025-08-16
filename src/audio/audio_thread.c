@@ -30,20 +30,14 @@ void AudioThread_CreateNextAudioBuffer(s16* samples, u32 num_samples) {
     OSMesg specId;
     OSMesg msg;
 
-    //gCurAiBuffIndex++;
-    //gCurAiBuffIndex %= 3;
-
     gCurAudioFrameDmaCount = 0;
     AudioLoad_DecreaseSampleDmaTtls();
     AudioLoad_ProcessLoads(gAudioResetStep);
-
-//printf(".\n");
 
     if (osRecvMesg(gAudioSpecQueue, &specId, 0) != -1) {
         if (gAudioResetStep == 0) {
             gAudioResetStep = 5;
         }
-        printf("new spec id message %08x\n", specId);
         gAudioSpecId = specId;
     }
 
@@ -197,7 +191,7 @@ SPTask* AudioThread_CreateTask(void) {
 
 void AudioThread_ProcessGlobalCmd(AudioCmd* cmd) {
     s32 i;
-//printf("process global cmd %08x op %08x\n", cmd, cmd->op);
+
     switch (cmd->op) {
         case AUDIOCMD_OP_GLOBAL_SYNC_LOAD_SEQ_PARTS:
             AudioLoad_SyncLoadSeqParts(cmd->arg1, 3);
@@ -348,8 +342,6 @@ void AudioThread_ProcessCmds(u32 msg) {
     }
     writePos = msg & 0xFF;
 
-//    printf("processcmds read %d write %d\n", gCurCmdReadPos, writePos);
-
     while (1) {
         if (gCurCmdReadPos == writePos) {
             gThreadCmdQueueFinished = 0;
@@ -366,9 +358,7 @@ void AudioThread_ProcessCmds(u32 msg) {
             AudioThread_ProcessGlobalCmd(cmd);
         } else if (cmd->arg0 < ARRAY_COUNT(gSeqPlayers)) {
             player = &gSeqPlayers[cmd->arg0];
-            if (cmd->arg0 == 0 && font24) {
-                printf("in the process cmds for the song\n");
-            }
+
             if (cmd->op & 0x80) {
                 AudioThread_ProcessGlobalCmd(cmd);
             } else if (cmd->op & 0x40) {
@@ -396,36 +386,24 @@ void AudioThread_ProcessCmds(u32 msg) {
                         case AUDIOCMD_OP_CHANNEL_SET_VOL_SCALE:
                             if (channel->volumeMod != cmd->asFloat) {
                                 channel->volumeMod = cmd->asFloat;
-                                if (font24 && player == &gSeqPlayers[0]) {
-                                    printf(" volumeMod %f\n", channel->volumeMod);
-                                }
                                     channel->changes.s.volume = 1;
                             }
                             break;
                         case AUDIOCMD_OP_CHANNEL_SET_VOL:
                             if (channel->volume != cmd->asFloat) {
                                 channel->volume = cmd->asFloat;
-                                if (font24&& player == &gSeqPlayers[0]) {
-                                    printf("set vol %f\n", channel->volume);
-                                }
                                 channel->changes.s.volume = 1;
                             }
                             break;
                         case AUDIOCMD_OP_CHANNEL_SET_PAN:
                             if (channel->newPan != cmd->asSbyte) {
                                 channel->newPan = cmd->asSbyte;
-                                 if (font24&& player == &gSeqPlayers[0]) {
-                                    printf(" set pan %d\n", channel->newPan);
-                                }
-                               channel->changes.s.pan = 1;
+                                channel->changes.s.pan = 1;
                             }
                             break;
                         case AUDIOCMD_OP_CHANNEL_SET_FREQ_SCALE:
                             if (channel->freqMod != cmd->asFloat) {
                                 channel->freqMod = cmd->asFloat;
-                                if (font24&& player == &gSeqPlayers[0]) {
-                                    printf(" freqMod %f\n", channel->freqMod);
-                                }
                                 channel->changes.s.freqMod = 1;
                             }
                             break;
@@ -441,10 +419,6 @@ void AudioThread_ProcessCmds(u32 msg) {
                             break;
                         case AUDIOCMD_OP_CHANNEL_SET_MUTE: 
                             channel->muted = cmd->asSbyte;
-                                                        if (font24&& player == &gSeqPlayers[0]) {
-                                    printf(" muted %d\n", channel->muted);
-                                }
-
                             break;
                     }
                 }
@@ -461,7 +435,7 @@ u32 AudioThread_GetAsyncLoadStatus(u32* outData) {
         *outData = 0;
         return 0;
     }
-    printf("loadStatus from external load queue %08x\n", loadStatus);
+
     *outData = loadStatus & 0x00FFFFFF;
     return loadStatus >> 24;
 }

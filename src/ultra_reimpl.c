@@ -109,15 +109,7 @@ int osStopTimer(OSTimer *timer) {
     return 0;
 }
 
-// abuse this to hold a mutex
-//OSThread    *mtqueue;  
-
 void osCreateMesgQueue(OSMesgQueue* mq, OSMesg* msgBuf, s32 count) {
-        printf("%s()\n",__func__);
-
-///    mutex_t *mq_mutex = (mutex_t *)malloc(sizeof(mutex_t));
-   // mutex_init(mq_mutex, MUTEX_TYPE_NORMAL);
-   // mq->mtqueue = (OSThread *)mq_mutex;
     mq->validCount = 0;
     mq->first = 0;
     mq->msgCount = count;
@@ -128,10 +120,8 @@ void osCreateMesgQueue(OSMesgQueue* mq, OSMesg* msgBuf, s32 count) {
 
 s32 osSendMesg(OSMesgQueue* mq, OSMesg msg, UNUSED s32 flag) {
     s32 index;
-    //mutex_lock((mutex_t *)mq->mtqueue);
 
     if (mq->validCount >= mq->msgCount) {
-      //  mutex_unlock((mutex_t *)mq->mtqueue);
         return -1;
     }
 
@@ -140,15 +130,11 @@ s32 osSendMesg(OSMesgQueue* mq, OSMesg msg, UNUSED s32 flag) {
     mq->msg[index] = msg;
     mq->validCount++;
 
-//    mutex_unlock((mutex_t *)mq->mtqueue);
     return 0;
 }
 
 s32 osRecvMesg(OSMesgQueue* mq, OSMesg* msg, UNUSED s32 flag) {
-  //  mutex_lock((mutex_t *)mq->mtqueue);
-
     if (mq->validCount == 0) {
-    //    mutex_unlock((mutex_t *)mq->mtqueue);
         return -1;
     }
 
@@ -159,7 +145,6 @@ s32 osRecvMesg(OSMesgQueue* mq, OSMesg* msg, UNUSED s32 flag) {
     mq->first = (mq->first + 1) % mq->msgCount;
     mq->validCount--;
 
-//    mutex_unlock((mutex_t *)mq->mtqueue);
     return 0;
 }
 

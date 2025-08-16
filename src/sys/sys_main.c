@@ -58,6 +58,8 @@ SPTask* sNewAudioTasks[2];
 SPTask* sNewAudioTasks[1];
 #endif
 SPTask* sNewGfxTasks[2];
+
+// make sure that a segment base address is always valid before the game starts
 u32 gSegments[16] = {
 0x8c010000,
 0x8c010000,
@@ -75,9 +77,9 @@ u32 gSegments[16] = {
 0x8c010000,
 0x8c010000,
 0x8c010000,
-};          // 800E1FD0
-OSMesgQueue gPiMgrCmdQueue; // 800E2010
-OSMesg sPiMgrCmdBuff[50];   // 800E2028
+};
+OSMesgQueue gPiMgrCmdQueue;
+OSMesg sPiMgrCmdBuff[50];
 
 OSMesgQueue gDmaMesgQueue;
 void* sDmaMsgBuff[1];
@@ -575,15 +577,9 @@ thd_pass();
 }
 
 void Idle_ThreadEntry(void* arg0) {
-//    osCreateViManager(OS_PRIORITY_VIMGR);
     Main_SetVIMode();
     Lib_FillScreen(1);
-//    osCreatePiManager(OS_PRIORITY_PIMGR, &gPiMgrCmdQueue, sPiMgrCmdBuff, ARRAY_COUNT(sPiMgrCmdBuff));
-//    osCreateThread(&gMainThread, THREAD_ID_MAIN, &Main_ThreadEntry, arg0, sMainThreadStack + sizeof(sMainThreadStack),
-  //                 100);
-    //osStartThread(&gMainThread);
-Main_ThreadEntry(NULL);
-
+    Main_ThreadEntry(NULL);
     Fault_Init();
     osSetThreadPri(NULL, OS_PRIORITY_IDLE);
     for (;;) {}
@@ -661,10 +657,10 @@ Main_Initialize();
 #if MODS_ISVIEWER == 1
 #include "../mods/isviewer.c"
 #endif
-
 #define SAMPLES_HIGH 533
 void *SPINNING_THREAD(UNUSED void *arg) {
     uint64_t last_vbltick = vblticker;
+
   //  uint64_t last_output_tick = vblticker;
 //return NULL;
 //while (!inited) {thd_pass();}
@@ -686,7 +682,6 @@ irq_disable();
   //      }
         AudioThread_CreateNextAudioBuffer(audio_buffer + (SAMPLES_HIGH * 2), SAMPLES_HIGH);
 irq_enable();
-
         audio_api->play((u8 *)audio_buffer, (SAMPLES_HIGH * 2 * 2 * 2));//  * AUDIO_FRAMES_PER_UPDATE));
 //        thd_pass();
     }

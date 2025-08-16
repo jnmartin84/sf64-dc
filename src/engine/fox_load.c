@@ -1,10 +1,12 @@
-#include <kos.h>
-
 #include "global.h"
 #include "sf64dma.h"
 
+#include <kos.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+
 u8 sFillTimer = 3;
-extern char *fnpre;
 #include "fox_load_inits.c"
 
 NewScene sCurrentScene = {
@@ -19,65 +21,25 @@ NewScene sCurrentScene = {
 };
 
 
-#if 0
-Scene sCurrentScene = {
-    NO_OVERLAY,
-    { /* 0x1 */ NO_SEGMENT,
-      /* 0x2 */ NO_SEGMENT,
-      /* 0x3 */ NO_SEGMENT,
-      /* 0x4 */ NO_SEGMENT,
-      /* 0x5 */ NO_SEGMENT,
-      /* 0x6 */ NO_SEGMENT,
-      /* 0x7 */ NO_SEGMENT,
-      /* 0x8 */ NO_SEGMENT,
-      /* 0x9 */ NO_SEGMENT,
-      /* 0xA */ NO_SEGMENT,
-      /* 0xB */ NO_SEGMENT,
-      /* 0xC */ NO_SEGMENT,
-      /* 0xD */ NO_SEGMENT,
-      /* 0xE */ NO_SEGMENT,
-      /* 0xF */ NO_SEGMENT },
-};
-#endif
-
-// 5,950,080 bytes
-#if 0
-void Load_RomFile(void* vRomAddress, void* dest, ptrdiff_t size) {
-    s32 i;
-
-    for (i = 0; gDmaTable[i].pRom.end != NULL; i++) {
-        if (gDmaTable[i].vRomAddress == vRomAddress) {
-            if (gDmaTable[i].compFlag == 0) {
-                Lib_DmaRead(gDmaTable[i].pRom.start, dest, size);
-            } else {
-                Lib_FillScreen(1);
-                sFillTimer = 3;
-                gGameStandby = 1;
-                Lib_DmaRead(gDmaTable[i].pRom.start, gFrameBuffers, SEGMENT_SIZE(gDmaTable[i].pRom));
-                Mio0_Decompress(gFrameBuffers, dest);
-            }
-            break;
-        }
-    }
-}
-#endif
+extern char *fnpre;
 extern u8 *SEG_BUF[15];
-#include <stdio.h>
-char fullfn[256];
+
+
 void Load_RomFile(char *fname, int snum) {
     if (strcmp("",fname)) { 
-    //printf("LOAD_ROMFILE %s %d\n", fname, snum);
-//Lib_DmaRead(gDmaTable[i].pRom.start, dest, size);
-    // dest is always SEG_BUF[snum - 1]
-    sprintf(fullfn, "%s/sf_data/%s.bin", fnpre, fname);
-    file_t rom_file = fs_open(fullfn, O_RDONLY);
-    size_t rom_file_size = fs_seek(rom_file, 0, SEEK_END);
-    fs_seek(rom_file, 0, SEEK_SET);
-    //printf("\treading %d bytes from %s (%d)\n", rom_file_size, fullfn, rom_file);
-    fs_read(rom_file, SEG_BUF[snum - 1], rom_file_size);
-    fs_close(rom_file);
-    gSegments[snum] = SEG_BUF[snum - 1];
-//            gSPSegment(gUnkDisp1++, snum, SEG_BUF[snum - 1]);
+        char fullfn[256];
+        // dest is always SEG_BUF[snum - 1]
+        sprintf(fullfn, "%s/sf_data/%s.bin", fnpre, fname);
+        file_t rom_file = fs_open(fullfn, O_RDONLY);
+        if ((file_t)-1 == rom_file) {
+            printf("Could not open %s for reading.\n", fullfn);
+            exit(-1);
+        }
+        size_t rom_file_size = fs_seek(rom_file, 0, SEEK_END);
+        fs_seek(rom_file, 0, SEEK_SET);
+        fs_read(rom_file, SEG_BUF[snum - 1], rom_file_size);
+        fs_close(rom_file);
+        gSegments[snum] = SEG_BUF[snum - 1];
     }
 }
 

@@ -6736,6 +6736,7 @@ void Play_UpdateLevel(void) {
 
         case LEVEL_METEO:
             Lib_Texture_Scroll(aMeteoWarpTex, 8, 8, 1);
+            gfx_texture_cache_invalidate(aMeteoWarpTex);
             /* fallthrough */
         case LEVEL_SECTOR_X:
             if (gLevelPhase == 1) {
@@ -6760,6 +6761,7 @@ void Play_UpdateLevel(void) {
 
         case LEVEL_CORNERIA:
             HUD_Texture_Wave(D_CO_603EB38, D_CO_6028A60);
+            gfx_texture_cache_invalidate(D_CO_6028A60);
             if ((gGameFrameCount % 2) != 0) {
                 Lib_Texture_Scroll(D_CO_600CBD8, 64, 32, 3);
                 gfx_texture_cache_invalidate(D_CO_600CBD8);
@@ -6768,6 +6770,7 @@ void Play_UpdateLevel(void) {
 
         case LEVEL_AQUAS:
             HUD_Texture_Wave(D_AQ_603158C, aAqWaterTex);
+            gfx_texture_cache_invalidate(aAqWaterTex);
             break;
 
         case LEVEL_SOLAR:
@@ -6834,7 +6837,7 @@ void Play_UpdateLevel(void) {
             }
 
             HUD_Texture_Wave(D_SO_60229A4, D_SO_6010198);
-
+            gfx_texture_cache_invalidate(D_SO_6010198);
             if (gPlayer[0].shields == 0) {
                 gSoShieldsEmpty = 1;
             }
@@ -6852,7 +6855,7 @@ void Play_UpdateLevel(void) {
             }
 
             HUD_Texture_Wave(D_ZO_602C2CC, aZoWaterTex);
-                gfx_texture_cache_invalidate(aZoWaterTex);
+            gfx_texture_cache_invalidate(aZoWaterTex);
 
             if (Play_CheckDynaFloorCollision(&sp3C, &sp40, gPlayer[0].cam.eye.x, gPlayer[0].cam.eye.y,
                                              gPlayer[0].cam.eye.z - gPathProgress)) {

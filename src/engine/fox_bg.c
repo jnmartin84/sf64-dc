@@ -243,6 +243,15 @@ void Background_DrawPartialStarfield(s32 yMin, s32 yMax) {
 
 void func_bg_8003E1E0(void) {
 }
+volatile int do_backdrop = 0;
+
+#define gSPBackdrop(pkt)                                       \
+    {                                                                                   \
+        Gfx* _g = (Gfx*) (pkt);                                                         \
+                                                                                        \
+        _g->words.w0 = 0x424C4E44; \
+        _g->words.w1 = 0x46554360;                                           \
+    }
 
 // TODO: use SCREEN_WIDTH and _HEIGHT
 void Background_DrawBackdrop(void) {
@@ -274,7 +283,6 @@ void Background_DrawBackdrop(void) {
     if (gFovYMode == 2) {
         Matrix_Scale(gGfxMatrix, 1.2f, 1.2f, 1.0f, MTXF_APPLY);
     }
-
     switch (levelType) {
         case LEVELTYPE_PLANET:
             RCP_SetupDL(&gMasterDisp, SETUPDL_17);
@@ -538,7 +546,7 @@ void Background_DrawBackdrop(void) {
             }
             break;
 
-        case LEVELTYPE_SPACE:
+        case LEVELTYPE_SPACE:        
             if (gPlayer[0].state != PLAYERSTATE_ENTER_WARP_ZONE) {
                 Matrix_Push(&gGfxMatrix);
                 sp12C = Math_RadToDeg(gPlayer[0].camYaw);
@@ -583,6 +591,7 @@ void Background_DrawBackdrop(void) {
                     }
 
                     Matrix_RotateZ(gGfxMatrix, gStarfieldRoll, MTXF_APPLY);
+                    gSPBackdrop(gMasterDisp++);
 
                     switch (levelId) {
                         case LEVEL_WARP_ZONE:
@@ -623,7 +632,7 @@ void Background_DrawBackdrop(void) {
                                 Matrix_Translate(gGfxMatrix, bgXpos - 120.0f, -(bgYpos - 120.0f), -290.0f, MTXF_APPLY);
                                 Matrix_Scale(gGfxMatrix, 3.0f, 3.0f, 1.0f, MTXF_APPLY);
                                 Matrix_SetGfxMtx(&gMasterDisp);
-                                RCP_SetupDL_62();
+                                //RCP_SetupDL_62();
                                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 192);
                                 gSPDisplayList(gMasterDisp++, aSxBackdropDL);
                             }
@@ -633,7 +642,7 @@ void Background_DrawBackdrop(void) {
                             Matrix_Translate(gGfxMatrix, bgXpos - 120.0f, -(bgYpos - 120.0f), -290.0f, MTXF_APPLY);
                             Matrix_Scale(gGfxMatrix, 0.2f, 0.2f, 1.0f, MTXF_APPLY);
                             Matrix_SetGfxMtx(&gMasterDisp);
-                            RCP_SetupDL_62();
+                            //RCP_SetupDL_62();
                             gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255);
                             gSPDisplayList(gMasterDisp++, aTrBackdropDL);
                             break;
@@ -690,7 +699,7 @@ void Background_DrawBackdrop(void) {
                             Matrix_Translate(gGfxMatrix, bgXpos - 120.0f, -(bgYpos - 120.0f), -290.0f, MTXF_APPLY);
                             Matrix_Scale(gGfxMatrix, 0.4f, 0.4f, 1.0f, MTXF_APPLY);
                             Matrix_SetGfxMtx(&gMasterDisp);
-                            RCP_SetupDL_62();
+                            //RCP_SetupDL_62();
                             gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 192);
                             gSPDisplayList(gMasterDisp++, aSyBackdropDL);
                             break;
@@ -698,6 +707,7 @@ void Background_DrawBackdrop(void) {
                 }
                 Matrix_Pop(&gGfxMatrix);
             }
+gSPBackdrop(gMasterDisp++);
 
             if (gStarWarpDistortion > 0.0f) {
                 f32* xStar = gStarOffsetsX;
@@ -809,13 +819,7 @@ void Background_DrawSun(void) {
         Matrix_Pop(&gGfxMatrix);
     }
 }
-#define gSPEffect342(pkt)                                       \
-    {                                                                                   \
-        Gfx* _g = (Gfx*) (pkt);                                                         \
-                                                                                        \
-        _g->words.w0 = 0x424C4E44; \
-        _g->words.w1 = 0x4655434B;                                           \
-    }
+
 void Background_DrawLensFlare(void) {
     s32 i;
     Color_RGB8* lensFlareColor;
@@ -890,15 +894,6 @@ void Background_dummy_80040CDC(void) {
 }
 
 extern void gfx_texture_cache_invalidate(void *addr);
-//Effect_Effect342_Draw
-
-#define gSPWaterHelen(pkt)                                       \
-    {                                                                                   \
-        Gfx* _g = (Gfx*) (pkt);                                                         \
-                                                                                        \
-        _g->words.w0 = 0x424C4E44; \
-        _g->words.w1 = 0x4655434C;                                           \
-    }
 
 void Background_DrawGround(void) {
     f32 zPos;
@@ -982,9 +977,6 @@ void Background_DrawGround(void) {
 
     switch (gCurrentLevel) {
         case LEVEL_CORNERIA:
-            if (gGroundSurface == SURFACE_WATER) {
-                gSPWaterHelen(gMasterDisp++);
-            }
         
             if (gGroundClipMode != 0) {
                 RCP_SetupDL_29(gFogRed, gFogGreen, gFogBlue, gFogAlpha, gFogNear, gFogFar);
@@ -996,8 +988,8 @@ void Background_DrawGround(void) {
                 gDPSetTextureImage(gMasterDisp++, G_IM_FMT_RGBA, G_IM_SIZ_16b, 1,
                                    SEGMENTED_TO_VIRTUAL(aCoGroundGrassTex));
 
-                yScroll = fabsf(Math_ModF(2.0f * (gPathTexScroll * 0.2133333f), 128.0f)); // 0.64f / 3.0f
-                xScroll = Math_ModF((10000.0f - gPlayer[gPlayerNum].xPath) * 0.32f, 128.0f);
+                yScroll = fabsf(Math_ModF(2.0f * (gPathTexScroll * 0.2133333f), 32.0f));//128.0f)); // 0.64f / 3.0f
+                xScroll = Math_ModF((10000.0f - gPlayer[gPlayerNum].xPath) * 0.32f, 32.0f);//128.0f);
 
                 gDPSetupTile(gMasterDisp++, G_IM_FMT_RGBA, G_IM_SIZ_16b, 32, 32, xScroll, yScroll,
                              G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP, 5, 5, G_TX_NOLOD, G_TX_NOLOD);
@@ -1014,6 +1006,9 @@ void Background_DrawGround(void) {
                     case SURFACE_WATER:
                         RCP_SetupDL_45(gFogRed, gFogGreen, gFogBlue, gFogAlpha, gFogNear, gFogFar);
                         gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 128);
+    gDPSetEnvColor(gMasterDisp++, 0,0,0, 0xFF);
+    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
                         gDPLoadTileTexture(gMasterDisp++, D_CO_6028A60, G_IM_FMT_RGBA, G_IM_SIZ_16b, 32, 32);
 
                         gBgColor = 0x190F; // 24, 32, 56
@@ -1029,11 +1024,6 @@ void Background_DrawGround(void) {
                 Matrix_Scale(gGfxMatrix, 1.0f, 1.0f, 0.5f, MTXF_APPLY);
                 Matrix_SetGfxMtx(&gMasterDisp);
                 gSPDisplayList(gMasterDisp++, aCoGroundOnRailsDL);
-
-                            if (gGroundSurface == SURFACE_WATER) {
-                gSPWaterHelen(gMasterDisp++);
-            }
-
             } else {
                 gGroundSurface = SURFACE_GRASS;
                 gBgColor = 0x845; // 8, 8, 32
@@ -1068,8 +1058,8 @@ void Background_DrawGround(void) {
                     break;
             }
             gDPSetTextureImage(gMasterDisp++, G_IM_FMT_RGBA, G_IM_SIZ_16b, 1, groundTex);
-            yScroll = fabsf(Math_ModF(2.0f * (gPathTexScroll * 0.2133333f), 128.0f));
-            xScroll = Math_ModF((10000.0f - gPlayer[gPlayerNum].xPath) * 0.32f, 128.0f);
+            yScroll = fabsf(Math_ModF(2.0f * (gPathTexScroll * 0.2133333f), 32.0f));//128.0f));
+            xScroll = Math_ModF((10000.0f - gPlayer[gPlayerNum].xPath) * 0.32f, 32.0f);//128.0f);
             gDPSetupTile(gMasterDisp++, G_IM_FMT_RGBA, G_IM_SIZ_16b, 32, 32, xScroll, yScroll,
                          G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP, 5, 5, G_TX_NOLOD, G_TX_NOLOD);
             Matrix_Push(&gGfxMatrix);
@@ -1128,10 +1118,13 @@ void Background_DrawGround(void) {
                                    32);
                 gDPSetTextureImage(gMasterDisp++, G_IM_FMT_RGBA, G_IM_SIZ_16b, 1, SEGMENTED_TO_VIRTUAL(aAqGroundTex));
 
-                yScroll = fabsf(Math_ModF(2.0f * (gPathTexScroll * 0.2133333f), 128.0f));
-                xScroll = Math_ModF((10000.0f - gPlayer[gPlayerNum].xPath) * 0.32f, 128.0f);
+//                Lib_Texture_Scroll(aAqGroundTex, 32, 32, 1);
+  //              gfx_texture_cache_invalidate(aAqGroundTex);
 
-                gDPSetupTile(gMasterDisp++, G_IM_FMT_RGBA, G_IM_SIZ_16b, 32, 32, xScroll, yScroll,
+                yScroll = fabsf(Math_ModF(2.0f * (gPathTexScroll * 0.2133333f), 32.0f));
+                xScroll = Math_ModF((10000.0f - gPlayer[gPlayerNum].xPath) * 0.32f, 32.0f);
+//0,0
+                gDPSetupTile(gMasterDisp++, G_IM_FMT_RGBA, G_IM_SIZ_16b, 32, 32, xScroll, yScroll, 
                              G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP, 5, 5, G_TX_NOLOD, G_TX_NOLOD);
 
                 Matrix_Push(&gGfxMatrix);
@@ -1153,10 +1146,12 @@ void Background_DrawGround(void) {
                 gDPLoadTileTexture(gMasterDisp++, SEGMENTED_TO_VIRTUAL(aAqWaterTex), G_IM_FMT_RGBA, G_IM_SIZ_16b, 32,
                                    32);
                 gDPSetTextureImage(gMasterDisp++, G_IM_FMT_RGBA, G_IM_SIZ_16b, 1, SEGMENTED_TO_VIRTUAL(aAqWaterTex));
+ //               Lib_Texture_Scroll(aAqWaterTex, 32, 32, 1);
+   //             gfx_texture_cache_invalidate(aAqWaterTex);
 
-                yScroll = fabsf(Math_ModF(2.0f * (gPathTexScroll * 0.2133333f), 128.0f));
-                xScroll = Math_ModF((10000.0f - gPlayer[gPlayerNum].xPath) * 0.32f, 128.0f);
-
+                yScroll = fabsf(Math_ModF(2.0f * (gPathTexScroll * 0.2133333f), 32.0f));
+                xScroll = Math_ModF((10000.0f - gPlayer[gPlayerNum].xPath) * 0.32f, 32.0f);
+//xScroll, yScroll,
                 gDPSetupTile(gMasterDisp++, G_IM_FMT_RGBA, G_IM_SIZ_16b, 32, 32, xScroll, yScroll,
                              G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP, 5, 5, G_TX_NOLOD, G_TX_NOLOD);
 

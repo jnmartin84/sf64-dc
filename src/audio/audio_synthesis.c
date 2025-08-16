@@ -823,7 +823,7 @@ Acmd* AudioSynth_DoOneAudioUpdate(s16* aiBuf, s32 aiBufLen, Acmd* aList, s32 upd
 
     return aList;
 }
-void aLoadBufferImpl_swap(const void* source_addr, uint16_t dest_addr, uint16_t nbytes);
+
 Acmd* AudioSynth_ProcessNote(s32 noteIndex, NoteSubEu* noteSub, NoteSynthesisState* synthState, s16* aiBuf,
                              s32 aiBufLen, Acmd* aList, s32 updateIndex) {
     s32 pad11C[3] = {0};
@@ -1185,6 +1185,7 @@ Acmd* AudioSynth_ProcessNote(s32 noteIndex, NoteSubEu* noteSub, NoteSynthesisSta
         aUnkCmd19(aList++, 0, aiBufLen * SAMPLE_SIZE, DMEM_TEMP, DMEM_TEMP);
     }
 
+#if 0
     gain = noteSub->gain;
     if (gain != 0) {
         // A gain of 0x10 (a UQ4.4 number) is equivalent to 1.0 and represents no volume change
@@ -1193,15 +1194,19 @@ Acmd* AudioSynth_ProcessNote(s32 noteIndex, NoteSubEu* noteSub, NoteSynthesisSta
         }
         aHiLoGain(aList++, gain, (aiBufLen + SAMPLES_PER_FRAME) * SAMPLE_SIZE, DMEM_TEMP, 0);
     }
+#endif
 
+#if 0
     if ((noteSub->leftDelaySize != 0) || (synthState->prevHaasEffectLeftDelaySize != 0)) {
         delaySide = HAAS_EFFECT_DELAY_LEFT;
     } else if ((noteSub->rightDelaySize != 0) || (synthState->prevHaasEffectRightDelaySize != 0)) {
         delaySide = HAAS_EFFECT_DELAY_RIGHT;
     } else {
-        delaySide = HAAS_EFFECT_DELAY_NONE;
-    }
-
+#endif
+    delaySide = HAAS_EFFECT_DELAY_NONE;
+#if 0
+}
+#endif
     aList = AudioSynth_ProcessEnvelope(aList, noteSub, synthState, aiBufLen, DMEM_TEMP, delaySide, flags);
 #if 0
     if (noteSub->bitField0.usesHeadsetPanEffects) {
@@ -1332,6 +1337,7 @@ Acmd* AudioSynth_ProcessEnvelope(Acmd* aList, NoteSubEu* noteSub, NoteSynthesisS
     return aList;
 }
 
+#if 0
 /**
  * The Haas Effect gives directionality to sound by applying a small (< 35ms) delay to either the left or right channel.
  * The delay is small enough that the sound is still perceived as one sound, but the channel that is not delayed will
@@ -1396,3 +1402,4 @@ Acmd* AudioSynth_ApplyHaasEffect(Acmd* aList, NoteSubEu* noteSub, NoteSynthesisS
 
     return aList;
 }
+#endif

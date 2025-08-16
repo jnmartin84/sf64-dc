@@ -619,17 +619,27 @@ void Display_Arwing_Skel(ArwingInfo* arwing) {
 
     if ((gGameState == GSTATE_PLAY) && (gPlayer[0].state == PLAYERSTATE_LEVEL_INTRO) &&
         (gCurrentLevel == LEVEL_CORNERIA)) {
-        gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 120);
+    gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 120);
+    gDPSetEnvColor(gMasterDisp++, 0,0,0, 0xFF);
+    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+   //     gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 120);
         gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK);
         gSPDisplayList(gMasterDisp++, aAwCockpitGlassDL);
 
         // Cloud reflexions in Corneria level intro cutscene.
-        RCP_SetupDL_46();
+//        RCP_SetupDL_46();
+
+
         gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 100);
         gSPDisplayList(gMasterDisp++, aAwCockpitGlassCsDL);
     } else {
-        RCP_SetupDL_46();
-        gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 140);
+//        RCP_SetupDL_46();
+      gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 140);
+    gDPSetEnvColor(gMasterDisp++, 0,0,0, 0xFF);
+    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+//      gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 140);
         gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK);
         gSPDisplayList(gMasterDisp++, aAwCockpitGlassDL);
     }
@@ -710,11 +720,18 @@ void Display_Arwing(Player* player, s32 reflectY) {
     }
 }
 
+#define gSPReticle(pkt)                                       \
+    {                                                                                   \
+        Gfx* _g = (Gfx*) (pkt);                                                         \
+                                                                                        \
+        _g->words.w0 = 0x424C4E44; \
+        _g->words.w1 = 0x46554350;                                           \
+    }
 // Arwing only
 void Display_Reticle(Player* player) {
     Vec3f* translate;
     s32 i;
-
+gSPReticle(gMasterDisp++);
     if ((gPlayerNum == player->num) && ((player->form == FORM_ARWING) || (player->form == FORM_LANDMASTER)) &&
         player->draw &&
         (((gGameState == GSTATE_PLAY) && (player->state == PLAYERSTATE_ACTIVE)) || (gGameState == GSTATE_MENU))) {
@@ -734,7 +751,8 @@ void Display_Reticle(Player* player) {
                     gDPSetEnvColor(gMasterDisp++, 255, 255, 0, 255);
                 }
             } else {
-                RCP_SetupDL_36();
+//                RCP_SetupDL_36();
+                RCP_SetupDL(&gMasterDisp, SETUPDL_63);
             }
 
             if (i == 1) {
@@ -747,6 +765,8 @@ void Display_Reticle(Player* player) {
             Matrix_Pop(&gGfxMatrix);
         }
     }
+gSPReticle(gMasterDisp++);
+
 }
 
 void Display_DrawPlayer(Player* player, s32 reflectY) {

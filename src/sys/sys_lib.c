@@ -123,30 +123,35 @@ void Lib_DmaRead(void* src, void* dst, s32 size) {
         MQ_WAIT_FOR_MESG(&gDmaMesgQueue, NULL);
     }
 }
+#include <kos.h>
+float fill_r=0, fill_g=0, fill_b=0;
 
 void Lib_FillScreen(u8 setFill) {
     s32 i;
 
     gFillScreenColor |= 1;
-    if (setFill == true) {
-        if (gFillScreen == false) {
+
+    u8 r5 = (gFillScreenColor >> 11) & 0x1F;         // 5 bits red
+    u8 g5 = (((gFillScreenColor >> 5) & 0x3F) >> 1) & 0x1F;          // 5 bits green
+    u8 b5 = gFillScreenColor & 0x1F;                 // 5 bits blue
+
+    fill_r = (float)r5 / 32.0f;
+    fill_g = (float)r5 / 32.0f;
+    fill_b = (float)r5 / 32.0f;
+
+    if (setFill == 1) {
+        if (gFillScreen == 0) {
             if (gFillScreenColor == 1) {
-// jnmartin84 need kos black here
-                //                osViBlack(true);
+                vid_set_enabled(0);
             } else {
                 for (i = 0; i < 3 * SCREEN_WIDTH; i++) {
                     gFillBuffer[i] = gFillScreenColor;
                 }
-  //              osWritebackDCacheAll();
-  //              osViSwapBuffer(&gFillBuffer[SCREEN_WIDTH]);
-  //              osViRepeatLine(true);
             }
-            gFillScreen = true;
+            gFillScreen = 1;
         }
-    } else if (gFillScreen == true) {
-    //    osViRepeatLine(false);
-// jnmartin84 need kos black here
-//        osViBlack(false);
-        gFillScreen = false;
+    } else if (gFillScreen == 1) {
+        vid_set_enabled(1);
+        gFillScreen = 0;
     }
 }
