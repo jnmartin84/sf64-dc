@@ -1633,10 +1633,13 @@ uint32_t backups[64];
 
 // 0x01200200
 static void skybox_setup_pre(void) {
+    glDisable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
     glDepthFunc(GL_LEQUAL);
     glDisable(GL_BLEND);
     glDisable(GL_FOG);
+    glPushMatrix();
+//    glTranslatef(0.0f, 0.0f, -4000.0f);
 }
 
 // 0x01200200
@@ -1645,6 +1648,7 @@ static void skybox_setup_post(void) {
     glDepthFunc(GL_LESS);
     glEnable(GL_BLEND);
     glEnable(GL_FOG);
+    glPopMatrix();
 }
 
 extern int do_reticle;
@@ -1812,6 +1816,35 @@ static void one_minus_env_plus_prim_setup_post(void) {
     glDepthFunc(GL_LESS);
 }
 
+
+typedef enum LevelId {
+    /* -1 */ LEVEL_UNK_M1 = -1,
+    /*  0 */ LEVEL_CORNERIA,
+    /*  1 */ LEVEL_METEO,
+    /*  2 */ LEVEL_SECTOR_X,
+    /*  3 */ LEVEL_AREA_6,
+    /*  4 */ LEVEL_UNK_4,
+    /*  5 */ LEVEL_SECTOR_Y,
+    /*  6 */ LEVEL_VENOM_1,
+    /*  7 */ LEVEL_SOLAR,
+    /*  8 */ LEVEL_ZONESS,
+    /*  9 */ LEVEL_VENOM_ANDROSS,
+    /* 10 */ LEVEL_TRAINING,
+    /* 11 */ LEVEL_MACBETH,
+    /* 12 */ LEVEL_TITANIA,
+    /* 13 */ LEVEL_AQUAS,
+    /* 14 */ LEVEL_FORTUNA,
+    /* 15 */ LEVEL_UNK_15,
+    /* 16 */ LEVEL_KATINA,
+    /* 17 */ LEVEL_BOLSE,
+    /* 18 */ LEVEL_SECTOR_Z,
+    /* 19 */ LEVEL_VENOM_2,
+    /* 20 */ LEVEL_VERSUS,
+    /* 77 */ LEVEL_WARP_ZONE = 77,
+} LevelId;
+extern LevelId gCurrentLevel;
+
+extern int do_backdrop;
 static float depbump = 0.0f;
 extern int water_helen;
 extern int blend_fuck;
@@ -1819,6 +1852,12 @@ static void gfx_opengl_draw_triangles(float buf_vbo[], UNUSED size_t buf_vbo_len
     cur_buf = (void*) buf_vbo;
 
     gfx_opengl_apply_shader(cur_shader);
+    glEnable(GL_BLEND);
+
+if(cur_shader->shader_id == 0x00000a00/*  && gCurrentLevel == LEVEL_TITANIA */ && do_backdrop) {
+skybox_setup_pre();
+}
+    //return;
 
     if (cur_shader->texture_used[1]) {
         glBindTexture(GL_TEXTURE_2D, tmu_state[cur_shader->texture_ord[0]].tex);
@@ -1827,7 +1866,6 @@ static void gfx_opengl_draw_triangles(float buf_vbo[], UNUSED size_t buf_vbo_len
 //    glEnable(GL_BLEND);
 //    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 //    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-    glEnable(GL_BLEND);
 
     // fucked bc the targeting is hitting this shit
     if (cur_shader->shader_id == 0x01a00a00)
@@ -1898,6 +1936,11 @@ if (is_zmode_decal)
  
         if (cur_shader->shader_id == 0x01045551)
         particle_blend_setup_post();
+
+        if(cur_shader->shader_id == 0x00000a00/*  && gCurrentLevel == LEVEL_TITANIA */ && do_backdrop)  {
+skybox_setup_post();
+}
+
 
             if (cur_shader->shader_id == 0x01a00a00)
         over_skybox_setup_post();

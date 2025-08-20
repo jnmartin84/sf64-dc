@@ -1,31 +1,30 @@
 #include "PR/ultratypes.h"
 #include "PR/gu.h"
 
-void guOrthoF(float mf[4][4], float l, float r, float b, float t, float n, float f, float scale) {
-    int i;
-    int j;
-
-    guMtxIdentF(mf);
-
-    mf[0][0] = 2 / (r - l);
-    mf[1][1] = 2 / (t - b);
-    mf[2][2] = -2 / (f - n);
-    mf[3][0] = -(r + l) / (r - l);
-    mf[3][1] = -(t + b) / (t - b);
-    mf[3][2] = -(f + n) / (f - n);
-    mf[3][3] = 1;
-
-    for (i = 0; i < 4; i++) {
-        for (j = 0; j < 4; j++) {
-            mf[i][j] *= scale;
+void guOrthoF(float m[4][4], float left, float right, float bottom, float top, float near, float far, float scale) {
+    int row;
+    int col;
+    guMtxIdentF(m);
+    m[0][0] = 2 / (right - left);
+    m[1][1] = 2 / (top - bottom);
+    m[2][2] = -2 / (far - near);
+    m[3][0] = -(right + left) / (right - left);
+    m[3][1] = -(top + bottom) / (top - bottom);
+    m[3][2] = -(far + near) / (far - near);
+    m[3][3] = 1;
+    for (row = 0; row < 4; row++) {
+        for (col = 0; col < 4; col++) {
+            m[row][col] *= scale;
         }
     }
 }
 
-void guOrtho(Mtx* m, float l, float r, float b, float t, float n, float f, float scale) {
-    float mf[4][4];
-
-    guOrthoF(mf, l, r, b, t, n, f, scale);
-
-    guMtxF2L(mf, m);
+void guOrtho(Mtx* m, float left, float right, float bottom, float top, float near, float far, float scale) {
+#ifndef GBI_FLOATS
+    float sp28[4][4];
+    guOrthoF(sp28, left, right, bottom, top, near, far, scale);
+    guMtxF2L(sp28, m);
+#else
+    guOrthoF(m->m, left, right, bottom, top, near, far, scale);
+#endif
 }

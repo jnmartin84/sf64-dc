@@ -17,7 +17,7 @@
  * an advanced level phase (warp zone or Andross fight).
  * Useful for debugging and speedrunning training.
  */
-#define MODS_LEVEL_SELECT 0
+#define MODS_LEVEL_SELECT 1
 
 /**
  * Sound Effects Jukebox:

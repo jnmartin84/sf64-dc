@@ -1110,6 +1110,10 @@ typedef struct {
 	unsigned char	v[3];
 } Tri;
 
+
+
+
+#ifndef GBI_FLOATS
 /*
  * 4x4 matrix, fixed point s15.16 format.
  * First 8 words are integer portion of the 4x4 matrix
@@ -1127,6 +1131,15 @@ typedef union {
     Mtx_t		m;
     long long int	force_structure_alignment;
 } Mtx;
+#else
+typedef struct /* __attribute__((aligned(32))) */ {
+    float m[4][4];
+    long long int force_structure_alignment;
+} Mtx;
+
+#endif
+
+
 
 /*
  * Viewport

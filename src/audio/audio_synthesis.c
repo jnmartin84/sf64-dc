@@ -657,7 +657,7 @@ Acmd* AudioSynth_Update(Acmd* aList, s32* cmdCount, s16* aiBufStart, s32 aiBufLe
         } else {
             chunkLen = gAudioBufferParams.samplesPerTick;
         }
-#if 0
+#if 1
          for (j = 0; j < gNumSynthReverbs; j++) {
             if (gSynthReverbs[j].useReverb) {
                 AudioSynth_InitNextRingBuf(chunkLen, gAudioBufferParams.ticksPerUpdate - i, j);
@@ -676,7 +676,7 @@ Acmd* AudioSynth_Update(Acmd* aList, s32* cmdCount, s16* aiBufStart, s32 aiBufLe
         aiBufPtr += chunkLen;
 //        if (aiBufLen < 0) break;
     }
-#if 0
+#if 1
     for (j = 0; j < gNumSynthReverbs; j++) {
         if (gSynthReverbs[j].framesToIgnore != 0) {
             gSynthReverbs[j].framesToIgnore--;
@@ -765,13 +765,13 @@ Acmd* AudioSynth_DoOneAudioUpdate(s16* aiBuf, s32 aiBufLen, Acmd* aList, s32 upd
     s32 j;
 
     count = 0;
-//    if (gNumSynthReverbs == 0) {
+    if (gNumSynthReverbs == 0) {
         for (j = 0; j < gNumNotes; j++) {
             if (gNoteSubsEu[gNumNotes * updateIndex + j].bitField0.enabled) {
                 sp84[count++] = j;
             }
         }
-/*     } else {
+     } else {
         for (i = 0; i < gNumSynthReverbs; i++) {
             for (j = 0; j < gNumNotes; j++) {
                 temp_v0 = &gNoteSubsEu[gNumNotes * updateIndex + j];
@@ -786,12 +786,12 @@ Acmd* AudioSynth_DoOneAudioUpdate(s16* aiBuf, s32 aiBufLen, Acmd* aList, s32 upd
                 sp84[count++] = j;
             }
         }
-    } */
+    }
 
     aClearBuffer(aList++, DMEM_LEFT_CH, DMEM_2CH_SIZE);
 
     j = 0;
-#if 0
+#if 1
      for (i = 0; i < gNumSynthReverbs; i++) {
         D_8014C1B2 = gSynthReverbs[i].useReverb;
         if (D_8014C1B2) {
@@ -1185,7 +1185,7 @@ Acmd* AudioSynth_ProcessNote(s32 noteIndex, NoteSubEu* noteSub, NoteSynthesisSta
         aUnkCmd19(aList++, 0, aiBufLen * SAMPLE_SIZE, DMEM_TEMP, DMEM_TEMP);
     }
 
-#if 0
+#if 1
     gain = noteSub->gain;
     if (gain != 0) {
         // A gain of 0x10 (a UQ4.4 number) is equivalent to 1.0 and represents no volume change
@@ -1196,7 +1196,7 @@ Acmd* AudioSynth_ProcessNote(s32 noteIndex, NoteSubEu* noteSub, NoteSynthesisSta
     }
 #endif
 
-#if 0
+#if 1
     if ((noteSub->leftDelaySize != 0) || (synthState->prevHaasEffectLeftDelaySize != 0)) {
         delaySide = HAAS_EFFECT_DELAY_LEFT;
     } else if ((noteSub->rightDelaySize != 0) || (synthState->prevHaasEffectRightDelaySize != 0)) {
@@ -1204,11 +1204,11 @@ Acmd* AudioSynth_ProcessNote(s32 noteIndex, NoteSubEu* noteSub, NoteSynthesisSta
     } else {
 #endif
     delaySide = HAAS_EFFECT_DELAY_NONE;
-#if 0
+#if 1
 }
 #endif
     aList = AudioSynth_ProcessEnvelope(aList, noteSub, synthState, aiBufLen, DMEM_TEMP, delaySide, flags);
-#if 0
+#if 1
     if (noteSub->bitField0.usesHeadsetPanEffects) {
         if (!(flags & 1)) {
             flags = 0;
@@ -1307,7 +1307,7 @@ Acmd* AudioSynth_ProcessEnvelope(Acmd* aList, NoteSubEu* noteSub, NoteSynthesisS
         aEnvSetup2(aList++, curVolLeft, curVolRight);
 
         switch (delaySide) {
-#if 0
+#if 1
             case HAAS_EFFECT_DELAY_LEFT:
 
                 aEnvMixer(aList++, dmemSrc, aiBufLen, ((sourceReverbVol & 0x80) >> 7),
@@ -1337,7 +1337,7 @@ Acmd* AudioSynth_ProcessEnvelope(Acmd* aList, NoteSubEu* noteSub, NoteSynthesisS
     return aList;
 }
 
-#if 0
+#if 1
 /**
  * The Haas Effect gives directionality to sound by applying a small (< 35ms) delay to either the left or right channel.
  * The delay is small enough that the sound is still perceived as one sound, but the channel that is not delayed will

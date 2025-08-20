@@ -11,7 +11,7 @@ s32 sSeededRandSeed2;
 
 f32 Math_ModF(f32 value, f32 mod) {
     return fmodf(value, mod);
-    //    return value - ((s32) (value / mod) * mod);
+//        return value - ((s32) (value / mod) * mod);
 }
 
 void Rand_Init(void) {
@@ -47,11 +47,8 @@ f32 Rand_ZeroOneSeeded(void) {
         Math_ModF((sSeededRandSeed1 / 30269.0f) + (sSeededRandSeed2 / 30307.0f) + (sSeededRandSeed3 / 30323.0f), 1.0f));
 }
 // only works for positive x
+#if 0
 #define approx_recip(x) (1.0f / sqrtf((x)*(x)))
-#define quarterpi_i754 0.785398185253143310546875f
-#define halfpi_i754 1.57079637050628662109375f
-#define pi_i754 3.1415927410125732421875f
-#define twopi_i754 6.283185482025146484375f
 // branch-free, division-free atan2f approximation
 // copysignf has a branch
 static inline float bump_atan2f(const float y, const float x)
@@ -59,25 +56,25 @@ static inline float bump_atan2f(const float y, const float x)
 	float abs_y = fabsf(y) + 1e-10f;
 	float absy_plus_absx = abs_y + fabsf(x);
 	float inv_absy_plus_absx = approx_recip(absy_plus_absx);
-	float angle = halfpi_i754 - copysignf(quarterpi_i754, x);
+	float angle = M_PI_2 - copysignf(M_PI_4, x);
 	float r = (x - copysignf(abs_y, x)) * inv_absy_plus_absx;
 	angle += (0.1963f * r * r - 0.9817f) * r;
 	return copysignf(angle, y);
 }
-
+#endif
 
 f32 Math_Atan2F(f32 y, f32 x) {
-    return bump_atan2f(y,x);
-#if 0
+//    return bump_atan2f(y,x);
+#if 1
     if ((y == 0.0f) && (x == 0.0f)) {
         return 0.0f;
     }
 
     if (x == 0.0f) {
         if (y < 0.0f) {
-            return -M_PI / 2.0f;
+            return -M_PI_2;
         } else {
-            return M_PI / 2.0f;
+            return M_PI_2;
         }
     }
 
@@ -100,9 +97,9 @@ f32 Math_Atan2F_XY(f32 x, f32 y) {
 
     if (x == 0.0f) {
         if (y < 0.0f) {
-            return -M_PI / 2.0f;
+            return -M_PI_2;
         } else {
-            return M_PI / 2.0f;
+            return M_PI_2;
         }
     }
 
@@ -132,9 +129,9 @@ f32 Math_Atan2F_XYAlt(f32 x, f32 y) {
 
     if (x == 0.0f) {
         if (y < 0.0f) {
-            return -M_PI / 2.0f;
+            return -M_PI_2;
         }
-        return M_PI / 2.0f;
+        return M_PI_2;
     }
 
     if (y == 0.0f) {

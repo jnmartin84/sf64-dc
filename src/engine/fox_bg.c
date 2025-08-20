@@ -279,6 +279,7 @@ void Background_DrawBackdrop(void) {
     levelId = gCurrentLevel;
 
     Matrix_Push(&gGfxMatrix);
+                    gSPBackdrop(gMasterDisp++);
 
     if (gFovYMode == 2) {
         Matrix_Scale(gGfxMatrix, 1.2f, 1.2f, 1.0f, MTXF_APPLY);
@@ -591,7 +592,6 @@ void Background_DrawBackdrop(void) {
                     }
 
                     Matrix_RotateZ(gGfxMatrix, gStarfieldRoll, MTXF_APPLY);
-                    gSPBackdrop(gMasterDisp++);
 
                     switch (levelId) {
                         case LEVEL_WARP_ZONE:
@@ -707,7 +707,6 @@ void Background_DrawBackdrop(void) {
                 }
                 Matrix_Pop(&gGfxMatrix);
             }
-gSPBackdrop(gMasterDisp++);
 
             if (gStarWarpDistortion > 0.0f) {
                 f32* xStar = gStarOffsetsX;
@@ -734,6 +733,8 @@ gSPBackdrop(gMasterDisp++);
             }
             break;
     }
+                        gSPBackdrop(gMasterDisp++);
+
     Matrix_Pop(&gGfxMatrix);
 }
 
@@ -903,7 +904,7 @@ void Background_DrawGround(void) {
     u16* groundTex;
     Gfx* groundDL;
 
-    if ((gCurrentLevel != LEVEL_VENOM_2) && ((gPlayer[0].cam.eye.y > 4000.0f) || !gDrawGround)) {
+    if (((gCurrentLevel != LEVEL_VENOM_2) && ((gPlayer[0].cam.eye.y > 4000.0f)) || !gDrawGround)) {
         return;
     }
     if ((gCurrentLevel == LEVEL_BOLSE) && gBolseDynamicGround) {

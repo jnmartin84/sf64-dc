@@ -264,6 +264,8 @@ void Animation_DrawSkeleton(s32 mode, Limb** skeletonSegment, Vec3f* jointTable,
     }
 }
 
+#include <stdio.h>
+#include <stdlib.h>
 s16 Animation_GetFrameData(Animation* animationSegment, s32 frame, Vec3f* frameTable) {
     Animation* animation = SEGMENTED_TO_VIRTUAL(animationSegment);
     u16 limbCount = animation->limbCount;
@@ -272,6 +274,11 @@ s16 Animation_GetFrameData(Animation* animationSegment, s32 frame, Vec3f* frameT
     s32 i;
     s32 temp;
 //printf("%s\n",__func__);
+
+    if ((uintptr_t)frameData < 0x8c010000 || (uintptr_t)frameData > 0x8cffffff) {
+        printf("invalid frame->data %08x\n", frameData);
+        exit(-1);
+    }
 
     temp = (frame < key->xLen) ? frameData[key->x + frame] : frameData[key->x];
     frameTable->x = (s16) temp;

@@ -176,6 +176,7 @@ int shader_debug_toggle = 0;
 #include <dc/maple/keyboard.h>
 
 void Map_Main(void);
+extern file_t streamout;
 
 void Controller_UpdateInput(void) {
 #if 1
@@ -204,6 +205,7 @@ void Controller_UpdateInput(void) {
             //profiler_stop();
             //profiler_clean_up();
             // give vmu a chance to write and close
+            fs_close(streamout);
             exit(0);
             } //else {
 //                if (state->buttons && CONT_A)

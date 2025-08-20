@@ -731,7 +731,7 @@ void Display_Arwing(Player* player, s32 reflectY) {
 void Display_Reticle(Player* player) {
     Vec3f* translate;
     s32 i;
-gSPReticle(gMasterDisp++);
+    gSPReticle(gMasterDisp++);
     if ((gPlayerNum == player->num) && ((player->form == FORM_ARWING) || (player->form == FORM_LANDMASTER)) &&
         player->draw &&
         (((gGameState == GSTATE_PLAY) && (player->state == PLAYERSTATE_ACTIVE)) || (gGameState == GSTATE_MENU))) {
@@ -765,8 +765,7 @@ gSPReticle(gMasterDisp++);
             Matrix_Pop(&gGfxMatrix);
         }
     }
-gSPReticle(gMasterDisp++);
-
+    gSPReticle(gMasterDisp++);
 }
 
 void Display_DrawPlayer(Player* player, s32 reflectY) {
@@ -1799,6 +1798,7 @@ void Display_Update(void) {
             Matrix_Push(&gGfxMatrix);
             Matrix_Translate(gGfxMatrix, 0.0f, gCameraShakeY, 0.0f, MTXF_APPLY);
             Matrix_SetGfxMtx(&gMasterDisp);
+            // jnmartin84 -- this is where it *should* draw
             Ground_801B58AC(&gMasterDisp, gPathGroundScroll);
             gPathGroundScroll = 0.0f;
             Matrix_Pop(&gGfxMatrix);

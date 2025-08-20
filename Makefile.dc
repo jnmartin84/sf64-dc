@@ -70,7 +70,7 @@ LD_SCRIPT := linker_scripts/$(VERSION)/$(REV)/$(TARGET).ld
 # are safe to be used can avoid using GLOBAL_ASM which doesn't work with gcc.
 ifeq ($(COMPILER),kos-cc)
   $(warning WARNING: GCC support is experimental. Use at your own risk.)
-  CFLAGS += -DCOMPILER_GCC -Wno-int-conversion -fno-lto -fno-data-sections -DAVOID_UB=1 -MMD -MP -Wno-incompatible-pointer-types -Wno-missing-braces -Wno-unused-variable
+  CFLAGS += -DCOMPILER_GCC -DNON_MATCHING=1 -Wno-int-conversion -fno-lto -fno-data-sections -DAVOID_UB=1 -MMD -MP -Wno-incompatible-pointer-types -Wno-missing-braces -Wno-unused-variable -DGBI_FLOATS
   NON_MATCHING := 1
 endif
 
@@ -149,7 +149,7 @@ ifeq ($(NON_MATCHING),1)
     CPPFLAGS += -DNON_MATCHING -DAVOID_UB
 endif
 
-MAKE = gmake
+MAKE = gmake -f Makefile.dc
 CPPFLAGS += -fno-dollars-in-identifiers -P
 LDFLAGS  := --no-check-sections --accept-unknown-input-arch --emit-relocs
 
@@ -166,12 +166,10 @@ else ifeq ($(UNAME_S),Linux)
     endif
 else ifeq ($(UNAME_S),Darwin)
     DETECTED_OS := macos
-    MAKE := gmake
+    MAKE := gmake -f Makefile.dc
     CPPFLAGS += -xc++
     CC_CHECK_COMP := clang
 endif
-
-DCMAKE := $(MAKE) -f Makefile.dc
 
 # Support python venv's if one is installed.
 PYTHON_VENV = .venv/bin/python3
@@ -340,18 +338,19 @@ $(shell mkdir -p $(BUILD_DIR)/linker_scripts/$(VERSION)/$(REV) $(BUILD_DIR)/link
 ifeq ($(COMPILER),ido)
 
 # directory flags
-build/src/audio/mixer.o: OPTFLAGS := -O3 -g0
-build/src/gfx/gfx_retro_dc.o: OPTFLAGS := -O3 -g0
 build/src/libultra/gu/%.o: OPTFLAGS := -O3 -g0
 build/src/libultra/io/%.o: OPTFLAGS := -O1 -g0
 build/src/libultra/os/%.o: OPTFLAGS := -O1 -g0
 #build/src/libultra/rmon/%.o: OPTFLAGS := -O1 -g0
 #build/src/libultra/debug/%.o: OPTFLAGS := -O1 -g0
 #build/src/libultra/host/%.o:	OPTFLAGS := -O1 -g0
-build/src/audio/%.o: OPTFLAGS := -O2 -g0
+build/src/audio/%.o: OPTFLAGS := -O3 -g0
 build/srceu/audio/%.o: OPTFLAGS := -O2 -g0 # temporary
 
 # per-file flags
+build/src/overlays/ovl_i5/fox_ground.o: OPTFLAGS := -O1
+build/src/audio/mixer.o: OPTFLAGS := -O3 -g0
+build/src/gfx/gfx_retro_dc.o: OPTFLAGS := -O3 -g0
 build/src/audio/audio_effects.o: CFLAGS += -use_readwrite_const
 build/src/audio/audio_heap.o: CFLAGS += -use_readwrite_const
 build/src/audio/audio_load.o: CFLAGS += -use_readwrite_const
@@ -393,13 +392,6 @@ build/src/libultra/os/%.o:    OPTFLAGS := -Os
 #build/src/libultra/host/%.o:  OPTFLAGS := -Os
 
 # per-file flags
-build/src/audio/audio_load.o:      OPTFLAGS := -Os
-build/src/audio/audio_heap.o:      OPTFLAGS := -Os
-build/src/audio/audio_effects.o:   OPTFLAGS := -Os
-build/src/audio/audio_general.o:   OPTFLAGS := -Os
-build/src/audio/audio_playback.o:  OPTFLAGS := -Os
-build/src/audio/audio_seqplayer.o: OPTFLAGS := -Os
-build/src/audio/audio_thread.o:    OPTFLAGS := -Os
 
 build/src/libc_sprintf.o: OPTFLAGS := -Os
 build/src/libc_math64.o:  OPTFLAGS := -Os
@@ -411,6 +403,9 @@ build/src/libultra/libc/xldtob.o:  OPTFLAGS := -Os
 build/src/libultra/libc/xprintf.o: OPTFLAGS := -Os
 build/src/libultra/libc/ll.o:      OPTFLAGS := -O2
 #build/src/libultra/libc/ll.o: MIPS_VERSION := -mips3
+build/src/overlays/ovl_i5/fox_ground.o: OPTFLAGS := -O1
+build/src/audio/mixer.o: OPTFLAGS := -O2
+build/src/gfx/gfx_retro_dc.o: OPTFLAGS := -O2
 
 # cc & asm-processor
 build/src/libultra/gu/sqrtf.o:       OPTFLAGS := -Os
@@ -434,12 +429,12 @@ torch:
 	rm -f torch.hash.yml
 
 init:
-	@$(DCMAKE) clean
-	@$(DCMAKE) decompress
-	@$(DCMAKE) extract -j $(N_THREADS)
-	@$(DCMAKE) assets -j $(N_THREADS)
-	@$(DCMAKE) uncompressed -j $(N_THREADS)
-	@$(DCMAKE) compressed
+	@$(MAKE) clean
+	@$(MAKE) decompress
+	@$(MAKE) extract -j $(N_THREADS)
+	@$(MAKE) assets -j $(N_THREADS)
+	@$(MAKE) uncompressed -j $(N_THREADS)
+	@$(MAKE) compressed
 
 SF := ___  ___\n/ __||  _|\n\__ \|  _|\n|___/|_|\n
 uncompressed: $(ROM)

@@ -46,11 +46,8 @@ void Load_RomFile(char *fname, int snum) {
 
 extern void nuke_everything();
 u8 Load_SceneFiles(NewScene* scene, int snum) {
-//    u8* ramPtr = SEGMENT_VRAM_START(ovl_i1);
     u8 segment;
     u8 changeScene = 0;
-
-    //printf("%s(%d,%d)\n",__func__, scene->id, snum);
 
     if (scene->id == sCurrentScene.id && snum == sCurrentScene.snum) {
         // do nothing
@@ -63,57 +60,16 @@ u8 Load_SceneFiles(NewScene* scene, int snum) {
     sCurrentScene.id = scene->id;
     sCurrentScene.snum = snum;
 
-#if 0
-    if (scene->ovl.rom.start == (0, sCurrentScene.ovl.rom.start)) { // fake because D_800CBDD4 is probably 2D array
-        ramPtr = ramPtr + SEGMENT_SIZE(scene->ovl.rom);
-        ramPtr = ramPtr + SEGMENT_SIZE(scene->ovl.bss);
-    } else {
-        sCurrentScene.ovl.rom.start = scene->ovl.rom.start;
-        sCurrentScene.ovl.rom.end = ramPtr;
-        if (scene->ovl.rom.start != 0) {
-            changeScene = 1;
-            Load_RomFile(scene->ovl.rom.start, ramPtr, SEGMENT_SIZE(scene->ovl.rom));
-            ramPtr = ramPtr + SEGMENT_SIZE(scene->ovl.rom);
-            bzero(scene->ovl.bss.start, SEGMENT_SIZE(scene->ovl.bss));
-            ramPtr = ramPtr + SEGMENT_SIZE(scene->ovl.bss);
+    if(changeScene) {
+        for (segment=1; segment < 16; segment += 1) {
+            Load_RomFile(scene->segs[segment], segment);
         }
-    }
-    segment = 0;
-    while ((segment < 15) && 
-strcmp("",scene->segs[segment].fname) && 
-    //(scene->assets[segment].start == sCurrentScene.assets[segment].start) &&
-           (changeScene == 0)) {
-        if (scene->assets[segment].start != 0) {
-            gSegments[segment + 1] = K0_TO_PHYS(ramPtr);
-            gSPSegment(gUnkDisp1++, segment + 1, K0_TO_PHYS(ramPtr));
-            ramPtr = ramPtr + SEGMENT_SIZE(scene->assets[segment]);
-        }
-        segment += 1; // can't be ++
     }
 
-    for (segment; segment < 15; segment += 1) {
-        sCurrentScene.assets[segment].start = scene->assets[segment].start;
-        sCurrentScene.assets[segment].end = ramPtr;
-        if (scene->assets[segment].start != 0) {
-            gSegments[segment + 1] = K0_TO_PHYS(ramPtr);
-            gSPSegment(gUnkDisp1++, segment + 1, K0_TO_PHYS(ramPtr));
-            Load_RomFile(scene->assets[segment].start, ramPtr, SEGMENT_SIZE(scene->assets[segment]));
-            ramPtr = ramPtr + SEGMENT_SIZE(scene->assets[segment]);
-        }
-    }
-#endif
-if(changeScene) {
-    for (segment=1; segment < 16; segment += 1) {
-//        memcpy(&sCurrentScene.segs[segment].fname, 
-//            &scene->segs[segment].fname, 32);
-        
-        Load_RomFile(scene->segs[segment], segment);
-    }
-}
     if (sFillTimer != 0) {
         sFillTimer--;
     } else if (gStartNMI == 0) {
-       //Lib_FillScreen(0);
+       Lib_FillScreen(0);
     }
     return changeScene;
 }
@@ -147,16 +103,12 @@ extern NewScene ns_logo[];
 extern NewScene ns_ending[];
 
 
-
-
 u8 Load_SceneSetup(u8 sceneId, u8 sceneSetup) {
     u8 changeScene = 0;
-    //printf("%s\n", __func__);
 
     switch (sceneId) {
         case SCENE_TITLE:
             changeScene = Load_SceneFiles(ns_title, sceneSetup);
-                //&sOvlmenu_Title[sceneSetup]);
             if (changeScene == 1) {
                 AUDIO_SET_SPEC(SFX_LAYOUT_DEFAULT, AUDIOSPEC_OPENING);
             }

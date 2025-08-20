@@ -1,6 +1,6 @@
 #ifndef MACROS_H
 #define MACROS_H
-
+#include <stdio.h>
 #include "alignment.h"
 extern long unsigned int gSegments[16];
 static inline void* segmented_to_virtual(const void* addr) {
@@ -25,6 +25,10 @@ static inline void* segmented_to_virtual(const void* addr) {
 #endif
 
     unsigned int offset = (unsigned int) uip_addr & 0x00FFFFFF;
+    if ((gSegments[segment] + offset) > 0x8cffffff) {
+        printf("serious problem seg2vir %08x -> %08x\n", uip_addr, gSegments[segment] + offset);
+//        exit(-1);
+    }
     return (void*) ((gSegments[segment] + offset));
 }
 

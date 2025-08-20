@@ -122,17 +122,17 @@ void Fortuna_UpdateEvents(ActorEvent* this) {
         Radio_PlayMessage(gMsg_ID_9000, RCID_FOX);
     }
 
-    if ((gAllRangeEventTimer + 400) == (0, gAllRangeSpawnEvent)) {
+    if ((gAllRangeEventTimer + 400) == gAllRangeSpawnEvent) {
         Radio_PlayMessage(gMsg_ID_9010, RCID_SLIPPY);
     }
 
-    if ((gAllRangeEventTimer + 240) == (0, gAllRangeSpawnEvent)) {
+    if ((gAllRangeEventTimer + 240) == gAllRangeSpawnEvent) {
         Radio_PlayMessage(gMsg_ID_9375, RCID_ROB64);
         SEQCMD_STOP_SEQUENCE(SEQ_PLAYER_BGM, 1);
         SEQCMD_STOP_SEQUENCE(SEQ_PLAYER_FANFARE, 1);
     }
 
-    if ((gAllRangeEventTimer + 100) == (0, gAllRangeSpawnEvent)) {
+    if ((gAllRangeEventTimer + 100) == gAllRangeSpawnEvent) {
         Radio_PlayMessage(gMsg_ID_9380, RCID_FOX);
     }
 
@@ -766,8 +766,6 @@ void Fortuna_LevelComplete(Player* player) {
                 for (i = 0; i < ARRAY_COUNT(gActors); i++) {
                     Object_Kill(&gActors[i].obj, gActors[i].sfxSource);
                 }
-                //! FAKE:
-                if (((&dest) && (&dest)) && (&dest)) {}
 
                 Audio_StopPlayerNoise(0);
                 Audio_KillSfxBySource(player->sfxSource);
@@ -816,9 +814,20 @@ void Fortuna_LevelComplete(Player* player) {
                 gAmbientR = 11;
                 gAmbientG = 8;
                 gAmbientB = 24;
-                gEnvLightxRot = gLight1xRotTarget = gLight1xRotTarget = gLight2xRotTarget = gLight1xRotTarget = -59.0f;
-                gEnvLightyRot = gLight1yRotTarget = gLight1yRotTarget = gLight2yRotTarget = gLight1yRotTarget = 58.0f;
-                gEnvLightzRot = gLight1zRotTarget = gLight1zRotTarget = gLight2zRotTarget = gLight1zRotTarget = 13.0f;
+//                gEnvLightxRot = gLight1xRotTarget = gLight1xRotTarget = gLight2xRotTarget = gLight1xRotTarget = -59.0f;
+//                gEnvLightyRot = gLight1yRotTarget = gLight1yRotTarget = gLight2yRotTarget = gLight1yRotTarget = 58.0f;
+//                gEnvLightzRot = gLight1zRotTarget = gLight1zRotTarget = gLight2zRotTarget = gLight1zRotTarget = 13.0f;
+                gEnvLightxRot = -59.0f;
+                gLight1xRotTarget = -59.0f;
+                gLight2xRotTarget = -59.0f;
+
+                gEnvLightyRot = 58.0f;
+                gLight1yRotTarget = 58.0f;
+                gLight2yRotTarget = 58.0f;
+
+                gEnvLightzRot = 13.0f;
+                gLight1zRotTarget = 13.0f;
+                gLight2zRotTarget = 13.0f;
 
                 if (gMissionStatus == MISSION_COMPLETE) {
                     player->pos.x = 0.0f;

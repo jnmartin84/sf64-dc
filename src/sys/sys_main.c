@@ -10,6 +10,9 @@
 #include "gfx/gfx_dc.h"
 #include <stdlib.h>
 
+//#define SAMPLES_HIGH 533
+#define SAMPLES_HIGH 560
+#define SAMPLES_LOW 528
 
 uintptr_t arch_stack_32m = 0x8d000000;
 
@@ -24,7 +27,7 @@ char *fnpre;
 #include "src/dcaudio/audio_dc.h"
 volatile int inited = 0;
 extern struct AudioAPI audio_dc;
-s16 audio_buffer[533 * 2 * 2 * 2] __attribute__((aligned(64)));
+s16 audio_buffer[SAMPLES_HIGH * 2 * 2 * 3] __attribute__((aligned(64)));
 static struct AudioAPI *audio_api = NULL;
 void AudioThread_CreateNextAudioBuffer(s16* samples, u32 num_samples);
 
@@ -205,7 +208,7 @@ thd_sleep(60000);
     return NULL;
 }
 
-int called = 0;
+volatile int called = 0;
 
 void Graphics_SetTask(void) {
     //printf("%s()\n", __func__);
@@ -657,33 +660,26 @@ Main_Initialize();
 #if MODS_ISVIEWER == 1
 #include "../mods/isviewer.c"
 #endif
-#define SAMPLES_HIGH 533
+//533
 void *SPINNING_THREAD(UNUSED void *arg) {
     uint64_t last_vbltick = vblticker;
 
-  //  uint64_t last_output_tick = vblticker;
-//return NULL;
-//while (!inited) {thd_pass();}
     while (1) {
         {
             irq_disable_scoped();
-            while (vblticker <= last_vbltick  + 1 )
+            while (vblticker <= last_vbltick)
                 genwait_wait((void*)&vblticker, NULL, 15, NULL);
         }
 
         last_vbltick = vblticker;
 
-//#define AUDIO_FRAMES_PER_UPDATE (gVIsPerFrame > 0 ? gVIsPerFrame : 1)
-irq_disable();
-//        AudioThread_CreateNextAudioBuffer(audio_buffer, SAMPLES_HIGH);
-//for (int i = 0; i < AUDIO_FRAMES_PER_UPDATE; i++) {
-            AudioThread_CreateNextAudioBuffer(audio_buffer /* + i * (SAMPLES_HIGH * 2) */,
-                                              SAMPLES_HIGH);
-  //      }
-        AudioThread_CreateNextAudioBuffer(audio_buffer + (SAMPLES_HIGH * 2), SAMPLES_HIGH);
-irq_enable();
-        audio_api->play((u8 *)audio_buffer, (SAMPLES_HIGH * 2 * 2 * 2));//  * AUDIO_FRAMES_PER_UPDATE));
-//        thd_pass();
+        int num_samples = called & 1 ? SAMPLES_HIGH : SAMPLES_LOW;
+
+        irq_disable();
+        AudioThread_CreateNextAudioBuffer(audio_buffer, num_samples);
+//        AudioThread_CreateNextAudioBuffer(audio_buffer + (num_samples * 2), num_samples);
+        irq_enable();
+        audio_api->play((u8 *)audio_buffer, (num_samples * 2 * 2 /* * 2 */));
     }
 
     return NULL;

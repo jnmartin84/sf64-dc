@@ -69,21 +69,21 @@ s32 Play_GetMaxShields(void) {
 }
 #include <stdio.h>
 void Play_UpdateDynaFloor(void) {
-    Vec3f spC4;
-    Vec3f spB8;
-    Vtx* spB4;
-    u16* spB0;
-    s32 i;
-    s32 spA8;
-    f32* var_s3;
-    f32* var_s5;
-    f32* var_s4;
-    f32* var_s0;
-    f32* var_s1;
-    f32 sp90;
-    f32 sp8C;
-    f32 sp88;
-    f32 sp84;
+    Vec3f spC4 = {0};
+    Vec3f spB8 = {0};
+    Vtx* spB4 = NULL;
+    u16* spB0 = NULL;
+    s32 i = 0;
+    s32 spA8 = 0;
+    f32* var_s3 = NULL;
+    f32* var_s5 = NULL;
+    f32* var_s4 = NULL;
+    f32* var_s0 = NULL;
+    f32* var_s1 = NULL;
+    f32 sp90 = 0;
+    f32 sp8C = 0;
+    f32 sp88 = 0;
+    f32 sp84 = 0;
 
     gDynaFloorTimer++;
 
@@ -139,7 +139,6 @@ void Play_UpdateDynaFloor(void) {
         }
 
         spB4[*spB0].n.ob[1] = (s16) *var_s3 + (s16) *var_s0;
-//        printf("%d\n", (s16) *var_s3 + (s16) *var_s0);
 
         Matrix_RotateZ(gCalcMatrix, *var_s3 * sp88 * M_DTOR, MTXF_NEW);
 
@@ -2516,10 +2515,10 @@ void Player_Initialize(Player* player) {
 }
 
 void Play_InitLevel(void) {
-    Vtx* mesh;
-    u8* ptr;
-    s32 i;
-    f32* fptr;
+    Vtx* mesh = NULL;
+    u8* ptr = NULL;
+    s32 i = 0;
+    f32* fptr = NULL;
 
     switch (gCurrentLevel) {
         case LEVEL_TRAINING:
@@ -4173,17 +4172,17 @@ void Player_OnFootUpdateSpeed(Player* player) {
 }
 
 void Player_MoveOnFoot(Player* player) {
-    Vec3f sp78[30];
-    f32 sp74;
-    f32 sp70;
-    f32 var_fv0;
-    f32 var_fa0;
-    f32 sp64;
-    Vec3f sp58;
-    Vec3f sp4C;
-    Vec3f* sp48;
-    s32 sp44;
-    s32 pad;
+    Vec3f sp78[30] = {0};
+    f32 sp74 = 0;
+    f32 sp70 = 0;
+    f32 var_fv0 = 0;
+    f32 var_fa0 = 0;
+    f32 sp64 = 0;
+    Vec3f sp58 = {0};
+    Vec3f sp4C = {0};
+    Vec3f* sp48 = NULL;
+    s32 sp44 = 0;
+    s32 pad = 0;
 
     player->camRoll = 0.0f;
 
@@ -4405,11 +4404,11 @@ f32 D_800D3134[8] = {
 f32 D_800D3154[4] = { 45.0f, -135.0f, 135.0f, -45.0f };
 
 void Player_Setup(Player* playerx) {
-    s32 j;
-    Vec3f* sp38;
-    ObjectInit* objInit;
-    s32 i;
-    s16 sp2E;
+    s32 j = 0;
+    Vec3f* sp38 = NULL;
+    ObjectInit* objInit = NULL;
+    s32 i = 0;
+    s16 sp2E = 0;
     Player* player = playerx; // fake?
 
     gTiStartLandmaster = 0;
@@ -5720,12 +5719,11 @@ void Player_LowHealthMsg(Player* player) {
 
 // lots of fakery
 void Player_Update(Player* player) {
-    f32 sp1CC;
-    f32 sp1C8;
-    s32 sp1C4;
-    s32 i;
-    Vec3f sp58[30];
-    s32 pad;
+    f32 sp1CC = 0;
+    f32 sp1C8 = 0;
+    s32 sp1C4 = 0;
+    s32 i = 0;
+    Vec3f sp58[30] = {0};
 
     if (gVersusMode) {
         gInputHold = &gControllerHold[player->num];
@@ -6578,9 +6576,16 @@ void Camera_SetupLights(Player* player) {
     f32 pad;
 
     if ((gCurrentLevel == LEVEL_AQUAS) && (gPlayer[0].state != PLAYERSTATE_LEVEL_INTRO)) {
-        gEnvLightyRot = gLight1yRotTarget = gLight1yRotTarget = gLight2yRotTarget = gLight1yRotTarget = 110.0f;
+        gEnvLightyRot = 110.0f;
+        gLight1yRotTarget = 110.0f;
+        gLight2yRotTarget = 110.0f;
+
+//        gEnvLightyRot = gLight1yRotTarget = gLight1yRotTarget = gLight2yRotTarget = gLight1yRotTarget = 110.0f;
         if ((gGameFrameCount & 0x20) != 0) {
-            gEnvLightyRot = gLight1yRotTarget = gLight1yRotTarget = gLight2yRotTarget = gLight1yRotTarget = 90.0f;
+//            gEnvLightyRot = gLight1yRotTarget = gLight1yRotTarget = gLight2yRotTarget = gLight1yRotTarget = 90.0f;
+        gEnvLightyRot = 90.0f;
+        gLight1yRotTarget = 90.0f;
+        gLight2yRotTarget = 90.0f;
         }
         gLight1rotStep = gLight2rotStep = D_ctx_80178538 = 1.0f;
     }
@@ -6950,9 +6955,8 @@ void Play_SetupZPos360(f32* zPos) {
 }
 
 void Play_Main(void) {
-    s32 pad[3];
-    s32 i;
-    f32 fovYtarget;
+    s32 i = 0;
+    f32 fovYtarget = 0;
 
     switch (gFovYMode) {
         case 0:

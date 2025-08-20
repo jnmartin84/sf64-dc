@@ -89,7 +89,7 @@ void aUnkCmd19Impl(uint8_t f, uint16_t count, uint16_t out_addr, uint16_t in_add
 #define aDMEMMove2(pkt, t, i, o, c) aDMEMMove2Impl(t, i, o, c)
 #define aDownsampleHalf(pkt, nSamples, i, o) aDownsampleHalfImpl(nSamples, i, o)
 #define aS8Dec(pkt, f, s) aS8DecImpl(f, s)
-#define aAddMixer(pkt, s, d, c) aAddMixerImpl(s, d, c)
+#define aAddMixer(pkt,c, s, d) aAddMixerImpl(c, s, d)
 #define aDuplicate(pkt, s, d, c) aDuplicateImpl(s, d, c)
 #define aResampleZoh(pkt, pitch, startFract) aResampleZohImpl(pitch, startFract)
 #define aInterl(pkt, dmemi, dmemo, count) aInterlImpl(dmemi, dmemo, count)

@@ -136,14 +136,17 @@ sh-elf-objcopy -O binary --only-section=.data build/src/assets/ast_training/ast_
 sh-elf-ld -EL -t -e 0 -Ttext=07000000 build/src/assets/ast_7_ti_1/ast_7_ti_1.o -o build/src/assets/ast_7_ti_1/ast_7_ti_1.elf
 sh-elf-objcopy -O binary --only-section=.data build/src/assets/ast_7_ti_1/ast_7_ti_1.elf $SF_DATA_PATH/ast_7_ti_1.bin
 
-sh-elf-ld -EL -t -e 0 -Tdata=07000000 build/src/assets/ast_7_ti_2/ast_7_ti_2.o -o build/src/assets/ast_7_ti_2/ast_7_ti_2.elf --no-check-sections --allow-shlib-undefined -r
-sh-elf-ld -EL -t -e 0 -Tdata=09000000 build/src/assets/ast_9_ti/ast_9_ti.o -o build/src/assets/ast_9_ti/ast_9_ti.elf --no-check-sections --allow-shlib-undefined -r
-sh-elf-ld -EL -t -e 0 -Tdata=08000000 build/src/assets/ast_8_ti/ast_8_ti.o -o build/src/assets/ast_8_ti/ast_8_ti.elf --no-check-sections --allow-shlib-undefined -r
+sh-elf-ld -EL -t -Ttext=07000000 -Tdata=07000000 build/src/assets/ast_7_ti_2/ast_7_ti_2.o -o build/src/assets/ast_7_ti_2/ast_7_ti_2.elf --no-check-sections --allow-shlib-undefined -r
+sh-elf-ld -EL -t -Ttext=09000000 -Tdata=09000000 build/src/assets/ast_9_ti/ast_9_ti.o -o build/src/assets/ast_9_ti/ast_9_ti.elf --no-check-sections --allow-shlib-undefined -r
+sh-elf-ld -EL -t -Ttext=08000000 -Tdata=08000000 build/src/assets/ast_8_ti/ast_8_ti.o -o build/src/assets/ast_8_ti/ast_8_ti.elf --no-check-sections --allow-shlib-undefined -r
 
-sh-elf-ld -EL -t -e 0 -R build/src/assets/ast_8_ti/ast_8_ti.elf -Tdata=09000000 build/src/assets/ast_9_ti/ast_9_ti.o -o build/src/assets/ast_9_ti/ast_9_ti.elf --no-check-sections --allow-shlib-undefined -r
-sh-elf-ld -EL -t -e 0 -R build/src/assets/ast_9_ti.elf -R build/src/assets/ast_7_ti_2/ast_7_ti_2.elf -Tdata=08000000 build/src/assets/ast_8_ti/ast_8_ti.o -o build/src/assets/ast_8_ti/ast_8_ti.elf --no-check-sections --allow-shlib-undefined -r -z muldefs
-sh-elf-ld -EL -t -e 0 -R build/src/assets/ast_9_ti/ast_9_ti.elf -R build/src/assets/ast_8_ti/ast_8_ti.elf -Tdata=07000000 build/src/assets/ast_7_ti_2/ast_7_ti_2.o -o build/src/assets/ast_7_ti_2/ast_7_ti_2.elf --no-check-sections --allow-shlib-undefined -r -z muldefs
-sh-elf-ld -EL -t -e 0 -R build/src/assets/ast_9_ti/ast_9_ti.elf -R build/src/assets/ast_8_ti/ast_8_ti.elf -R build/src/assets/ast_9_ti/ast_9_ti.elf -Tdata=0A000000 build/src/assets/ast_A_ti/ast_A_ti.o -o build/src/assets/ast_A_ti/ast_A_ti.elf --no-check-sections --allow-shlib-undefined -r -z muldefs
+sh-elf-ld -EL -t -R build/src/assets/ast_8_ti/ast_8_ti.elf -Ttext=09000000 -Tdata=09000000 build/src/assets/ast_9_ti/ast_9_ti.o -o build/src/assets/ast_9_ti/ast_9_ti.elf --no-check-sections
+
+sh-elf-ld -EL -t -R build/src/assets/ast_9_ti/ast_9_ti.elf -R build/src/assets/ast_7_ti_2/ast_7_ti_2.elf -Ttext=08000000 -Tdata=08000000 build/src/assets/ast_8_ti/ast_8_ti.o -o build/src/assets/ast_8_ti/ast_8_ti.elf --no-check-sections -z muldefs
+
+sh-elf-ld -EL -t -R build/src/assets/ast_9_ti/ast_9_ti.elf -R build/src/assets/ast_8_ti/ast_8_ti.elf -Ttext=07000000 -Tdata=07000000 build/src/assets/ast_7_ti_2/ast_7_ti_2.o -o build/src/assets/ast_7_ti_2/ast_7_ti_2.elf --no-check-sections -z muldefs
+
+sh-elf-ld -EL -t -R build/src/assets/ast_9_ti/ast_9_ti.elf -R build/src/assets/ast_8_ti/ast_8_ti.elf -R build/src/assets/ast_9_ti/ast_9_ti.elf -Ttext=0A000000 -Tdata=0A000000 build/src/assets/ast_A_ti/ast_A_ti.o -o build/src/assets/ast_A_ti/ast_A_ti.elf --no-check-sections -z muldefs
 
 sh-elf-objcopy -O binary --only-section=.data build/src/assets/ast_A_ti/ast_A_ti.elf $SF_DATA_PATH/ast_A_ti.bin
 sh-elf-objcopy -O binary --only-section=.data build/src/assets/ast_9_ti/ast_9_ti.elf $SF_DATA_PATH/ast_9_ti.bin

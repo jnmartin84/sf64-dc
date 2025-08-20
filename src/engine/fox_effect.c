@@ -2753,8 +2753,8 @@ void func_effect_8007F5AC(Effect* this) {
 void Effect_Effect348_Update(Effect348* this) {
     s32 i;
     f32 temp;
-    f32 cos;
-    f32 sin;
+    f32 vcos;
+    f32 vsin;
     f32 randfloat;
     f32 x;
     f32 z;
@@ -2772,21 +2772,21 @@ void Effect_Effect348_Update(Effect348* this) {
         randfloat = RAND_FLOAT(30.0f);
         for (i = 0; i < 36; i += 2) {
             temp = (i * 10.0f * M_DTOR) + randfloat;
-            sin = sinf(temp) * this->scale2 * 8.0f;
-            cos = cosf(temp) * this->scale2 * 8.0f;
+            vsin = sinf(temp) * this->scale2 * 8.0f;
+            vcos = cosf(temp) * this->scale2 * 8.0f;
             yPos = gGroundHeight + 40.0f;
 
             if (gGroundType == GROUND_4) {
-                Ground_801B6E20(this->obj.pos.x + sin, this->obj.pos.z + cos + gPathProgress, &x, &y, &z);
+                Ground_801B6E20(this->obj.pos.x + vsin, this->obj.pos.z + vcos + gPathProgress, &x, &y, &z);
                 yPos = y + 30.0f;
             }
 
             if (gCurrentLevel == LEVEL_AQUAS) {
-                Effect_Effect364_Spawn(this->obj.pos.x + sin, yPos, this->obj.pos.z + cos, 20.0f);
+                Effect_Effect364_Spawn(this->obj.pos.x + vsin, yPos, this->obj.pos.z + vcos, 20.0f);
             } else if (gCurrentLevel == LEVEL_FORTUNA) {
-                Effect_Effect362_Spawn(this->obj.pos.x + sin, yPos, this->obj.pos.z + cos, 20.0f);
+                Effect_Effect362_Spawn(this->obj.pos.x + vsin, yPos, this->obj.pos.z + vcos, 20.0f);
             } else if (gCurrentLevel == LEVEL_TITANIA) {
-                Effect_Effect359_Spawn(this->obj.pos.x + sin, yPos, this->obj.pos.z + cos, 10.0f, 255, 15, 0);
+                Effect_Effect359_Spawn(this->obj.pos.x + vsin, yPos, this->obj.pos.z + vcos, 10.0f, 255, 15, 0);
             }
         }
     }
@@ -2798,8 +2798,8 @@ void Effect_Effect349_Update(Effect349* this) {
     f32 z;
     f32 y;
     f32 temp;
-    f32 cos;
-    f32 sin;
+    f32 vcos;
+    f32 vsin;
     f32 randFloat;
     f32 yPos;
 
@@ -2819,19 +2819,19 @@ void Effect_Effect349_Update(Effect349* this) {
         randFloat = RAND_FLOAT(144.0f);
         for (i = 0; i < 5; i++) {
             temp = (i * 72.0f * M_DTOR) + randFloat;
-            sin = sinf(temp) * this->scale2 * 16.0f;
-            cos = cosf(temp) * this->scale2 * 16.0f;
+            vsin = sinf(temp) * this->scale2 * 16.0f;
+            vcos = cosf(temp) * this->scale2 * 16.0f;
             yPos = gGroundHeight + 10.0f;
 
             if (gGroundType == GROUND_4) {
-                Ground_801B6E20(this->obj.pos.x + sin, this->obj.pos.z + cos + gPathProgress, &x, &y, &z);
+                Ground_801B6E20(this->obj.pos.x + vsin, this->obj.pos.z + vcos + gPathProgress, &x, &y, &z);
                 yPos = y + 10.0f;
             }
 
             if (gCurrentLevel == LEVEL_FORTUNA) {
-                Effect_Effect362_Spawn(this->obj.pos.x + sin, yPos, this->obj.pos.z + cos, 8.0f);
+                Effect_Effect362_Spawn(this->obj.pos.x + vsin, yPos, this->obj.pos.z + vcos, 8.0f);
             } else if (gCurrentLevel == LEVEL_TITANIA) {
-                Effect_Effect359_Spawn(this->obj.pos.x + sin, yPos, this->obj.pos.z + cos, 8.0f, 255, 15, 0);
+                Effect_Effect359_Spawn(this->obj.pos.x + vsin, yPos, this->obj.pos.z + vcos, 8.0f, 255, 15, 0);
             }
         }
     }
@@ -2840,8 +2840,8 @@ void Effect_Effect349_Update(Effect349* this) {
 void Effect_Effect350_Update(Effect350* this) {
     s32 i;
     f32 temp;
-    f32 sin;
-    f32 cos;
+    f32 vsin;
+    f32 vcos;
     f32 randFloat;
     f32 yPos;
 
@@ -2860,10 +2860,10 @@ void Effect_Effect350_Update(Effect350* this) {
         randFloat = RAND_FLOAT(144.0f);
         for (i = 0; i < 10; i++) {
             temp = (i * 36.0f * M_DTOR) + randFloat;
-            sin = sinf(temp) * this->scale2 * 16.0f;
-            cos = cosf(temp) * this->scale2 * 16.0f;
+            vsin = sinf(temp) * this->scale2 * 16.0f;
+            vcos = cosf(temp) * this->scale2 * 16.0f;
             yPos = gGroundHeight + 10.0f;
-            Effect_Effect362_Spawn(this->obj.pos.x + sin, yPos, this->obj.pos.z + cos, 12.0f);
+            Effect_Effect362_Spawn(this->obj.pos.x + vsin, yPos, this->obj.pos.z + vcos, 12.0f);
         }
     }
 }

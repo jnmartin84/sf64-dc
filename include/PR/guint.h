@@ -17,8 +17,8 @@ typedef union
 {
 	struct
 	{
-		unsigned int hi;
 		unsigned int lo;
+		unsigned int hi;
 	} word;
 
 	double	d;

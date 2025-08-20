@@ -1456,7 +1456,7 @@ static void gfx_matrix_mul(matrix_t res, const matrix_t a, const matrix_t b) {
 }
 
 static int matrix_dirty = 0;
-#undef GBI_FLOATS
+//#undef GBI_FLOATS
 //extern void *memcpy32(void *restrict dst, const void *restrict src, size_t bytes);
 static __attribute__((noinline)) void gfx_sp_matrix(uint8_t parameters, const int32_t* addr) {
 	int32_t* saddr = (int32_t*) segmented_to_virtual((void*) addr);
@@ -1496,6 +1496,8 @@ static __attribute__((noinline)) void gfx_sp_matrix(uint8_t parameters, const in
 		} else {
 			gfx_matrix_mul(rsp.P_matrix, (const float (*)[4]) matrix, (const float (*)[4]) rsp.P_matrix);
 		}
+//		glMatrixMode(GL_PROJECTION);
+//        glLoadMatrixf((const float*)rsp.P_matrix);
 	} else { // G_MTX_MODELVIEW
 		if ((parameters & G_MTX_PUSH) && rsp.modelview_matrix_stack_size < 11) {
 			++rsp.modelview_matrix_stack_size;
@@ -1508,13 +1510,17 @@ static __attribute__((noinline)) void gfx_sp_matrix(uint8_t parameters, const in
 			gfx_matrix_mul(rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1], matrix,
 							rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1]);
 		}
+//		glMatrixMode(GL_MODELVIEW);
+//        glLoadMatrixf((const float*)rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1]);
 		rsp.lights_changed = 1;
 	}
+
 	gfx_matrix_mul(rsp.MP_matrix, rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1],
 					rsp.P_matrix);
 }
 
 static void  __attribute__((noinline)) gfx_sp_pop_matrix(uint32_t count) {
+	matrix_dirty = 1;
 	while (count--) {
 		if (rsp.modelview_matrix_stack_size > 0) {
 			--rsp.modelview_matrix_stack_size;
@@ -1524,7 +1530,6 @@ static void  __attribute__((noinline)) gfx_sp_pop_matrix(uint32_t count) {
 		gfx_matrix_mul(rsp.MP_matrix,
 					   /* (const float (*)[4]) */ rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1],
 					   /* (const float (*)[4]) */ rsp.P_matrix);
-		matrix_dirty = 1;
 //		glMatrixMode(GL_MODELVIEW);
 //		glLoadMatrixf((const float*) rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1]);
 	}
@@ -1850,7 +1855,8 @@ static void __attribute__((noinline)) gfx_sp_vertex_no(size_t n_vertices, size_t
 
 
 static void __attribute__((noinline)) gfx_sp_vertex(size_t n_vertices, size_t dest_index, const Vtx* vertices) {
-    if (matrix_dirty) {
+#if 1
+	if (matrix_dirty) {
         glMatrixMode(GL_PROJECTION);
         glLoadMatrixf((const float*) rsp.P_matrix);
         glMatrixMode(GL_MODELVIEW);
@@ -1865,7 +1871,7 @@ static void __attribute__((noinline)) gfx_sp_vertex(size_t n_vertices, size_t de
 		}
 			printf("\n");*/
     }
-    fast_mat_load(&rsp.MP_matrix);
+#endif
     total_verts += n_vertices;
     if (rsp.geometry_mode & G_LIGHTING) {
         if (rsp.lights_changed) {
@@ -1878,8 +1884,10 @@ static void __attribute__((noinline)) gfx_sp_vertex(size_t n_vertices, size_t de
             calculate_normal_dir(&lookat_y, rsp.current_lookat_coeffs[1]);
             rsp.lights_changed = 0;
         }
+	fast_mat_load(&rsp.MP_matrix);
         gfx_sp_vertex_light(n_vertices, dest_index, vertices);
     } else {
+	fast_mat_load(&rsp.MP_matrix);
         gfx_sp_vertex_no(n_vertices, dest_index, vertices);
     }
 }
@@ -1903,10 +1911,20 @@ static void  __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx
    
 	if (v1->clip_rej & v2->clip_rej & v3->clip_rej) {
         // The whole triangle lies outside the visible area
-		rej_tri++;
-		return;
-    }
 
+		nearz_tri++;
+/* 		if (nearz_tri == 1) {
+			printf ("v1 %f,%f,%f,%f\n", v1->_x, v1->_y, v1->_z, v1->_w);
+			for(int i=0;i<4;i++) {
+			for(int j=0;j<4;j++) {
+			printf("%f, ",		rsp.MP_matrix[i][j]);
+					}
+					printf("\n");
+			}
+		} */
+ 		return;
+    }
+#if 1
 	if ((rsp.geometry_mode & G_CULL_BOTH) != 0) {
 		float rw1 = approx_recip_sign(v1->_w);
 		float rw2 = approx_recip_sign(v2->_w);
@@ -1945,7 +1963,7 @@ static void  __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx
 						break;        
 					}
     }
-
+#endif
 	//frame_tris++;
 
     uint8_t depth_test = (rsp.geometry_mode & G_ZBUFFER) == G_ZBUFFER;

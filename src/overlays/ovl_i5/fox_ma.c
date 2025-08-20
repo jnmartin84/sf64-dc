@@ -2021,18 +2021,18 @@ void Macbeth_801A015C(Actor* this) {
 }
 
 bool Macbeth_801A0308(Actor* this, f32 arg1, f32 arg2, u8 arg3) {
-    s16 var_a0;
-    s16 sp4C;
-    f32 temp_fv0;
-    f32 sp44;
-    f32 sp40;
-    f32 sp3C;
-    f32 sp38;
-    f32 sp34;
-    f32 sp30;
-    f32 sp2C;
-    f32 sp28;
-    f32 sp24;
+    s16 var_a0 = 0;
+    s16 sp4C = 0;
+    f32 temp_fv0 = 0;
+    f32 sp44 = 0;
+    f32 sp40 = 0;
+    f32 sp3C = 0;
+    f32 sp38 = 0;
+    f32 sp34 = 0;
+    f32 sp30 = 0;
+    f32 sp2C = 0;
+    f32 sp28 = 0;
+    f32 sp24 = 0;
 
     switch (D_MA_801BE2F0[5]) {
         case 0:

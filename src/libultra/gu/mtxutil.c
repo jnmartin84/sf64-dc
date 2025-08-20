@@ -13,25 +13,27 @@
 #include "PR/ultratypes.h"
 #include "PR/guint.h"
 
+#ifdef GBI_FLOATS
+#include <string.h>
+#endif
+
+#ifndef GBI_FLOATS
 void guMtxF2L(float mf[4][4], Mtx* m) {
-    int i, j;
-    int e1, e2;
-    int *ai, *af;
-
-    ai = (int*) &m->m[0][0];
-    af = (int*) &m->m[2][0];
-
-    for (i = 0; i < 4; i++) {
-        for (j = 0; j < 2; j++) {
-            e1 = FTOFIX32(mf[i][j * 2]);
-            e2 = FTOFIX32(mf[i][j * 2 + 1]);
-            *(ai++) = (e1 & 0xffff0000) | ((e2 >> 16) & 0xffff);
-            *(af++) = ((e1 << 16) & 0xffff0000) | (e2 & 0xffff);
+    int r, c;
+    s32 tmp1;
+    s32 tmp2;
+    s32* m1 = &m->m[0][0];
+    s32* m2 = &m->m[2][0];
+    for (r = 0; r < 4; r++) {
+        for (c = 0; c < 2; c++) {
+            tmp1 = mf[r][2 * c] * 65536.0f;
+            tmp2 = mf[r][2 * c + 1] * 65536.0f;
+            *m1++ = (tmp1 & 0xffff0000) | ((tmp2 >> 0x10) & 0xffff);
+            *m2++ = ((tmp1 << 0x10) & 0xffff0000) | (tmp2 & 0xffff);
         }
     }
 }
 
-// This function seems to use the SM64 version of the guMtxF2L function
 void guMtxL2F(float mf[4][4], Mtx* m) {
     int r, c;
     u32 tmp1;
@@ -52,25 +54,31 @@ void guMtxL2F(float mf[4][4], Mtx* m) {
         }
     }
 }
+#else
+void guMtxF2L(float mf[4][4], Mtx* m) {
+    memcpy(m, mf, sizeof(Mtx));
+}
+#endif
 
 void guMtxIdentF(float mf[4][4]) {
-    int i, j;
-
-    for (i = 0; i < 4; i++) {
-        for (j = 0; j < 4; j++) {
-            if (i == j) {
-                mf[i][j] = 1.0;
+    int r, c;
+    for (r = 0; r < 4; r++) {
+        for (c = 0; c < 4; c++) {
+            if (r == c) {
+                mf[r][c] = 1.0f;
             } else {
-                mf[i][j] = 0.0;
+                mf[r][c] = 0.0f;
             }
         }
     }
 }
 
 void guMtxIdent(Mtx* m) {
+#ifndef GBI_FLOATS
     float mf[4][4];
-
     guMtxIdentF(mf);
-
     guMtxF2L(mf, m);
+#else
+    guMtxIdentF(m->m);
+#endif
 }

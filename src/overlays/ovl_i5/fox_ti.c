@@ -64,7 +64,7 @@ u8 D_i5_801B74F0[9][3] = {
     { 5, 17, 3 },  { 6, 20, 1 }, { 7, 21, 3 }, { 8, 24, 1 },
 };
 
-bool D_i5_801B750C[3] = { false, false, false };
+s32 D_i5_801B750C[3] = { 0, 0, 0 };
 
 f32 D_i5_801B7518[2] = { 20.0f, 60.0f };
 
@@ -72,7 +72,7 @@ void Titania_80188F30(void) {
     s32 i;
 
     for (i = 0; i < 3; i++) {
-        D_i5_801B750C[i] = false;
+        D_i5_801B750C[i] = 0;
     }
     D_MA_801BA1E8 = 99;
 }
@@ -119,8 +119,9 @@ void Titania_TankTracks_Spawn(f32 xPos, f32 yPos, f32 zPos, f32 yRot, f32 scale2
         }
     }
 }
-
+#include <stdio.h>
 void Titania_TiTerrain_Update(TiTerrain* this) {
+//    printf("update ti terrain %08x\n", this);
     Ground_801B49D0(this);
 }
 
@@ -712,12 +713,12 @@ void Titania_TiRasco_Init(TiRasco* this) {
     }
 }
 
-bool Titania_8018AFD4(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
+s32 Titania_8018AFD4(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
     *dList = NULL;
-    return false;
+    return 0;
 }
 
-bool Titania_TiRasco_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
+s32 Titania_TiRasco_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
     if ((limbIndex == 2) || (limbIndex == 3) || (limbIndex == 4)) {
         Matrix_Translate(gCalcMatrix, pos->x, pos->y, pos->z, MTXF_APPLY);
         Matrix_RotateZ(gCalcMatrix, rot->z * M_DTOR, MTXF_APPLY);
@@ -728,9 +729,9 @@ bool Titania_TiRasco_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Ve
         RCP_SetupDL(&gMasterDisp, SETUPDL_33);
         gSPDisplayList(gMasterDisp++, *dList);
         RCP_SetupDL(&gMasterDisp, SETUPDL_29);
-        return true;
+        return 1;
     } else {
-        return false;
+        return 0;
     }
 }
 
@@ -1070,7 +1071,7 @@ void Titania_TiDesertCrawler_Init(TiDesertCrawler* this) {
 
     for (i = 0; i < 3; i++) {
         if (!D_i5_801B750C[i]) {
-            D_i5_801B750C[i] = true;
+            D_i5_801B750C[i] = 1;
             this->iwork[0] = i;
             break;
         }
@@ -1094,29 +1095,29 @@ void Titania_TiDesertCrawler_Init(TiDesertCrawler* this) {
     }
 }
 
-bool Titania_8018C118(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
+s32 Titania_8018C118(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
     *dList = NULL;
-    return false;
+    return 0;
 }
 
 s16 D_i5_801B7630[9][2] = {
     { 1, 0 }, { 2, 1 }, { 3, 0 }, { 4, 1 }, { 5, 1 }, { 6, 0 }, { 7, 1 }, { 8, 0 }, { 13, 1 },
 };
 
-bool Titania_TiDesertCrawler_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
+s32 Titania_TiDesertCrawler_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
     TiDesertCrawler* this = (TiDesertCrawler*) thisx;
     s32 sp58;
     s32 i;
     s32 sp50;
 
     sp50 = this->iwork[0];
-    sp58 = false;
+    sp58 = 0;
 
     for (i = 0; i < 9; i++) {
         if (limbIndex == D_i5_801B7630[i][0]) {
             if (!(D_i5_801BD738[sp50][i].unk_18 & 1)) {
                 Matrix_Translate(gCalcMatrix, pos->x, pos->y, pos->z, MTXF_APPLY);
-                sp58 = true;
+                sp58 = 1;
                 Matrix_RotateZ(gCalcMatrix, rot->z * M_DTOR, MTXF_APPLY);
                 Matrix_RotateY(gCalcMatrix, rot->y * M_DTOR, MTXF_APPLY);
                 Matrix_RotateX(gCalcMatrix, rot->x * M_DTOR, MTXF_APPLY);
@@ -1268,11 +1269,12 @@ void Titania_8018C72C(TiDesertCrawler* this) {
 
 Vec3f D_i5_801B766C = { 0.0f, 0.0f, 15.0f };
 
-static void sincos(float arg, float *s, float *c) {
-    *s = sinf(arg);
-    *c = cosf(arg);
-}
-                                             float ts,tc;
+
+//static void sincos(float arg, float *s, float *c) {
+//    *s = sinf(arg);
+//    *c = cosf(arg);
+//}
+static float ts,tc;
 
 void Titania_TiDesertCrawler_Update(TiDesertCrawler* this) {
     s32 i;
@@ -1625,7 +1627,9 @@ void Titania_TiDesertCrawler_Update(TiDesertCrawler* this) {
                             actorPtr->obj.rot.y = var_s1->unk_00.rot.y + this->obj.rot.y;
                             actorPtr->obj.rot.z = var_s1->unk_00.rot.z + this->obj.rot.z;
                             sp170 = Math_Atan2F(var_s1->unk_00.pos.z, var_s1->unk_00.pos.x);
-                            sincos(sp170,&ts,&tc);
+                            //sincos(sp170,&ts,&tc);
+                            ts = sinf(sp170);
+                            tc = cosf(sp170);
                             actorPtr->vel.x = ts * (7.0f + RAND_FLOAT(5.0f));
                             actorPtr->vel.y = 7.0f + RAND_FLOAT(10.0f);
                             actorPtr->vel.z = tc * (7.0f + RAND_FLOAT(5.0f));
@@ -1662,8 +1666,9 @@ void Titania_TiDesertCrawler_Update(TiDesertCrawler* this) {
                                 actorPtr->obj.rot.y = var_s1->unk_00.rot.y + this->obj.rot.y;
                                 actorPtr->obj.rot.z = var_s1->unk_00.rot.z + this->obj.rot.z;
                                 sp170 = Math_Atan2F(var_s1->unk_00.pos.z, var_s1->unk_00.pos.x);
-                                                            sincos(sp170,&ts,&tc);
-
+                                                            //sincos(sp170,&ts,&tc);
+ts = sinf(sp170);
+tc = cosf(sp170);
                                 actorPtr->vel.x = ts * (7.0f + RAND_FLOAT(5.0f));
                                 actorPtr->vel.z = tc * (7.0f + RAND_FLOAT(5.0f));
                                 actorPtr->vel.y = 7.0f + RAND_FLOAT(10.0f);
@@ -1685,7 +1690,7 @@ void Titania_TiDesertCrawler_Update(TiDesertCrawler* this) {
                     break;
 
                 case 5:
-                    D_i5_801B750C[this->iwork[0]] = false;
+                    D_i5_801B750C[this->iwork[0]] = 0;
                     Object_Kill(&this->obj, this->sfxSource);
                     break;
             }
@@ -1717,7 +1722,7 @@ void Titania_TiDesertCrawler_Draw(TiDesertCrawler* this) {
 }
 
 void Titania_8018E3B0(TiDesertCrawler* this) {
-    D_i5_801B750C[this->iwork[0]] = false;
+    D_i5_801B750C[this->iwork[0]] = 0;
 }
 
 Vec3f D_i5_801B7678 = { 0.0f, 388.0f, 103.0f };
@@ -2283,7 +2288,7 @@ void Titania_TiGoras_Init(TiGoras* this) {
     D_i5_801BBEF8 = SEGMENTED_TO_VIRTUAL(D_TI_8000FC0);
 }
 
-bool Titania_8018FC70(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
+s32 Titania_8018FC70(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
     f32 sp24;
 
     if (D_i5_801BBEF0[30] != 0) {
@@ -2350,7 +2355,7 @@ bool Titania_8018FC70(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* 
             RCP_SetupDL(&gMasterDisp, SETUPDL_29);
             break;
     }
-    return true;
+    return 1;
 }
 
 f32 D_i5_801B7738[14] = { -1.0f,  -1.0f,  -1.0f,  -1.0f,  -1.0f,   -1.0f,  -1.0f,
@@ -2703,11 +2708,11 @@ void Titania_8019081C(s32 limbIndex, Vec3f* rot, void* thisx) {
 }
 
 bool Titania_80190A08(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
-    Vec3f spCC;
-    Vec3f spC0;
+    Vec3f spCC = {0};
+    Vec3f spC0 = {0};
     // f32 spBC;
     // f32 padB8;
-    Vec3f padB4; // Vec3f? Seems kind of wasteful
+    Vec3f padB4 = {0}; // Vec3f? Seems kind of wasteful
     s32 i;
     TiGoras* this = (TiGoras*) thisx;
     s32 spA8;
@@ -2715,15 +2720,15 @@ bool Titania_80190A08(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* 
     s32 spA0;
     f32 sp9C;
     s32 ret = false;
-    Vec3f sp8C;
+    Vec3f sp8C={0};
     s32 sp88;
-    Vec3f sp7C;
-    Vec3f sp70;
+    Vec3f sp7C={0};
+    Vec3f sp70={0};
     s32 sp6C;
     f32 sp68;
     // f32 pad64;
     // f32 sp60;
-    Vec3f sp5C; // Vec3f?
+    Vec3f sp5C={0}; // Vec3f?
     s32 sp58;
 
     if (limbIndex == 0) {
