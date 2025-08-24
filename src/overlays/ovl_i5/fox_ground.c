@@ -51,28 +51,28 @@ f32 D_i5_801BA9C4[6] = {
     0.0f, 0.0f, 220.0f, 220.0f, 0.0f, 0.0f,
 };
 
-f32 D_i5_801BE740 = 0;
-f32 D_i5_801BE744 = 0;
+f32 D_i5_801BE740 = 0.0f;
+f32 D_i5_801BE744 = 0.0f;
 Vtx D_i5_801BE748[27][16][2] = {0};
 s32 D_i5_801C1D48[28][16] = {0};
-f32 D_i5_801C2448[28] = {0};
-f32 D_i5_801C24B8[28] = {0};
+f32 D_i5_801C2448[28] = {0.0f};
+f32 D_i5_801C24B8[28] = {0.0f};
 Gfx D_i5_801C2528[27][65]={0};
 Gfx* D_i5_801C5C00=NULL;
 s32 D_i5_801C5C04=0;
 s32 D_i5_801C5C08=0;
 s32 D_i5_801C5C0C=0;
-f32 D_i5_801C5C10=0;
+f32 D_i5_801C5C10=0.0f;
 s32 D_i5_801C5C14=0;
 Mtx D_i5_801C5C18[27]={0};
-Vec3f D_i5_801C62D8={0};
+Vec3f D_i5_801C62D8={0.0f};
 UnkStruct_801C62E8 D_i5_801C62E8[20]={0};
 Vec3fa D_i5_801C65B8[3][15][4]={0};
 s32 D_i5_801C6E28[4][3]={0};
 #endif
 
 
-#include <stdio.h>
+//#include <stdio.h>
 s32 Ground_801B49D0(Actor* actor) {
     s32 i;
     s32 found = 0;
@@ -108,16 +108,16 @@ void Ground_801B4AA8(s32* arg0, s32* arg1) {
     Actor actor = {0};
     UnkStruct_801C62E8* var_s2 = D_i5_801C62E8;
     s32* var_s1 = NULL;
-    f32 temp_fa0=0;
-    f32 temp_fs0=0;
-    f32 temp_fs1=0;
-    f32 var_fv0=0;
-    f32 var_fv1=0;
+    f32 temp_fa0=0.0f;
+    f32 temp_fs0=0.0f;
+    f32 temp_fs1=0.0f;
+    f32 var_fv0=0.0f;
+    f32 var_fv1=0.0f;
     s32 unk_04=0;
-    f32 unk_08=0;
-    f32 unk_10=0;
-    f32 unk_14=0;
-    f32 unk_18=0;
+    f32 unk_08=0.0f;
+    f32 unk_10=0.0f;
+    f32 unk_14=0.0f;
+    f32 unk_18=0.0f;
     s32 i=0;
     s32 j=0;
 
@@ -221,7 +221,7 @@ void Ground_801B4AA8(s32* arg0, s32* arg1) {
                             (sinf(((var_s2->unk_20 * 8.0f) / var_s2->unk_18) * 2 * (M_DTOR * 180.0f)) * 500.0f);
                         if (fabsf(temp_fs0) <= var_s2->unk_10) {
                             temp_fa0 = cosf((temp_fs0 / var_s2->unk_10) * (M_DTOR * 90.0f));
-                            if (temp_fa0 >= 0.7) {
+                            if (temp_fa0 >= 0.7f) {
                                 temp_fa0 = 0.7f;
                             }
                             *var_s1 -=
@@ -373,8 +373,9 @@ void Ground_801B58AC(Gfx** dList, f32 arg1) {
 
     RCP_SetupDL(dList, 29);
     RCP_SetFog(dList, gFogRed, gFogGreen, gFogBlue, gFogAlpha, gFogNear, gFogFar);
-//        gDPSetCombineLERP((*dList)++,TEXEL0, 0, SHADE, 0, 0, 0, 0, TEXEL0, COMBINED, 0, ENVIRONMENT, PRIMITIVE, COMBINED, 0,
-  //                         PRIMITIVE, 0);
+  //      gDPSetCombineLERP((*dList)++,TEXEL0, 0, SHADE, 0, 0, 0, 0, TEXEL0, COMBINED, 0, ENVIRONMENT, PRIMITIVE, COMBINED, 0,
+    //                       PRIMITIVE, 0);
+                   gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255); 
     spC4 = D_i5_801C5C14;
 
     if (D_i5_801C5C14 & 2) {
@@ -456,19 +457,19 @@ void Ground_801B58AC(Gfx** dList, f32 arg1) {
 }
 
 void Ground_801B5FE0(s32 arg0, s32 arg1, s32 arg2) {
-    f32 spF4 = 0;
-    f32 spF0 = 0;
-    f32 spEC = 0;
-    f32 spE8 = 0;
-    f32 spE4 = 0;
-    f32 spE0 = 0;
-    f32 spDC = 0;
-    f32 spD8 = 0;
-    f32 spD4 = 0;
+    f32 spF4 = 0.0f;
+    f32 spF0 = 0.0f;
+    f32 spEC = 0.0f;
+    f32 spE8 = 0.0f;
+    f32 spE4 = 0.0f;
+    f32 spE0 = 0.0f;
+    f32 spDC = 0.0f;
+    f32 spD8 = 0.0f;
+    f32 spD4 = 0.0f;
     Vec3f v1 = {0};
     Vec3f v2 = {0};
     Vec3f v3 = {0};
-    f32 var_fv0 = 0;
+    f32 var_fv0 = 0.0f;
     s32 j1 = 0;
     s32 j3 = 0;
     s32 j2 = 0;
@@ -687,24 +688,25 @@ s32 Ground_801B6E20(f32 arg0, f32 arg1, f32* arg2, f32* arg3, f32* arg4) {
     s32 var_s7 = 0;
     s32 var_v1 = 0;
     Vtx(*var_s2)[2] = {NULL};
-    Vec3f spA4[4] = {0};
-    f32 var_fs0 = 0;
-    f32 var_fs0_2 = 0;
-    f32 var_fs1 = 0;
-    f32 var_fs2 = 0;
+    Vec3f spA4[4] = {0.0f};
+    f32 var_fs0 = 0.0f;
+    f32 var_fs0_2 = 0.0f;
+    f32 var_fs1 = 0.0f;
+    f32 var_fs2 = 0.0f;
     PlaneF sp84 = {0};
-    f32 temp = 0;
-    f32 temp_fs2 = 0;
+    f32 temp = 0.0f;
+    f32 temp_fs2 = 0.0f;
 
     *arg3 = 0.0f;
     *arg4 = 0.0f;
     *arg2 = 0.0f;
 
+    
     if (D_i5_801C5C14 & 1) {
         temp_fs2 = arg1 - D_i5_801C5C10 - D_i5_801C62D8.z;
         var_v1 = 0;
         var_s6 = (D_i5_801C5C04 + 25) % 27;
-        var_fs0 = 0;
+        var_fs0 = 0.0f;
 
         for (var_s7 = 0; var_v1 == 0 && var_s7 < 26; var_s7++) {
             var_s2 = &D_i5_801BE748[var_s6][0];
@@ -730,7 +732,7 @@ s32 Ground_801B6E20(f32 arg0, f32 arg1, f32* arg2, f32* arg3, f32* arg4) {
                     }
                 }
             }
-            var_fs0 += var_s2[0][0].v.ob[2];
+            var_fs0 += (float)var_s2[0][0].v.ob[2];
             var_s6 = (var_s6 + 26) % 27;
         }
 
@@ -776,7 +778,7 @@ s32 Ground_801B6E20(f32 arg0, f32 arg1, f32* arg2, f32* arg3, f32* arg4) {
 // Unused
 void Ground_801B7240(f32 arg0, f32 arg1, f32* arg2, f32* arg3, f32* arg4) {
     f32 sp28 = 0;
-    f32 sp24 = 0;
+    f32 sp24 = 0.0f;
 
     Ground_801B6E20(arg0, arg1, &sp28, arg3, &sp24);
     *arg2 = sp28 * M_RTOD;

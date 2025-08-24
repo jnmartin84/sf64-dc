@@ -52,7 +52,6 @@ void aEnvMixerImpl(uint16_t in_addr, uint16_t n_samples, bool swap_reverb, bool 
 void aSMixImpl(uint16_t in_addr, uint16_t out_addr, uint16_t count);
 void aMixImpl(uint16_t count, int16_t gain, uint16_t in_addr, uint16_t out_addr);
 void aDMEMMove2Impl(uint8_t t, uint16_t in_addr, uint16_t out_addr, uint16_t count);
-void aDownsampleHalfImpl(uint16_t n_samples, uint16_t in_addr, uint16_t out_addr);
 void aS8DecImpl(uint8_t flags, ADPCM_STATE state);
 void aResampleZohImpl(uint16_t pitch, uint16_t start_fract);
 void aAddMixerImpl(uint16_t count, uint16_t in_addr, uint16_t out_addr);
@@ -87,7 +86,6 @@ void aUnkCmd19Impl(uint8_t f, uint16_t count, uint16_t out_addr, uint16_t in_add
 #define aSMix(pkt, g, i, o, c) aSMixImpl(i, o, c)
 #define aMix(pkt, c, g, i, o) aMixImpl(c, g, i, o)
 #define aDMEMMove2(pkt, t, i, o, c) aDMEMMove2Impl(t, i, o, c)
-#define aDownsampleHalf(pkt, nSamples, i, o) aDownsampleHalfImpl(nSamples, i, o)
 #define aS8Dec(pkt, f, s) aS8DecImpl(f, s)
 #define aAddMixer(pkt,c, s, d) aAddMixerImpl(c, s, d)
 #define aDuplicate(pkt, s, d, c) aDuplicateImpl(s, d, c)

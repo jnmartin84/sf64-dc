@@ -415,7 +415,7 @@ typedef struct {
             /* 0x00 */ u8 release : 1;
             /* 0x00 */
 #else
-            u8 pad4 : 4;
+//            u8 pad4 : 4;
             u8 release : 1;
             u8 decay : 1;
             u8 hang : 1;

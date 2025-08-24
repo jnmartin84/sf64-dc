@@ -26,7 +26,7 @@
  * Use D-PAD to move the cursor
  * Use C buttons to edit values
  */
-#define MODS_SFX_JUKEBOX 0
+#define MODS_SFX_JUKEBOX 1
 
 /**
  * Auto debugger:

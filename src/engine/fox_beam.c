@@ -1095,6 +1095,7 @@ void PlayerShot_DrawHitmark(PlayerShot* shot) {
         }
     }
 }
+#define F_PI        3.14159265f   /* pi             */
 
 void PlayerShot_DrawLaser(PlayerShot* shot) {
     f32 width;
@@ -1127,7 +1128,7 @@ void PlayerShot_DrawLaser(PlayerShot* shot) {
                 twinLaserSeparation = 4.0f;
             }
             Matrix_Scale(gGfxMatrix, width, width, length, MTXF_APPLY);
-            Matrix_RotateY(gGfxMatrix, M_PI, MTXF_APPLY);
+            Matrix_RotateY(gGfxMatrix, F_PI, MTXF_APPLY);
             Matrix_Translate(gGfxMatrix, twinLaserSeparation, 0.f, 0.0f, MTXF_APPLY);
             Matrix_SetGfxMtx(&gMasterDisp);
             gSPDisplayList(gMasterDisp++, shotDL);
@@ -1161,7 +1162,7 @@ void PlayerShot_DrawLaser(PlayerShot* shot) {
             switch (shotType) {
                 case 0:
                     Matrix_Scale(gGfxMatrix, width, width, length, MTXF_APPLY);
-                    Matrix_RotateY(gGfxMatrix, M_PI, MTXF_APPLY);
+                    Matrix_RotateY(gGfxMatrix, F_PI, MTXF_APPLY);
                     Matrix_SetGfxMtx(&gMasterDisp);
                     gSPDisplayList(gMasterDisp++, aLaserShotGreenDL);
                     break;
@@ -1169,14 +1170,14 @@ void PlayerShot_DrawLaser(PlayerShot* shot) {
                 case 1:
                     Matrix_Translate(gGfxMatrix, 0.0f, 0.f, 150.0f, MTXF_APPLY);
                     Matrix_Scale(gGfxMatrix, 0.7f, 0.7f, 1.5f, MTXF_APPLY);
-                    Matrix_RotateY(gGfxMatrix, M_PI, MTXF_APPLY);
+                    Matrix_RotateY(gGfxMatrix, F_PI, MTXF_APPLY);
                     Matrix_SetGfxMtx(&gMasterDisp);
                     gSPDisplayList(gMasterDisp++, aLaserShotRedDL);
                     break;
 
                 case 2:
                     Matrix_Scale(gGfxMatrix, width, width, length, MTXF_APPLY);
-                    Matrix_RotateY(gGfxMatrix, M_PI, MTXF_APPLY);
+                    Matrix_RotateY(gGfxMatrix, F_PI, MTXF_APPLY);
                     Matrix_Translate(gGfxMatrix, 25.0f, 0.0f, 0.f, MTXF_APPLY);
                     Matrix_SetGfxMtx(&gMasterDisp);
                     gSPDisplayList(gMasterDisp++, aLaserShotGreenDL);
@@ -1189,13 +1190,13 @@ void PlayerShot_DrawLaser(PlayerShot* shot) {
                     Matrix_Push(&gGfxMatrix);
                     Matrix_Translate(gGfxMatrix, 50.0f, 0.0f, 150.0f, MTXF_APPLY);
                     Matrix_Scale(gGfxMatrix, 0.7f, 0.7f, 1.5f, MTXF_APPLY);
-                    Matrix_RotateY(gGfxMatrix, M_PI, MTXF_APPLY);
+                    Matrix_RotateY(gGfxMatrix, F_PI, MTXF_APPLY);
                     Matrix_SetGfxMtx(&gMasterDisp);
                     gSPDisplayList(gMasterDisp++, aLaserShotRedDL);
                     Matrix_Pop(&gGfxMatrix);
                     Matrix_Translate(gGfxMatrix, -50.0f, 0.0f, 150.0f, MTXF_APPLY);
                     Matrix_Scale(gGfxMatrix, 0.7f, 0.7f, 1.5f, MTXF_APPLY);
-                    Matrix_RotateY(gGfxMatrix, M_PI, MTXF_APPLY);
+                    Matrix_RotateY(gGfxMatrix, F_PI, MTXF_APPLY);
                     Matrix_SetGfxMtx(&gMasterDisp);
                     gSPDisplayList(gMasterDisp++, aLaserShotRedDL);
                     break;
@@ -1219,7 +1220,7 @@ void PlayerShot_DrawLaser(PlayerShot* shot) {
         }
 
         Matrix_Scale(gGfxMatrix, 6.0f, 4.0f, 10.0f, MTXF_APPLY);
-        Matrix_RotateY(gGfxMatrix, M_PI, MTXF_APPLY);
+        Matrix_RotateY(gGfxMatrix, F_PI, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
 
         if (gLaserStrength[shot->sourceId] != LASERS_SINGLE) {
@@ -1384,7 +1385,7 @@ void PlayerShot_DrawShot(PlayerShot* shot) {
                         gSPDisplayList(gMasterDisp++, D_versus_301AD60);
                     } else {
                         if (((gGameFrameCount % 2) == 0)) {
-                            var_fv1 = M_PI;
+                            var_fv1 = F_PI;
                         } else {
                             var_fv1 = 0.0f;
                         }
@@ -1397,7 +1398,7 @@ void PlayerShot_DrawShot(PlayerShot* shot) {
                     }
                 } else {
                     if ((gGameFrameCount % 2) == 0) {
-                        var_fv1 = M_PI;
+                        var_fv1 = F_PI;
                     } else {
                         var_fv1 = 0.0f;
                     }
@@ -1439,7 +1440,7 @@ void PlayerShot_DrawShot(PlayerShot* shot) {
                 break;
 
             case PLAYERSHOT_LOCK_ON:
-                Matrix_RotateY(gGfxMatrix, M_PI, MTXF_APPLY);
+                Matrix_RotateY(gGfxMatrix, F_PI, MTXF_APPLY);
                 Matrix_SetGfxMtx(&gMasterDisp);
 
                 if (gCurrentLevel == LEVEL_AQUAS) {
@@ -1530,7 +1531,7 @@ void PlayerShot_DrawShot(PlayerShot* shot) {
                 break;
 
             case PLAYERSHOT_GFOX_LASER:
-                Matrix_RotateY(gGfxMatrix, M_PI, MTXF_APPLY);
+                Matrix_RotateY(gGfxMatrix, F_PI, MTXF_APPLY);
                 Matrix_Scale(gGfxMatrix, 3.0f, 3.0f, 20.0f, MTXF_APPLY);
                 Matrix_SetGfxMtx(&gMasterDisp);
                 RCP_SetupDL_40();

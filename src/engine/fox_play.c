@@ -6460,6 +6460,7 @@ void Camera_UpdateOnFoot360(Player* player, s32 arg1) {
         player->cam.eye.z = sp4C.z;
     }
 }
+#define F_PI        3.14159265f   /* pi             */
 
 void Camera_SetStarfieldPos(f32 xEye, f32 yEye, f32 zEye, f32 xAt, f32 yAt, f32 zAt) {
     f32 sp34;
@@ -6473,11 +6474,11 @@ void Camera_SetStarfieldPos(f32 xEye, f32 yEye, f32 zEye, f32 xAt, f32 yAt, f32 
     yaw = -Math_Atan2F(xEye - xAt, zEye - zAt);
     tempf = sqrtf(SQ(zEye - zAt) + SQ(xEye - xAt));
     pitch = -Math_Atan2F(yEye - yAt, tempf);
-    if (yaw >= M_PI / 2) {
-        yaw -= M_PI;
+    if (yaw >= F_PI / 2) {
+        yaw -= F_PI;
     }
-    if (yaw <= -M_PI / 2) {
-        yaw += M_PI;
+    if (yaw <= -F_PI / 2) {
+        yaw += F_PI;
     }
 
     tempf = 0.0f;

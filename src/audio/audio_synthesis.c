@@ -667,15 +667,16 @@ Acmd* AudioSynth_Update(Acmd* aList, s32* cmdCount, s16* aiBufStart, s32 aiBufLe
         aCmdPtr =
             AudioSynth_DoOneAudioUpdate((s16*) aiBufPtr, chunkLen, aCmdPtr, gAudioBufferParams.ticksPerUpdate - i);
         s32 prevLen = aiBufLen;
-            aiBufLen -= chunkLen;
+
+        aiBufLen -= chunkLen;
         if (aiBufLen < 0) {
             chunkLen = chunkLen + aiBufLen;
             aiBufLen = chunkLen;
         }
-//            if (aiBufLen < 0) aiBufLen = chunkLen + aiBufLen;
+
         aiBufPtr += chunkLen;
-//        if (aiBufLen < 0) break;
     }
+
 #if 1
     for (j = 0; j < gNumSynthReverbs; j++) {
         if (gSynthReverbs[j].framesToIgnore != 0) {

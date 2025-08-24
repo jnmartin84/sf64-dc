@@ -5204,6 +5204,7 @@ f32 D_i5_801B8E24[4][2] = {
     { -1.0f, -1.0f },
     { 1.0f, -1.0f },
 };
+#define F_PI        3.14159265f   /* pi             */
 
 void Titania_TiGoras_Draw(TiGoras* boss) {
     TexturedLine* temp_v0_6;
@@ -5281,7 +5282,7 @@ void Titania_TiGoras_Draw(TiGoras* boss) {
                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 0, 0, 0, 255);
                 gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 0);
 
-                Matrix_RotateX(gGfxMatrix, -M_PI / 2, MTXF_APPLY);
+                Matrix_RotateX(gGfxMatrix, -F_PI / 2, MTXF_APPLY);
                 Matrix_Scale(gGfxMatrix, boss->fwork[47] * 10.0f, boss->fwork[47] * 10.0f, 1.0f, MTXF_APPLY);
                 Matrix_SetGfxMtx(&gMasterDisp);
 
@@ -5304,7 +5305,7 @@ void Titania_TiGoras_Draw(TiGoras* boss) {
                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 0, 0, 0, 255);
                 gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 0);
 
-                Matrix_RotateX(gGfxMatrix, -M_PI / 2, MTXF_APPLY);
+                Matrix_RotateX(gGfxMatrix, -F_PI / 2, MTXF_APPLY);
                 Matrix_Scale(gGfxMatrix, 10.0f, 10.0f, 1.0f, MTXF_APPLY);
                 Matrix_SetGfxMtx(&gMasterDisp);
 
@@ -5345,7 +5346,7 @@ void Titania_TiGoras_Draw(TiGoras* boss) {
                 Matrix_Push(&gGfxMatrix);
                 sp120 = D_i5_801BBEF0[7] * 16.0f;
                 RCP_SetupDL(&gMasterDisp, SETUPDL_64);
-                Matrix_RotateX(gGfxMatrix, M_PI / 2, MTXF_APPLY);
+                Matrix_RotateX(gGfxMatrix, F_PI / 2, MTXF_APPLY);
                 Matrix_Push(&gGfxMatrix);
                 Matrix_Scale(gGfxMatrix, sp120, 1.0f, sp120, MTXF_APPLY);
                 Matrix_SetGfxMtx(&gMasterDisp);

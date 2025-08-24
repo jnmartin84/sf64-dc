@@ -163,7 +163,7 @@ void osSetTime(UNUSED OSTime time) {
 // Change me to "float" to trade accuracy for perf
 typedef double N64Ticks;
 
-OSTime osGetTime(void) {
+volatile OSTime osGetTime(void) {
     uint64_t ns = timer_ns_gettime64();
     N64Ticks ticks = (N64Ticks)ns / (N64Ticks)N64_NS_PER_TICK;
     return (OSTime)ticks;
@@ -184,10 +184,13 @@ void osInvalDCache(UNUSED void* a, UNUSED s32 b) {
 void osInvalICache(UNUSED void* a, UNUSED s32 b) {
     ;
 }
-
+static u32 counter = 0;
+static u32 ticked = 0;
 u32 osGetCount(void) {
-    static u32 counter = 0;
-    return counter++;
+    ticked++;
+    counter += 757576;
+    counter += ticked & 1;
+    return counter;
 }
 
 s32 osAiSetFrequency(u32 freq) {

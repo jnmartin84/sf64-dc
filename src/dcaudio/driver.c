@@ -24,8 +24,8 @@
 #define DC_AUDIO_CHANNELS (2) 
 #define DC_STEREO_AUDIO ( DC_AUDIO_CHANNELS == 2)
 // Sample rate for the AICA (32kHz)
-#define DC_AUDIO_FREQUENCY (32000) 
-#define RING_BUFFER_MAX_BYTES (16384)
+#define DC_AUDIO_FREQUENCY (26800) 
+#define RING_BUFFER_MAX_BYTES (16384*2)
 
 // --- Global State for Dreamcast Audio Backend ---
 // Handle for the sound stream
@@ -46,6 +46,10 @@ typedef struct {
 
 static ring_t cb_ring;
 static ring_t *r = &cb_ring;
+file_t streamout;
+extern int stream_dump ;
+extern int stream_no ;
+int last_stream_dump = 0;
 
 static bool cb_init(size_t capacity) {
     // round capacity up to power of two
@@ -101,7 +105,7 @@ static size_t cb_get_used(void) {
 
 // --- KOS Stream Audio Callback (Consumer): Called by KOS when the AICA needs more data ---
 #define NUM_BUFFER_BLOCKS (2)
-#define TEMP_BUF_SIZE ((8192/*  / 2 */) * NUM_BUFFER_BLOCKS)
+#define TEMP_BUF_SIZE ((8192*2/*  / 2 */) * NUM_BUFFER_BLOCKS)
 static uint8_t __attribute__((aligned(32))) temp_buf[TEMP_BUF_SIZE];
 static unsigned int temp_buf_sel = 0;
 
@@ -110,19 +114,19 @@ void mute_stream(void) {
 }
 
 void unmute_stream(void) {
-    snd_stream_volume(shnd, 160); // Set maximum volume
+    snd_stream_volume(shnd, 192); // Set maximum volume
 }
 
 void *audio_callback(UNUSED snd_stream_hnd_t hnd, int samples_requested_bytes, int *samples_returned_bytes) {
     size_t samples_requested = samples_requested_bytes / 4;
-    size_t samples_avail_bytes = cb_read_data(temp_buf + ((8192) * temp_buf_sel) , samples_requested_bytes);
+    size_t samples_avail_bytes = cb_read_data(temp_buf + ((8192*2) * temp_buf_sel) , samples_requested_bytes);
     
     *samples_returned_bytes = samples_requested_bytes;
     size_t samples_returned = samples_avail_bytes / 4;
     
     /*@Note: This is more correct, fill with empty audio */
     if (samples_avail_bytes < (unsigned)samples_requested_bytes) {
-//        memset(temp_buf + ((SND_STREAM_BUFFER_MAX) * temp_buf_sel) + samples_avail_bytes, 0, (samples_requested_bytes - samples_avail_bytes));
+        memset(temp_buf + ((8192*2) * temp_buf_sel) + samples_avail_bytes, 0, (samples_requested_bytes - samples_avail_bytes));
     }
     
     temp_buf_sel += 1;
@@ -130,7 +134,7 @@ void *audio_callback(UNUSED snd_stream_hnd_t hnd, int samples_requested_bytes, i
         temp_buf_sel = 0;
     }
     
-    return (void*)(temp_buf + ((8192) * temp_buf_sel));
+    return (void*)(temp_buf + ((8192*2) * temp_buf_sel));
 }
 
 static bool audio_dc_init(void) {
@@ -148,12 +152,12 @@ static bool audio_dc_init(void) {
         printf("CB INIT FAILURE!\n");
         return false;
     }
-    
+
     printf("Dreamcast Audio: Initialized. Ring buffer size: %u bytes.\n",
            (unsigned int)RING_BUFFER_MAX_BYTES);
     
     // Allocate the sound stream with KOS
-    shnd = snd_stream_alloc(audio_callback, 8192);
+    shnd = snd_stream_alloc(audio_callback, 8192*2);
     if (shnd == SND_STREAM_INVALID) {
         printf("SND: Stream allocation failure!\n");
         snd_stream_destroy(shnd);
@@ -161,7 +165,7 @@ static bool audio_dc_init(void) {
     }
 
     // Set maximum volume
-    snd_stream_volume(shnd, 160); 
+    snd_stream_volume(shnd, 192); 
 
     printf("Sound init complete!\n");
     
@@ -176,30 +180,17 @@ static int audio_dc_get_desired_buffered(void) {
     return 1100;
 }
 
-file_t streamout;
-
-//volatile uint32_t *lpfreg = (volatile uint32_t *)0xA0700028;
 static void audio_dc_play(uint8_t *buf, size_t len) {
     size_t ring_data_available = cb_get_used();
     size_t written = cb_write_data(buf, len);
 
-    if ((!audio_started) /* && (ring_data_available > (4096)) */) {
-//        streamout = fs_open("/pc/stream.raw", O_RDWR | O_CREAT);
+    if ((!audio_started)) {
         audio_started = true;
-//        printf("started it\n");
         snd_stream_start(shnd, DC_AUDIO_FREQUENCY, DC_STEREO_AUDIO);
-//        for (int i=0;i<64;i++) {
-//            *lpfreg = (-1 << 11) | (462 & 1023);;
-//            *lpfreg = 0x24;
-  //          lpfreg += 0x20;
-//        }
     }
-
-
-
+    
     if (audio_started) {
         snd_stream_poll(shnd);
-        //fs_write(streamout, buf, len);
     }
 }
 

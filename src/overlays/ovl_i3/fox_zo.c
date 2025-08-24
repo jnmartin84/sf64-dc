@@ -3946,6 +3946,25 @@ void Zoness_ZoSpikeBall_Update(ZoSpikeBall* this) {
     }
 }
 
+
+void __attribute__((noinline)) do_the_rest(ZoSpikeBall *this) {
+        Matrix_Pop(&gGfxMatrix);
+    Matrix_Push(&gGfxMatrix);
+    Matrix_Translate(gGfxMatrix, this->obj.pos.x, this->obj.pos.y, this->obj.pos.z + gPathProgress, MTXF_APPLY);
+    Matrix_RotateY(gGfxMatrix, this->obj.rot.y * M_DTOR, MTXF_APPLY);
+    Matrix_RotateX(gGfxMatrix, this->obj.rot.x * M_DTOR, MTXF_APPLY);
+    Matrix_Scale(gGfxMatrix, 2.6f, 2.6f, 2.6f, MTXF_APPLY);
+    Matrix_SetGfxMtx(&gMasterDisp);
+    RCP_SetupDL(&gMasterDisp, SETUPDL_70);
+    gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255);
+    gSPDisplayList(gMasterDisp++, D_ZO_6004380);
+    Matrix_RotateY(gGfxMatrix, sZoFwork[ZO_BSF_19] * M_DTOR, MTXF_APPLY);
+    Matrix_RotateX(gGfxMatrix, this->fwork[2] * M_DTOR, MTXF_APPLY);
+    Matrix_RotateZ(gGfxMatrix, this->fwork[3] * M_DTOR, MTXF_APPLY);
+    Matrix_SetGfxMtx(&gMasterDisp);
+    RCP_SetupDL_55();
+    gSPDisplayList(gMasterDisp++, D_ZO_601BCC0);
+}
 void Zoness_ZoSpikeBall_Draw(ZoSpikeBall* this) {
     f32 temp_fa0;
     f32 temp_fa1;
@@ -4006,22 +4025,7 @@ void Zoness_ZoSpikeBall_Draw(ZoSpikeBall* this) {
             var_fs5 += 90.0f;
         }
     }
-    Matrix_Pop(&gGfxMatrix);
-    Matrix_Push(&gGfxMatrix);
-    Matrix_Translate(gGfxMatrix, this->obj.pos.x, this->obj.pos.y, this->obj.pos.z + gPathProgress, MTXF_APPLY);
-    Matrix_RotateY(gGfxMatrix, this->obj.rot.y * M_DTOR, MTXF_APPLY);
-    Matrix_RotateX(gGfxMatrix, this->obj.rot.x * M_DTOR, MTXF_APPLY);
-    Matrix_Scale(gGfxMatrix, 2.6f, 2.6f, 2.6f, MTXF_APPLY);
-    Matrix_SetGfxMtx(&gMasterDisp);
-    RCP_SetupDL(&gMasterDisp, SETUPDL_70);
-    gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255);
-    gSPDisplayList(gMasterDisp++, D_ZO_6004380);
-    Matrix_RotateY(gGfxMatrix, sZoFwork[ZO_BSF_19] * M_DTOR, MTXF_APPLY);
-    Matrix_RotateX(gGfxMatrix, this->fwork[2] * M_DTOR, MTXF_APPLY);
-    Matrix_RotateZ(gGfxMatrix, this->fwork[3] * M_DTOR, MTXF_APPLY);
-    Matrix_SetGfxMtx(&gMasterDisp);
-    RCP_SetupDL_55();
-    gSPDisplayList(gMasterDisp++, D_ZO_601BCC0);
+do_the_rest(this);
 }
 
 Vec3f sTankerContainerInitPos[3] = {

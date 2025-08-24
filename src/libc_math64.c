@@ -1,8 +1,12 @@
 #include "n64sys.h"
 #include <math.h>
 //#include <kos.h>
+
+#define F_PI        3.14159265f   /* pi             */
+
+
 f32 Math_TanF(f32 x) {
-    return x == 0 ? 0 : (sinf(x) / cosf(x));
+    return x == 0.0f ? 0.0f : (sinf(x) / cosf(x));
 }
 
 f32 Math_FloorF(f32 x) {
@@ -58,9 +62,9 @@ f32 Math_FAtanF(f32 x) {
     }
 
     if (sector > 0) {
-        return M_PI / 2.0f - (x / (1.0f + conv));
+        return F_PI / 2.0f - (x / (1.0f + conv));
     } else if (sector < 0) {
-        return -M_PI / 2.0f - (x / (1.0f + conv));
+        return -F_PI / 2.0f - (x / (1.0f + conv));
     } else {
         return x / (1.0f + conv);
     }
@@ -72,15 +76,15 @@ f32 Math_FAtan2F(f32 y, f32 x) {
     }
     if (x == 0.0f) {
         if (y < 0.0f) {
-            return -M_PI / 2.0f;
+            return -F_PI / 2.0f;
         }
-        return M_PI / 2.0f;
+        return F_PI / 2.0f;
     }
     if (x < 0.0f) {
         if (y < 0.0f) {
-            return -(M_PI - Math_FAtanF(fabs(y / x)));
+            return -(F_PI - Math_FAtanF(fabsf(y / x)));
         }
-        return M_PI - Math_FAtanF(fabs(y / x));
+        return F_PI - Math_FAtanF(fabsf(y / x));
     }
     return Math_FAtanF(y / x);
 }
@@ -90,5 +94,5 @@ f32 Math_FAsinF(f32 x) {
 }
 
 f32 Math_FAcosF(f32 x) {
-    return M_PI / 2.0f - Math_FAsinF(x);
+    return F_PI / 2.0f - Math_FAsinF(x);
 }

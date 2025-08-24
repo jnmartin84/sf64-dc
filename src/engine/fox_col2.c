@@ -8,6 +8,7 @@ bool func_col2_800A3A74(Vec3f* point, Vec3f** tri, Vec3f* normOut);
 bool func_col2_800A3690(Vec3f* objPos, Vec3f* colliderPos, s32 colId, Vec3f* hitDataOut) {
     return func_col2_800A36FC(objPos, colliderPos, SEGMENTED_TO_VIRTUAL(&D_800D2CA0[colId]), hitDataOut);
 }
+#define F_PI        3.14159265f   /* pi             */
 
 bool func_col2_800A36FC(Vec3f* objPos, Vec3f* colliderPos, CollisionHeader2* colHeader, Vec3f* hitDataOut) {
     Vec3f objRelPos;
@@ -75,7 +76,7 @@ bool func_col2_800A36FC(Vec3f* objPos, Vec3f* colliderPos, CollisionHeader2* col
         hitDataOut->x = Math_Atan2F_XY(norm.y, norm.z);
         if (norm.z != 0.0f) {
             hitDataOut->z = -Math_Atan2F_XY(sinf(Math_Atan2F_XY(norm.y, norm.z)) * norm.z, norm.x);
-        } else if (hitDataOut->x >= M_PI) {
+        } else if (hitDataOut->x >= F_PI) {
             hitDataOut->z = Math_Atan2F_XY(norm.y, norm.x);
         } else {
             hitDataOut->z = -Math_Atan2F_XY(norm.y, norm.x);

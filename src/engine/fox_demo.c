@@ -2503,6 +2503,7 @@ void ActorCutscene_SyShip_Setup(ActorCutscene* this, s32 idx) {
         }
     }
 }
+#define F_PI        3.14159265f   /* pi             */
 
 void ActorCutscene_Draw(ActorCutscene* this) {
     static f32 D_800CA210 = 0.0f;
@@ -2610,9 +2611,9 @@ void ActorCutscene_Draw(ActorCutscene* this) {
                     Matrix_Translate(gGfxMatrix, RAND_FLOAT_CENTERED_SEEDED(3000.0f) * this->fwork[20],
                                      RAND_FLOAT_CENTERED_SEEDED(3000.0f) * this->fwork[20],
                                      RAND_FLOAT_CENTERED_SEEDED(3000.0f) * this->fwork[20], MTXF_APPLY);
-                    Matrix_RotateY(gGfxMatrix, 2.0f * RAND_FLOAT_SEEDED(M_PI), MTXF_APPLY);
+                    Matrix_RotateY(gGfxMatrix, 2.0f * RAND_FLOAT_SEEDED(F_PI), MTXF_APPLY);
                     Matrix_RotateZ(gGfxMatrix, (2.0f * gGameFrameCount) * M_DTOR, MTXF_APPLY);
-                    Matrix_RotateX(gGfxMatrix, 2.0f * RAND_FLOAT_SEEDED(M_PI), MTXF_APPLY);
+                    Matrix_RotateX(gGfxMatrix, 2.0f * RAND_FLOAT_SEEDED(F_PI), MTXF_APPLY);
 
                     switch ((s32) (i % 4U)) {
                         case 0:

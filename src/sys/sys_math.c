@@ -13,7 +13,7 @@ f32 Math_ModF(f32 value, f32 mod) {
     return fmodf(value, mod);
 //        return value - ((s32) (value / mod) * mod);
 }
-
+extern volatile OSTime osGetTime(void);
 void Rand_Init(void) {
     sRandSeed1 = (s32) osGetTime() % 30000;
     sRandSeed2 = (s32) osGetTime() % 30000;
@@ -29,7 +29,7 @@ f32 Rand_ZeroOne(void) {
     sRandSeed2 = (sRandSeed2 * 172) % 30307;
     sRandSeed3 = (sRandSeed3 * 170) % 30323;
 
-    return fabsf(Math_ModF((sRandSeed1 / 30269.0f) + (sRandSeed2 / 30307.0f) + (sRandSeed3 / 30323.0f), 1.0f));
+    return fabsf(Math_ModF(((float)sRandSeed1 / 30269.0f) + ((float)sRandSeed2 / 30307.0f) + ((float)sRandSeed3 / 30323.0f), 1.0f));
 }
 
 void Rand_SetSeed(s32 seed1, s32 seed2, s32 seed3) {
@@ -44,24 +44,16 @@ f32 Rand_ZeroOneSeeded(void) {
     sSeededRandSeed3 = (sSeededRandSeed3 * 170) % 30323;
 
     return fabsf(
-        Math_ModF((sSeededRandSeed1 / 30269.0f) + (sSeededRandSeed2 / 30307.0f) + (sSeededRandSeed3 / 30323.0f), 1.0f));
+        Math_ModF(((float)sSeededRandSeed1 / 30269.0f) + ((float)sSeededRandSeed2 / 30307.0f) + ((float)sSeededRandSeed3 / 30323.0f), 1.0f));
 }
-// only works for positive x
-#if 0
-#define approx_recip(x) (1.0f / sqrtf((x)*(x)))
-// branch-free, division-free atan2f approximation
-// copysignf has a branch
-static inline float bump_atan2f(const float y, const float x)
-{
-	float abs_y = fabsf(y) + 1e-10f;
-	float absy_plus_absx = abs_y + fabsf(x);
-	float inv_absy_plus_absx = approx_recip(absy_plus_absx);
-	float angle = M_PI_2 - copysignf(M_PI_4, x);
-	float r = (x - copysignf(abs_y, x)) * inv_absy_plus_absx;
-	angle += (0.1963f * r * r - 0.9817f) * r;
-	return copysignf(angle, y);
-}
-#endif
+
+#define F_PI        3.14159265f   /* pi             */
+#define F_PI_2      1.57079633f   /* pi/2           */
+#define F_PI_4      0.78539816f  /* pi/4           */
+#define F_1_PI      0.31830989f  /* 1/pi           */
+#define F_2_PI      0.63661977f  /* 2/pi           */
+
+
 
 f32 Math_Atan2F(f32 y, f32 x) {
 //    return bump_atan2f(y,x);
@@ -72,17 +64,17 @@ f32 Math_Atan2F(f32 y, f32 x) {
 
     if (x == 0.0f) {
         if (y < 0.0f) {
-            return -M_PI_2;
+            return -F_PI_2;
         } else {
-            return M_PI_2;
+            return F_PI_2;
         }
     }
 
     if (x < 0.0f) {
         if (y < 0.0f) {
-            return -(M_PI - Math_FAtanF(fabsf(y / x)));
+            return -(F_PI - Math_FAtanF(fabsf(y / x)));
         } else {
-            return M_PI - Math_FAtanF(fabsf(y / x));
+            return F_PI - Math_FAtanF(fabsf(y / x));
         }
     } else {
         return Math_FAtanF(y / x);
@@ -97,9 +89,9 @@ f32 Math_Atan2F_XY(f32 x, f32 y) {
 
     if (x == 0.0f) {
         if (y < 0.0f) {
-            return -M_PI_2;
+            return -F_PI_2;
         } else {
-            return M_PI_2;
+            return F_PI_2;
         }
     }
 
@@ -107,15 +99,15 @@ f32 Math_Atan2F_XY(f32 x, f32 y) {
         if (x > 0.0f) {
             return 0.0f;
         } else {
-            return M_PI;
+            return F_PI;
         }
     }
 
     if (x < 0.0f) {
         if (y < 0.0f) {
-            return -(M_PI - Math_FAtanF(fabsf(x / y)));
+            return -(F_PI - Math_FAtanF(fabsf(x / y)));
         } else {
-            return M_PI - Math_FAtanF(fabsf(x / y));
+            return F_PI - Math_FAtanF(fabsf(x / y));
         }
     } else {
         return Math_FAtanF(x / y);
@@ -129,9 +121,9 @@ f32 Math_Atan2F_XYAlt(f32 x, f32 y) {
 
     if (x == 0.0f) {
         if (y < 0.0f) {
-            return -M_PI_2;
+            return -F_PI_2;
         }
-        return M_PI_2;
+        return F_PI_2;
     }
 
     if (y == 0.0f) {
@@ -151,7 +143,9 @@ f32 Math_FactorialF(f32 n) {
     return out;
 }
 
-f32 D_800C45E0[] = { 1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800, 39916800, 479001600 };
+f32 D_800C45E0[] = { 1.0f, 1.0f, 2.0f, 6.0f, 
+    24.0f, 120.0f, 720.0f, 5040.0f, 40320.0f, 
+    362880.0f, 3628800.0f, 39916800.0f, 479001600.0f };
 
 f32 Math_Factorial(s32 n) {
     f32 out;

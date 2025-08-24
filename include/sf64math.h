@@ -77,64 +77,64 @@ void Math_Vec3fFromAngles(Vec3f* step, f32 xRot, f32 yRot, f32 stepsize);
 f32 Math_RadToDeg(f32 rAngle);
 
 // Copies src Matrix into dst
-void Matrix_Copy(Matrix* dst, Matrix* src);
+void  __attribute__((noinline)) Matrix_Copy(Matrix* dst, Matrix* src);
 
 // Makes a copy of the stack's current matrix and puts it on the top of the stack
-void Matrix_Push(Matrix** mtxStack);
+void __attribute__((noinline))  Matrix_Push(Matrix** mtxStack);
 
 // Removes the top matrix of the stack
-void Matrix_Pop(Matrix** mtxStack);
+void  __attribute__((noinline)) Matrix_Pop(Matrix** mtxStack);
 
 // Copies tf into mtx (MTXF_NEW) or applies it to mtx (MTXF_APPLY)
-void Matrix_Mult(Matrix* mtx, Matrix* tf, u8 mode);
+void  __attribute__((noinline)) Matrix_Mult(Matrix* mtx, Matrix* tf, u8 mode);
 
 // Creates a translation matrix in mtx (MTXF_NEW) or applies one to mtx (MTXF_APPLY)
-void Matrix_Translate(Matrix* mtx, f32 x, f32 y, f32 z, u8 mode);
+void __attribute__((noinline))  Matrix_Translate(Matrix* mtx, f32 x, f32 y, f32 z, u8 mode);
 
 // Creates a scale matrix in mtx (MTXF_NEW) or applies one to mtx (MTXF_APPLY)
-void Matrix_Scale(Matrix* mtx, f32 xScale, f32 yScale, f32 zScale, u8 mode);
+void  __attribute__((noinline)) Matrix_Scale(Matrix* mtx, f32 xScale, f32 yScale, f32 zScale, u8 mode);
 
 // Creates rotation matrix about the X axis in mtx (MTXF_NEW) or applies one to mtx (MTXF_APPLY)
-void Matrix_RotateX(Matrix* mtx, f32 angle, u8 mode);
+void  __attribute__((noinline)) Matrix_RotateX(Matrix* mtx, f32 angle, u8 mode);
 
 // Creates rotation matrix about the Y axis in mtx (MTXF_NEW) or applies one to mtx (MTXF_APPLY)
-void Matrix_RotateY(Matrix* mtx, f32 angle, u8 mode);
+void __attribute__((noinline))  Matrix_RotateY(Matrix* mtx, f32 angle, u8 mode);
 
 // Creates rotation matrix about the Z axis in mtx (MTXF_NEW) or applies one to mtx (MTXF_APPLY)
-void Matrix_RotateZ(Matrix* mtx, f32 angle, u8 mode);
+void  __attribute__((noinline)) Matrix_RotateZ(Matrix* mtx, f32 angle, u8 mode);
 
 // Creates rotation matrix about a given vector axis in mtx (MTXF_NEW) or applies one to mtx (MTXF_APPLY).
 // The vector specifying the axis does not need to be a unit vector.
-void Matrix_RotateAxis(Matrix* mtx, f32 angle, f32 axisX, f32 axisY, f32 axisZ, u8 mode);
+void __attribute__((noinline))  Matrix_RotateAxis(Matrix* mtx, f32 angle, f32 axisX, f32 axisY, f32 axisZ, u8 mode);
 
 // Converts the current Gfx matrix to a Mtx
-void Matrix_ToMtx(Mtx* dest);
+void __attribute__((noinline))  Matrix_ToMtx(Mtx* dest);
 
 // Converts the Mtx src to a Matrix, putting the result in dest
-void Matrix_FromMtx(Mtx* src, Matrix* dest);
+void __attribute__((noinline))  Matrix_FromMtx(Mtx* src, Matrix* dest);
 
 // Applies the transform matrix mtx to the vector src, putting the result in dest
-void Matrix_MultVec3f(Matrix* mtx, Vec3f* src, Vec3f* dest);
+void __attribute__((noinline))  Matrix_MultVec3f(Matrix* mtx, Vec3f* src, Vec3f* dest);
 
 // Applies the linear part of the transformation matrix mtx to the vector src, ignoring any translation that mtx might
 // have. Puts the result in dest.
-void Matrix_MultVec3fNoTranslate(Matrix* mtx, Vec3f* src, Vec3f* dest);
+void __attribute__((noinline))  Matrix_MultVec3fNoTranslate(Matrix* mtx, Vec3f* src, Vec3f* dest);
 
 // Expresses the rotational part of the transform mtx as Tait-Bryan angles, in the yaw-pitch-roll (intrinsic YXZ)
 // convention used in worldspace calculations
-void Matrix_GetYPRAngles(Matrix* mtx, Vec3f* rot);
+void __attribute__((noinline))  Matrix_GetYPRAngles(Matrix* mtx, Vec3f* rot);
 
 // Expresses the rotational part of the transform mtx as Tait-Bryan angles, in the extrinsic XYZ convention used in
 // modelspace calculations
-void Matrix_GetXYZAngles(Matrix* mtx, Vec3f* rot);
+void  __attribute__((noinline)) Matrix_GetXYZAngles(Matrix* mtx, Vec3f* rot);
 
 // Creates a look-at matrix from Eye, At, and Up in mtx (MTXF_NEW) or applies one to mtx (MTXF_APPLY).
 // A look-at matrix is a rotation-translation matrix that maps y to Up, z to (At - Eye), and translates to Eye
-void Matrix_LookAt(Matrix* mtx, f32 xEye, f32 yEye, f32 zEye, f32 xAt, f32 yAt, f32 zAt, f32 xUp, f32 yUp, f32 zUp,
+void __attribute__((noinline))  Matrix_LookAt(Matrix* mtx, f32 xEye, f32 yEye, f32 zEye, f32 xAt, f32 yAt, f32 zAt, f32 xUp, f32 yUp, f32 zUp,
                    u8 mode);
 
 // Converts the current Gfx matrix to a Mtx and sets it to the display list
-void Matrix_SetGfxMtx(Gfx** gfx);
+void  __attribute__((noinline)) Matrix_SetGfxMtx(Gfx** gfx);
 
 f32 Math_FAtanF(f32);
 f32 Math_FAtan2F(f32, f32);

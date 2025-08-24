@@ -253,6 +253,9 @@ volatile int do_backdrop = 0;
         _g->words.w1 = 0x46554360;                                           \
     }
 
+#define F_PI        3.14159265f   /* pi             */
+
+
 // TODO: use SCREEN_WIDTH and _HEIGHT
 void Background_DrawBackdrop(void) {
     f32 bgXpos2;
@@ -690,7 +693,7 @@ void Background_DrawBackdrop(void) {
                         case LEVEL_SECTOR_Z:
                             Matrix_Translate(gGfxMatrix, bgXpos - 120.0f, -(bgYpos - 120.0f), -290.0f, MTXF_APPLY);
                             Matrix_Scale(gGfxMatrix, 0.5f, 0.5f, 0.5f, MTXF_APPLY);
-                            Matrix_RotateX(gGfxMatrix, M_PI / 2, MTXF_APPLY);
+                            Matrix_RotateX(gGfxMatrix, F_PI / 2, MTXF_APPLY);
                             Matrix_SetGfxMtx(&gMasterDisp);
                             gSPDisplayList(gMasterDisp++, aSzBackgroundDL);
                             break;
@@ -728,7 +731,7 @@ void Background_DrawBackdrop(void) {
                     Matrix_SetGfxMtx(&gMasterDisp);
                     gSPDisplayList(gMasterDisp++, gTexturedLineDL);
                     Matrix_Pop(&gGfxMatrix);
-                    zRot += M_PI / 4;
+                    zRot += F_PI / 4;
                 }
             }
             break;
@@ -873,7 +876,7 @@ void Background_DrawLensFlare(void) {
         Matrix_Scale(gGfxMatrix, *lensFlareScale, *lensFlareScale, *lensFlareScale, MTXF_APPLY);
 
         if (((i == 5) || (i == 11)) && (gCurrentLevel != LEVEL_KATINA)) {
-            Matrix_RotateX(gGfxMatrix, M_PI / 2, MTXF_APPLY);
+            Matrix_RotateX(gGfxMatrix, F_PI / 2, MTXF_APPLY);
         }
         Matrix_SetGfxMtx(&gMasterDisp);
 

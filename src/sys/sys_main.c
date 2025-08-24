@@ -665,15 +665,15 @@ void *SPINNING_THREAD(UNUSED void *arg) {
     uint64_t last_vbltick = vblticker;
 
     while (1) {
-        {
-            irq_disable_scoped();
+//        {
+  //          irq_disable_scoped();
             while (vblticker <= last_vbltick)
                 genwait_wait((void*)&vblticker, NULL, 15, NULL);
-        }
+    //    }
 
         last_vbltick = vblticker;
 
-        int num_samples = called & 1 ? SAMPLES_HIGH : SAMPLES_LOW;
+        int num_samples = 448;//540;//called & 1 ? SAMPLES_HIGH : SAMPLES_LOW;
 
         irq_disable();
         AudioThread_CreateNextAudioBuffer(audio_buffer, num_samples);

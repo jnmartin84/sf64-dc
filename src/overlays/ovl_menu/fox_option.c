@@ -1666,6 +1666,7 @@ void Option_ExpertSound_Update(void) {
 #if MODS_SFX_JUKEBOX == 1
     if (gControllerPress[gMainController].button & L_TRIG) {
         showJukebox ^= 1;
+       // showJukebox = 1;
     }
     if (showJukebox) {
         Jukebox_Update();

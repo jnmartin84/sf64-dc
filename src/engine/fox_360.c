@@ -2346,6 +2346,7 @@ void ActorAllRange_DrawShield(ActorAllRange* this) {
         Matrix_Pop(&gGfxMatrix);
     }
 }
+#define F_PI        3.14159265f   /* pi             */
 
 void ActorAllRange_DrawBarrelRoll(ActorAllRange* this) {
     s32 alpha;
@@ -2361,7 +2362,7 @@ void ActorAllRange_DrawBarrelRoll(ActorAllRange* this) {
         Matrix_RotateZ(gGfxMatrix, gGameFrameCount * 20.0f * this->iwork[15] * M_DTOR, MTXF_APPLY);
 
         if (this->iwork[15] < 0) {
-            Matrix_RotateX(gGfxMatrix, M_PI, MTXF_APPLY);
+            Matrix_RotateX(gGfxMatrix, F_PI, MTXF_APPLY);
         }
 
         Matrix_Scale(gGfxMatrix, 2.0f, 2.0f, 2.0f, MTXF_APPLY);

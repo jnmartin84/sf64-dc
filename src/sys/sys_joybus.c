@@ -157,7 +157,7 @@ void Controller_Init(void) {
         gControllerRumbleEnabled[i] = !!cont;//(sp1F >> i) & 1;
     }
 
-rumble_worker_attr.create_detached = 1;
+    rumble_worker_attr.create_detached = 1;
 	rumble_worker_attr.stack_size = 4096;
 	rumble_worker_attr.stack_ptr = NULL;
 	rumble_worker_attr.prio = PRIO_DEFAULT;
@@ -176,7 +176,6 @@ int shader_debug_toggle = 0;
 #include <dc/maple/keyboard.h>
 
 void Map_Main(void);
-extern file_t streamout;
 
 void Controller_UpdateInput(void) {
 #if 1
@@ -205,7 +204,6 @@ void Controller_UpdateInput(void) {
             //profiler_stop();
             //profiler_clean_up();
             // give vmu a chance to write and close
-            fs_close(streamout);
             exit(0);
             } //else {
 //                if (state->buttons && CONT_A)
@@ -283,30 +281,11 @@ gControllerHold[i].errno = 0;
 	// now move on to the keyboard and mouse additions
 	controller = maple_enum_type(0, MAPLE_FUNC_KEYBOARD);
     if (controller) {
-		kbd_state_t *kbd = maple_dev_status(controller);
-for (int i = 0; i < KBD_MAX_PRESSED_KEYS; i++) {
-			if (!kbd->cond.keys[i] || kbd->cond.keys[i] == KBD_KEY_ERROR)
-				break;
-
-			switch (kbd->cond.keys[i]) {
-                case KBD_KEY_ESCAPE:
-                if (shader_debug_toggle == 0) {
-                    shader_debug_toggle = 1;
-                }
-                else if (shader_debug_toggle == 1) {
-                    shader_debug_toggle = 2;
-                }
-                else if (shader_debug_toggle == 2) {
-                    shader_debug_toggle = 0;
-                }
-printf("shader_debug_toggle %d\n",shader_debug_toggle);
-                break;
-                default:
-                break;
-            }
-
+        kbd_state_t* kbd = kbd_get_state(controller);
+        if(kbd->key_states[KBD_KEY_ESCAPE].value == KEY_STATE_CHANGED_DOWN) {
+            shader_debug_toggle = !shader_debug_toggle;
+        }
     }
-}
 }
 
 void Controller_ReadData(void) {

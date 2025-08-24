@@ -34,7 +34,7 @@ static inline void* segmented_to_virtual(const void* addr) {
 
 #define SCREEN_WIDTH  320
 #define SCREEN_HEIGHT 240
-#define SCREEN_MARGIN 8
+#define SCREEN_MARGIN 0
 
 #define TIME_IN_SECONDS(x) (x * 30);
 
@@ -68,9 +68,10 @@ static inline void* segmented_to_virtual(const void* addr) {
 #define ABS(x) ((x) >= 0 ? (x) : -(x))
 #define ABSF(x) ((x) >= 0.0f ? (x) : -(x))
 #define ROUND(float) ((s32)((float)+0.5f))
+#define F_PI        3.14159265f   /* pi             */
 
-#define RAD_TO_DEG(radians) (((radians) * 180.0f) / M_PI)
-#define DEG_TO_RAD(degrees) (((degrees) / 180.0f) * M_PI)
+#define RAD_TO_DEG(radians) (((radians) * 180.0f) / F_PI)
+#define DEG_TO_RAD(degrees) (((degrees) / 180.0f) * F_PI)
 
 #define SIN_DEG(angle) sinf((M_DTOR)*(angle))
 #define COS_DEG(angle) cosf((M_DTOR)*(angle))

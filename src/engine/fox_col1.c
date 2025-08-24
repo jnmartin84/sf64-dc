@@ -484,6 +484,7 @@ bool func_col1_80098980(Vec3f* pos, Vec3s** tri, Vec3f* normal) {
 
     return var_v1;
 }
+#define F_PI        3.14159265f   /* pi             */
 
 bool func_80099254(Vec3f* objPos, Vec3f* colliderPos, Vec3f* objVel, CollisionHeader* colHeader, Vec3f* hitPosOut,
                    f32* hitAnglesOut) {
@@ -619,7 +620,7 @@ bool func_80099254(Vec3f* objPos, Vec3f* colliderPos, Vec3f* objVel, CollisionHe
                             hitAnglesOut[1] = -Math_Atan2F_XY(
                                 sinf(Math_Atan2F_XY(polyPlane.normal.y, polyPlane.normal.z)) * polyPlane.normal.z,
                                 polyPlane.normal.x);
-                        } else if (hitAnglesOut[0] >= M_PI) {
+                        } else if (hitAnglesOut[0] >= F_PI) {
                             hitAnglesOut[1] = Math_Atan2F_XY(polyPlane.normal.y, polyPlane.normal.x);
                         } else {
                             hitAnglesOut[1] = -Math_Atan2F_XY(polyPlane.normal.y, polyPlane.normal.x);

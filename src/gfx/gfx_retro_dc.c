@@ -109,6 +109,8 @@ struct __attribute__((aligned(32))) LoadedVertex {
 	uint8_t clip_rej;
 	// 45
 	uint8_t	wlt0;
+	//
+	uint8_t lit;
 };
 
 
@@ -1524,15 +1526,16 @@ static void  __attribute__((noinline)) gfx_sp_pop_matrix(uint32_t count) {
 	while (count--) {
 		if (rsp.modelview_matrix_stack_size > 0) {
 			--rsp.modelview_matrix_stack_size;
-		}
-	}
-	if (rsp.modelview_matrix_stack_size > 0) {
+			if (rsp.modelview_matrix_stack_size > 0) {
 		gfx_matrix_mul(rsp.MP_matrix,
 					   /* (const float (*)[4]) */ rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1],
 					   /* (const float (*)[4]) */ rsp.P_matrix);
 //		glMatrixMode(GL_MODELVIEW);
 //		glLoadMatrixf((const float*) rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1]);
 	}
+		}
+	}
+	rsp.lights_changed = 1;
 }
 #include "sh4zam.h"
 //static float gfx_adjust_x_for_aspect_ratio(float x) {
@@ -1715,7 +1718,7 @@ static void __attribute__((noinline)) gfx_sp_vertex_light(size_t n_vertices, siz
                 b += intensity * rsp.current_lights[n].col[2];
             }
         }
-
+		d->lit = 1;
         d->color.r = r > 255 ? 255 : r;
         d->color.g = g > 255 ? 255 : g;
         d->color.b = b > 255 ? 255 : b;
@@ -1812,6 +1815,7 @@ static void __attribute__((noinline)) gfx_sp_vertex_no(size_t n_vertices, size_t
         d->_y = y;
         d->_z = z;
         d->_w = w;
+		d->lit = 0;
 
         d->color.r = v->cn[0];
         d->color.g = v->cn[1];
@@ -1855,23 +1859,6 @@ static void __attribute__((noinline)) gfx_sp_vertex_no(size_t n_vertices, size_t
 
 
 static void __attribute__((noinline)) gfx_sp_vertex(size_t n_vertices, size_t dest_index, const Vtx* vertices) {
-#if 1
-	if (matrix_dirty) {
-        glMatrixMode(GL_PROJECTION);
-        glLoadMatrixf((const float*) rsp.P_matrix);
-        glMatrixMode(GL_MODELVIEW);
-        glLoadMatrixf((const float*) rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1]);
-/*        matrix_dirty = 0;
-			printf("\n");
-		for (int r=0;r<4;r++) {
-			for (int c=0;c<4;c++) {
-				printf("%f ", rsp.MP_matrix[c][r]);
-			}
-			printf("\n");
-		}
-			printf("\n");*/
-    }
-#endif
     total_verts += n_vertices;
     if (rsp.geometry_mode & G_LIGHTING) {
         if (rsp.lights_changed) {
@@ -1884,10 +1871,10 @@ static void __attribute__((noinline)) gfx_sp_vertex(size_t n_vertices, size_t de
             calculate_normal_dir(&lookat_y, rsp.current_lookat_coeffs[1]);
             rsp.lights_changed = 0;
         }
-	fast_mat_load(&rsp.MP_matrix);
+	    fast_mat_load(&rsp.MP_matrix);
         gfx_sp_vertex_light(n_vertices, dest_index, vertices);
     } else {
-	fast_mat_load(&rsp.MP_matrix);
+	    fast_mat_load(&rsp.MP_matrix);
         gfx_sp_vertex_no(n_vertices, dest_index, vertices);
     }
 }
@@ -1908,7 +1895,16 @@ static void  __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx
     struct LoadedVertex* v3 = &rsp.loaded_vertices[vtx3_idx];
     struct LoadedVertex* v_arr[3] = { v1, v2, v3 };
 	total_tri++;
-   
+
+	if (matrix_dirty) {
+        glMatrixMode(GL_PROJECTION);
+        glLoadMatrixf((const float*) rsp.P_matrix);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadMatrixf((const float*) rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1]);
+		matrix_dirty = 0;
+		gfx_flush();
+	}
+
 	if (v1->clip_rej & v2->clip_rej & v3->clip_rej) {
         // The whole triangle lies outside the visible area
 
@@ -2088,6 +2084,8 @@ rdp.texture_tile.cmt = G_TX_MIRROR;
     uint8_t use_texture = used_textures[0] || used_textures[1];
     uint32_t tex_width = (rdp.texture_tile.lrs - rdp.texture_tile.uls + 4) >> 2;
     uint32_t tex_height = (rdp.texture_tile.lrt - rdp.texture_tile.ult + 4) >> 2;
+
+	uint8_t lit = v_arr[0]->lit;
 
     for (i = 0; i < 3; i++) {
         buf_vbo[buf_num_vert].vert.x = v_arr[i]->x;
@@ -2399,6 +2397,13 @@ buf_vbo[buf_num_vert].color.packed =
                                 PACK_ARGB8888(fake_r,fake_g,fake_b,fake_a);
 #endif
 		#if 1
+		if (lit) {
+			color_r = v_arr[i]->color.r + 96 > 255 ? 255 : v_arr[i]->color.r + 96;
+			color_g = v_arr[i]->color.g + 96 > 255 ? 255 : v_arr[i]->color.g + 96;
+			color_b = v_arr[i]->color.b + 96 > 255 ? 255 : v_arr[i]->color.b + 96;
+			color_a = 255;//v_arr[i]->color.a;
+			buf_vbo[buf_num_vert].color.packed = PACK_ARGB8888(color_r, color_g, color_b, color_a);
+		} else 
 
 		if (num_inputs > 1) {
             int i0 = comb->shader_input_mapping[0][1] == CC_PRIM;
@@ -3128,6 +3133,7 @@ void  __attribute__((noinline)) gfx_opengl_2d_projection(void) {
 	glOrtho(0, 640, 480, 0, -1, 1);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+	matrix_dirty = 1;
 }
 
 void  __attribute__((noinline)) gfx_opengl_reset_projection(void) {
@@ -3135,6 +3141,7 @@ void  __attribute__((noinline)) gfx_opengl_reset_projection(void) {
 	glLoadMatrixf((const float*) rsp.P_matrix);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadMatrixf((const float*) rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1]);
+	matrix_dirty = 1;
 }
 #endif
 
