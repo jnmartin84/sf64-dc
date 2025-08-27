@@ -14,7 +14,7 @@ void guLookAtF(float mf[4][4], float xEye, float yEye, float zEye, float xAt, fl
     zLook = zAt - zEye;
 
     /* Negate because positive Z is behind us: */
-    len = -1.0 / sqrtf(xLook * xLook + yLook * yLook + zLook * zLook);
+    len = -1.0f / sqrtf(xLook * xLook + yLook * yLook + zLook * zLook);
     xLook *= len;
     yLook *= len;
     zLook *= len;
@@ -24,7 +24,7 @@ void guLookAtF(float mf[4][4], float xEye, float yEye, float zEye, float xAt, fl
     xRight = yUp * zLook - zUp * yLook;
     yRight = zUp * xLook - xUp * zLook;
     zRight = xUp * yLook - yUp * xLook;
-    len = 1.0 / sqrtf(xRight * xRight + yRight * yRight + zRight * zRight);
+    len = 1.0f / sqrtf(xRight * xRight + yRight * yRight + zRight * zRight);
     xRight *= len;
     yRight *= len;
     zRight *= len;
@@ -34,7 +34,7 @@ void guLookAtF(float mf[4][4], float xEye, float yEye, float zEye, float xAt, fl
     xUp = yLook * zRight - zLook * yRight;
     yUp = zLook * xRight - xLook * zRight;
     zUp = xLook * yRight - yLook * xRight;
-    len = 1.0 / sqrtf(xUp * xUp + yUp * yUp + zUp * zUp);
+    len = 1.0f / sqrtf(xUp * xUp + yUp * yUp + zUp * zUp);
     xUp *= len;
     yUp *= len;
     zUp *= len;
@@ -54,10 +54,10 @@ void guLookAtF(float mf[4][4], float xEye, float yEye, float zEye, float xAt, fl
     mf[2][2] = zLook;
     mf[3][2] = -(xEye * xLook + yEye * yLook + zEye * zLook);
 
-    mf[0][3] = 0;
-    mf[1][3] = 0;
-    mf[2][3] = 0;
-    mf[3][3] = 1;
+    mf[0][3] = 0.0f;
+    mf[1][3] = 0.0f;
+    mf[2][3] = 0.0f;
+    mf[3][3] = 1.0f;
 }
 
 #ifndef GBI_FLOATS

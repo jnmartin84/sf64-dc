@@ -42,22 +42,22 @@ void Macbeth_MaSpear_Spawn(f32, f32, f32, f32, f32, f32, s16);
 void Macbeth_Effect379_Spawn(f32, f32, f32, f32, f32, f32);
 void Macbeth_EffectClouds_Spawn(void);
 
-f32 D_MA_801BE250[40];
-s16 D_MA_801BE2F0[9];
+f32 D_MA_801BE250[40] = {0.0f}; 
+s16 D_MA_801BE2F0[9] = {0};
 // #include "prevent_bss_reordering.h"
-char D_i5_801BE308[8];
-s16 D_i5_801BE310;
-u8 D_i5_801BE312;
-u8 D_i5_801BE313;
-s16 D_i5_801BE314;
-s16 D_i5_801BE316;
-s16 D_i5_801BE318;
-s16 D_i5_801BE320[35];
-f32 D_i5_801BE368[50];
-Vec3f sMaMechbethJointTable[50];
-Vec3f D_i5_801BE688[2];
-Vec3f D_i5_801BE6A0[12];
-s32 D_i5_801BE734[4];
+char D_i5_801BE308[8] = {0};
+s16 D_i5_801BE310 = 0;
+u8 D_i5_801BE312 = 0;
+u8 D_i5_801BE313 = 0;
+s16 D_i5_801BE314 = 0 ;
+s16 D_i5_801BE316 = 0;
+s16 D_i5_801BE318 = 0;
+s16 D_i5_801BE320[35] = {0};
+f32 D_i5_801BE368[50] = {0.0f};
+Vec3f sMaMechbethJointTable[50] = {0.0f};
+Vec3f D_i5_801BE688[2] = {0.0f};
+Vec3f D_i5_801BE6A0[12] = {0.0f};
+s32 D_i5_801BE734[4] = {0};
 
 UnkStruct_D_i5_801B8E50 D_i5_801B8E50[156] = {
     { 5174.4f, -2141.0f, 0.0f, 350.0f, OBJ_SCENERY_MA_TRAIN_TRACK_3 },

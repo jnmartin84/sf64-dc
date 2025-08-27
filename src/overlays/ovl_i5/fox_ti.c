@@ -34,18 +34,18 @@ typedef struct {
     s32 unk_0C;
 } UnkStruct_i5_801B8198; // size = 0x10
 
-s32* D_i5_801BBEF0;
-f32* D_i5_801BBEF4;
-s32* D_i5_801BBEF8;
-UnkStruct_i5_801BBF00 D_i5_801BBF00[67];
-Vec3f D_i5_801BC978[92];
-Vec3f D_i5_801BCDC8[92];
-Vec3f D_i5_801BD218[92];
-s16 D_i5_801BD668[34];
-f32 D_i5_801BD6B0[34];
-UnkStruct_i5_801BD738 D_i5_801BD738[3][9];
-PosRot D_i5_801BDA30[10];
-f32 D_i5_801BDB20[3][151];
+s32* D_i5_801BBEF0 = NULL;
+f32* D_i5_801BBEF4 = NULL;
+s32* D_i5_801BBEF8 = NULL;
+UnkStruct_i5_801BBF00 D_i5_801BBF00[67] = {0};
+Vec3f D_i5_801BC978[92] = {0.0f};
+Vec3f D_i5_801BCDC8[92] = {0.0f};
+Vec3f D_i5_801BD218[92] = {0.0f};
+s16 D_i5_801BD668[34] = {0};
+f32 D_i5_801BD6B0[34] = {0.04};
+UnkStruct_i5_801BD738 D_i5_801BD738[3][9] = {0};
+PosRot D_i5_801BDA30[10] = {0};
+f32 D_i5_801BDB20[3][151] = {0.0f};
 
 f32 D_i5_801B7360[25][4] = {
     { 165.0f, 120.0f, 0.0f, 90.0f },    { 127.5f, 7.5f, 0.0f, 90.0f },      { 7.5f, -112.5f, 0.0f, 90.0f },
@@ -163,14 +163,14 @@ void Titania_801891F4(TiDesertRover* this) {
 }
 
 void Titania_80189380(TiDesertRover* this) {
-    Vec3f sp8C;
-    Vec3f sp80;
-    Vec3f sp74;
-    Vec3f sp68;
-    Vec3f sp5C;
-    Vec3f sp50;
-    Vec3f sp44;
-    Vec3f pad;
+    Vec3f sp8C = {0.0f};
+    Vec3f sp80 = {0.0f};
+    Vec3f sp74 = {0.0f};
+    Vec3f sp68 = {0.0f};
+    Vec3f sp5C = {0.0f};
+    Vec3f sp50 = {0.0f};
+    Vec3f sp44 = {0.0f};
+    Vec3f pad = {0.0f};
 
     sp50.x = this->fwork[0];
     sp50.y = this->fwork[1];
@@ -217,11 +217,11 @@ Vec3f D_i5_801B752C = { -50.0f, 0.0f, -20.0f };
 Vec3f D_i5_801B7538 = { 50.0f, 0.0f, -20.0f };
 
 void Titania_TiDesertRover_Update(TiDesertRover* this) {
-    Vec3f sp54;
-    Vec3f sp48;
-    f32 sp44;
-    f32 sp40;
-    f32 sp3C;
+    Vec3f sp54 = {0.0f};
+    Vec3f sp48 = {0.0f};
+    f32 sp44=0.0f;
+    f32 sp40=0.0f;
+    f32 sp3C=0.0f;
 
     this->iwork[2]++;
 
@@ -491,7 +491,7 @@ void Titania_TiBoulder_Update(TiBoulder* this) {
     f32 sp48;
     f32 sp44;
 
-    this->drawShadow = true;
+    this->drawShadow = 1;
 
     if ((this->scale != 1.0f) && (this->dmgType == DMG_COLLISION)) {
         Object_Kill(&this->obj, this->sfxSource);
@@ -945,7 +945,7 @@ void Titania_TiBomb_Update(TiBomb* this) {
     f32 sp3C;
     f32 temp_fa1;
 
-    this->drawShadow = true;
+    this->drawShadow = 1;
 
     switch (this->state) {
         case 0:
@@ -1349,7 +1349,7 @@ void Titania_TiDesertCrawler_Update(TiDesertCrawler* this) {
             this->obj.rot.y = 180.0f;
             this->obj.pos.y += 125.0f;
             this->gravity = 1.0f;
-            this->drawShadow = true;
+            this->drawShadow = 1;
             this->vel.y = 20.0f;
             this->vel.z = -70.0f;
             Animation_GetFrameData(&D_TI1_700733C, 0, this->vwork);
@@ -2244,7 +2244,7 @@ void Titania_TiGoras_Init(TiGoras* this) {
         return;
     }
 
-    gBossActive = true;
+    gBossActive = 1;
     this->fwork[2] = 1.0f;
     this->fwork[4] = 730.0f;
 
@@ -2586,7 +2586,7 @@ void Titania_8019002C(s32 limbIndex, Vec3f* rot, void* thisx) {
     }
 }
 
-bool Titania_801903A0(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
+s32 Titania_801903A0(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
     f32 sp24;
     s32 sp20;
 
@@ -2658,7 +2658,7 @@ bool Titania_801903A0(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* 
             RCP_SetupDL(&gMasterDisp, SETUPDL_29);
             break;
     }
-    return true;
+    return 1;
 }
 
 void Titania_8019081C(s32 limbIndex, Vec3f* rot, void* thisx) {
@@ -2707,29 +2707,29 @@ void Titania_8019081C(s32 limbIndex, Vec3f* rot, void* thisx) {
     }
 }
 
-bool Titania_80190A08(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
-    Vec3f spCC = {0};
-    Vec3f spC0 = {0};
+s32 Titania_80190A08(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
+    Vec3f spCC = {0.0f};
+    Vec3f spC0 = {0.0f};
     // f32 spBC;
     // f32 padB8;
-    Vec3f padB4 = {0}; // Vec3f? Seems kind of wasteful
-    s32 i;
+    Vec3f padB4 = {0.0f}; // Vec3f? Seems kind of wasteful
+    s32 i = 0;
     TiGoras* this = (TiGoras*) thisx;
-    s32 spA8;
-    s32 temp_v1;
-    s32 spA0;
-    f32 sp9C;
-    s32 ret = false;
-    Vec3f sp8C={0};
-    s32 sp88;
-    Vec3f sp7C={0};
-    Vec3f sp70={0};
-    s32 sp6C;
-    f32 sp68;
+    s32 spA8 = 0;
+    s32 temp_v1 = 0;
+    s32 spA0 = 0;
+    f32 sp9C = 0.0f;
+    s32 ret = 0;
+    Vec3f sp8C={0.0f};
+    s32 sp88 = 0;
+    Vec3f sp7C={0.0f};
+    Vec3f sp70={0.0f};
+    s32 sp6C = 0;
+    f32 sp68 = 0.0f;
     // f32 pad64;
     // f32 sp60;
     Vec3f sp5C={0}; // Vec3f?
-    s32 sp58;
+    s32 sp58=0;
 
     if (limbIndex == 0) {
         rot->y += this->fwork[0x31];
@@ -2853,9 +2853,9 @@ bool Titania_80190A08(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* 
                         sp70.y = (gPlayer[0].pos.y + 50.0f) - (this->obj.pos.y + sp7C.y);
                         sp70.z = (gPlayer[0].trueZpos - (this->obj.pos.z + sp7C.z)) * this->fwork[0x2E];
 
-                        // FAKE
+/*                         // FAKE
                         sp5C.z++;
-                        sp5C.z--;
+                        sp5C.z--; */
 
                         sp5C.y = Math_Atan2F(sp70.x, sp70.z) * M_RTOD;
                         sp5C.x = -Math_Atan2F(sp70.y, sqrtf(SQ(sp70.x) + SQ(sp70.z))) * M_RTOD;
@@ -3030,7 +3030,7 @@ bool Titania_80190A08(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* 
                     Matrix_Pop(&gCalcMatrix);
                 }
                 Matrix_SetGfxMtx(&gMasterDisp);
-                ret = true;
+                ret = 1;
             }
             break;
         }
@@ -3040,18 +3040,18 @@ bool Titania_80190A08(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* 
 
 void Titania_80191AE8(s32 limbIndex, Vec3f* rot, void* thisx) {
     TiGoras* this = (TiGoras*) thisx;
-    f32* var_s0_2;
-    Vec3f spB4;
-    Vec3f spA8;
-    s32 pad[2];
-    f32* var_s1;
+    f32* var_s0_2 = NULL;
+    Vec3f spB4 = {0.0f};
+    Vec3f spA8 = {0.0f};
+    s32 pad[2] = {0};
+    f32* var_s1 = NULL;
     UnkStruct_i5_801BBF00* var_s0 = D_i5_801BBF00;
-    s32 temp_s4;
-    s16 temp_s6;
-    s32 i;
-    s32 j;
-    s32 cond;
-    Vec3f sp78;
+    s32 temp_s4 = 0;
+    s16 temp_s6 = 0;
+    s32 i = 0;
+    s32 j= 0;
+    s32 cond=0;
+    Vec3f sp78={0.0f};
 
     for (i = 0; i < ARRAY_COUNTU(D_i5_801B7770); i++, var_s0++) {
         if ((var_s0->unk_26 & 1) && (limbIndex == D_i5_801B7770[i][0])) {
@@ -5491,7 +5491,7 @@ void Titania_TiGoras_Dying(TiGoras* this) {
         Effect_Effect383_Spawn(this->obj.pos.x, this->obj.pos.y + 250.0f, this->obj.pos.z, 40.0f);
         Boss_AwardBonus(this);
 
-        gShowBossHealth = false;
+        gShowBossHealth = 0;
 
         debris = &gActors[0];
         for (i = 0; i < ARRAY_COUNT(gActors); i++, debris++) {

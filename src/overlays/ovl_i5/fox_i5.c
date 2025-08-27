@@ -1,6 +1,6 @@
 #include "global.h"
 
-UNK_TYPE D_i5_801BBEE0;
+UNK_TYPE D_i5_801BBEE0 = {0};
 s32 D_i5_801B7290 = 0;
 
 void OvlI5_CallFunction(u32 mode, void* ptr) {

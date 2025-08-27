@@ -74,7 +74,7 @@ void Titania_LevelStart(Player* player) {
             player->cam.at.y = gCsCamAtY = player->pos.y;
             player->cam.at.z = gCsCamAtZ = player->pos.z;
 
-            player->hideShadow = true;
+            player->hideShadow = 1;
             player->csState = 1;
             gFogFar = 1006;
             gPlayer[0].unk_19C = 0;
@@ -225,9 +225,9 @@ void Titania_LevelStart(Player* player) {
                 player->csState = player->csTimer = player->csEventTimer = player->hideShadow = 0;
                 player->gravity = 3.0f;
                 player->unk_014 = 0.0f;
-                D_ctx_8017782C = true;
+                D_ctx_8017782C = 1;
                 Play_InitEnvironment();
-                D_ctx_8017782C = false;
+                D_ctx_8017782C = 0;
                 if ((gControllerHold[player->num].button & Z_TRIG) && (gControllerHold[player->num].button & R_TRIG)) {
                     Audio_KillSfxBySourceAndId(player->sfxSource, NA_SE_TANK_GO_UP);
                 }
@@ -271,7 +271,7 @@ void Titania_80188108(Actor* this, s32 index) {
 
     if (index < 3) {
         this->iwork[11] = 1;
-        this->drawShadow = true;
+        this->drawShadow = 1;
         this->fwork[3] = D_i5_801B7348[index];
         this->state = 30;
         AUDIO_PLAY_SFX(NA_SE_ARWING_ENGINE_FG, this->sfxSource, 4);
@@ -416,11 +416,11 @@ void Titania_LevelComplete(Player* player) {
 
     switch (gCsFrameCount) {
         case 831:
-            gShowLevelClearStatusScreen = true;
+            gShowLevelClearStatusScreen = 1;
             break;
 
         case 1031:
-            gShowLevelClearStatusScreen = false;
+            gShowLevelClearStatusScreen = 0;
             break;
 
         case 50:
@@ -499,7 +499,7 @@ void Titania_LevelComplete(Player* player) {
             player->vel.y = 0.0f;
             Titania_80188108(&gActors[3], 3);
             gProjectFar = 30000.0f;
-            player->hideShadow = true;
+            player->hideShadow = 1;
             Audio_StopPlayerNoise(0);
             AUDIO_PLAY_SFX(NA_SE_TANK_GO_UP, player->sfxSource, 0);
             break;

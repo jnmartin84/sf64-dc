@@ -148,12 +148,4 @@ s64 __ull_div(s64, s64);
 s64 __ll_mul(s64, s64);
 s64 __ll_rshift(s64, s64);
 
-f32 Math_FloorF(f32);
-f32 Math_CeilF(f32);
-f64 Math_Fabs(f64);
-f32 Math_FabsF(f32);
-f32 Math_NearbyIntF(f32);
-f32 Math_TruncF(f32);
-f32 Math_RoundF(f32);
-
 #endif

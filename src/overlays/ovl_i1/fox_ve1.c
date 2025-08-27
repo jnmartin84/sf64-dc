@@ -1556,9 +1556,9 @@ void Venom1_Ve1Golemech_Update(Ve1Golemech* this) {
                 }
 
                 for (is7 = 0; is7 < D_i1_8019A820[spF4].unk_06; is7++) {
-                    sGoleMechLimbInfo[spF4].unk_0C[is7].x = RAND_DOUBLE_CENTERED(4.0);
-                    sGoleMechLimbInfo[spF4].unk_0C[is7].y = RAND_DOUBLE_CENTERED(4.0);
-                    sGoleMechLimbInfo[spF4].unk_0C[is7].z = RAND_DOUBLE_CENTERED(4.0);
+                    sGoleMechLimbInfo[spF4].unk_0C[is7].x = /* RAND_DOUBLE_CENTERED */RAND_FLOAT_CENTERED(4.0f);
+                    sGoleMechLimbInfo[spF4].unk_0C[is7].y = /* RAND_DOUBLE_CENTERED */RAND_FLOAT_CENTERED(4.0f);
+                    sGoleMechLimbInfo[spF4].unk_0C[is7].z = /* RAND_DOUBLE_CENTERED */RAND_FLOAT_CENTERED(4.0f);
                     sGoleMechLimbInfo[spF4].unk_30[is7].x = RAND_FLOAT(360.0f);
                     sGoleMechLimbInfo[spF4].unk_30[is7].y = RAND_FLOAT(360.0f);
                     sGoleMechLimbInfo[spF4].unk_30[is7].z = RAND_FLOAT(360.0f);

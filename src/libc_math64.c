@@ -4,39 +4,6 @@
 
 #define F_PI        3.14159265f   /* pi             */
 
-
-f32 Math_TanF(f32 x) {
-    return x == 0.0f ? 0.0f : (sinf(x) / cosf(x));
-}
-
-f32 Math_FloorF(f32 x) {
-    return floorf(x);
-}
-
-f32 Math_CeilF(f32 x) {
-    return ceilf(x);
-}
-
-f64 Math_Fabs(f64 x) {
-    return (x < 0.0) ? -x : x;
-}
-
-f32 Math_FabsF(f32 x) {
-    return (x < 0.0f) ? -x : x;
-}
-
-f32 Math_NearbyIntF(f32 x) {
-    return nearbyintf(x);
-}
-
-f32 Math_TruncF(f32 x) {
-    return truncf(x);
-}
-
-f32 Math_RoundF(f32 x) {
-    return roundf(x);
-}
-
 f32 Math_FAtanF(f32 x) {
     s32 sector;
     s32 i;

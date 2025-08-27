@@ -636,7 +636,8 @@ void *SPINNING_THREAD(UNUSED void *arg) {
 
         last_vbltick = vblticker;
 
-        int num_samples = 448;//540;//called & 1 ? SAMPLES_HIGH : SAMPLES_LOW;
+        int num_samples = //448;//
+        448;//544;//called & 1 ? SAMPLES_HIGH : SAMPLES_LOW;
 
         irq_disable();
         AudioThread_CreateNextAudioBuffer(audio_buffer, num_samples);

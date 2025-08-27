@@ -193,6 +193,8 @@ static struct RSP {
 	Light_t __attribute__((aligned(32))) current_lights[MAX_LIGHTS + 1];
 
 	float __attribute__((aligned(32))) current_lights_coeffs[MAX_LIGHTS][3];
+	Light_t __attribute__((aligned(32))) lookat_x;
+	Light_t __attribute__((aligned(32))) lookat_y;
 
 	float __attribute__((aligned(32))) current_lookat_coeffs[2][3]; // lookat_x, lookat_y
 
@@ -1056,22 +1058,29 @@ inline static void mat_load_apply(const matrix_t* matrix1, const matrix_t* matri
 }
 
 static void gfx_matrix_mul(matrix_t res, const matrix_t a, const matrix_t b) {
+#if 1
 	mat_load_apply((matrix_t *)b, (matrix_t *)a);
 	fast_mat_store((matrix_t *)res);
+#else
+float tmp[4][4];
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            tmp[i][j] = a[i][0] * b[0][j] + a[i][1] * b[1][j] + a[i][2] * b[2][j] + a[i][3] * b[3][j];
+        }
+    }
+    memcpy(res, tmp, sizeof(tmp));
+#endif
 }
 
 static int matrix_dirty = 0;
 
-static __attribute__((noinline)) void gfx_sp_matrix(uint8_t parameters, const int32_t* addr) {
-	int32_t* saddr = (int32_t*) segmented_to_virtual((void*) addr);
-	if ((uintptr_t)saddr < 0x8c010000 || (uintptr_t)saddr > 0x8cffffff) {
-		printf("bad saddr %08x\n",saddr);
-		exit(-1);
-	}
+static __attribute__((noinline)) void gfx_sp_matrix(uint8_t parameters, const void* addr) {
+	void* segaddr = (void*) segmented_to_virtual((void*) addr);
 
 	float matrix[4][4] __attribute__((aligned(32)));
 
 #ifndef GBI_FLOATS
+	int32_t *saddr = (int32_t *)segaddr;
 	// Original GBI where fixed point matrices are used
 	for (int i = 0; i < 4; i++) {
 		for (int j = 0; j < 4; j += 2) {
@@ -1083,7 +1092,7 @@ static __attribute__((noinline)) void gfx_sp_matrix(uint8_t parameters, const in
 	}
 #else
 	// For a modified GBI where fixed point values are replaced with floats
-	memcpy(matrix, saddr, sizeof(matrix));
+	memcpy(matrix, segaddr, sizeof(matrix));
 #endif
 
 	matrix_dirty = 1;
@@ -1092,19 +1101,25 @@ static __attribute__((noinline)) void gfx_sp_matrix(uint8_t parameters, const in
 		if (parameters & G_MTX_LOAD) {
 			memcpy(rsp.P_matrix, matrix, sizeof(matrix));
 		} else {
-			gfx_matrix_mul(rsp.P_matrix, (const float (*)[4]) matrix, (const float (*)[4]) rsp.P_matrix);
+			gfx_matrix_mul(rsp.P_matrix, matrix, rsp.P_matrix);
 		}
 	} else { // G_MTX_MODELVIEW
-		if ((parameters & G_MTX_PUSH) && rsp.modelview_matrix_stack_size < 11) {
-			++rsp.modelview_matrix_stack_size;
-			memcpy(rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1],
-				   rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 2], sizeof(matrix));
-		}
-		if (parameters & G_MTX_LOAD) {
-			memcpy(rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1], matrix, sizeof(matrix));
-		} else {
+		if (parameters == 0) {
 			gfx_matrix_mul(rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1], matrix,
 							rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1]);
+		} else {
+			if (parameters & G_MTX_PUSH) {
+				if (rsp.modelview_matrix_stack_size < 11) {
+					++rsp.modelview_matrix_stack_size;
+					memcpy(rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1],
+						rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 2], sizeof(matrix));
+				}
+			}
+			if (parameters & G_MTX_LOAD) {
+				if (rsp.modelview_matrix_stack_size == 0)
+					++rsp.modelview_matrix_stack_size;
+				memcpy(rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1], matrix, sizeof(matrix));
+			}
 		}
 		rsp.lights_changed = 1;
 	}
@@ -1117,14 +1132,17 @@ static void  __attribute__((noinline)) gfx_sp_pop_matrix(uint32_t count) {
 	while (count--) {
 		if (rsp.modelview_matrix_stack_size > 0) {
 			--rsp.modelview_matrix_stack_size;
-		}
+			if (rsp.modelview_matrix_stack_size > 0) {
+				gfx_matrix_mul(rsp.MP_matrix,
+					rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1],
+					rsp.P_matrix);
+			}
+		}/*  else {
+			break;
+		} */
 	}
-	if (rsp.modelview_matrix_stack_size > 0) {
-		gfx_matrix_mul(rsp.MP_matrix,
-					   /* (const float (*)[4]) */ rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1],
-					   /* (const float (*)[4]) */ rsp.P_matrix);
-		matrix_dirty = 1;
-	}
+	rsp.lights_changed = 1;	
+	matrix_dirty = 1;
 }
 
 #include "sh4zam.h"
@@ -1334,17 +1352,19 @@ static void __attribute__((noinline)) gfx_sp_vertex(size_t n_vertices, size_t de
             for (int n = 0; n < rsp.current_num_lights -1; n++) {
                 calculate_normal_dir(&rsp.current_lights[n], rsp.current_lights_coeffs[n]);
             }
-            static const Light_t lookat_x = { { 0, 0, 0 }, 0, { 0, 0, 0 }, 0, { 127, 0, 0 }, 0 };
-            static const Light_t lookat_y = { { 0, 0, 0 }, 0, { 0, 0, 0 }, 0, { 0, 127, 0 }, 0 };
-            calculate_normal_dir(&lookat_x, rsp.current_lookat_coeffs[0]);
-            calculate_normal_dir(&lookat_y, rsp.current_lookat_coeffs[1]);
+            calculate_normal_dir(&rsp.lookat_x, rsp.current_lookat_coeffs[0]);
+            calculate_normal_dir(&rsp.lookat_y, rsp.current_lookat_coeffs[1]);
             rsp.lights_changed = 0;
         }
+//		irq_disable();
 	    fast_mat_load(&rsp.MP_matrix);
         gfx_sp_vertex_light(n_vertices, dest_index, vertices);
-    } else {
+//		irq_enable();
+	} else {
+//		irq_disable();
 	    fast_mat_load(&rsp.MP_matrix);
         gfx_sp_vertex_no(n_vertices, dest_index, vertices);
+//		irq_enable();
     }
 }
 
@@ -1373,9 +1393,9 @@ static void  __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx
         glMatrixMode(GL_PROJECTION);
         glLoadMatrixf((const float*) rsp.P_matrix);
         glMatrixMode(GL_MODELVIEW);
-        glLoadMatrixf((const float*) rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1]);
+		glLoadMatrixf((const float*) rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1]);
 		matrix_dirty = 0;
-		gfx_flush();
+//		gfx_flush();
 	}
 
 	if (v1->clip_rej & v2->clip_rej & v3->clip_rej) {
@@ -1383,8 +1403,8 @@ static void  __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx
 
 //		nearz_tri++;
 /* 		if (nearz_tri == 1) {
-			printf ("v1 %f,%f,%f,%f\n", v1->_x, v1->_y, v1->_z, v1->_w);
-			for(int i=0;i<4;i++) {
+*/	//		printf ("v1 %f,%f,%f,%f\n", v1->_x, v1->_y, v1->_z, v1->_w);
+/*			for(int i=0;i<4;i++) {
 			for(int j=0;j<4;j++) {
 			printf("%f, ",		rsp.MP_matrix[i][j]);
 					}
@@ -2623,6 +2643,12 @@ static void  gfx_sp_movemem(uint8_t index, UNUSED uint8_t offset, const void* da
 		case G_MV_VIEWPORT:
 			gfx_calc_and_set_viewport((const Vp_t*) data);
 			break;
+		case G_MV_LOOKATY:
+			memcpy(&rsp.lookat_y, data, sizeof(Light_t));
+			break;
+		case G_MV_LOOKATX:
+			memcpy(&rsp.lookat_x, data, sizeof(Light_t));
+			break;
 		case G_MV_L0:
 		case G_MV_L1:
 		case G_MV_L2:
@@ -3356,7 +3382,7 @@ static void  __attribute__((noinline)) gfx_run_dl(Gfx* cmd) {
 #ifdef F3DEX_GBI_2
 				gfx_sp_matrix(C0(0, 8) ^ G_MTX_PUSH, (const int32_t*) seg_addr(cmd->words.w1));
 #else
-				gfx_sp_matrix(C0(16, 8), (const int32_t*) seg_addr(cmd->words.w1));
+				gfx_sp_matrix(C0(16, 8), (const void*) seg_addr(cmd->words.w1));
 #endif
 				break;
 
@@ -3590,8 +3616,14 @@ static void  __attribute__((noinline)) gfx_run_dl(Gfx* cmd) {
 
 static void gfx_sp_reset() {
 	rsp.modelview_matrix_stack_size = 1;
-	rsp.current_num_lights = 2;
+	rsp.current_num_lights = 0;
 	rsp.lights_changed = 1;
+	rsp.lookat_x.dir[0] = 127;
+	rsp.lookat_x.dir[1] = 0;
+	rsp.lookat_x.dir[2] = 0;
+	rsp.lookat_y.dir[0] = 0;
+	rsp.lookat_y.dir[1] = 127;
+	rsp.lookat_y.dir[2] = 0;
 }
 
 void gfx_get_dimensions(uint32_t* width, uint32_t* height) {
@@ -3608,14 +3640,14 @@ void gfx_init(struct GfxWindowManagerAPI* wapi, struct GfxRenderingAPI* rapi, co
 	gfx_rapi->init();
 
 	// Used in the 120 star TAS
-	static uint32_t precomp_shaders[] = { 0x01200200, 0x00000045, 0x00000200, 0x01200a00, 0x00000a00, 0x01a00045,
+	/*static uint32_t precomp_shaders[] = { 0x01200200, 0x00000045, 0x00000200, 0x01200a00, 0x00000a00, 0x01a00045,
 										  0x00000551, 0x01045045, 0x05a00a00, 0x01200045, 0x05045045, 0x01045a00,
 										  0x01a00a00, 0x0000038d, 0x01081081, 0x0120038d, 0x03200045, 0x03200a00,
 										  0x01a00a6f, 0x01141045, 0x07a00a00, 0x05200200, 0x03200200, 0x09200200,
 										  0x0920038d, 0x09200045 };
 	for (i = 0; i < sizeof(precomp_shaders) / sizeof(uint32_t); i++) {
 		gfx_lookup_or_create_shader_program(precomp_shaders[i]);
-	}
+	}*/
 	gfx_wapi->get_dimensions(&gfx_current_dimensions.width, &gfx_current_dimensions.height);
 	if (gfx_current_dimensions.height == 0) {
 		// Avoid division by zero

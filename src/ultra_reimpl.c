@@ -161,7 +161,7 @@ void osSetTime(UNUSED OSTime time) {
 #define N64_NS_PER_TICK 21.91f
 
 // Change me to "float" to trade accuracy for perf
-typedef double N64Ticks;
+typedef float N64Ticks;
 
 volatile OSTime osGetTime(void) {
     uint64_t ns = timer_ns_gettime64();

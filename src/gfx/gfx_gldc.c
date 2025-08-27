@@ -891,7 +891,7 @@ void gfx_opengl_draw_triangles_2d(void* buf_vbo, size_t buf_vbo_len, size_t buf_
             over_skybox_setup_pre();
         if (do_fillrect_blend) {
             glEnable(GL_BLEND);
-            printf("do the glare thing\n");
+//            printf("do the glare thing\n");
             glBlendFunc(GL_SRC_ALPHA, GL_ONE);///* GL_ONE_MINUS_ */GL_SRC_ALPHA);
         }
     /*     if (do_xt_fill) {
