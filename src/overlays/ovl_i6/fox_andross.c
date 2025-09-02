@@ -109,7 +109,7 @@ void Andross_Backdrop_RotEffect(void) {
     backdropTex2 = SEGMENTED_TO_VIRTUAL(&aAndBackdrop1Tex2);
 
     for (i = 0; i < 32 * 32; i += 32) {
-        rotOffset = 4.0f * sinf((s32) (((i / 32) + (gGameFrameCount / 2)) % 32U) * (2 * M_PI / 32));
+        rotOffset = 4.0f * sinf((s32) (((i / 32) + (gGameFrameCount / 2)) % 32U) * (2 * F_PI / 32));
 
         for (j = 0; j < 32; j++) {
             backdropTex1[i + ((rotOffset + j) % 32U)] = backdropTex2[i + j];
@@ -742,7 +742,7 @@ void Andross_AndExplosion_Update(AndExplosion* this) {
         vec.y = 0.0f;
         vec.z = -30.0f;
         Matrix_MultVec3fNoTranslate(gCalcMatrix, &vec, &vel);
-        Matrix_RotateZ(gCalcMatrix, 2.0f * RAND_FLOAT(M_PI), MTXF_APPLY);
+        Matrix_RotateZ(gCalcMatrix, 2.0f * RAND_FLOAT(F_PI), MTXF_APPLY);
         vec.x = RAND_FLOAT(300.0f);
         vec.y = 0.0f;
         vec.z = 0.0f;
@@ -1163,7 +1163,7 @@ void Andross_AndBrain_Update(AndBrain* this) {
                 vec.z = -50.0f;
 
                 Matrix_MultVec3fNoTranslate(gCalcMatrix, &vec, &sp58);
-                Matrix_RotateZ(gCalcMatrix, 2.0f * RAND_FLOAT(M_PI), MTXF_APPLY);
+                Matrix_RotateZ(gCalcMatrix, 2.0f * RAND_FLOAT(F_PI), MTXF_APPLY);
 
                 vec.x = RAND_FLOAT(50.0f) + 120.0f;
                 vec.y = 0.0f;
@@ -3675,7 +3675,7 @@ void Andross_AndLaserEmitter_Draw(AndLaserEmitter* this) {
             scale *= 1.2f;
         }
         Matrix_Scale(gGfxMatrix, scale, scale, scale, MTXF_APPLY);
-        Matrix_RotateX(gGfxMatrix, M_PI / 2, MTXF_APPLY);
+        Matrix_RotateX(gGfxMatrix, F_PI / 2, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
         RCP_SetupDL(&gMasterDisp, SETUPDL_67);
         gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, alpha);
@@ -3994,7 +3994,7 @@ void Andross_LevelComplete(Player* player) {
                 Math_SmoothStepToF(&D_ctx_80177A48[3], 200.0f, 0.1f, 5.0f, 0.0f);
                 D_ctx_80177A48[4] += 4.5f;
                 gDrawBackdrop = 2;
-                Matrix_RotateZ(gCalcMatrix, 2.0f * RAND_FLOAT(M_PI), MTXF_NEW);
+                Matrix_RotateZ(gCalcMatrix, 2.0f * RAND_FLOAT(F_PI), MTXF_NEW);
                 sp74.x = RAND_FLOAT(50.0f) + 120.0f;
                 sp74.y = 0.0f;
                 sp74.z = 0.0f;

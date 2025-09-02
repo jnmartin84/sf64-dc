@@ -11,9 +11,9 @@
 #include <stdlib.h>
 
 //#define SAMPLES_HIGH 533
-#define SAMPLES_HIGH 448
+#define SAMPLES_HIGH 464
 //560
-#define SAMPLES_LOW 448
+#define SAMPLES_LOW 432
 //528
 
 uintptr_t arch_stack_32m = 0x8d000000;
@@ -384,20 +384,20 @@ void *SPINNING_THREAD(UNUSED void *arg) {
     uint64_t last_vbltick = vblticker;
 
     while (1) {
-        while (vblticker <= last_vbltick /* + 1 */)
-            genwait_wait((void*)&vblticker, NULL, 15, NULL);
+        while (vblticker <= last_vbltick /*  + 1 */)
+            genwait_wait((void*)&vblticker, NULL, 16, NULL);
 
         last_vbltick = vblticker;
 
-        int num_samples = //534;//
-       // 448;//
-       called & 1 ? SAMPLES_HIGH : SAMPLES_LOW;
+//        int num_samples = //534;//
+  //      448;//
+       //called & 1 ? SAMPLES_HIGH : SAMPLES_LOW;
 #if 1
         irq_disable();
-        AudioThread_CreateNextAudioBuffer(audio_buffer, num_samples);
- //       AudioThread_CreateNextAudioBuffer(audio_buffer + (num_samples * 2), num_samples);
+        AudioThread_CreateNextAudioBuffer(audio_buffer, 448);//num_samples);
+//        AudioThread_CreateNextAudioBuffer(audio_buffer + (num_samples * 2), num_samples);
         irq_enable();
-        audio_api->play((u8 *)audio_buffer, (num_samples * 2 * 2 /* * 2 */));
+        audio_api->play((u8 *)audio_buffer, 1792);// (num_samples * 2 * 2  * 2));
  #endif
         }
 

@@ -87,7 +87,7 @@ void Lib_Texture_Mottle(u16* dst, u16* src, u8 mode) {
     switch (mode) {
         case 2:
             for (v = 0; v < 32 * 32; v += 32) {
-                offset = 3.0f * sinf((s32) (((v / 32) + (gGameFrameCount / 4)) % 32U) * (2 * M_PI / 32));
+                offset = 3.0f * sinf((s32) (((v / 32) + (gGameFrameCount / 4)) % 32U) * (2 * F_PI / 32));
                 for (u = 0; u < 32; u++) {
                     vdst[v + (offset + u) % 32U] = vsrc[v + u];
                 }
@@ -96,7 +96,7 @@ void Lib_Texture_Mottle(u16* dst, u16* src, u8 mode) {
 
         case 3:
             for (v = 0; v < 32 * 64; v += 64) { // should be 32 * 64?
-                offset = sinf((s32) (((v / 64) + (gGameFrameCount / 4)) % 32U) * (2 * M_PI / 8));
+                offset = sinf((s32) (((v / 64) + (gGameFrameCount / 4)) % 32U) * (2 * F_PI / 8));
                 for (u = 0; u < 64; u++) {
                     vdst[v + (offset + u) % 64U] = vsrc[v + u];
                 }
@@ -105,7 +105,7 @@ void Lib_Texture_Mottle(u16* dst, u16* src, u8 mode) {
 
         case 1:
             for (v = 0; v < 16 * 16; v += 16) {
-                offset = 2.0f * sinf((s32) (((v / 16) + (gGameFrameCount / 2)) % 16U) * (2 * M_PI / 16));
+                offset = 2.0f * sinf((s32) (((v / 16) + (gGameFrameCount / 2)) % 16U) * (2 * F_PI / 16));
                 for (u = 0; u < 16; u++) {
                     vdst[v + (offset + u) % 16U] = vsrc[v + u];
                 }
@@ -114,7 +114,7 @@ void Lib_Texture_Mottle(u16* dst, u16* src, u8 mode) {
 
         case 0:
             for (v = 0; v < 32 * 32; v += 32) {
-                offset = 2.0f * sinf((s32) (((v / 32) + (gGameFrameCount / 2)) % 32U) * (2 * M_PI / 32));
+                offset = 2.0f * sinf((s32) (((v / 32) + (gGameFrameCount / 2)) % 32U) * (2 * F_PI / 32));
                 for (u = 0; u < 32; u++) {
                     vdst[v + (offset + u) % 32U] = vsrc[v + u];
                 }
@@ -125,7 +125,7 @@ void Lib_Texture_Mottle(u16* dst, u16* src, u8 mode) {
             dst8 = (u8*) vdst;
             src8 = (u8*) vsrc;
             for (v = 0; v < 64 * 64; v += 64) {
-                offset = 4.0f * sinf((s32) (((v / 64) + (gGameFrameCount / 4)) % 32U) * (2 * M_PI / 32));
+                offset = 4.0f * sinf((s32) (((v / 64) + (gGameFrameCount / 4)) % 32U) * (2 * F_PI / 32));
                 for (u = 0; u < 64; u++) {
                     dst8[v + (offset + u) % 64U] = src8[v + u];
                 }
@@ -150,10 +150,10 @@ void Animation_DrawLimb(s32 mode, Limb* limb, Limb** skeleton, Vec3f* jointTable
     s32 override = 0;
     s32 limbIndex = 0;
     Gfx* dList = NULL;
-    Vec3f trans = { 0.0f, 0.0f, 0.0f };
-    Vec3f rot = { 0.0f, 0.0f, 0.0f };
-    Vec3f pos = { 0.0f, 0.0f, 0.0f };
-    Vec3f origin = { 0.0f, 0.0f, 0.0f };
+    Vec3f trans;// = { 0.0f, 0.0f, 0.0f };
+    Vec3f rot;// = { 0.0f, 0.0f, 0.0f };
+    Vec3f pos;// = { 0.0f, 0.0f, 0.0f };
+    Vec3f origin;// = { 0.0f, 0.0f, 0.0f };
 
     Matrix_Push(&gCalcMatrix);
 
@@ -211,7 +211,7 @@ void Animation_DrawSkeleton(s32 mode, Limb** skeletonSegment, Vec3f* jointTable,
     s32 rootIndex;//=0;
     Gfx* dList;//=NULL;
     Vec3f baseTrans;// = {0.0f,0.0f,0.0f};
-    Vec3f baseRot;// = {0.0f,0.0f,0.0f};
+    Vec3f baseRot = {0.0f,0.0f,0.0f};
 
     Matrix_Push(&gCalcMatrix);
     Matrix_Copy(gCalcMatrix, transform);

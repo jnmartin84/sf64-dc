@@ -478,7 +478,7 @@ void Meteo_MeCrusherShield_Draw(MeCrusherShield* this) {
         gDPSetPrimColor(gMasterDisp++, 0, 0, 0, 255, 0, 255);
     }
 
-    Matrix_RotateZ(gGfxMatrix, (M_PI / 4), MTXF_APPLY);
+    Matrix_RotateZ(gGfxMatrix, (F_PI / 4), MTXF_APPLY);
     Matrix_SetGfxMtx(&gMasterDisp);
     gSPDisplayList(gMasterDisp++, D_ME_60240B0);
     RCP_SetupDL_64();
@@ -496,7 +496,7 @@ void Meteo_MeCrusherShield_Draw(MeCrusherShield* this) {
                 Matrix_Scale(gGfxMatrix, 4.0f, 7.0f, 5.0f, MTXF_APPLY);
             }
 
-            Matrix_RotateZ(gGfxMatrix, 1.5707964f, MTXF_APPLY); // (M_PI / 2) does not match
+            Matrix_RotateZ(gGfxMatrix, 1.5707964f, MTXF_APPLY); // (F_PI / 2) does not match
             Matrix_SetGfxMtx(&gMasterDisp);
             gSPDisplayList(gMasterDisp++, D_ME_60263F0);
             Matrix_Pop(&gGfxMatrix);
@@ -1616,7 +1616,7 @@ void Meteo_MeCrusher_Draw(MeCrusher* this) {
 
             if (i == 4) {
                 Matrix_Translate(gGfxMatrix, 0.0f, 0, 300.0f, MTXF_APPLY);
-                Matrix_RotateZ(gGfxMatrix, M_PI / 4, MTXF_APPLY);
+                Matrix_RotateZ(gGfxMatrix, F_PI / 4, MTXF_APPLY);
                 Matrix_Scale(gGfxMatrix, this->fwork[21], this->fwork[21], 1.0f, MTXF_APPLY);
             }
 
@@ -1660,22 +1660,22 @@ void Meteo_MeCrusher_Draw(MeCrusher* this) {
             switch (i) {
                 case 0:
                     Matrix_Translate(gGfxMatrix, 746.0f, 741.0f, 680.0f, MTXF_APPLY);
-                    Matrix_RotateZ(gGfxMatrix, -M_PI / 4, MTXF_APPLY);
+                    Matrix_RotateZ(gGfxMatrix, -F_PI / 4, MTXF_APPLY);
                     break;
 
                 case 1:
                     Matrix_Translate(gGfxMatrix, -746.0f, 741.0f, 680.0f, MTXF_APPLY);
-                    Matrix_RotateZ(gGfxMatrix, M_PI / 4, MTXF_APPLY);
+                    Matrix_RotateZ(gGfxMatrix, F_PI / 4, MTXF_APPLY);
                     break;
 
                 case 2:
                     Matrix_Translate(gGfxMatrix, -746.0f, -741.0f, 680.0f, MTXF_APPLY);
-                    Matrix_RotateZ(gGfxMatrix, 3 * M_PI / 4, MTXF_APPLY);
+                    Matrix_RotateZ(gGfxMatrix, 3 * F_PI / 4, MTXF_APPLY);
                     break;
 
                 case 3:
                     Matrix_Translate(gGfxMatrix, 746.0f, -741.0f, 680.0f, MTXF_APPLY);
-                    Matrix_RotateZ(gGfxMatrix, -3 * M_PI / 4, MTXF_APPLY);
+                    Matrix_RotateZ(gGfxMatrix, -3 * F_PI / 4, MTXF_APPLY);
                     break;
             }
 
@@ -1691,10 +1691,10 @@ void Meteo_MeCrusher_Draw(MeCrusher* this) {
             Matrix_SetGfxMtx(&gMasterDisp);
             gSPDisplayList(gMasterDisp++, aBlueSphereDL);
             Matrix_Pop(&gGfxMatrix);
-            Matrix_RotateX(gGfxMatrix, -M_PI / 6, MTXF_APPLY);
+            Matrix_RotateX(gGfxMatrix, -F_PI / 6, MTXF_APPLY);
 
             if ((gGameFrameCount % 2) != 0) {
-                Matrix_RotateY(gGfxMatrix, M_PI, MTXF_APPLY);
+                Matrix_RotateY(gGfxMatrix, F_PI, MTXF_APPLY);
             }
             Matrix_Scale(gGfxMatrix, 2.0f, 2.0f * var_fs1, 2.0f, MTXF_APPLY);
             Matrix_Translate(gGfxMatrix, 0.0f, -20.0f, 0.0f, MTXF_APPLY);
@@ -2155,7 +2155,7 @@ void Meteo_Effect370_Draw(Effect370* this) {
     if (this->state == 1) {
         Matrix_RotateX(gGfxMatrix, this->obj.rot.x * M_DTOR, MTXF_APPLY);
         Matrix_Scale(gGfxMatrix, this->scale2, this->scale2, this->scale2, MTXF_APPLY);
-        Matrix_RotateZ(gGfxMatrix, M_PI / 2, MTXF_APPLY);
+        Matrix_RotateZ(gGfxMatrix, F_PI / 2, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
         gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, this->alpha);
         gSPDisplayList(gMasterDisp++, D_ME_60263F0);
@@ -2168,10 +2168,10 @@ void Meteo_Effect369_Draw(Effect369* this) {
         Matrix_Scale(gGfxMatrix, this->scale2, this->scale2, this->scale2 * 3.0f, MTXF_APPLY);
 
         if ((gGameFrameCount % 2) != 0) {
-            Matrix_RotateZ(gGfxMatrix, M_PI, MTXF_APPLY);
+            Matrix_RotateZ(gGfxMatrix, F_PI, MTXF_APPLY);
         }
 
-        Matrix_RotateX(gGfxMatrix, -M_PI / 2, MTXF_APPLY);
+        Matrix_RotateX(gGfxMatrix, -F_PI / 2, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
         gDPSetPrimColor(gMasterDisp++, 0, 0, 160, 255, 160, this->alpha);
         gSPDisplayList(gMasterDisp++, D_102F5E0);

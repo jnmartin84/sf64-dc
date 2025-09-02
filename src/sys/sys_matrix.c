@@ -10,7 +10,7 @@
 
 //#define M_DTOR	(M_PI / 180.0f)
 #define M_RTOD	(180.0f / F_PI)
-
+#if GBI_FLOATS
 Mtx gIdentityMtx = { {
     /*{*/
         { 1.0f, 0.0f, 0.0f, 0.0f },
@@ -31,6 +31,26 @@ Mtx gIdentityMtx2 = { {
         { 0.0f, 0.0f, 0.0f, 0.0f },
         { 0.0f, 0.0f, 0.0f, 0.0f },
 }};
+#else
+
+Mtx gIdentityMtx = { {
+    {
+        { 1, 0, 0, 0 },
+        { 0, 1, 0, 0 },
+        { 0, 0, 1, 0 },
+        { 0, 0, 0, 1 },
+    },
+    {
+        { 0, 0, 0, 0 },
+        { 0, 0, 0, 0 },
+        { 0, 0, 0, 0 },
+        { 0, 0, 0, 0 },
+    },
+} };
+
+#endif
+
+
 Matrix /* __attribute__((aligned(32))) */ gIdentityMatrix = { {
     { 1.0f, 0.0f, 0.0f, 0.0f },
     { 0.0f, 1.0f, 0.0f, 0.0f },

@@ -427,7 +427,7 @@ s32 PlayerShot_CheckEventHitbox(PlayerShot* shot, Actor* actor) {
     }
     return 0;
 }
-
+#include "sh4zam.h"
 s32 PlayerShot_CheckActorHitbox(PlayerShot* shot, Actor* actor) {
     Object* shotx = &shot->obj;
     f32 xPos = actor->obj.pos.x - shotx->pos.x;
@@ -435,11 +435,11 @@ s32 PlayerShot_CheckActorHitbox(PlayerShot* shot, Actor* actor) {
     f32 var_fa1;
     f32* hitboxData = actor->info.hitbox;
 
-    if (((s32) hitboxData[0] != 0) && (sqrtf(SQ(xPos) + SQ(zPos)) <= 500.0f)) {
+    if (((s32) hitboxData[0] != 0) && (shz_sqrtf_fsrra(SQ(xPos) + SQ(zPos)) <= 500.0f)) {
         if (shot->sourceId < 4) {
             xPos = actor->obj.pos.x - gPlayer[0].cam.eye.x;
             zPos = actor->obj.pos.z + gPathProgress - gPlayer[0].cam.eye.z;
-            var_fa1 = (sqrtf(SQ(xPos) + SQ(zPos)) / 50.0f) + 20.0f + 10.0f;
+            var_fa1 = (shz_sqrtf_fsrra(SQ(xPos) + SQ(zPos)) / 50.0f) + 20.0f + 10.0f;
             if (var_fa1 > 200.0f) {
                 var_fa1 = 200.0f;
             }
@@ -1940,7 +1940,7 @@ void PlayerShot_ApplyExplosionDamage(PlayerShot* shot, s32 damage) {
             dx = scenery->obj.pos.x - shot->obj.pos.x;
             dy = scenery->obj.pos.y - shot->obj.pos.y;
             dz = scenery->obj.pos.z - shot->obj.pos.z;
-            if (sqrtf(SQ(dx) + SQ(dy) + SQ(dz)) < radius) {
+            if (shz_sqrtf_fsrra(SQ(dx) + SQ(dy) + SQ(dz)) < radius) {
                 scenery->dmgType = DMG_EXPLOSION;
             }
             scenery->dmgPart = 0;
@@ -1955,7 +1955,7 @@ void PlayerShot_ApplyExplosionDamage(PlayerShot* shot, s32 damage) {
             dx = sprite->obj.pos.x - shot->obj.pos.x;
             dy = sprite->obj.pos.y - shot->obj.pos.y;
             dz = sprite->obj.pos.z - shot->obj.pos.z;
-            if (sqrtf(SQ(dx) + SQ(dy) + SQ(dz)) < radius) {
+            if (shz_sqrtf_fsrra(SQ(dx) + SQ(dy) + SQ(dz)) < radius) {
                 sprite->destroy = true;
             }
         }
@@ -1979,7 +1979,7 @@ void PlayerShot_ApplyExplosionDamage(PlayerShot* shot, s32 damage) {
             actor->hitPos.y = shot->obj.pos.y;
             actor->hitPos.z = shot->obj.pos.z;
 
-            if (sqrtf(SQ(dx) + SQ(dy) + SQ(dz)) < radius) {
+            if (shz_sqrtf_fsrra(SQ(dx) + SQ(dy) + SQ(dz)) < radius) {
                 if ((actor->obj.id == OBJ_ACTOR_CO_RADAR) || (actor->obj.id == OBJ_ACTOR_ME_LASER_CANNON_1) ||
                     (actor->obj.id == OBJ_ACTOR_MISSILE_SEEK_TEAM) || (actor->obj.id == OBJ_ACTOR_ME_HOPBOT) ||
                     (actor->obj.id == OBJ_ACTOR_ME_METEO_BALL) || (actor->obj.id == OBJ_ACTOR_ME_LASER_CANNON_2) ||
@@ -2034,7 +2034,7 @@ void PlayerShot_ApplyExplosionDamage(PlayerShot* shot, s32 damage) {
             dx = effect->obj.pos.x - shot->obj.pos.x;
             dy = effect->obj.pos.y - shot->obj.pos.y;
             dz = effect->obj.pos.z - shot->obj.pos.z;
-            if (sqrtf(SQ(dx) + SQ(dy) + SQ(dz)) < radius) {
+            if (shz_sqrtf_fsrra(SQ(dx) + SQ(dy) + SQ(dz)) < radius) {
                 if (effect->info.unk_16 == 0) {
                     Object_Kill(&effect->obj, effect->sfxSource);
                 }
@@ -2063,7 +2063,7 @@ void PlayerShot_ApplyExplosionDamage(PlayerShot* shot, s32 damage) {
                 dx = player->pos.x - shot->obj.pos.x;
                 dy = player->pos.y - shot->obj.pos.y;
                 dz = player->trueZpos - shot->obj.pos.z;
-                if (sqrtf(SQ(dx) + SQ(dy) + SQ(dz)) < radius) {
+                if (shz_sqrtf_fsrra(SQ(dx) + SQ(dy) + SQ(dz)) < radius) {
                     player->attacker = shot->sourceId + 1;
                     switch (player->form) {
                         case FORM_ARWING:
@@ -2217,7 +2217,7 @@ void PlayerShot_UpdateLockOnShot(PlayerShot* shot) {
                 sp68 = shot->obj.pos.y - sLockOnPos.y;
                 sp64 = shot->obj.pos.z - sLockOnPos.z;
                 sp58 = Math_RadToDeg(Math_Atan2F(sp6C, sp64));
-                sp5C = Math_RadToDeg(-Math_Atan2F(sp68, sqrtf(SQ(sp6C) + SQ(sp64))));
+                sp5C = Math_RadToDeg(-Math_Atan2F(sp68, shz_sqrtf_fsrra(SQ(sp6C) + SQ(sp64))));
                 if (shot->vec_2C.y >= 360.0f) {
                     shot->vec_2C.y -= 360.0f;
                 }

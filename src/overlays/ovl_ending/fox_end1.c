@@ -1800,7 +1800,7 @@ void Ending_8018C21C(void) {
                             Matrix_Push(&gGfxMatrix);
                             Matrix_Translate(gGfxMatrix, var_s1->x, var_s1->y, var_s1->z, MTXF_APPLY);
                             Matrix_Scale(gGfxMatrix, scale->x, scale->y, scale->z, MTXF_APPLY);
-                            Matrix_RotateX(gGfxMatrix, M_PI / 2, MTXF_APPLY);
+                            Matrix_RotateX(gGfxMatrix, F_PI / 2, MTXF_APPLY);
                             Matrix_SetGfxMtx(&gMasterDisp);
                             gSPDisplayList(gMasterDisp++, aEndOrbDL);
                             Matrix_Pop(&gGfxMatrix);
@@ -1808,7 +1808,7 @@ void Ending_8018C21C(void) {
                             scale = &spF4[gGameFrameCount % 2];
                             Matrix_Translate(gGfxMatrix, var_s1->x, var_s1->y, var_s1->z - 60.0f, MTXF_APPLY);
                             Matrix_Scale(gGfxMatrix, scale->x, scale->y, scale->z, MTXF_APPLY);
-                            Matrix_RotateX(gGfxMatrix, M_PI / 2, MTXF_APPLY);
+                            Matrix_RotateX(gGfxMatrix, F_PI / 2, MTXF_APPLY);
                             Matrix_SetGfxMtx(&gMasterDisp);
                             gSPDisplayList(gMasterDisp++, aEndOrbDL);
                             Matrix_Pop(&gGfxMatrix);
@@ -1866,7 +1866,7 @@ void Ending_8018C21C(void) {
                     gDPSetEnvColor(gMasterDisp++, 0, 255, 0, 64);
                     Matrix_Translate(gGfxMatrix, 0.0f, 0.0f, -66.0f, MTXF_APPLY);
                     Matrix_Scale(gGfxMatrix, 1.0f, 1.0f, 1.0f, MTXF_APPLY);
-                    Matrix_RotateX(gGfxMatrix, M_PI / 2, MTXF_APPLY);
+                    Matrix_RotateX(gGfxMatrix, F_PI / 2, MTXF_APPLY);
                     Matrix_SetGfxMtx(&gMasterDisp);
                     gSPDisplayList(gMasterDisp++, aEndOrbDL);
                     Matrix_Pop(&gGfxMatrix);
@@ -1897,7 +1897,7 @@ void Ending_8018C21C(void) {
                     Matrix_Translate(gGfxMatrix, 70.0f, 0.0f, -100.0f, MTXF_APPLY);
                     Matrix_Scale(gGfxMatrix, spE4, 1.0f, 200.0f, MTXF_APPLY);
                     Matrix_Translate(gGfxMatrix, 0.0f, 0.0f, -17.5f, MTXF_APPLY);
-                    Matrix_RotateX(gGfxMatrix, M_PI / 2, MTXF_APPLY);
+                    Matrix_RotateX(gGfxMatrix, F_PI / 2, MTXF_APPLY);
                     Matrix_SetGfxMtx(&gMasterDisp);
                     gSPDisplayList(gMasterDisp++, aEndShipSkywritingDL);
                     Matrix_Pop(&gGfxMatrix);
@@ -1905,7 +1905,7 @@ void Ending_8018C21C(void) {
                     Matrix_Translate(gGfxMatrix, -70.0f, 0.0f, -100.0f, MTXF_APPLY);
                     Matrix_Scale(gGfxMatrix, spE4, 1.0f, 200.0f, MTXF_APPLY);
                     Matrix_Translate(gGfxMatrix, 0.0f, 0.0f, -17.5f, MTXF_APPLY);
-                    Matrix_RotateX(gGfxMatrix, M_PI / 2, MTXF_APPLY);
+                    Matrix_RotateX(gGfxMatrix, F_PI / 2, MTXF_APPLY);
                     Matrix_SetGfxMtx(&gMasterDisp);
                     gSPDisplayList(gMasterDisp++, aEndShipSkywritingDL);
                     Matrix_Pop(&gGfxMatrix);

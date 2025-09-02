@@ -1510,7 +1510,7 @@ void func_enmy_8006566C(f32 xPos, f32 yPos, f32 zPos, s32 arg3) {
         }
     }
 }
-
+#include "sh4zam.h"
 void ActorMissileSeek_Update(Actor* this) {
     s32 i;
     s32 j;
@@ -1615,7 +1615,7 @@ void ActorMissileSeek_Update(Actor* this) {
             this->fwork[1] += 8.0f;
             sp88 = this->fwork[27] - this->obj.pos.x;
             sp80 = this->fwork[29] - this->obj.pos.z;
-            sp80 = sqrtf(SQ(sp88) + SQ(sp80)) * 0.2f;
+            sp80 = shz_sqrtf_fsrra(SQ(sp88) + SQ(sp80)) * 0.2f;
             if (this->eventType == 1) {
                 sp80 = 0.1f;
             }
@@ -1628,7 +1628,7 @@ void ActorMissileSeek_Update(Actor* this) {
             sp84 = (this->fwork[28] + spD0) - this->obj.pos.y;
             sp80 = (this->fwork[29] + spCC) - this->obj.pos.z;
             sp78 = Math_RadToDeg(Math_Atan2F(sp88, sp80));
-            sp80 = sqrtf(SQ(sp88) + SQ(sp80));
+            sp80 = shz_sqrtf_fsrra(SQ(sp88) + SQ(sp80));
             sp7C = Math_RadToDeg(-Math_Atan2F(sp84, sp80));
             sp84 = Math_SmoothStepToAngle(&this->obj.rot.y, sp78, 0.3f, 4.0f, 0.001f);
             Math_SmoothStepToAngle(&this->obj.rot.x, sp7C, 0.3f, 4.0f, 0.001f);
@@ -2602,7 +2602,7 @@ void Sprite_UpdateDoodad(Sprite* this) {
     this->obj.rot.y =
         (Math_Atan2F(gPlayer[0].cam.eye.x - this->obj.pos.x, gPlayer[0].cam.eye.z - (this->obj.pos.z + gPathProgress)) *
          180.0f) /
-        M_PI;
+        F_PI;
     if (this->destroy) {
         this->obj.status = OBJ_FREE;
         Effect_TimedSfx_Spawn(&this->obj.pos, NA_SE_OB_EXPLOSION_S);
@@ -3026,10 +3026,10 @@ void TexturedLine_Update(TexturedLine* this) {
     dz = this->posAA.z - this->posBB.z;
 
     this->yRot = Math_Atan2F(dx, dz);
-    this->xRot = -Math_Atan2F(dy, sqrtf(SQ(dx) + SQ(dz)));
+    this->xRot = -Math_Atan2F(dy, shz_sqrtf_fsrra(SQ(dx) + SQ(dz)));
 
     if (this->mode != 4) {
-        this->zScale = sqrtf(SQ(dx) + SQ(dy) + SQ(dz));
+        this->zScale = shz_sqrtf_fsrra(SQ(dx) + SQ(dy) + SQ(dz));
     }
 
     if (gGameState == GSTATE_PLAY) {

@@ -27,7 +27,6 @@
 #include "assets/ast_enmy_planet.h"
 #include "assets/ast_ve1_boss.h"
 #include "assets/ast_zoness.h"
-#define F_PI        3.14159265f   /* pi             */
 
 Vec3f D_edisplay_801615D0;
 Vec3f sViewPos;
@@ -1606,7 +1605,7 @@ void Scenery360_Draw(Scenery360* this) {
         }
     }
 }
-
+#include "sh4zam.h"
 void Display_SetSecondLight(Vec3f* pos) {
     Vec3f sp9C;
     f32 sp98;
@@ -1641,7 +1640,7 @@ void Display_SetSecondLight(Vec3f* pos) {
         }
 
         sp94 = Math_Atan2F(sp9C.x, sp9C.z);
-        sp98 = -Math_Atan2F(sp9C.y, sqrtf(SQ(sp9C.x) + SQ(sp9C.z)));
+        sp98 = -Math_Atan2F(sp9C.y, shz_sqrtf_fsrra(SQ(sp9C.x) + SQ(sp9C.z)));
 
         Matrix_Push(&gCalcMatrix);
         Matrix_RotateZ(gCalcMatrix, gPlayer[gPlayerNum].camRoll * D_ctx_80177950 * M_DTOR, MTXF_NEW);

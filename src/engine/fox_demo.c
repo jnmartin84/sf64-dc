@@ -2503,8 +2503,10 @@ void ActorCutscene_SyShip_Setup(ActorCutscene* this, s32 idx) {
         }
     }
 }
-#define F_PI        3.14159265f   /* pi             */
-
+#ifndef F_PI
+#define F_PI        3.1415926f   /* pi             */
+#endif
+#include "sh4zam.h"
 void ActorCutscene_Draw(ActorCutscene* this) {
     static f32 D_800CA210 = 0.0f;
     static f32 D_800CA214 = 0.0f;
@@ -2788,7 +2790,7 @@ void ActorCutscene_Draw(ActorCutscene* this) {
                 camZ = gPlayer[0].cam.eye.z - (this->obj.pos.z + gPathProgress);
 
                 y = -Math_Atan2F(camX, camZ);
-                x = Math_Atan2F(camY, sqrtf(SQ(camZ) + SQ(camX)));
+                x = Math_Atan2F(camY, shz_sqrtf_fsrra(SQ(camZ) + SQ(camX)));
 
                 Matrix_RotateY(gGfxMatrix, -y, MTXF_APPLY);
                 Matrix_RotateX(gGfxMatrix, -x, MTXF_APPLY);
@@ -2820,7 +2822,7 @@ void ActorCutscene_Draw(ActorCutscene* this) {
                 camZ = gPlayer[0].cam.eye.z - (this->obj.pos.z + gPathProgress);
 
                 y = -Math_Atan2F(camX, camZ);
-                x = Math_Atan2F(camY, sqrtf(SQ(camZ) + SQ(camX)));
+                x = Math_Atan2F(camY, shz_sqrtf_fsrra(SQ(camZ) + SQ(camX)));
 
                 Matrix_RotateY(gGfxMatrix, -y, MTXF_APPLY);
                 Matrix_RotateX(gGfxMatrix, -x, MTXF_APPLY);

@@ -1991,7 +1991,7 @@ void SectorY_SyShogun_Draw(SyShogun* this) {
             Matrix_Pop(&gGfxMatrix);
             Matrix_Push(&gGfxMatrix);
             Matrix_Translate(gGfxMatrix, this->obj.pos.x, 157.0f, this->obj.pos.z, MTXF_APPLY);
-            Matrix_RotateX(gGfxMatrix, M_PI / 2, MTXF_APPLY);
+            Matrix_RotateX(gGfxMatrix, F_PI / 2, MTXF_APPLY);
             Matrix_Scale(gGfxMatrix, this->fwork[43], this->fwork[43], this->fwork[43], MTXF_APPLY);
             Matrix_SetGfxMtx(&gMasterDisp);
             gSPDisplayList(gMasterDisp++, aOrbDL);

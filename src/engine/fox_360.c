@@ -1285,7 +1285,7 @@ Vec3f sSectorZRetreatPath[6] = {
     { 8000.0f, 500.0f, 0.0f }, { 5000.0f, 400.0f, 0.0f }, { 2000.0f, 300.0f, 0.0f },
     { -500.0f, 250.0f, 0.0f }, { 0.0f, 250.0f, 0.0f },    { 0.0f, 250.0f, 0.0f },
 };
-
+#include "sh4zam.h"
 void ActorAllRange_Update(ActorAllRange* this) {
     u8 sp10F;
     s32 objectNearby;
@@ -2077,7 +2077,7 @@ void ActorAllRange_Update(ActorAllRange* this) {
 
         if (((this->index + gGameFrameCount) & var_v0) == 0) {
             this->fwork[19] = Math_RadToDeg(Math_Atan2F(spE4, spDC));
-            this->fwork[20] = Math_RadToDeg(Math_Atan2F(spE0, sqrtf(SQ(spE4) + SQ(spDC))));
+            this->fwork[20] = Math_RadToDeg(Math_Atan2F(spE0, shz_sqrtf_fsrra(SQ(spE4) + SQ(spDC))));
         }
 
         spD8 = this->fwork[20];

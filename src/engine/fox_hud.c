@@ -194,10 +194,10 @@ void HUD_TeamDownWrench_Draw(s32 arg0) {
                 Matrix_Translate(gGfxMatrix, sTeamDownWrenchPos[i - 1].x, sTeamDownWrenchPos[i - 1].y,
                                  sTeamDownWrenchPos[i - 1].z, MTXF_APPLY);
                 Matrix_Scale(gGfxMatrix, 0.68f, 0.68f, 1.0f, MTXF_APPLY);
-                Matrix_RotateZ(gGfxMatrix, M_PI / 4, MTXF_APPLY);
+                Matrix_RotateZ(gGfxMatrix, F_PI / 4, MTXF_APPLY);
                 Matrix_SetGfxMtx(&gMasterDisp);
                 gSPDisplayList(gMasterDisp++, aDownWrenchDL);
-                Matrix_RotateZ(gGfxMatrix, 3 * M_PI / 2, MTXF_APPLY);
+                Matrix_RotateZ(gGfxMatrix, 3 * F_PI / 2, MTXF_APPLY);
                 Matrix_SetGfxMtx(&gMasterDisp);
                 gSPDisplayList(gMasterDisp++, aDownWrenchDL);
                 Matrix_Pop(&gGfxMatrix);
@@ -206,11 +206,11 @@ void HUD_TeamDownWrench_Draw(s32 arg0) {
     } else {
         Matrix_Push(&gGfxMatrix);
         Matrix_Translate(gGfxMatrix, -234.0f, -167.0f, -600.0f, MTXF_APPLY);
-        Matrix_RotateZ(gGfxMatrix, M_PI / 4, MTXF_APPLY);
+        Matrix_RotateZ(gGfxMatrix, F_PI / 4, MTXF_APPLY);
         Matrix_Scale(gGfxMatrix, 0.68f, 0.68f, 1.0f, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
         gSPDisplayList(gMasterDisp++, aDownWrenchDL);
-        Matrix_RotateZ(gGfxMatrix, 3 * M_PI / 2, MTXF_APPLY);
+        Matrix_RotateZ(gGfxMatrix, 3 * F_PI / 2, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
         gSPDisplayList(gMasterDisp++, aDownWrenchDL);
         Matrix_Pop(&gGfxMatrix);

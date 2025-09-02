@@ -54,6 +54,7 @@ typedef union {
 
 typedef struct {
     float m[4][4] /* __attribute__((aligned(32))) */;
+    u64 force_struct_alignment;
 } Matrix; // size = 0x40
 
 

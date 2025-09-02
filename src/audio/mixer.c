@@ -6,7 +6,7 @@
 #undef bool
 
 #include <PR/ultratypes.h>
-#include <align_asset_macro.h>
+//#include <align_asset_macro.h>
 #ifdef __GNUC__
 #define UNUSED __attribute__((unused))
 #else

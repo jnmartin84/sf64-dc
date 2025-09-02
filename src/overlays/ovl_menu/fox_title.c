@@ -2440,7 +2440,7 @@ void Title_ArwingShadow_Draw(s32 arg0) {
                      (D_menu_801B9050 - sTitleArwing[arg0].pos.y * 2.05f) + (D_menu_801B9048 - 84.0f) * 1.99f, 0.0f,
                      MTXF_APPLY);
     Matrix_Scale(gGfxMatrix, 1.0f, 1.0f, 1.0f, MTXF_APPLY);
-    Matrix_RotateY(gGfxMatrix, M_PI, MTXF_APPLY);
+    Matrix_RotateY(gGfxMatrix, F_PI, MTXF_APPLY);
     Matrix_SetGfxMtx(&gMasterDisp);
 
     RCP_SetupDL_64();

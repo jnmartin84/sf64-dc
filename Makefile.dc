@@ -70,8 +70,8 @@ LD_SCRIPT := linker_scripts/$(VERSION)/$(REV)/$(TARGET).ld
 # are safe to be used can avoid using GLOBAL_ASM which doesn't work with gcc.
 ifeq ($(COMPILER),kos-cc)
   $(warning WARNING: GCC support is experimental. Use at your own risk.)
-  CFLAGS += -DCOMPILER_GCC -DNON_MATCHING=1 -Wno-int-conversion -fno-lto -fno-data-sections -DAVOID_UB=1 -MMD -MP -Wno-incompatible-pointer-types -Wno-missing-braces -Wno-unused-variable -Wno-switch -DGBI_FLOATS
-# -fno-common -fno-toplevel-reorder
+  CFLAGS += -DCOMPILER_GCC -DNON_MATCHING=1 -Wno-int-conversion -fno-lto -fno-data-sections -DAVOID_UB=1 -MMD -MP -Wno-incompatible-pointer-types -Wno-missing-braces -Wno-unused-variable -Wno-switch -fno-toplevel-reorder -fno-common -DGBI_FLOATS
+# 
   NON_MATCHING := 1
 endif
 
@@ -95,7 +95,7 @@ else
 endif
 
 ifeq ($(COMPILER),kos-cc)
-#  CFLAGS += -G 0 -ffast-math -fno-unsafe-math-optimizations -march=vr4300 -mfix4300 -mabi=32 -mno-abicalls -mdivide-breaks -fno-zero-initialized-in-bss -fno-toplevel-reorder -ffreestanding -fno-common -fno-merge-constants -mno-explicit-relocs -mno-split-addresses $(CHECK_WARNINGS) -funsigned-char
+#  CFLAGS += -G 0 -ffast-math -fno-unsafe-math-optimizations -march=vr4300 -mfix4300 -mabi=32 -mno-abicalls -mdivide-breaks -fno-zero-initialized-in-bss -fno-toplevel-reorder -ffreestanding -fno-merge-constants -mno-explicit-relocs -mno-split-addresses $(CHECK_WARNINGS) -funsigned-char
 #  MIPS_VERSION := -mips3
 else
   # we support Microsoft extensions such as anonymous structs, which the compiler does support but warns for their usage. Surpress the warnings with -woff.
@@ -344,68 +344,65 @@ build/src/libultra/os/%.o:    OPTFLAGS := -Os
 #build/src/libultra/debug/%.o: OPTFLAGS := -Os
 #build/src/libultra/host/%.o:  OPTFLAGS := -Os
 
-build/src/assets/ast_7_ti_1/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_7_ti_2/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_8_ti/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_9_ti/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_A_ti/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_allies/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_andross/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_aquas/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_area_6/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_arwing/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_bg_planet/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_bg_space/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_blue_marine/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_bolse/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_common/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_corneria/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_ending/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_ending_award_back/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_ending_award_front/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_ending_expert/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_enmy_planet/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_enmy_space/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_font_3d/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_fortuna/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_great_fox/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_katina/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_landmaster/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_logo/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_macbeth/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_map/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_meteo/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_option/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_radio/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_sector_x/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_sector_y/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_sector_z/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_solar/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_star_wolf/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_text/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_titania/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_title/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_training/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_ve1_boss/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_venom_1/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_venom_2/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_versus/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_vs_menu/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_warp_zone/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
-build/src/assets/ast_zoness/%.o :  OPTFLAGS := -O0 -fno-common -fno-toplevel-reorder
+build/src/assets/ast_7_ti_1/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_7_ti_2/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_8_ti/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_9_ti/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_A_ti/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_allies/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_andross/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_aquas/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_area_6/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_arwing/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_bg_planet/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_bg_space/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_blue_marine/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_bolse/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss 
+# -fno-toplevel-reorder
+build/src/assets/ast_common/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_corneria/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_ending/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_ending_award_back/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_ending_award_front/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_ending_expert/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_enmy_planet/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_enmy_space/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_font_3d/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_fortuna/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_great_fox/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_katina/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_landmaster/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_logo/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_macbeth/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_map/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_meteo/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_option/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_radio/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_sector_x/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_sector_y/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_sector_z/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_solar/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_star_wolf/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_text/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_titania/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_title/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_training/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_ve1_boss/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_venom_1/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_venom_2/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_versus/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_vs_menu/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_warp_zone/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
+build/src/assets/ast_zoness/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
 
 # per-file flags
 
-build/src/libc_sprintf.o:  OPTFLAGS := -Os
 build/src/libc_math64.o:  OPTFLAGS := -Os
-build/src/overlays/ovl_i5/fox_ground.o: OPTFLAGS := -O1
-# -fno-fast-math
+#build/src/overlays/ovl_i5/fox_ground.o: OPTFLAGS := -O1 -fno-fast-math
 build/src/audio/mixer.o: OPTFLAGS := -O3
 build/src/gfx/gfx_retro_dc.o: OPTFLAGS := -O3
 build/src/sys/sys_matrix.o: OPTFLAGS := -O3
-# -O1 -fno-fast-math 
 build/src/sys/sys_math.o: OPTFLAGS := -O3
-# -O1 -fno-fast-math
 
 # cc & asm-processor
 build/src/libultra/gu/sqrtf.o:       OPTFLAGS := -Os

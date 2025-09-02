@@ -56,6 +56,9 @@ f32 Rand_ZeroOneSeeded(void) {
 // only works for positive x
 #define approx_recip(x) (1.0f / sqrtf((x)*(x)))
 
+#define approx_signed_recip(x) (((x) < 0.0f) ? -(1.0f / sqrtf((x)*(x))) : (1.0f / sqrtf((x)*(x))))
+
+
 // branch-free, division-free atan2f approximation
 // copysignf has a branch but penalty-free
 f32 Math_Atan2F(f32 y, f32 x) {
@@ -93,6 +96,9 @@ f32 Math_Atan2F(f32 y, f32 x) {
 }
 
 f32 Math_Atan2F_XY(f32 x, f32 y) {
+
+    float recipy = approx_signed_recip(y);
+
     if ((x == 0.0f) && (y == 0.0f)) {
         return 0.0f;
     }
@@ -115,12 +121,12 @@ f32 Math_Atan2F_XY(f32 x, f32 y) {
 
     if (x < 0.0f) {
         if (y < 0.0f) {
-            return -(F_PI - Math_FAtanF(fabsf(x / y)));
+            return -(F_PI - Math_FAtanF(fabsf(x * recipy /* / y */)));
         } else {
-            return F_PI - Math_FAtanF(fabsf(x / y));
+            return F_PI - Math_FAtanF(fabsf(x * recipy));
         }
     } else {
-        return Math_FAtanF(x / y);
+        return Math_FAtanF(x *recipy);//// y);
     }
 }
 
@@ -139,9 +145,13 @@ f32 Math_Atan2F_XYAlt(f32 x, f32 y) {
     if (y == 0.0f) {
         return 0.0f;
     }
-    return -Math_FAtanF(x / y);
+    float recipy = approx_signed_recip(y);
+
+
+    return -Math_FAtanF(x * recipy);
 }
 
+#if 0
 f32 Math_FactorialF(f32 n) {
     f32 out = 1.0f;
     s32 i;
@@ -182,6 +192,7 @@ f32 Math_PowF(f32 base, s32 exp) {
     }
     return out;
 }
+#endif
 
 void Math_MinMax(s32* min, s32* max, s32 val1, s32 val2, s32 val3) {
     if (val1 < val2) {

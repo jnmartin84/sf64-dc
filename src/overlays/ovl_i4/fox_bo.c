@@ -6,6 +6,7 @@
 
 #include "global.h"
 #include "assets/ast_bolse.h"
+#if 0
 #include "prevent_bss_reordering.h"
 
 extern s32 dummy200;
@@ -67,6 +68,7 @@ struct Dummy223 {
 struct Dummy224 {
     int x;
 };
+#endif
 
 typedef struct UnkStruct_D_i4_801A03E0 {
     f32 unk_00;
@@ -700,11 +702,11 @@ s32 Bolse_8018D4F0(BoShieldReactor* this) {
     return 0;
 }
 
-bool Bolse_8018D584(BoShieldReactor* this) {
+s32 Bolse_8018D584(BoShieldReactor* this) {
     s32 i;
 
     if (this->dmgType == DMG_NONE) {
-        return false;
+        return 0;
     }
 
     if ((this->dmgPart < 2) && (this->state == 0)) {
@@ -714,14 +716,14 @@ bool Bolse_8018D584(BoShieldReactor* this) {
         this->health += this->damage;
 
         if (this->health < 100) {
-            return false;
+            return 0;
         }
 
         BonusText_Display(this->obj.pos.x, this->obj.pos.y + 730.0f, this->obj.pos.z, 3);
         gHitCount += 4;
         D_ctx_80177850 = 15;
         D_BO_801A03DC--;
-        if (1) {}
+        //if (1) {}
         this->state = 1;
 
         Effect_Effect386_Spawn1(this->obj.pos.x, this->obj.pos.y + 730.0f, this->obj.pos.z, 0.0f, 0.0f, 0.0f, 10.0f,
@@ -741,7 +743,7 @@ bool Bolse_8018D584(BoShieldReactor* this) {
         Effect_TimedSfx_Spawn(&this->obj.pos, NA_SE_EN_REFLECT);
     }
 
-    return true;
+    return 1;
 }
 
 void Bolse_BoShieldReactor_Update(BoShieldReactor* this) {
@@ -843,7 +845,7 @@ s32 Bolse_8018E05C(BoBase* this, s32 index) {
     f32 temp_fs3;
     f32 temp_fs4;
     f32 var_fs0;
-    bool ret = false;
+    s32 ret = 0;
     Vec3f src;
     Vec3f dest;
 
@@ -890,7 +892,7 @@ s32 Bolse_8018E05C(BoBase* this, s32 index) {
             Effect_Effect386_Spawn1(gPlayer[0].pos.x + RAND_FLOAT_CENTERED(10.0f), gPlayer[0].pos.y + RAND_FLOAT(10.0f),
                                     gPlayer[0].trueZpos + RAND_FLOAT_CENTERED(10.0f), 0.0f, 15.0f, 0.0f, 2.0f, 5);
         }
-        ret = true;
+        ret = 1;
     }
 
     Matrix_Pop(&gGfxMatrix);
@@ -1024,7 +1026,7 @@ void Bolse_BoBase_Draw(BoBase* this) {
                          MTXF_APPLY);
         Matrix_RotateY(gGfxMatrix, D_i4_801A0488[i].unk_04 * M_DTOR, MTXF_APPLY);
         Matrix_RotateX(gGfxMatrix, D_i4_801A0488[i].unk_00 * M_DTOR, MTXF_APPLY);
-        Matrix_RotateZ(gGfxMatrix, M_PI / 2, MTXF_APPLY);
+        Matrix_RotateZ(gGfxMatrix, F_PI / 2, MTXF_APPLY);
         Matrix_Translate(gGfxMatrix, 1.0f, 1.0f, D_i4_801A0488[i].unk_08 * 200.0f, MTXF_APPLY);
         Matrix_Scale(gGfxMatrix, 1.0f, 1.0f, D_i4_801A0488[i].unk_08, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
@@ -2194,7 +2196,7 @@ void Bolse_LoadLevelObjects(void) {
 }
 
 void Bolse_DrawDynamicGround(void) {
-    Vec3f spDC = { 0.0f, 0.0f, 0.0f };
+    Vec3f spDC;// = { 0.0f, 0.0f, 0.0f };
     Vec3f spD0;
     f32 rnd;
     f32 x;

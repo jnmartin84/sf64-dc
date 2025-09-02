@@ -330,7 +330,7 @@ void Katina_StartCutsceneUpdate(void) {
     s32 i;
     Vec3f dest;
 
-    Matrix_RotateY(gCalcMatrix, -(M_PI / 4), MTXF_NEW);
+    Matrix_RotateY(gCalcMatrix, -(F_PI / 4), MTXF_NEW);
 
     for (i = 0; i < 3; i++, actor++) {
         if (actor->obj.status == OBJ_FREE) {
@@ -1304,7 +1304,7 @@ void Katina_KaSaucerer_Update(KaSaucerer* this) {
             gLight1B = D_i4_801A0554;
 
             for (i = 0; i < rotCount; i++) {
-                Matrix_RotateY(gCalcMatrix, RAND_FLOAT(2.0f) * M_PI, MTXF_NEW);
+                Matrix_RotateY(gCalcMatrix, RAND_FLOAT(2.0f) * F_PI, MTXF_NEW);
                 src.x = 0.0f;
                 src.y = 0.0f;
                 src.z = RAND_FLOAT(400.0f) + 300.0f;
@@ -1689,7 +1689,7 @@ void Katina_KaSaucerer_Draw(KaSaucerer* this) {
         if (this->fwork[BOSS_LASER_LENGTH] > 0.0f) {
             RCP_SetupDL(&gMasterDisp, SETUPDL_41);
             gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 128);
-            Matrix_RotateX(gGfxMatrix, M_PI, MTXF_APPLY);
+            Matrix_RotateX(gGfxMatrix, F_PI, MTXF_APPLY);
             Matrix_Scale(gGfxMatrix, 0.3f, this->fwork[BOSS_LASER_LENGTH], 0.3f, MTXF_APPLY);
             Matrix_SetGfxMtx(&gMasterDisp);
             gSPDisplayList(gMasterDisp++, D_KA_600BFB0);

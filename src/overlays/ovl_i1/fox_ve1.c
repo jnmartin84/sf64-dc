@@ -449,7 +449,7 @@ void Venom1_Ve1Pillar1_Update(Ve1Pillar1* this) {
             break;
 
         case 3:
-            src.x = sinf((((30 - this->timer_0BE) % 10) / 10.0f) * M_PI * 2) * 5.0f;
+            src.x = sinf((((30 - this->timer_0BE) % 10) / 10.0f) * F_PI * 2) * 5.0f;
             src.y = 0.0f;
             src.z = 0.0f;
 
@@ -640,7 +640,7 @@ void Venom1_Ve1Pillar4_Update(Ve1Pillar4* this) {
 
         case 3:
             sp50.x = 0.0f;
-            sp50.y = sinf((((30 - this->timer_0BE) % 10) / 10.0f) * M_PI * 2) * 5.0f;
+            sp50.y = sinf((((30 - this->timer_0BE) % 10) / 10.0f) * F_PI * 2) * 5.0f;
             sp50.z = 0.0f;
 
             Matrix_MultVec3f(gCalcMatrix, &sp50, &sp44);
@@ -1483,7 +1483,7 @@ void Venom1_Ve1Golemech_Update(Ve1Golemech* this) {
                     actor->fwork[1] = 5.0f + RAND_FLOAT_CENTERED(1.0f);
                     actor->fwork[2] = 5.0f + RAND_FLOAT_CENTERED(1.0f);
                 } else {
-                    Matrix_RotateY(gCalcMatrix, RAND_FLOAT(2.0f) * M_PI, 0);
+                    Matrix_RotateY(gCalcMatrix, RAND_FLOAT(2.0f) * F_PI, 0);
                     sp104.x = 15.0f + RAND_FLOAT(10.0f);
                     sp104.z = 0.0f;
                     sp104.y = 0.0f;
@@ -1519,7 +1519,7 @@ void Venom1_Ve1Golemech_Update(Ve1Golemech* this) {
                         actor->fwork[1] = 5.0f + RAND_FLOAT_CENTERED(1.0f);
                         actor->fwork[2] = 5.0f + RAND_FLOAT_CENTERED(1.0f);
                     } else {
-                        Matrix_RotateY(gCalcMatrix, RAND_FLOAT(2.0f) * M_PI, 0);
+                        Matrix_RotateY(gCalcMatrix, RAND_FLOAT(2.0f) * F_PI, 0);
                         sp104.x = RAND_FLOAT(10.0f) + 15.0f;
                         sp104.z = 0.0f;
                         sp104.y = 0.0f;

@@ -1703,7 +1703,7 @@ void Display_CsLevelCompleteHandleCamera(Player* player) {
             break;
     }
 }
-
+#include "sh4zam.h"
 void Display_Update(void) {
     s32 i;
     Vec3f tempVec;
@@ -1777,7 +1777,7 @@ void Display_Update(void) {
 
     camPlayer->camYaw = -Math_Atan2F(gPlayCamEye.x - gPlayCamAt.x, gPlayCamEye.z - gPlayCamAt.z);
     camPlayer->camPitch = -Math_Atan2F(gPlayCamEye.y - gPlayCamAt.y,
-                                       sqrtf(SQ(gPlayCamEye.z - gPlayCamAt.z) + SQ(gPlayCamEye.x - gPlayCamAt.x)));
+                                       shz_sqrtf_fsrra(SQ(gPlayCamEye.z - gPlayCamAt.z) + SQ(gPlayCamEye.x - gPlayCamAt.x)));
     Matrix_RotateY(gCalcMatrix, -camPlayer->camYaw, MTXF_NEW);
     Matrix_RotateX(gCalcMatrix, camPlayer->camPitch, MTXF_APPLY);
     Matrix_RotateZ(gCalcMatrix, -camPlayer->camRoll * M_DTOR, MTXF_APPLY);

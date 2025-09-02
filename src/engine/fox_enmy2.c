@@ -4078,14 +4078,14 @@ void ActorEvent_Draw(ActorEvent* this) {
                     break;
 
                 case EVID_A6_UMBRA_STATION:
-                    Matrix_RotateX(gGfxMatrix, M_PI / 2, MTXF_APPLY);
+                    Matrix_RotateX(gGfxMatrix, F_PI / 2, MTXF_APPLY);
                     Matrix_SetGfxMtx(&gMasterDisp);
                     gSPDisplayList(gMasterDisp++, aA6UmbraStationDL);
                     break;
 
                 case EVID_CRUISER_GUN:
                     Animation_GetFrameData(&aCruiserGunAnim, this->animFrame, frameTable);
-                    Matrix_RotateY(gGfxMatrix, M_PI, MTXF_APPLY);
+                    Matrix_RotateY(gGfxMatrix, F_PI, MTXF_APPLY);
                     Matrix_Scale(gGfxMatrix, 1.5f, 1.5f, 1.5f, MTXF_APPLY);
                     Animation_DrawSkeleton(1, aCruiserGunSkel, frameTable, ActorEvent_CruiserGun_OverrideLimbDraw, NULL,
                                            this, &gIdentityMatrix);

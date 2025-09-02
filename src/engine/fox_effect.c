@@ -395,7 +395,7 @@ void Effect_TorpedoTrail_Draw(EffectTorpedoTrail* this) {
 void Effect_Clouds_Draw(EffectClouds* this) {
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, this->unk_46);
     Graphics_SetScaleMtx(this->scale2);
-    Matrix_RotateX(gGfxMatrix, M_PI / 2, MTXF_APPLY);
+    Matrix_RotateX(gGfxMatrix, F_PI / 2, MTXF_APPLY);
     Matrix_SetGfxMtx(&gMasterDisp);
     gSPDisplayList(gMasterDisp++, D_BG_PLANET_200D750);
 }
@@ -423,7 +423,7 @@ void Effect_Effect344_Draw(Effect344* this) {
     gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK);
     Matrix_Scale(gGfxMatrix, this->scale2, this->scale2, this->scale2, MTXF_APPLY);
     if (this->alpha >= 2) {
-        Matrix_RotateX(gGfxMatrix, M_PI / 2, MTXF_APPLY);
+        Matrix_RotateX(gGfxMatrix, F_PI / 2, MTXF_APPLY);
     }
     Matrix_SetGfxMtx(&gMasterDisp);
     gSPDisplayList(gMasterDisp++, D_1029780);
@@ -434,7 +434,7 @@ void Effect_Effect345_Draw(Effect345* this) {
     RCP_SetupDL_60(gFogRed, gFogGreen, gFogBlue, gFogAlpha, gFogNear, gFogFar);
     gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK);
     Matrix_Scale(gGfxMatrix, this->scale2 * 0.6f, 1.0f, this->scale2 * 3.5f, MTXF_APPLY);
-    Matrix_RotateX(gGfxMatrix, M_PI / 2, MTXF_APPLY);
+    Matrix_RotateX(gGfxMatrix, F_PI / 2, MTXF_APPLY);
     Matrix_SetGfxMtx(&gMasterDisp);
     gSPDisplayList(gMasterDisp++, D_1029780);
     RCP_SetupDL(&gMasterDisp, SETUPDL_64);
@@ -582,7 +582,7 @@ void Effect_Sparkle_Draw(EffectSparkle* this) {
     gSPDisplayList(gMasterDisp++, aStarDL);
     RCP_SetupDL(&gMasterDisp, SETUPDL_64);
 }
-
+#include "sh4zam.h"
 void Effect_Effect357_Setup(Effect357* this, f32 xPos, f32 yPos, f32 zPos, f32 scale2, u8 arg5) {
     Vec3f sp54;
     Vec3f sp48;
@@ -616,7 +616,7 @@ void Effect_Effect357_Setup(Effect357* this, f32 xPos, f32 yPos, f32 zPos, f32 s
         sp3C.y = gPlayer[0].pos.y;
         sp3C.z = gPlayer[0].pos.z;
         yAng = Math_Atan2F(sp3C.x - xPos, sp3C.z - zPos);
-        sp38 = sqrtf(SQ(sp3C.x - xPos) + SQ(sp3C.z - zPos));
+        sp38 = shz_sqrtf_fsrra(SQ(sp3C.x - xPos) + SQ(sp3C.z - zPos));
         xAng = -Math_Atan2F(sp3C.y - yPos, sp38);
         Matrix_RotateY(gCalcMatrix, yAng, MTXF_NEW);
         Matrix_RotateX(gCalcMatrix, xAng, MTXF_APPLY);
@@ -2442,7 +2442,7 @@ void Effect_SetupShootAtPlayer(Effect* this, ObjectId objId, f32 xPos, f32 yPos,
 
     Object_SetInfo(&this->info, this->obj.id);
     sp50 = Math_Atan2F(gPlayer[0].pos.x - xPos, gPlayer[0].trueZpos - zPos);
-    temp_ft4 = sqrtf(SQ(gPlayer[0].pos.x - xPos) + SQ(gPlayer[0].trueZpos - zPos));
+    temp_ft4 = shz_sqrtf_fsrra(SQ(gPlayer[0].pos.x - xPos) + SQ(gPlayer[0].trueZpos - zPos));
     sp54 = -Math_Atan2F(gPlayer[0].pos.y - yPos, temp_ft4);
 
     Matrix_RotateY(gCalcMatrix, sp50, MTXF_NEW);
@@ -2496,7 +2496,7 @@ void Effect_SetupShootAtCamera(Effect* this, ObjectId objId, f32 xPos, f32 yPos,
 
     Object_SetInfo(&this->info, this->obj.id);
     sp50 = Math_Atan2F(gPlayer[0].cam.eye.x - xPos, gPlayer[0].cam.eye.z - zPos);
-    temp_ft4 = sqrtf(SQ(gPlayer[0].cam.eye.x - xPos) + SQ(gPlayer[0].cam.eye.z - zPos));
+    temp_ft4 = shz_sqrtf_fsrra(SQ(gPlayer[0].cam.eye.x - xPos) + SQ(gPlayer[0].cam.eye.z - zPos));
     sp54 = -Math_Atan2F(gPlayer[0].cam.eye.y - yPos, temp_ft4);
 
     Matrix_RotateY(gCalcMatrix, sp50, MTXF_NEW);
@@ -3026,7 +3026,7 @@ void Effect_Effect398_Update(Effect398* this) {
     switch (this->state) {
         case 0:
             yRot = Math_Atan2F(gPlayer[0].pos.x - this->obj.pos.x, gPlayer[0].trueZpos - this->obj.pos.z);
-            temp = sqrtf(SQ(gPlayer[0].pos.x - this->obj.pos.x) + SQ(gPlayer[0].trueZpos - this->obj.pos.z));
+            temp = shz_sqrtf_fsrra(SQ(gPlayer[0].pos.x - this->obj.pos.x) + SQ(gPlayer[0].trueZpos - this->obj.pos.z));
             xRot = -Math_Atan2F(gPlayer[0].pos.y - this->obj.pos.y, temp);
             Matrix_RotateY(gCalcMatrix, yRot, MTXF_NEW);
             Matrix_RotateX(gCalcMatrix, xRot, MTXF_APPLY);
@@ -3311,7 +3311,7 @@ void Effect_Effect394_Draw(Effect394* this) {
 
             for (i = 0; i < 7; i++) {
                 Matrix_Translate(gGfxMatrix, 0.0f, 10.0f, 0.0f, MTXF_APPLY);
-                Matrix_RotateZ(gGfxMatrix, M_PI / 4, MTXF_APPLY);
+                Matrix_RotateZ(gGfxMatrix, F_PI / 4, MTXF_APPLY);
                 Matrix_Translate(gGfxMatrix, 1.0f, 20.0f, 0.0f, MTXF_APPLY);
                 Matrix_Push(&gGfxMatrix);
                 Matrix_Scale(gGfxMatrix, 0.25f, 1.0f, 1.0f, MTXF_APPLY);
@@ -3785,7 +3785,7 @@ void Effect_Effect395_Update(Effect395* this) {
             posZDiff = gBosses[0].obj.pos.z - this->obj.pos.z;
 
             yRotDeg = Math_RadToDeg(Math_Atan2F(posXDiff, posZDiff));
-            xRotDeg = Math_RadToDeg(-Math_Atan2F(posYDiff, sqrtf(SQ(posXDiff) + SQ(posZDiff))));
+            xRotDeg = Math_RadToDeg(-Math_Atan2F(posYDiff, shz_sqrtf_fsrra(SQ(posXDiff) + SQ(posZDiff))));
 
             Matrix_RotateY(gCalcMatrix, M_DTOR * yRotDeg, MTXF_NEW);
             Matrix_RotateX(gCalcMatrix, M_DTOR * xRotDeg, MTXF_APPLY);
@@ -3833,7 +3833,7 @@ void Effect_Effect395_Update(Effect395* this) {
 
                         D_800D18E8 = RAD_TO_DEG(
                             -Math_Atan2F(gPlayer[0].cam.eye.y - gBosses[0].obj.pos.y,
-                                         sqrtf(SQ(gPlayer[0].cam.eye.z - (gBosses[0].obj.pos.z + gPathProgress)) +
+                                         shz_sqrtf_fsrra(SQ(gPlayer[0].cam.eye.z - (gBosses[0].obj.pos.z + gPathProgress)) +
                                                SQ(gPlayer[0].cam.eye.x - gBosses[0].obj.pos.x))));
                     }
                     if (gBosses[0].timer_050 == 0) {
@@ -4182,7 +4182,7 @@ void func_effect_80083D2C(f32 xPos, f32 yPos, f32 zPos, f32 srcZ) {
     z = gPlayer[0].trueZpos - zPos;
 
     yRot = Math_Atan2F(x, z);
-    xRot = -Math_Atan2F(y, sqrtf(SQ(x) + SQ(z)));
+    xRot = -Math_Atan2F(y, shz_sqrtf_fsrra(SQ(x) + SQ(z)));
 
     Matrix_RotateY(gCalcMatrix, yRot, MTXF_NEW);
     Matrix_RotateX(gCalcMatrix, xRot, MTXF_APPLY);

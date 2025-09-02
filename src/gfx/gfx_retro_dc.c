@@ -1138,6 +1138,7 @@ float tmp[4][4];
 }
 
 static int matrix_dirty = 0;
+
 void *memcpy32(void *restrict dst, const void *restrict src, size_t bytes);
 
 static __attribute__((noinline)) void gfx_sp_matrix(uint8_t parameters, const void* addr) {
@@ -1164,58 +1165,29 @@ static __attribute__((noinline)) void gfx_sp_matrix(uint8_t parameters, const vo
 	matrix_dirty = 1;
 
 	if (parameters & G_MTX_PROJECTION) {
-		if (parameters & G_MTX_LOAD) {
-			memcpy32(rsp.P_matrix, matrix, sizeof(matrix));
-		} else {
-			gfx_matrix_mul(rsp.P_matrix, matrix, rsp.P_matrix);
-		}
-	} else {
-		// G_MTX_NOPUSH | G_MTX_MUL | G_MTX_MODELVIEW
-		if (parameters == 0) {
-			gfx_matrix_mul(rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1], matrix,
-							rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1]);
-		} else 
-		// G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW
-		if (parameters == 2) {
-			//printf("\n");
-			if (rsp.modelview_matrix_stack_size == 0)
-				++rsp.modelview_matrix_stack_size;
-			memcpy32(rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1], matrix, sizeof(matrix));
-		} else 
-		// G_MTX_PUSH | G_MTX_MUL | G_MTX_MODELVIEW
-		if (parameters == 4) {
-			if (rsp.modelview_matrix_stack_size < 11) {
-				++rsp.modelview_matrix_stack_size;
-				memcpy32(rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1],
-					rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 2], sizeof(matrix));
-			}
-			// only ever pushing identity matrix, no need to multiply
-			//gfx_matrix_mul(rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1], matrix,
-			//	rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1]);
-		}
-		
-		#if 1
-		else {
-			 if (parameters & G_MTX_PUSH) {
-//				printf("mv push2\n");
-				if (rsp.modelview_matrix_stack_size < 11) {
-					++rsp.modelview_matrix_stack_size;
-					memcpy32(rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1],
-						rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 2], sizeof(matrix));
-				}
-			} 
-			 if (parameters & G_MTX_LOAD) {
-				if (rsp.modelview_matrix_stack_size == 0)
-					++rsp.modelview_matrix_stack_size;
-				memcpy32(rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1], matrix, sizeof(matrix));
-			} 
-		}
-			#endif
-		rsp.lights_changed = 1;
-	}
-
-	gfx_matrix_mul(rsp.MP_matrix, rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1],
-					rsp.P_matrix);
+        if (parameters & G_MTX_LOAD) {
+            memcpy32(rsp.P_matrix, matrix, sizeof(matrix));
+        } else {
+            gfx_matrix_mul(rsp.P_matrix, matrix, rsp.P_matrix);
+        }
+    } else { // G_MTX_MODELVIEW
+        if ((parameters & G_MTX_PUSH) && rsp.modelview_matrix_stack_size < 11) {
+            ++rsp.modelview_matrix_stack_size;
+            memcpy32(rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1],
+                   rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 2], sizeof(matrix));
+        }
+        if (parameters & G_MTX_LOAD) {
+            if (rsp.modelview_matrix_stack_size == 0)
+                ++rsp.modelview_matrix_stack_size;
+            memcpy32(rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1], matrix, sizeof(matrix));
+        } else {
+            gfx_matrix_mul(rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1], matrix,
+                           rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1]);
+        }
+        rsp.lights_changed = 1;
+    }
+    gfx_matrix_mul(rsp.MP_matrix, rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1],
+                   rsp.P_matrix);
 }
 
 // only used by Titania and it is fine if you dont reconstitute the MP matrix
@@ -1250,6 +1222,33 @@ static void  __attribute__((noinline)) gfx_sp_pop_matrix(UNUSED uint32_t count) 
 #define light4_scale 0.02362205f
 
 #define MEM_BARRIER() asm volatile("" : : : "memory");
+
+#include "sh4zam.h"
+
+#define fmac(a, b, c)  (((a)*(b))+(c))
+
+
+float my_acosf (float a)
+{
+    float r, s, t;
+    s = (a < 0.0f) ? 2.0f : (-2.0f);
+    t = fmac (s, a, 2.0f);
+    s = shz_sqrtf_fsrra (t);
+    r =              4.25032340e-7f;
+    r = fmac (r, t, -1.92483935e-6f);
+    r = fmac (r, t,  5.97197595e-6f);
+    r = fmac (r, t, -2.54363249e-6f);
+    r = fmac (r, t,  2.69393295e-5f);
+    r = fmac (r, t,  1.16575764e-4f);
+    r = fmac (r, t,  6.97973708e-4f);
+    r = fmac (r, t,  4.68746712e-3f);
+    r = fmac (r, t,  4.16666567e-2f);
+    r = r * t;
+    r = fmac (r, s, s);
+    t = fmac (0x1.ddcb02p+0f, 0x1.aee9d6p+0f, 0.0f - r); // PI-r
+    r = (a < 0.0f) ? t : r;
+    return r;
+}
 
 static void __attribute__((noinline)) gfx_sp_vertex_light(size_t n_vertices, size_t dest_index, const Vtx* vertices) {
     for (size_t i = 0; i < n_vertices; i++, dest_index++) {
@@ -1330,8 +1329,8 @@ static void __attribute__((noinline)) gfx_sp_vertex_light(size_t n_vertices, siz
                 doty = 1.0f;
 
             if (rsp.geometry_mode & G_TEXTURE_GEN_LINEAR) {
-                dotx = acosf(-dotx) * recip2pi;
-                doty = acosf(-doty) * recip2pi;
+                dotx = my_acosf(-dotx) * recip2pi;
+                doty = my_acosf(-doty) * recip2pi;
             } else {
                 dotx = (dotx * 0.25f) + 0.25f;
                 doty = (doty * 0.25f) + 0.25f;
@@ -1483,15 +1482,6 @@ static void  __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx
     struct LoadedVertex* v_arr[3] = { v1, v2, v3 };
 //	total_tri++;
 
-	if (matrix_dirty) {
-        glMatrixMode(GL_PROJECTION);
-        glLoadMatrixf((const float*) rsp.P_matrix);
-        glMatrixMode(GL_MODELVIEW);
-		glLoadMatrixf((const float*) rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1]);
-		matrix_dirty = 0;
-//		gfx_flush();
-	}
-
 	if (v1->clip_rej & v2->clip_rej & v3->clip_rej) {
         // The whole triangle lies outside the visible area
 
@@ -1548,6 +1538,14 @@ static void  __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx
     }
 #endif
 	//frame_tris++;
+	if (matrix_dirty) {
+        glMatrixMode(GL_PROJECTION);
+        glLoadMatrixf((const float*) rsp.P_matrix);
+        glMatrixMode(GL_MODELVIEW);
+		glLoadMatrixf((const float*) rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1]);
+		matrix_dirty = 0;
+//		gfx_flush();
+	}
 
     uint8_t depth_test = (rsp.geometry_mode & G_ZBUFFER) == G_ZBUFFER;
     if (depth_test != rendering_state.depth_test) {

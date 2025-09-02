@@ -807,6 +807,16 @@ typedef SHZ_ALIGNAS(8) union shz_matrix_4x4 {
     };
 } shz_matrix_4x4_t;
 
+SHZ_FORCE_INLINE float shz_inv_sqrtf(float x) {
+    asm volatile("fsrra %0" : "+f" (x));
+    return x;
+}
+
+SHZ_FORCE_INLINE float shz_sqrtf_fsrra(float x) {
+    return shz_inv_sqrtf(x) * x;
+}
+
+
 
 SHZ_FORCE_INLINE float shz_mag_sqr4f(float x, float y, float z, float w) {
     register float rx asm("fr0") = x;

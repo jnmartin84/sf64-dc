@@ -3788,7 +3788,7 @@ void Zoness_ZoCraneMagnet_Draw(ZoCraneMagnet* this) {
 
     for (j = 0; j < i; j++) {
         Matrix_Translate(gGfxMatrix, 0.0f, 30.0f, 0.0f, MTXF_APPLY);
-        Matrix_RotateY(gGfxMatrix, M_PI / 2, MTXF_APPLY);
+        Matrix_RotateY(gGfxMatrix, F_PI / 2, MTXF_APPLY);
         Matrix_Push(&gGfxMatrix);
         Matrix_Scale(gGfxMatrix, 0.75f, 0.75f, 0.75f, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
@@ -4016,7 +4016,7 @@ void Zoness_ZoSpikeBall_Draw(ZoSpikeBall* this) {
             Matrix_RotateX(gGfxMatrix, M_DTOR * temp_fs0_4, MTXF_APPLY);
             Matrix_Push(&gGfxMatrix);
             Matrix_RotateZ(gGfxMatrix, M_DTOR * var_fs5, MTXF_APPLY);
-            Matrix_RotateX(gGfxMatrix, M_PI / 2, MTXF_APPLY);
+            Matrix_RotateX(gGfxMatrix, F_PI / 2, MTXF_APPLY);
             Matrix_Scale(gGfxMatrix, 1.5f, 1.5f, 1.5f, MTXF_APPLY);
             Matrix_SetGfxMtx(&gMasterDisp);
             gSPDisplayList(gMasterDisp++, D_ZO_6018660);
@@ -4528,7 +4528,7 @@ void Zoness_ZoSupplyCrane_Draw(ZoSupplyCrane* this) {
     gSPDisplayList(gMasterDisp++, D_ZO_6013330);
     Matrix_Pop(&gGfxMatrix);
     Matrix_Push(&gGfxMatrix);
-    Matrix_RotateZ(gGfxMatrix, M_PI / 2, MTXF_APPLY);
+    Matrix_RotateZ(gGfxMatrix, F_PI / 2, MTXF_APPLY);
     Matrix_Translate(gGfxMatrix, -110.0f, 0.0f, 0.0f, MTXF_APPLY);
     Matrix_SetGfxMtx(&gMasterDisp);
     gSPDisplayList(gMasterDisp++, D_ZO_601D680);
@@ -4555,7 +4555,7 @@ void Zoness_ZoSupplyCrane_Draw(ZoSupplyCrane* this) {
 
     for (i = 0; i < var_s1; i++) {
         Matrix_Translate(gGfxMatrix, 0.0f, 9.3f, 0.0f, MTXF_APPLY);
-        Matrix_RotateY(gGfxMatrix, M_PI / 2, MTXF_APPLY);
+        Matrix_RotateY(gGfxMatrix, F_PI / 2, MTXF_APPLY);
         Matrix_Push(&gGfxMatrix);
         Matrix_Scale(gGfxMatrix, 0.5f, 0.5f, 0.5f, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
