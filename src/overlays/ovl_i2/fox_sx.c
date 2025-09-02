@@ -12,7 +12,7 @@ Vec3f D_i2_80195650 = { 90.0f, 0.0f, 0.0f };
 Vec3f D_i2_8019565C = { 73.0f, -102.0f, -80.0f };
 Vec3f D_i2_80195668 = { 90.0f, 0.0f, 0.0f };
 
-bool SectorX_SxSpyborg_OverrideLimbDraw(s32, Gfx**, Vec3f*, Vec3f*, void*);
+s32 SectorX_SxSpyborg_OverrideLimbDraw(s32, Gfx**, Vec3f*, Vec3f*, void*);
 void SectorX_SxSpyborg_PostLimbDraw(s32, Vec3f*, void*);
 
 void SectorX_8018F030(void) {
@@ -1162,7 +1162,7 @@ void SectorX_SxSpyborg_Update(SxSpyborg* this) {
     }
 }
 
-bool SectorX_SxSpyborg_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
+s32 SectorX_SxSpyborg_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
     Vec3f src = { 0.0f, 0.0f, 0.0f };
     Vec3f dest;
     SxSpyborg* boss = (SxSpyborg*) thisx;
@@ -1238,7 +1238,7 @@ bool SectorX_SxSpyborg_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, 
                 Matrix_Pop(&gGfxMatrix);
                 Matrix_Pop(&gCalcMatrix);
             }
-            return true;
+            return 1;
 
         case 34:
             rot->x += boss->fwork[27];
@@ -1281,7 +1281,7 @@ bool SectorX_SxSpyborg_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, 
             break;
     }
 
-    return false;
+    return 0;
 }
 
 void SectorX_SxSpyborg_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* thisx) {

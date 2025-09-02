@@ -42,6 +42,7 @@ typedef struct {
     /* 0x8 */ s32 dist;
 } PlaneI; // size = 0xC
 
+#if 0
 typedef union {
     float m[4][4];
     struct {
@@ -49,9 +50,15 @@ typedef union {
     };
     // u64 force_struct_alignment;
 } Matrix; // size = 0x40
+#endif
+
+typedef struct {
+    float m[4][4] /* __attribute__((aligned(32))) */;
+} Matrix; // size = 0x40
+
 
 extern Mtx gIdentityMtx;       // 800C4620
-extern Matrix gIdentityMatrix; // 800C4660
+extern Matrix /* __attribute__((aligned(32))) */ gIdentityMatrix; // 800C4660
 
 extern Matrix* gGfxMatrix;
 extern Matrix sGfxMatrixStack[0x20];
@@ -110,9 +117,6 @@ void __attribute__((noinline))  Matrix_RotateAxis(Matrix* mtx, f32 angle, f32 ax
 // Converts the current Gfx matrix to a Mtx
 void __attribute__((noinline))  Matrix_ToMtx(Mtx* dest);
 
-// Converts the Mtx src to a Matrix, putting the result in dest
-void __attribute__((noinline))  Matrix_FromMtx(Mtx* src, Matrix* dest);
-
 // Applies the transform matrix mtx to the vector src, putting the result in dest
 void __attribute__((noinline))  Matrix_MultVec3f(Matrix* mtx, Vec3f* src, Vec3f* dest);
 
@@ -140,12 +144,5 @@ f32 Math_FAtanF(f32);
 f32 Math_FAtan2F(f32, f32);
 f32 Math_FAsinF(f32);
 f32 Math_FAcosF(f32);
-
-//f32 __sinf(f32);
-//f32 __cosf(f32);
-
-s64 __ull_div(s64, s64);
-s64 __ll_mul(s64, s64);
-s64 __ll_rshift(s64, s64);
 
 #endif

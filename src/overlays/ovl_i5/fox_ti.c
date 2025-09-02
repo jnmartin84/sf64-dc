@@ -119,9 +119,8 @@ void Titania_TankTracks_Spawn(f32 xPos, f32 yPos, f32 zPos, f32 yRot, f32 scale2
         }
     }
 }
-#include <stdio.h>
+
 void Titania_TiTerrain_Update(TiTerrain* this) {
-//    printf("update ti terrain %08x\n", this);
     Ground_801B49D0(this);
 }
 
@@ -2694,8 +2693,8 @@ void Titania_8019081C(s32 limbIndex, Vec3f* rot, void* thisx) {
     }
 
     if (limbIndex == 1) {
-        // FAKE
-        if (1) {}
+/*         // FAKE
+        if (1) {} */
         switch ((s32) D_i5_801BBEF0[25]) {
             case 0:
                 Matrix_MultVec3f(gCalcMatrix, &D_i5_801B8D00, (Vec3f*) &D_i5_801BBEF4[68]);
@@ -5204,7 +5203,6 @@ f32 D_i5_801B8E24[4][2] = {
     { -1.0f, -1.0f },
     { 1.0f, -1.0f },
 };
-#define F_PI        3.14159265f   /* pi             */
 
 void Titania_TiGoras_Draw(TiGoras* boss) {
     TexturedLine* temp_v0_6;

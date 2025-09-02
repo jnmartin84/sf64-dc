@@ -11,14 +11,14 @@ void Venom2_Ve2Base_Update(Ve2Base* this) {
     Math_SmoothStepToF(&this->fwork[0], this->fwork[1], 0.5f, 5.0f, 0.0f);
 }
 
-bool Venom2_Ve2Base_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
+s32 Venom2_Ve2Base_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
     Ve2Base* this = (Ve2Base*) thisx;
 
     if ((limbIndex == 1) || (limbIndex == 2)) {
         pos->x -= this->fwork[0];
     }
 
-    return false;
+    return 0;
 }
 
 void Venom2_Ve2Base_Draw(Ve2Base* this) {

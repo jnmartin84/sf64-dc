@@ -1,17 +1,3 @@
-#include "PR/os_internal.h"
-#include "PR/viint.h"
+#include "common.h"
 
-// TODO: this comes from a header
-#ident "$Revision: 1.17 $"
-
-void osViBlack(u8 active) {
-    register u32 saveMask = __osDisableInt();
-
-    if (active) {
-        __osViNext->state |= VI_STATE_BLACK;
-    } else {
-        __osViNext->state &= ~VI_STATE_BLACK;
-    }
-
-    __osRestoreInt(saveMask);
-}
+#pragma GLOBAL_ASM("asm/us/rev1/nonmatchings/libultra/io/viblack/osViBlack.s")

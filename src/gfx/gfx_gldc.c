@@ -577,7 +577,7 @@ static void skybox_setup_post(void) {
 //    glPopMatrix();
 }
 
-
+extern volatile int do_skyblend;
 extern int do_reticle;
 
 // 0x01a00200
@@ -778,6 +778,7 @@ typedef enum LevelType {
     /* 0 */ LEVELTYPE_PLANET,
     /* 1 */ LEVELTYPE_SPACE,
 } LevelType;
+extern int do_fillrect_blend;
 
 static void gfx_opengl_draw_triangles(float buf_vbo[], UNUSED size_t buf_vbo_len, size_t buf_vbo_num_tris) {
     cur_buf = (void*) buf_vbo;
@@ -814,12 +815,25 @@ static void gfx_opengl_draw_triangles(float buf_vbo[], UNUSED size_t buf_vbo_len
     if(need_to_add)
         add_a_color_pre(cur_buf, buf_vbo_num_tris, add_r, add_g, add_b, add_a);
 #endif
+#if 1
+    if (0) { //do_skyblend) {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);///* GL_ONE_MINUS_ */GL_SRC_ALPHA);
+ //       glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    }
+#endif
 
-    glDrawArrays(GL_TRIANGLES, 0, 3 * buf_vbo_num_tris);
+glDrawArrays(GL_TRIANGLES, 0, 3 * buf_vbo_num_tris);
 
 #if 0
     if(need_to_add)
         add_a_color_post();
+#endif
+#if 1
+    if (0) { //do_skyblend) {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    }
 #endif
 
     if (is_zmode_decal)
@@ -841,7 +855,6 @@ static void gfx_opengl_draw_triangles(float buf_vbo[], UNUSED size_t buf_vbo_len
 extern void  __attribute__((noinline)) gfx_opengl_2d_projection(void);
 
 extern void  __attribute__((noinline)) gfx_opengl_reset_projection(void);
-extern int do_fillrect_blend;
 extern int do_starfield;
 void gfx_opengl_draw_triangles_2d(void* buf_vbo, size_t buf_vbo_len, size_t buf_vbo_num_tris) {
     dc_fast_t* tris = buf_vbo;

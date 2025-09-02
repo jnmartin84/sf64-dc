@@ -53,11 +53,21 @@ f32 Rand_ZeroOneSeeded(void) {
 #define F_1_PI      0.31830989f  /* 1/pi           */
 #define F_2_PI      0.63661977f  /* 2/pi           */
 
+// only works for positive x
+#define approx_recip(x) (1.0f / sqrtf((x)*(x)))
 
-
+// branch-free, division-free atan2f approximation
+// copysignf has a branch but penalty-free
 f32 Math_Atan2F(f32 y, f32 x) {
-//    return bump_atan2f(y,x);
 #if 1
+	float abs_y = fabsf(y) + 1e-10f;
+	float absy_plus_absx = abs_y + fabsf(x);
+	float inv_absy_plus_absx = approx_recip(absy_plus_absx);
+	float angle = F_PI_2 - copysignf(F_PI_4, x);
+	float r = (x - copysignf(abs_y, x)) * inv_absy_plus_absx;
+	angle += (0.1963f * r * r - 0.9817f) * r;
+	return copysignf(angle, y);
+#else
     if ((y == 0.0f) && (x == 0.0f)) {
         return 0.0f;
     }

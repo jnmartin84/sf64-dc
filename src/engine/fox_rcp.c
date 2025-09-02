@@ -194,6 +194,7 @@ void RCP_SetupDL_23(void) {
 }
 
 void RCP_SetupDL_29(s32 r, s32 g, s32 b, s32 a, s32 near, s32 far) {
+    if (far == near) far += 5;
     gSPDisplayList(gMasterDisp++, gRcpSetupDLs[SETUPDL_29]);
     gDPSetFogColor(gMasterDisp++, r, g, b, a);
     gSPFogPosition(gMasterDisp++, near, far);

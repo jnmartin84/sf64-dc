@@ -83,7 +83,7 @@ void Andross_EvAndrossGate_Update(ActorEvent* this) {
     this->obj.rot.z = gAndrossPassageZRot;
 }
 
-bool Andross_Gate_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
+s32 Andross_Gate_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
     if (limbIndex == 13) {
         *dList = NULL;
     }
@@ -1262,7 +1262,7 @@ void Andross_AndBrain_Update(AndBrain* this) {
     Math_SmoothStepToF(&this->fwork[23], this->fwork[24], 0.3f, 0.01f, 0);
 }
 
-bool Andross_AndBrain_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
+s32 Andross_AndBrain_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
     Boss* this = (Boss*) thisx;
 
     if (this->fwork[21] >= 254.0f) {
@@ -1279,7 +1279,7 @@ bool Andross_AndBrain_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, V
 
     if ((limbIndex == 2) && (this->swork[6] != 0)) {
         *dList = NULL;
-        return false;
+        return 0;
     }
 
     if ((limbIndex == 1) || (limbIndex == 2)) {
@@ -1315,9 +1315,9 @@ bool Andross_AndBrain_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, V
             Matrix_Pop(&gGfxMatrix);
             Matrix_Pop(&gCalcMatrix);
         }
-        return true;
+        return 1;
     }
-    return false;
+    return 0;
 }
 
 void Andross_AndBrain_Draw(AndBrain* this) {
@@ -3175,7 +3175,7 @@ f32 D_i6_801A67EC = 0.0f;
 f32 D_i6_801A67F0 = 0.0f;
 Vec3f D_i6_801A67F4 = { 0.0f, 0.0f, 0.0f };
 
-bool Andross_AndAndross_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* data) {
+s32 Andross_AndAndross_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* data) {
     Vec3f sp94;
     Vec3f sp88;
     f32 scale;
@@ -3369,7 +3369,7 @@ bool Andross_AndAndross_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos,
                 Matrix_Pop(&gGfxMatrix);
                 Matrix_Pop(&gCalcMatrix);
             }
-            return true;
+            return 1;
 
         case 50:
             pos->x -= this->fwork[11];
@@ -3414,7 +3414,7 @@ bool Andross_AndAndross_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos,
                 Matrix_Pop(&gGfxMatrix);
                 Matrix_Pop(&gCalcMatrix);
             }
-            return true;
+            return 1;
 
         default:
             break;
@@ -3437,7 +3437,7 @@ bool Andross_AndAndross_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos,
         gSPDisplayList(gMasterDisp++, *dList);
     }
     Matrix_Pop(&gCalcMatrix);
-    return true;
+    return 1;
 }
 
 void Andross_AndAndross_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* thisx) {
@@ -3706,11 +3706,11 @@ void Andross_AndDoor_Update(AndDoor* this) {
     this->obj.rot.z = gAndrossPassageZRot;
 }
 
-bool Andross_AndDoor_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
+s32 Andross_AndDoor_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
     if (limbIndex == 13) {
         *dList = NULL;
     }
-    return false;
+    return 0;
 }
 
 void Andross_AndDoor_Draw(AndDoor* this) {
@@ -4144,6 +4144,7 @@ void Andross_LevelComplete(Player* player) {
                 gActors[10].orient.z = 180.0f;
                 gDrawBackdrop = 0;
                 gFogFar = 1030;
+                if (gFogFar <= gFogNear) gFogFar = gFogNear + 4;
                 sAndLightR = gLight1R;
                 sAndLightG = gLight1G;
                 sAndLightB = gLight1B;

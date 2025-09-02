@@ -1,25 +1,5 @@
-#include "PR/os_internal.h"
-#include "PR/controller.h"
-#include "siint.h"
+#include "common.h"
 
-s32 osContStartQuery(OSMesgQueue* mq) {
-    s32 ret = 0;
+#pragma GLOBAL_ASM("asm/us/rev1/nonmatchings/libultra/io/contquery/osContStartQuery.s")
 
-    __osSiGetAccess();
-
-    if (__osContLastCmd != CONT_CMD_REQUEST_STATUS) {
-        __osPackRequestData(CONT_CMD_REQUEST_STATUS);
-        ret = __osSiRawStartDma(OS_WRITE, __osContPifRam.ramarray);
-        osRecvMesg(mq, NULL, OS_MESG_BLOCK);
-    }
-
-    ret = __osSiRawStartDma(OS_READ, __osContPifRam.ramarray);
-    __osContLastCmd = CONT_CMD_REQUEST_STATUS;
-    __osSiRelAccess();
-    return ret;
-}
-
-void osContGetQuery(OSContStatus* data) {
-    u8 pattern;
-    __osContGetInitData(&pattern, data);
-}
+#pragma GLOBAL_ASM("asm/us/rev1/nonmatchings/libultra/io/contquery/osContGetQuery.s")

@@ -1106,7 +1106,7 @@ sincosdeg(this->swork[GRANGA_SWK_23] * 12.0f, &cots, &cotc);
     }
 }
 
-bool Corneria_CoGranga_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* data) {
+s32 Corneria_CoGranga_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* data) {
     CoGranga* boss = (CoGranga*) data;
 
     if (boss->swork[limbIndex] == DMG_DESTROYED) {
@@ -1178,7 +1178,7 @@ bool Corneria_CoGranga_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, 
         RCP_SetupDL_64();
         gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 64, 64, 255, 255);
     }
-    return false;
+    return 0;
 }
 
 void Corneria_CoGranga_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* data) {
@@ -1267,7 +1267,7 @@ void Corneria_CoGranga_Draw(CoGranga* this) {
     Matrix_Push(&gGfxMatrix);
 }
 
-bool Corneria_Garuda_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
+s32 Corneria_Garuda_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
     Actor* actor = (Actor*) thisx;
 
     if (limbIndex == 1) {
@@ -1276,7 +1276,7 @@ bool Corneria_Garuda_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Ve
     if ((limbIndex == 3) && (actor->obj.id == OBJ_ACTOR_CO_GARUDA_1)) {
         rot->x += actor->fwork[GRANGA_FWK_01];
     }
-    return false;
+    return 0;
 }
 
 s32 Corneria_CoGaruda1_CheckCollision(CoGaruda1* this) {
@@ -2639,14 +2639,14 @@ void Corneria_CarrierBottom_Update(CoCarrierBottom* this) {
     }
 }
 
-bool Corneria_CoCarrier_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
+s32 Corneria_CoCarrier_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
     if ((limbIndex == 10) && (gBosses[CARRIER_UPPER].state != 0) && (gBosses[CARRIER_BOTTOM].state != 0)) {
         *dList = NULL;
     }
     if ((limbIndex != 12) && (limbIndex != 10)) {
         *dList = NULL;
     }
-    return false;
+    return 0;
 }
 
 void Corneria_CoCarrier_Draw(CoCarrier* this) {
@@ -2655,14 +2655,14 @@ void Corneria_CoCarrier_Draw(CoCarrier* this) {
                            &gIdentityMatrix);
 }
 
-bool Corneria_CoCarrierLeft_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* index) {
+s32 Corneria_CoCarrierLeft_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* index) {
     if (limbIndex == 5) {
         rot->y -= gBosses[*(s32*) index].fwork[2];
     }
     if ((limbIndex != 6) && (limbIndex != 5)) {
         *dList = NULL;
     }
-    return false;
+    return 0;
 }
 
 void Corneria_CoCarrierLeft_Draw(CoCarrierLeft* this) {
@@ -2673,14 +2673,14 @@ void Corneria_CoCarrierLeft_Draw(CoCarrierLeft* this) {
                            &gIdentityMatrix);
 }
 
-bool Corneria_CoCarrierUpper_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* index) {
+s32 Corneria_CoCarrierUpper_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* index) {
     if (limbIndex == 1) {
         rot->z -= gBosses[*(s32*) index].fwork[0];
     }
     if ((limbIndex != 1) && (limbIndex != 2)) {
         *dList = NULL;
     }
-    return false;
+    return 0;
 }
 
 void Corneria_CoCarrierUpper_Draw(CoCarrierUpper* this) {
@@ -2691,14 +2691,14 @@ void Corneria_CoCarrierUpper_Draw(CoCarrierUpper* this) {
                            &gIdentityMatrix);
 }
 
-bool Corneria_CoCarrierBottom_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* index) {
+s32 Corneria_CoCarrierBottom_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* index) {
     if (limbIndex == 3) {
         rot->z -= gBosses[*(s32*) index].fwork[1];
     }
     if ((limbIndex != 3) && (limbIndex != 4)) {
         *dList = NULL;
     }
-    return false;
+    return 0;
 }
 
 void Corneria_CoCarrierBottom_Draw(CoCarrierBottom* this) {
@@ -2737,7 +2737,7 @@ void Corneria_CoDoors_Update(CoDoors* this) {
     }
 }
 
-bool Corneria_CoDoors_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
+s32 Corneria_CoDoors_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
     CoDoors* scenery = (CoDoors*) thisx;
 
     RCP_SetupDL_29(gFogRed, gFogGreen, gFogBlue, gFogAlpha, gFogNear, gFogFar);

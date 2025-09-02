@@ -347,7 +347,7 @@ static  __attribute__((noinline)) void gfx_generate_cc(struct ColorCombiner* com
 	}
 	comb->cc_id = cc_id;
 	comb->prg = gfx_lookup_or_create_shader_program(shader_id);
-	memcpy(comb->shader_input_mapping, shader_input_mapping, sizeof(shader_input_mapping));
+	n64_memcpy(comb->shader_input_mapping, shader_input_mapping, sizeof(shader_input_mapping));
 }
 
 static  __attribute__((noinline)) struct ColorCombiner* gfx_lookup_or_create_color_combiner(uint32_t cc_id) {
@@ -475,9 +475,49 @@ uint16_t __attribute__((aligned(32))) rgba16_buf[4096 * 8];
 uint8_t __attribute__((aligned(32))) xform_buf[8192];
 
 int last_cl_rv;
+static uint32_t LightGetHSV(uint8_t r, uint8_t g, uint8_t b);
+
+static uint32_t LightGetRGB(uint8_t h, uint8_t s, uint8_t v);
 
 static void __attribute__((noinline)) import_texture(int tile);
+int brightit_argb1555(uint16_t c) { //int r, int g, int b, int a) {
+	float l_flt;
+	int factor;
+	int h, s, _v;
+	int hsv;
 
+	uint8_t a = (c>>15)&1;
+	uint8_t r = (c >> 10) & 0x1f;
+	uint8_t g = (c >> 5) & 0x1f;
+	uint8_t b = (c) & 0x1f;
+
+ 	hsv = LightGetHSV((r<<3), (g<<3), (b<<3));
+
+	h = (hsv >> 16) & 0xFF;
+	s = (hsv >> 8) & 0xFF;
+	_v = hsv & 0xFF;
+
+	factor = _v;
+
+	l_flt = (float)factor * 1.4f;
+
+	_v = (int)l_flt;
+
+	if (_v < 0)
+		_v = 0;
+	if (_v > 255)
+		_v = 255;
+
+	int rgb = LightGetRGB(h, s, _v);
+
+	r = (rgb >> 16) & 0xff;
+	r = (r >> 3) & 0x1f;
+	g = (rgb >> 8) & 0xff;
+	g= (g >> 3) & 0x1f;
+	b = (rgb) & 0xff;
+	b = (b >> 3) & 0x1f;
+	return (a << 15) | (r << 10) | (g << 5) | (b);
+}
 
 static void import_texture_rgba16(int tile) {
 	uint32_t i;
@@ -489,7 +529,7 @@ static void import_texture_rgba16(int tile) {
 		uint16_t* start = (uint16_t *)rdp.loaded_texture[tile].addr;
 		for (i = 0; i < loopcount; i++) {
 			uint16_t col16 = start[i];
-			rgba16_buf[i] = ((col16 & 1) << 15) | (col16 >> 1);
+			rgba16_buf[i] = brightit_argb1555(((col16 & 1) << 15) | (col16 >> 1));
 		}
 	} else {
 		u32 src_width = last_set_texture_image_width + 1;
@@ -510,7 +550,7 @@ static void import_texture_rgba16(int tile) {
 		for (i = 0; i < height; i++) {
 			for (uint32_t x = 0; x < somewidth; x++) {
 				uint16_t col16 = start[x];
-				*tex16++ = ((col16 & 1) << 15) | (col16 >> 1);
+				*tex16++ = brightit_argb1555(((col16 & 1) << 15) | (col16 >> 1));
 			}
 			start += src_width;
 		}
@@ -554,6 +594,8 @@ static void import_texture_ia4(int tile) {
 			uint8_t part = (byte >> (4 - (i % 2) * 4)) & 0xf;
 			uint8_t intensity = (SCALE_3_8(part >> 1) >> 3) & 0x1f;
 			uint8_t alpha = part & 1;
+			intensity = (intensity * 1.4f);
+			if (intensity > 31) intensity = 31;
 			uint8_t r = intensity;
 			uint8_t g = intensity;
 			uint8_t b = intensity;
@@ -586,6 +628,9 @@ static void import_texture_ia4(int tile) {
 			uint8_t byte = xform_buf[i];
 			uint8_t intensity = (SCALE_3_8(byte >> 1) >> 3) & 0x1f;
 			uint8_t alpha = byte & 1;
+			intensity = (intensity * 1.4f);
+			if (intensity > 31) intensity = 31;
+
 			uint8_t r = intensity;
 			uint8_t g = intensity;
 			uint8_t b = intensity;
@@ -613,8 +658,11 @@ static void import_texture_ia8(int tile) {
 			uint8_t al = (val & 0xf);
 			if (in < 3)
 				tex16[i] = 0;
-			else
+			else {
+				in = (in * 1.4f);
+				if (in > 15) in = 15;
 				tex16[i] = (al << 12) | (in << 8) | (in << 4) | in;
+			}
 	}
 	gfx_rapi->upload_texture((uint8_t*) rgba16_buf, width, height, GL_UNSIGNED_SHORT_4_4_4_4_REV);
 }
@@ -647,8 +695,11 @@ static void import_texture_ia16(int tile) {
 			uint8_t in = (np >>  4)&0xf;
 			if (in < 3)
 				tex16[x] = 0;
-			else
+			else {
+				in = (in * 1.4f);
+				if (in > 15) in = 15;
 				tex16[x] = (al << 12) | (in << 8) | (in << 4) | in;
+			}
 		}
 		start += src_width;
 		tex16 += src_width;
@@ -671,10 +722,15 @@ static void import_texture_i4(int tile) {
 			uint16_t idx = (i<<1);
 			uint8_t byte = rdp.loaded_texture[tile].addr[i];
 			uint8_t part1,part2;
+			uint8_t p1s,p2s;
 			part1 = (byte >> 4) & 0xf;
+			p1s = part1 * 1.4f;
+			if (p1s > 15) p1s = 15;
 			part2 = byte & 0xf;
-			rgba16_buf[idx  ] = (part1 << 12) | (part1 << 8) | (part1 << 4) | part1;
-			rgba16_buf[idx+1] = (part2 << 12) | (part2 << 8) | (part2 << 4) | part2;
+			p2s = part2 * 1.4f;
+			if (p2s > 15) p2s = 15;
+			rgba16_buf[idx  ] = (part1 << 12) | (p1s << 8) | (p1s << 4) | p1s;
+			rgba16_buf[idx+1] = (part2 << 12) | (p2s << 8) | (p2s << 4) | p2s;
 		}
 	} else {
 		memset(rgba16_buf, 0, 8192);
@@ -687,9 +743,16 @@ static void import_texture_i4(int tile) {
 			for (uint32_t x = 0; x < (last_set_texture_image_width + 1)*2; x += 2) {
 				uint8_t startin = start[(x >> 1)];
 				uint8_t in = (startin >> 4) & 0xf;
-				rgba16_buf[iw + x] = (in << 12) | (in << 8) | (in << 4) | in;
-				in = startin & 0xf;
-				rgba16_buf[iw + x + 1] = (in << 12) | (in << 8) | (in << 4) | in;
+				uint8_t in2 = startin & 0xf;
+
+				uint8_t p1s,p2s;
+  				p1s = in * 1.4f;
+				if (p1s > 15) p1s = 15;
+  				p2s = in2 * 1.4f;
+				if (p2s > 15) p2s = 15;
+
+				rgba16_buf[iw + x] = (in << 12) | (p1s << 8) | (p1s << 4) | p1s;
+				rgba16_buf[iw + x + 1] = (in2 << 12) | (p2s << 8) | (p2s << 4) | p2s;
 			}
 			start += (last_set_texture_image_width + 1);
 		}
@@ -724,7 +787,9 @@ static void import_texture_i8(int tile) {
 
 	for (uint32_t i = 0; i < rdp.loaded_texture[tile].size_bytes; i++) {
 		uint8_t in = (xform_buf[i] >> 4) & 0xf;
-		rgba16_buf[i] = (in << 12) | (in << 8) | (in << 4) | in;
+		uint8_t ins = in * 1.4f;
+		if (ins > 15) ins = 15;
+		rgba16_buf[i] = (in << 12) | (ins << 8) | (ins << 4) | ins;
 	}
 
 	gfx_rapi->upload_texture((uint8_t*) rgba16_buf, width, height, GL_UNSIGNED_SHORT_4_4_4_4_REV);
@@ -1073,6 +1138,7 @@ float tmp[4][4];
 }
 
 static int matrix_dirty = 0;
+void *memcpy32(void *restrict dst, const void *restrict src, size_t bytes);
 
 static __attribute__((noinline)) void gfx_sp_matrix(uint8_t parameters, const void* addr) {
 	void* segaddr = (void*) segmented_to_virtual((void*) addr);
@@ -1092,35 +1158,59 @@ static __attribute__((noinline)) void gfx_sp_matrix(uint8_t parameters, const vo
 	}
 #else
 	// For a modified GBI where fixed point values are replaced with floats
-	memcpy(matrix, segaddr, sizeof(matrix));
+	n64_memcpy(matrix, segaddr, sizeof(matrix));
 #endif
 
 	matrix_dirty = 1;
 
 	if (parameters & G_MTX_PROJECTION) {
 		if (parameters & G_MTX_LOAD) {
-			memcpy(rsp.P_matrix, matrix, sizeof(matrix));
+			memcpy32(rsp.P_matrix, matrix, sizeof(matrix));
 		} else {
 			gfx_matrix_mul(rsp.P_matrix, matrix, rsp.P_matrix);
 		}
-	} else { // G_MTX_MODELVIEW
+	} else {
+		// G_MTX_NOPUSH | G_MTX_MUL | G_MTX_MODELVIEW
 		if (parameters == 0) {
 			gfx_matrix_mul(rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1], matrix,
 							rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1]);
-		} else {
-			if (parameters & G_MTX_PUSH) {
+		} else 
+		// G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW
+		if (parameters == 2) {
+			//printf("\n");
+			if (rsp.modelview_matrix_stack_size == 0)
+				++rsp.modelview_matrix_stack_size;
+			memcpy32(rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1], matrix, sizeof(matrix));
+		} else 
+		// G_MTX_PUSH | G_MTX_MUL | G_MTX_MODELVIEW
+		if (parameters == 4) {
+			if (rsp.modelview_matrix_stack_size < 11) {
+				++rsp.modelview_matrix_stack_size;
+				memcpy32(rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1],
+					rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 2], sizeof(matrix));
+			}
+			// only ever pushing identity matrix, no need to multiply
+			//gfx_matrix_mul(rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1], matrix,
+			//	rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1]);
+		}
+		
+		#if 1
+		else {
+			 if (parameters & G_MTX_PUSH) {
+//				printf("mv push2\n");
 				if (rsp.modelview_matrix_stack_size < 11) {
 					++rsp.modelview_matrix_stack_size;
-					memcpy(rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1],
+					memcpy32(rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1],
 						rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 2], sizeof(matrix));
 				}
-			}
-			if (parameters & G_MTX_LOAD) {
+			} 
+			 if (parameters & G_MTX_LOAD) {
 				if (rsp.modelview_matrix_stack_size == 0)
 					++rsp.modelview_matrix_stack_size;
-				memcpy(rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1], matrix, sizeof(matrix));
-			}
+				memcpy32(rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1], matrix, sizeof(matrix));
+			} 
 		}
+			#endif
 		rsp.lights_changed = 1;
 	}
 
@@ -1128,19 +1218,23 @@ static __attribute__((noinline)) void gfx_sp_matrix(uint8_t parameters, const vo
 					rsp.P_matrix);
 }
 
-static void  __attribute__((noinline)) gfx_sp_pop_matrix(uint32_t count) {
-	while (count--) {
-		if (rsp.modelview_matrix_stack_size > 0) {
-			--rsp.modelview_matrix_stack_size;
-			if (rsp.modelview_matrix_stack_size > 0) {
-				gfx_matrix_mul(rsp.MP_matrix,
-					rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1],
-					rsp.P_matrix);
-			}
-		}/*  else {
-			break;
-		} */
+// only used by Titania and it is fine if you dont reconstitute the MP matrix
+static void  __attribute__((noinline)) gfx_sp_pop_matrix(UNUSED uint32_t count) {
+#if 1
+	if (rsp.modelview_matrix_stack_size > 0) {
+		--rsp.modelview_matrix_stack_size;
 	}
+#else
+	while (count--) {
+        if (rsp.modelview_matrix_stack_size > 0) {
+            --rsp.modelview_matrix_stack_size;
+            if (rsp.modelview_matrix_stack_size > 0) {
+                gfx_matrix_mul(rsp.MP_matrix, rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1],
+                               rsp.P_matrix);
+            }
+        }
+    }
+#endif
 	rsp.lights_changed = 1;	
 	matrix_dirty = 1;
 }
@@ -2644,10 +2738,10 @@ static void  gfx_sp_movemem(uint8_t index, UNUSED uint8_t offset, const void* da
 			gfx_calc_and_set_viewport((const Vp_t*) data);
 			break;
 		case G_MV_LOOKATY:
-			memcpy(&rsp.lookat_y, data, sizeof(Light_t));
+			n64_memcpy(&rsp.lookat_y, data, sizeof(Light_t));
 			break;
 		case G_MV_LOOKATX:
-			memcpy(&rsp.lookat_x, data, sizeof(Light_t));
+			n64_memcpy(&rsp.lookat_x, data, sizeof(Light_t));
 			break;
 		case G_MV_L0:
 		case G_MV_L1:
@@ -2658,7 +2752,7 @@ static void  gfx_sp_movemem(uint8_t index, UNUSED uint8_t offset, const void* da
 		case G_MV_L6:
 		case G_MV_L7:
 			// NOTE: reads out of bounds if it is an ambient light
-			memcpy(rsp.current_lights + (index - G_MV_L0) / 2, data, sizeof(Light_t));
+			n64_memcpy(rsp.current_lights + (index - G_MV_L0) / 2, data, sizeof(Light_t));
 			break;
 		default:
 			break;
@@ -2769,9 +2863,13 @@ static void  __attribute__((noinline)) gfx_dp_load_tlut(UNUSED uint8_t tile, uin
 	for (int i = 0; i < high_index; i++) {
 		uint16_t c = *srcp++;
 		uint8_t a = c&1;
-		uint8_t r = (c >> 11) & 0x1f;
-		uint8_t g = (c >> 6) & 0x1f;
-		uint8_t b = (c >> 1) & 0x1f;
+		uint8_t r = (((c >> 11) & 0x1f)*1.4f);
+		if(r > 31) r = 31;
+		uint8_t g = (((c >> 6) & 0x1f)*1.4f);
+		if(g > 31) g= 31;
+		uint8_t b = (((c >> 1) & 0x1f)*1.4f);
+		if(b > 31) b = 31;
+
 		*tlp++ = (a << 15) | (r << 10) | (g << 5) | (b);
 	}
 }
@@ -3032,7 +3130,7 @@ static void  gfx_dp_set_env_color(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
 
 	factor = _v;
 
-	l_flt = (float)factor * 2.2f;
+	l_flt = (float)factor * 1.4f;
 
 	_v = (int)l_flt;
 
@@ -3064,7 +3162,7 @@ float l_flt;
 
 	factor = _v;
 
-	l_flt = (float)factor * 2.2f;
+	l_flt = (float)factor * 1.4f;
 
 	_v = (int)l_flt;
 
@@ -3093,7 +3191,12 @@ static void  gfx_dp_set_fill_color(uint32_t packed_color) {
 	uint32_t g = (col16 >> 6) & 0x1f;
 	uint32_t b = (col16 >> 1) & 0x1f;
 	uint32_t a = col16 & 1;
-
+/* 	rdp.fill_color.r = r;
+	rdp.fill_color.g = g;
+	rdp.fill_color.b = b;
+	rdp.fill_color.a = a ? 255 : 0;
+ */
+#if 1
 float l_flt;
 	int factor;
 	int h, s, _v;
@@ -3107,7 +3210,7 @@ float l_flt;
 
 	factor = _v;
 
-	l_flt = (float)factor * 2.2f;
+	l_flt = (float)factor * 1.4f;
 
 	_v = (int)l_flt;
 
@@ -3122,6 +3225,7 @@ float l_flt;
 	rdp.fill_color.g = (rgb >> 8) & 0xff;
 	rdp.fill_color.b = rgb & 0xff;
 	rdp.fill_color.a = a * 255;
+#endif
 }
 
 float screen_2d_z;
@@ -3339,7 +3443,7 @@ static inline void* seg_addr(uintptr_t w1) {
 extern volatile int do_backdrop;
 volatile int do_reticle = 0;
 int depth_off = 0;
-
+volatile int do_skyblend = 0;
 int do_fillrect_blend = 0;
 
 //#define gSPStarfield(pkt)                                       \
@@ -3370,6 +3474,8 @@ static void  __attribute__((noinline)) gfx_run_dl(Gfx* cmd) {
 				do_starfield ^= 1;
 			} else if(cmd->words.w1 == 0x46554380) {
 				do_fillrect_blend ^= 1;
+			} else if(cmd->words.w1 == 0x46554390) {
+				do_skyblend ^= 1;
 			}   
 			++cmd;
 			continue;

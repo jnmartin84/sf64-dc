@@ -615,9 +615,78 @@ void Audio_ResetSfxChannelState(void) {
     }
 }
 
+#include <dc/sound/sound.h>
+#include <dc/sound/stream.h>
+#include "sndwav.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <kos/thread.h>
+
+wav_stream_hnd_t cur_hnd = SND_STREAM_INVALID;
+static int ever_init_wav = 0;
+
+void S_SetMusicVolume(int volume)
+{
+	int sleeps = 0;
+
+	if (cur_hnd == SND_STREAM_INVALID) {
+		//dbgio_printf("setmusvol invalid handle\n");
+		return;
+	}
+
+	while (!wav_is_playing() && sleeps < 100) {
+		sleeps++;
+		thd_sleep(50);
+	}
+
+	if (sleeps < 100)
+		wav_volume((volume * 255)/100);
+	//else
+		//dbgio_printf("timed out on wavisplaying\n");
+}
+
+
+extern char *fnpre;
+static char wavfn[256];
+
 void Audio_StartSequence(u8 seqPlayId, u8 seqId, u8 seqArgs, u16 fadeInTime) {
     u8 i;
     s32 pad;
+    if (0) { //seqPlayId == SEQ_PLAYER_BGM && ((seqId&0x7fff) >= 2 && (seqId&0x7fff) <= 65)) {
+        if (ever_init_wav == 0) {
+            ever_init_wav = 1;
+            wav_init();
+            //dbglog_set_level(DBG_INFO);
+        }
+
+        if (!sStartSeqDisabled) {
+            int playId = seqId&0x7fff;
+            if (playId == 15) {
+                playId = 10;
+            } else if (playId == 11) {
+                playId = 9;
+            } else if (playId == 16) {
+                playId = 4;
+            } else if (playId == 50) {
+                playId = 0x25;
+            } 
+        sprintf(wavfn, "%s/music/%02X.adpcm", fnpre, playId);
+        int looping = 1;
+        if (cur_hnd != SND_STREAM_INVALID) {
+    		wav_destroy();
+ 	    	cur_hnd = SND_STREAM_INVALID;
+ 	    }
+        
+        cur_hnd = wav_create(wavfn, looping,0,0);
+        if (cur_hnd != SND_STREAM_INVALID) {
+            sActiveSequences[seqPlayId].seqId = seqId;
+            wav_play();
+            S_SetMusicVolume(90);
+        }
+        return;
+        }
+    }
+
     if (!sStartSeqDisabled || (seqPlayId == SEQ_PLAYER_SFX)) {
         AUDIOCMD_GLOBAL_INIT_SEQPLAYER((u32) seqPlayId, (u32) seqId, 0, fadeInTime);
         sActiveSequences[seqPlayId].prevSeqId = sActiveSequences[seqPlayId].seqId = seqId | ((seqArgs) << 8);
@@ -638,6 +707,12 @@ void Audio_StartSequence(u8 seqPlayId, u8 seqId, u8 seqArgs, u16 fadeInTime) {
 }
 
 void Audio_StopSequence(u8 seqPlayId, u16 fadeOutTime) {
+    if (0) { //seqPlayId == SEQ_PLAYER_BGM) { //} >=2 && seqId <= 65) {
+        if (cur_hnd != SND_STREAM_INVALID) {
+		    wav_destroy();
+ 		    cur_hnd = SND_STREAM_INVALID;
+ 	    }
+    }
     AUDIOCMD_GLOBAL_DISABLE_SEQPLAYER(seqPlayId, fadeOutTime);
     sActiveSequences[seqPlayId].seqId = SEQ_ID_NONE;
 }

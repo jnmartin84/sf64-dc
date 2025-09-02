@@ -48,8 +48,9 @@ typedef enum OverlayCalls {
 #include <stddef.h>
 #include <stdarg.h>
 
-
-#define F_PI        3.14159265f   /* pi             */
+#ifndef F_PI
+#define F_PI        3.1415926f   /* pi             */
+#endif
 
 #define M_DTOR	(F_PI / 180.0f)
 #define M_RTOD	(180.0f / F_PI)

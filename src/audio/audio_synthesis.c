@@ -5,15 +5,43 @@
 
 #include "mixer.h"
 
-#define DMEM_WET_SCRATCH 0x470
-#define DMEM_COMPRESSED_ADPCM_DATA 0x990
-#define DMEM_LEFT_CH 0x990
-#define DMEM_RIGHT_CH 0xB10
-#define DMEM_HAAS_TEMP 0x650
-#define DMEM_TEMP 0x450
-#define DMEM_UNCOMPRESSED_NOTE 0x5F0
-#define DMEM_WET_LEFT_CH 0xC90
-#define DMEM_WET_RIGHT_CH 0xE10 // = DMEM_WET_LEFT_CH + DMEM_1CH_SIZE
+// was 0x470
+// now 36*32
+#define DMEM_WET_SCRATCH 0x480
+
+// was 0x990
+// now 77*32
+#define DMEM_COMPRESSED_ADPCM_DATA 0x9A0
+
+// was 0x990
+// now 77*32
+#define DMEM_LEFT_CH 0x9A0
+
+// was 0xB10
+// now 89*32
+#define DMEM_RIGHT_CH 0xB20
+
+// was 0x650
+// now 51*32
+#define DMEM_HAAS_TEMP 0x660
+
+// was 0x450
+// now 35*32
+#define DMEM_TEMP 0x460
+
+// was 0x5F0
+// now 0x600
+#define DMEM_UNCOMPRESSED_NOTE 0x600
+
+// was 0xC90
+// now 101*32
+#define DMEM_WET_LEFT_CH 0xCA0
+
+// was 0xE10
+// now 113*32
+#define DMEM_WET_RIGHT_CH 0xE20
+
+// = DMEM_WET_LEFT_CH + DMEM_1CH_SIZE
 #define SAMPLE_SIZE sizeof(s16)
 
 typedef enum {
@@ -1192,9 +1220,10 @@ Acmd* AudioSynth_ProcessNote(s32 noteIndex, NoteSubEu* noteSub, NoteSynthesisSta
         flags = A_INIT;
     }
 
-    if (noteSub->bitField1.bookOffset == 3) {
-        aUnkCmd19(aList++, 0, aiBufLen * SAMPLE_SIZE, DMEM_TEMP, DMEM_TEMP);
-    }
+//    if (noteSub->bitField1.bookOffset == 3) {
+//        printf("unkcmd19\n");
+//        aUnkCmd19(aList++, 0, aiBufLen * SAMPLE_SIZE, DMEM_TEMP, DMEM_TEMP);
+//    }
 
 #if 0
     gain = noteSub->gain;

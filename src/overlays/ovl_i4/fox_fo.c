@@ -556,7 +556,7 @@ void Fortuna_FoRadar_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* thisx) {
     }
 }
 
-bool Fortuna_FoRadar_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
+s32 Fortuna_FoRadar_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
     FoRadar* actor = (FoRadar*) thisx;
 
     gSPSetGeometryMode(gMasterDisp++, G_CULL_BACK);
@@ -584,7 +584,7 @@ bool Fortuna_FoRadar_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Ve
             break;
     }
 
-    return false;
+    return 0;
 }
 
 void Fortuna_FoRadar_Draw(FoRadar* this) {

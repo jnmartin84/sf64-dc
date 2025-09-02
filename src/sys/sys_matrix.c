@@ -1,3 +1,4 @@
+#include <dc/fmath.h>
 #include "n64sys.h"
 
 #include <stdint.h>
@@ -5,49 +6,56 @@
 #include <string.h>
 #include <stddef.h>
 #include <stdarg.h>
-#define F_PI        3.14159265f   /* pi             */
 
 
 //#define M_DTOR	(M_PI / 180.0f)
 #define M_RTOD	(180.0f / F_PI)
 
 Mtx gIdentityMtx = { {
-    {
+    /*{*/
         { 1.0f, 0.0f, 0.0f, 0.0f },
         { 0.0f, 1.0f, 0.0f, 0.0f },
         { 0.0f, 0.0f, 1.0f, 0.0f },
         { 0.0f, 0.0f, 0.0f, 1.0f },
-    },
-    {
+    /*} ,
+     {
         { 0.0f, 0.0f, 0.0f, 0.0f },
         { 0.0f, 0.0f, 0.0f, 0.0f },
         { 0.0f, 0.0f, 0.0f, 0.0f },
         { 0.0f, 0.0f, 0.0f, 0.0f },
-    },
+    }, */
 } };
-
-Matrix gIdentityMatrix = { {
+Mtx gIdentityMtx2 = { {
+ { 0.0f, 0.0f, 0.0f, 0.0f },
+        { 0.0f, 0.0f, 0.0f, 0.0f },
+        { 0.0f, 0.0f, 0.0f, 0.0f },
+        { 0.0f, 0.0f, 0.0f, 0.0f },
+}};
+Matrix /* __attribute__((aligned(32))) */ gIdentityMatrix = { {
     { 1.0f, 0.0f, 0.0f, 0.0f },
     { 0.0f, 1.0f, 0.0f, 0.0f },
     { 0.0f, 0.0f, 1.0f, 0.0f },
     { 0.0f, 0.0f, 0.0f, 1.0f },
 } };
 
-Matrix* gGfxMatrix;
-Matrix sGfxMatrixStack[0x20] = {0};
+Matrix sCalcMatrixStack[0x20];// = {0};
 Matrix* gCalcMatrix;
-Matrix sCalcMatrixStack[0x20] = {0};
+Matrix sGfxMatrixStack[0x20];// = {0};
+Matrix* gGfxMatrix;
 
 // Copies src Matrix into dst
+void n64_memcpy(void *dst, const void *src, size_t size);
 void __attribute__((noinline))  Matrix_Copy(Matrix* dst, Matrix* src) {
+    n64_memcpy(dst->m, src->m, sizeof(float)*16);
+#if 0
     s32 i;
-
     for (i = 0; i < 4; i++) {
         dst->m[i][0] = src->m[i][0];
         dst->m[i][1] = src->m[i][1];
         dst->m[i][2] = src->m[i][2];
         dst->m[i][3] = src->m[i][3];
     }
+#endif
 }
 
 // Makes a copy of the stack's current matrix and puts it on the top of the stack
@@ -72,15 +80,15 @@ void  __attribute__((noinline)) Matrix_Mult(Matrix* mtx, Matrix* tf, u8 mode) {
     s32 i2;
     s32 i3;
 
-    if (mode == 1) {
+    if (mode == MTXF_APPLY) {
         rx = mtx->m[0][0];
         ry = mtx->m[1][0];
         rz = mtx->m[2][0];
         rw = mtx->m[3][0];
 
-
         for (i0 = 0; i0 < 4; i0++) {
-            mtx->m[i0][0] = (rx * tf->m[i0][0]) + (ry * tf->m[i0][1]) + (rz * tf->m[i0][2]) + (rw * tf->m[i0][3]);
+            mtx->m[i0][0] = fipr(rx,ry,rz,rw,tf->m[i0][0],tf->m[i0][1],tf->m[i0][2],tf->m[i0][3]);
+//             (rx * tf->m[i0][0]) + (ry * tf->m[i0][1]) + (rz * tf->m[i0][2]) + (rw * tf->m[i0][3]);
         }
 
         rx = mtx->m[0][1];
@@ -89,7 +97,8 @@ void  __attribute__((noinline)) Matrix_Mult(Matrix* mtx, Matrix* tf, u8 mode) {
         rw = mtx->m[3][1];
 
         for (i1 = 0; i1 < 4; i1++) {
-            mtx->m[i1][1] = (rx * tf->m[i1][0]) + (ry * tf->m[i1][1]) + (rz * tf->m[i1][2]) + (rw * tf->m[i1][3]);
+            mtx->m[i1][1] = fipr(rx,ry,rz,rw,tf->m[i1][0],tf->m[i1][1],tf->m[i1][2],tf->m[i1][3]);
+//            mtx->m[i1][1] = (rx * tf->m[i1][0]) + (ry * tf->m[i1][1]) + (rz * tf->m[i1][2]) + (rw * tf->m[i1][3]);
         }
 
         rx = mtx->m[0][2];
@@ -98,7 +107,8 @@ void  __attribute__((noinline)) Matrix_Mult(Matrix* mtx, Matrix* tf, u8 mode) {
         rw = mtx->m[3][2];
 
         for (i2 = 0; i2 < 4; i2++) {
-            mtx->m[i2][2] = (rx * tf->m[i2][0]) + (ry * tf->m[i2][1]) + (rz * tf->m[i2][2]) + (rw * tf->m[i2][3]);
+            mtx->m[i2][2] = fipr(rx,ry,rz,rw,tf->m[i2][0],tf->m[i2][1],tf->m[i2][2],tf->m[i2][3]);
+//            mtx->m[i2][2] = (rx * tf->m[i2][0]) + (ry * tf->m[i2][1]) + (rz * tf->m[i2][2]) + (rw * tf->m[i2][3]);
         }
 
         rx = mtx->m[0][3];
@@ -107,7 +117,8 @@ void  __attribute__((noinline)) Matrix_Mult(Matrix* mtx, Matrix* tf, u8 mode) {
         rw = mtx->m[3][3];
 
         for (i3 = 0; i3 < 4; i3++) {
-            mtx->m[i3][3] = (rx * tf->m[i3][0]) + (ry * tf->m[i3][1]) + (rz * tf->m[i3][2]) + (rw * tf->m[i3][3]);
+            mtx->m[i3][3] = fipr(rx,ry,rz,rw,tf->m[i3][0],tf->m[i3][1],tf->m[i3][2],tf->m[i3][3]);
+//            mtx->m[i3][3] = (rx * tf->m[i3][0]) + (ry * tf->m[i3][1]) + (rz * tf->m[i3][2]) + (rw * tf->m[i3][3]);
         }
     } else {
         Matrix_Copy(mtx, tf);
@@ -120,12 +131,13 @@ void __attribute__((noinline)) Matrix_Translate(Matrix* mtx, f32 x, f32 y, f32 z
     f32 ry;
     s32 i;
 
-    if (mode == 1) {
+    if (mode == MTXF_APPLY) {
         for (i = 0; i < 4; i++) {
             rx = mtx->m[0][i];
             ry = mtx->m[1][i];
 
-            mtx->m[3][i] += (rx * x) + (ry * y) + (mtx->m[2][i] * z);
+            mtx->m[3][i] += fipr(rx,ry,mtx->m[2][i],0,x,y,z,0);
+            //(rx * x) + (ry * y) + (mtx->m[2][i] * z);
         }
     } else {
         mtx->m[3][0] = x;
@@ -143,7 +155,7 @@ void __attribute__((noinline)) Matrix_Scale(Matrix* mtx, f32 xScale, f32 yScale,
     f32 ry;
     s32 i;
 
-    if (mode == 1) {
+    if (mode == MTXF_APPLY) {
         for (i = 0; i < 4; i++) {
             rx = mtx->m[0][i];
             ry = mtx->m[1][i];
@@ -172,7 +184,7 @@ void __attribute__((noinline)) Matrix_RotateX(Matrix* mtx, f32 angle, u8 mode) {
 
     sn = sinf(angle);
     cs = cosf(angle);
-    if (mode == 1) {
+    if (mode == MTXF_APPLY) {
         for (i = 0; i < 4; i++) {
             ry = mtx->m[1][i];
             rz = mtx->m[2][i];
@@ -200,7 +212,7 @@ void __attribute__((noinline)) Matrix_RotateY(Matrix* mtx, f32 angle, u8 mode) {
 
     sn = sinf(angle);
     cs = cosf(angle);
-    if (mode == 1) {
+    if (mode == MTXF_APPLY) {
         for (i = 0; i < 4; i++) {
             rx = mtx->m[0][i];
             rz = mtx->m[2][i];
@@ -228,7 +240,7 @@ void __attribute__((noinline)) Matrix_RotateZ(Matrix* mtx, f32 angle, u8 mode) {
 
     sn = sinf(angle);
     cs = cosf(angle);
-    if (mode == 1) {
+    if (mode == MTXF_APPLY) {
         for (i = 0; i < 4; i++) {
             rx = mtx->m[0][i];
             ry = mtx->m[1][i];
@@ -285,7 +297,7 @@ void __attribute__((noinline)) Matrix_RotateAxis(Matrix* mtx, f32 angle, f32 axi
         yz = axisY * axisZ;
         xz = axisX * axisZ;
 
-        if (mode == 1) {
+        if (mode == MTXF_APPLY) {
             cxx = (1.0f - xx) * cosA + xx;
             cyx = (1.0f - cosA) * xy + axisZ * sinA;
             czx = (1.0f - cosA) * xz - axisY * sinA;
@@ -302,23 +314,23 @@ void __attribute__((noinline)) Matrix_RotateAxis(Matrix* mtx, f32 angle, f32 axi
             rx = mtx->m[0][0];
             ry = mtx->m[0][1];
             rz = mtx->m[0][2];
-            mtx->m[0][0] = (rx * cxx) + (ry * cxy) + (rz * cxz);
-            mtx->m[0][1] = (rx * cyx) + (ry * cyy) + (rz * cyz);
-            mtx->m[0][2] = (rx * czx) + (ry * czy) + (rz * czz);
+            mtx->m[0][0] = fipr(rx,ry,rz,0,cxx,cxy,cxz,0);//(rx * cxx) + (ry * cxy) + (rz * cxz);
+            mtx->m[0][1] = fipr(rx,ry,rz,0,cyx,cyy,cyz,0);//(rx * cyx) + (ry * cyy) + (rz * cyz);
+            mtx->m[0][2] = fipr(rx,ry,rz,0,czx,czy,czz,0);//(rx * czx) + (ry * czy) + (rz * czz);
 
             rx = mtx->m[1][0];
             ry = mtx->m[1][1];
             rz = mtx->m[1][2];
-            mtx->m[1][0] = (rx * cxx) + (ry * cxy) + (rz * cxz);
-            mtx->m[1][1] = (rx * cyx) + (ry * cyy) + (rz * cyz);
-            mtx->m[1][2] = (rx * czx) + (ry * czy) + (rz * czz);
+            mtx->m[1][0] = fipr(rx,ry,rz,0,cxx,cxy,cxz,0);//(rx * cxx) + (ry * cxy) + (rz * cxz);
+            mtx->m[1][1] = fipr(rx,ry,rz,0,cyx,cyy,cyz,0);//(rx * cyx) + (ry * cyy) + (rz * cyz);
+            mtx->m[1][2] = fipr(rx,ry,rz,0,czx,czy,czz,0);//(rx * czx) + (ry * czy) + (rz * czz);
 
             rx = mtx->m[2][0];
             ry = mtx->m[2][1];
             rz = mtx->m[2][2];
-            mtx->m[2][0] = (rx * cxx) + (ry * cxy) + (rz * cxz);
-            mtx->m[2][1] = (rx * cyx) + (ry * cyy) + (rz * cyz);
-            mtx->m[2][2] = (rx * czx) + (ry * czy) + (rz * czz);
+            mtx->m[2][0] = fipr(rx,ry,rz,0,cxx,cxy,cxz,0);//(rx * cxx) + (ry * cxy) + (rz * cxz);
+            mtx->m[2][1] = fipr(rx,ry,rz,0,cyx,cyy,cyz,0);//(rx * cyx) + (ry * cyy) + (rz * cyz);
+            mtx->m[2][2] = fipr(rx,ry,rz,0,czx,czy,czz,0);//(rx * czx) + (ry * czy) + (rz * czz);
         } else {
             mtx->m[0][0] = (1.0f - xx) * cosA + xx;
             mtx->m[0][1] = (1.0f - cosA) * xy + axisZ * sinA;
@@ -341,29 +353,27 @@ void __attribute__((noinline)) Matrix_RotateAxis(Matrix* mtx, f32 angle, f32 axi
     }
 }
 
-
+// Converts the current Gfx matrix to a Mtx
 void __attribute__((noinline)) Matrix_ToMtx(Mtx* m) {
-    guMtxF2L(gGfxMatrix->m, m);
-}
-
-// Converts the Mtx src to a Matrix, putting the result in dest
-void __attribute__((noinline)) Matrix_FromMtx(Mtx* src, Matrix* dest) {
-    guMtxL2F(src->m, dest->m);    
+    guMtxF2L(gGfxMatrix->m, m->m);
 }
 
 // Applies the transform matrix mtx to the vector src, putting the result in dest
 void __attribute__((noinline)) Matrix_MultVec3f(Matrix* mtx, Vec3f* src, Vec3f* dest) {
-    dest->x = (mtx->m[0][0] * src->x) + (mtx->m[1][0] * src->y) + (mtx->m[2][0] * src->z) + mtx->m[3][0];
-    dest->y = (mtx->m[0][1] * src->x) + (mtx->m[1][1] * src->y) + (mtx->m[2][1] * src->z) + mtx->m[3][1];
-    dest->z = (mtx->m[0][2] * src->x) + (mtx->m[1][2] * src->y) + (mtx->m[2][2] * src->z) + mtx->m[3][2];
+    dest->x = fipr(mtx->m[0][0],mtx->m[1][0],mtx->m[2][0],mtx->m[3][0],src->x,src->y,src->z,1);//(mtx->m[0][0] * src->x) + (mtx->m[1][0] * src->y) + (mtx->m[2][0] * src->z) + mtx->m[3][0];
+    dest->y = fipr(mtx->m[0][1],mtx->m[1][1],mtx->m[2][1],mtx->m[3][1],src->x,src->y,src->z,1);//(mtx->m[0][1] * src->x) + (mtx->m[1][1] * src->y) + (mtx->m[2][1] * src->z) + mtx->m[3][1];
+    dest->z = fipr(mtx->m[0][2],mtx->m[1][2],mtx->m[2][2],mtx->m[3][2],src->x,src->y,src->z,1);//(mtx->m[0][2] * src->x) + (mtx->m[1][2] * src->y) + (mtx->m[2][2] * src->z) + mtx->m[3][2];
 }
 
 // Applies the linear part of the transformation matrix mtx to the vector src, ignoring any translation that mtx might
 // have. Puts the result in dest.
 void __attribute__((noinline)) Matrix_MultVec3fNoTranslate(Matrix* mtx, Vec3f* src, Vec3f* dest) {
-    dest->x = (mtx->m[0][0] * src->x) + (mtx->m[1][0] * src->y) + (mtx->m[2][0] * src->z);
-    dest->y = (mtx->m[0][1] * src->x) + (mtx->m[1][1] * src->y) + (mtx->m[2][1] * src->z);
-    dest->z = (mtx->m[0][2] * src->x) + (mtx->m[1][2] * src->y) + (mtx->m[2][2] * src->z);
+//    dest->x = (mtx->m[0][0] * src->x) + (mtx->m[1][0] * src->y) + (mtx->m[2][0] * src->z);
+//    dest->y = (mtx->m[0][1] * src->x) + (mtx->m[1][1] * src->y) + (mtx->m[2][1] * src->z);
+//    dest->z = (mtx->m[0][2] * src->x) + (mtx->m[1][2] * src->y) + (mtx->m[2][2] * src->z);
+    dest->x = fipr(mtx->m[0][0],mtx->m[1][0],mtx->m[2][0],0,src->x,src->y,src->z,0);//(mtx->m[0][0] * src->x) + (mtx->m[1][0] * src->y) + (mtx->m[2][0] * src->z) + mtx->m[3][0];
+    dest->y = fipr(mtx->m[0][1],mtx->m[1][1],mtx->m[2][1],0,src->x,src->y,src->z,0);//(mtx->m[0][1] * src->x) + (mtx->m[1][1] * src->y) + (mtx->m[2][1] * src->z) + mtx->m[3][1];
+    dest->z = fipr(mtx->m[0][2],mtx->m[1][2],mtx->m[2][2],0,src->x,src->y,src->z,0);//(mtx->m[0][2] * src->x) + (mtx->m[1][2] * src->y) + (mtx->m[2][2] * src->z) + mtx->m[3][2];
 }
 
 // Expresses the rotational part of the transform mtx as Tait-Bryan angles, in the yaw-pitch-roll (intrinsic YXZ)

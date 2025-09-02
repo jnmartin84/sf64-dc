@@ -162,16 +162,16 @@ void Game_InitMasterDL(Gfx** dList) {
                      SCREEN_HEIGHT - SCREEN_MARGIN - 1);
     gDPSetColorImage((*dList)++, G_IM_FMT_RGBA, G_IM_SIZ_16b, SCREEN_WIDTH, gFrameBuffer);
 
-    if (gBlurAlpha < 255) {
+//    if (gBlurAlpha < 255) {
         gDPPipeSync((*dList)++);
         gDPSetCycleType((*dList)++, G_CYC_1CYCLE);
         gDPSetCombineMode((*dList)++, G_CC_PRIMITIVE, G_CC_PRIMITIVE);
         gDPSetRenderMode((*dList)++, G_RM_XLU_SURF, G_RM_XLU_SURF2);
         gDPSetPrimColor((*dList)++, 0x00, 0x00, RGBA16_RED(gBgColor) * 8, RGBA16_GRN(gBgColor) * 8,
                         RGBA16_BLU(gBgColor) * 8, gBlurAlpha);
-    } else {
-        gDPSetFillColor((*dList)++, FILL_COLOR(gBgColor | 1));
-    }
+  //  } else {
+    //    gDPSetFillColor((*dList)++, FILL_COLOR(gBgColor | 1));
+    //}
 
    gDPFillRectangle((*dList)++, SCREEN_MARGIN, SCREEN_MARGIN, SCREEN_WIDTH - SCREEN_MARGIN - 1,
                      SCREEN_HEIGHT - SCREEN_MARGIN);

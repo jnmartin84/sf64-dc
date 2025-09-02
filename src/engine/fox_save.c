@@ -139,31 +139,36 @@ u16 Save_Checksum(Save* arg0) {
     return var_v1;
 }
 
+extern int last_read;//= SI_SAVE_SUCCESS;
+extern int last_write;// = SI_SAVE_SUCCESS;
+
 s32 Save_Write(void) {
-#if 0
-    OSMesg sp1C;
+//    OSMesg sp1C;
 
     gSaveFile.save.checksum = Save_Checksum(&gSaveFile.save);
     gSaveFile.backup = gSaveFile.save;
     gSaveIOBuffer = gSaveFile;
-    osSendMesg(&gSerialThreadMesgQueue, (OSMesg) SI_WRITE_SAVE, OS_MESG_NOBLOCK);
-    MQ_WAIT_FOR_MESG(&gSaveMesgQueue, &sp1C);
-    if (sp1C != (OSMesg) SI_SAVE_SUCCESS) {
+//    osSendMesg(&gSerialThreadMesgQueue, (OSMesg) SI_WRITE_SAVE, OS_MESG_NOBLOCK);
+//    MQ_WAIT_FOR_MESG(&gSaveMesgQueue, &sp1C);
+    Save_WriteData();
+    //if (sp1C != (OSMesg) SI_SAVE_SUCCESS) {
+    if (last_write != SI_SAVE_SUCCESS) {
         return -1;
     }
     return 0;
-#endif
-return -1;
 }
 
 s32 Save_Read(void) {
-#if 0
-    OSMesg sp24;
+//    OSMesg sp24;
     s32 i;
 
-    osSendMesg(&gSerialThreadMesgQueue, (OSMesg) SI_READ_SAVE, OS_MESG_NOBLOCK);
-    MQ_WAIT_FOR_MESG(&gSaveMesgQueue, &sp24);
-    if ((s32) sp24 != SI_SAVE_SUCCESS) {
+//    osSendMesg(&gSerialThreadMesgQueue, (OSMesg) SI_READ_SAVE, OS_MESG_NOBLOCK);
+//    MQ_WAIT_FOR_MESG(&gSaveMesgQueue, &sp24);
+//    if ((s32) sp24 != SI_SAVE_SUCCESS) {
+//        return -1;
+//    }
+    Save_ReadData();
+    if (last_read != SI_SAVE_SUCCESS) {
         return -1;
     }
 
@@ -189,6 +194,4 @@ s32 Save_Read(void) {
         PRINTF("ＥＥＰＲＯＭ ＲＯＭ［０］ ＆ ＲＯＭ［1］ 異常\n");
         return -1;
     }
-#endif
-    return -1;
 }

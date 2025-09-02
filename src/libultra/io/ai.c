@@ -1,12 +1,3 @@
-//#include "libc/stdbool.h"
-#include "PR/rcp.h"
+#include "common.h"
 
-s32 __osAiDeviceBusy(void) {
-    register s32 status = IO_READ(AI_STATUS_REG);
-
-    if (status & AI_STATUS_FIFO_FULL) {
-        return true;
-    } else {
-        return false;
-    }
-}
+#pragma GLOBAL_ASM("asm/us/rev1/nonmatchings/libultra/io/ai/__osAiDeviceBusy.s")

@@ -1,8 +1,9 @@
 #include "n64sys.h"
 #include <math.h>
-//#include <kos.h>
 
-#define F_PI        3.14159265f   /* pi             */
+#ifndef F_PI
+#define F_PI        3.1415926f   /* pi             */
+#endif
 
 f32 Math_FAtanF(f32 x) {
     s32 sector;
@@ -57,7 +58,7 @@ f32 Math_FAtan2F(f32 y, f32 x) {
 }
 
 f32 Math_FAsinF(f32 x) {
-    return Math_FAtan2F(x, sqrtf(1 - SQ(x)));
+    return Math_FAtan2F(x, sqrtf(1.0f - SQ(x)));
 }
 
 f32 Math_FAcosF(f32 x) {

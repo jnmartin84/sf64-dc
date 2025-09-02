@@ -1241,6 +1241,14 @@ u8 D_800C9C00[4] = { 255, 255, 32, 32 };
 u8 D_800C9C04[4] = { 255, 32, 255, 32 };
 u8 D_800C9C08[4] = { 32, 32, 32, 255 };
 
+#define gSPFillrectBlend(pkt)                                       \
+    {                                                                                   \
+        Gfx* _g = (Gfx*) (pkt);                                                         \
+                                                                                        \
+        _g->words.w0 = 0x424C4E44; \
+        _g->words.w1 = 0x46554380;                                           \
+    }
+
 void PlayerShot_DrawShot(PlayerShot* shot) {
     Vec3f sp11C = { 0.0f, 0.0f, 0.0f };
     s32 pad[4];
@@ -1364,6 +1372,7 @@ void PlayerShot_DrawShot(PlayerShot* shot) {
                 RCP_SetupDL_40();
 
                 if (gVersusMode) {
+//                    gSPFillrectBlend(gMasterDisp++);
                     gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255);
                     gDPSetEnvColor(gMasterDisp++, D_800C9C00[shot->sourceId], D_800C9C04[shot->sourceId],
                                    D_800C9C08[shot->sourceId], 255);
@@ -1396,6 +1405,8 @@ void PlayerShot_DrawShot(PlayerShot* shot) {
                         Matrix_SetGfxMtx(&gMasterDisp);
                         gSPDisplayList(gMasterDisp++, D_versus_301AD60);
                     }
+    //                                    gSPFillrectBlend(gMasterDisp++);
+
                 } else {
                     if ((gGameFrameCount % 2) == 0) {
                         var_fv1 = F_PI;
@@ -1407,11 +1418,16 @@ void PlayerShot_DrawShot(PlayerShot* shot) {
                     Matrix_RotateZ(gGfxMatrix, 30.0f * M_DTOR, MTXF_APPLY);
                     Matrix_Scale(gGfxMatrix, 1.0f, 0.65f, 1.0f, MTXF_APPLY);
                     Matrix_SetGfxMtx(&gMasterDisp);
-                    RCP_SetupDL_68();
+//                    RCP_SetupDL_68();
+                    RCP_SetupDL_49();
+//                                        gSPFillrectBlend(gMasterDisp++);
+
                     gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255);
-                    gDPSetEnvColor(gMasterDisp++, 0, 255, 0, 0);
+                    gDPSetEnvColor(gMasterDisp++, 0, 255, 0, 255);
                     gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK);
                     gSPDisplayList(gMasterDisp++, aLandmasterShotDL);
+  //                  gSPFillrectBlend(gMasterDisp++);
+
                 }
                 break;
 

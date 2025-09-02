@@ -1,5 +1,3 @@
-#include "PR/rcp.h"
+#include "common.h"
 
-u32 osAiGetLength() {
-    return IO_READ(AI_LEN_REG);
-}
+#pragma GLOBAL_ASM("asm/us/rev1/nonmatchings/libultra/io/aigetlen/osAiGetLength.s")

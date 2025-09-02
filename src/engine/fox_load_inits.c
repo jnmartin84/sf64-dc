@@ -1086,7 +1086,8 @@ NewScene ns_titania[6]= {
   /* 0xf */"",
 }
 },
-{sOvli5_Titania,2,{"",
+{sOvli5_Titania,2,{
+  "",
   "ast_common",
   "ast_bg_planet",
   "ast_landmaster",
@@ -1104,7 +1105,8 @@ NewScene ns_titania[6]= {
   "",
 }
 },
-{sOvli5_Titania,3,{"",
+{sOvli5_Titania,3,{
+  "",
   "ast_common",
   "ast_bg_planet",
   "ast_landmaster",
@@ -1122,7 +1124,8 @@ NewScene ns_titania[6]= {
   "",
 }
 },
-{sOvli5_Titania,4,{"",
+{sOvli5_Titania,4,{
+  "",
   "ast_common",
   "ast_bg_planet",
   "ast_landmaster",
@@ -1140,7 +1143,8 @@ NewScene ns_titania[6]= {
   "",
 }
 },
-{sOvli5_Titania,5,{"",
+{sOvli5_Titania,5,{
+  "",
   "ast_common",
   "ast_bg_planet",
   "ast_landmaster",

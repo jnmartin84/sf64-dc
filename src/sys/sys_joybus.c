@@ -317,24 +317,31 @@ void Controller_ReadData(void) {
     osSendMesg(&gControllerMesgQueue, (OSMesg) SI_CONT_READ_DONE, OS_MESG_NOBLOCK);
 }
 
+int last_read = SI_SAVE_SUCCESS;
+int last_write = SI_SAVE_SUCCESS;
+
 void Save_ReadData(void) {
-#if 0    
+#if 1
     if ((gStartNMI == 0) && (Save_ReadEeprom(&gSaveIOBuffer) == 0)) {
-        osSendMesg(&gSaveMesgQueue, (OSMesg) SI_SAVE_SUCCESS, OS_MESG_NOBLOCK);
+        //osSendMesg(&gSaveMesgQueue, (OSMesg) SI_SAVE_SUCCESS, OS_MESG_NOBLOCK);
+        last_read = SI_SAVE_SUCCESS;
         return;
     }
 #endif
-    osSendMesg(&gSaveMesgQueue, (OSMesg) SI_SAVE_FAILED, OS_MESG_NOBLOCK);
+    last_read = SI_SAVE_FAILED;
+    //osSendMesg(&gSaveMesgQueue, (OSMesg) SI_SAVE_FAILED, OS_MESG_NOBLOCK);
 }
 
 void Save_WriteData(void) {
-#if 0
+#if 1
     if ((gStartNMI == 0) && (Save_WriteEeprom(&gSaveIOBuffer) == 0)) {
-        osSendMesg(&gSaveMesgQueue, (OSMesg) SI_SAVE_SUCCESS, OS_MESG_NOBLOCK);
+        //osSendMesg(&gSaveMesgQueue, (OSMesg) SI_SAVE_SUCCESS, OS_MESG_NOBLOCK);
+        last_write = SI_SAVE_SUCCESS;
         return;
     }
 #endif
-    osSendMesg(&gSaveMesgQueue, (OSMesg) SI_SAVE_FAILED, OS_MESG_NOBLOCK);
+    last_write = SI_SAVE_FAILED;
+    //osSendMesg(&gSaveMesgQueue, (OSMesg) SI_SAVE_FAILED, OS_MESG_NOBLOCK);
 }
 void I_RumbleThread(void *param)
 {

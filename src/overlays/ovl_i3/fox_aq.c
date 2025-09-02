@@ -3487,13 +3487,13 @@ void Aquas_AqBacoon_Update(AqBacoon* this);
 #pragma GLOBAL_ASM("asm/us/rev1/nonmatchings/overlays/ovl_i3/fox_aq/Aquas_AqBacoon_Update.s")
 #endif
 
-bool Aquas_AqBacoon_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
+s32 Aquas_AqBacoon_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
     Vec3f sp6C = { 0.0f, 0.0f, 0.0f };
     Vec3f sp60;
     f32 sp5C = 0.0f;
     f32 sp58 = 0.0f;
     f32 sp54 = 0.0f;
-    s32 sp50 = false;
+    s32 sp50 = 0;
     Boss* this = thisx;
 
     if (sAqBacoonlimbTimers[limbIndex] >= 1000) {
@@ -3510,7 +3510,7 @@ bool Aquas_AqBacoon_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec
     } else if ((sAqBacoonlimbTimers[limbIndex] % 2) == 0) {
         RCP_SetupDL(&gMasterDisp, SETUPDL_57);
     } else {
-        sp50 = true;
+        sp50 = 1;
         RCP_SetupDL(&gMasterDisp, SETUPDL_61);
         gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
     }
@@ -3650,9 +3650,9 @@ bool Aquas_AqBacoon_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec
             gSPDisplayList(gMasterDisp++, *dList);
             Matrix_Pop(&gGfxMatrix);
         }
-        return true;
+        return 1;
     }
-    return false;
+    return 0;
 }
 
 void Aquas_AqBacoon_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* thisx) {
@@ -3762,7 +3762,7 @@ f32 D_i3_801C0224[11] = {
 };
 Vec3f D_i3_801C0250 = { 0.0f, 0.0f, 0.0f };
 
-bool Aquas_AqSculpin_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
+s32 Aquas_AqSculpin_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
     AqSculpin* this = (AqSculpin*) thisx;
 
     if ((this->timer_0C6 % 2) == 0) {
@@ -3774,7 +3774,7 @@ bool Aquas_AqSculpin_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Ve
         RCP_SetupDL(&gMasterDisp, SETUPDL_61);
         gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
     }
-    return false;
+    return 0;
 }
 
 void Aquas_AqSculpin_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* thisx) {
@@ -4004,7 +4004,7 @@ void Aquas_AqSculpin_Update(AqSculpin* this) {
     }
 }
 
-bool Aquas_AqAnglerFish_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
+s32 Aquas_AqAnglerFish_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
     f32 sp6C = 1.0f;
     f32 sp68 = 1.0f;
     f32 sp64 = 1.0f;
@@ -4051,9 +4051,9 @@ bool Aquas_AqAnglerFish_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos,
             gSPDisplayList(gMasterDisp++, *dList);
             Matrix_Pop(&gGfxMatrix);
         }
-        return true;
+        return 1;
     }
-    return false;
+    return 0;
 }
 
 void Aquas_AqAnglerFish_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* thisx) {
@@ -4487,12 +4487,12 @@ void Aquas_AqSpindlyFish_Update(AqSpindlyFish* this) {
     }
 }
 
-bool Aquas_AqSpindlyFish_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
+s32 Aquas_AqSpindlyFish_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
     gSPSetGeometryMode(gMasterDisp++, G_CULL_BACK);
     if ((limbIndex >= 4) && (limbIndex < 14)) {
         gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK);
     }
-    return false;
+    return 0;
 }
 
 void Aquas_AqSpindlyFish_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* thisx) {
@@ -4917,7 +4917,7 @@ void Aquas_AqGaroa_Update(AqGaroa* this) {
     }
 }
 
-bool Aquas_AqGaroa_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
+s32 Aquas_AqGaroa_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
     AqGaroa* this = (AqGaroa*) thisx;
 
     RCP_SetupDL(&gMasterDisp, SETUPDL_58);
@@ -4931,7 +4931,7 @@ bool Aquas_AqGaroa_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3
         gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, (s32) this->fwork[4], (s32) this->fwork[5], (s32) this->fwork[6],
                         255);
     }
-    return false;
+    return 0;
 }
 
 void Aquas_AqGaroa_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* thisx) {
@@ -6000,7 +6000,7 @@ void Aquas_AqJellyfish_Update(AqJellyfish* this) {
     Aquas_801A96DC(this);
 }
 
-bool Aquas_AqJellyfish_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
+s32 Aquas_AqJellyfish_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
     Vec3f lightSrc = { 0.0f, 0.0f, 0.0f };
     Vec3f lightDest;
     f32 xScale = 0.0f;
@@ -6067,9 +6067,9 @@ bool Aquas_AqJellyfish_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, 
             gSPDisplayList(gMasterDisp++, *dList);
             Matrix_Pop(&gGfxMatrix);
         }
-        return true;
+        return 1;
     } else {
-        return false;
+        return 0;
     }
 }
 
@@ -6496,12 +6496,12 @@ void Aquas_AqFishGroup_Update(AqFishGroup* this) {
     }
 }
 
-bool Aquas_AqFishGroup_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
+s32 Aquas_AqFishGroup_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
     gSPSetGeometryMode(gMasterDisp++, G_CULL_BACK);
     if ((limbIndex == 1) || (limbIndex == 2) || (limbIndex == 5)) {
         gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK);
     }
-    return false;
+    return 0;
 }
 
 void Aquas_AqFishGroup_Draw(AqFishGroup* this) {

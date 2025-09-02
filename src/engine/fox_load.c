@@ -40,6 +40,7 @@ void Load_RomFile(char *fname, int snum) {
         fs_read(rom_file, SEG_BUF[snum - 1], rom_file_size);
         fs_close(rom_file);
         gSegments[snum] = SEG_BUF[snum - 1];
+        printf("loaded %s (%d bytes) to %08x\n", fullfn, rom_file_size, SEG_BUF[snum - 1]);
     }
 }
 
@@ -49,7 +50,7 @@ u8 Load_SceneFiles(NewScene* scene, int snum) {
     u8 segment;
     u8 changeScene = 0;
 
-    if (scene->id == sCurrentScene.id && snum == sCurrentScene.snum) {
+    if (scene[snum].id == sCurrentScene.id && snum == sCurrentScene.snum) {
         // do nothing
     } else {
         changeScene = 1;
@@ -57,12 +58,13 @@ u8 Load_SceneFiles(NewScene* scene, int snum) {
         // still do nothing
     }
 
-    sCurrentScene.id = scene->id;
+    sCurrentScene.id = scene[snum].id;
     sCurrentScene.snum = snum;
 
     if(changeScene) {
+        printf("changing scene to snum %d\n", snum);
         for (segment=1; segment < 16; segment += 1) {
-            Load_RomFile(scene->segs[segment], segment);
+            Load_RomFile(scene[snum].segs[segment], segment);
         }
     }
 

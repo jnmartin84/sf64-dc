@@ -725,11 +725,11 @@ void Effect_Effect357_Update(Effect357* this) {
     }
 }
 
-bool Effect_Effect357_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* data) {
+s32 Effect_Effect357_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* data) {
     if ((limbIndex != 1) && (limbIndex != 5)) {
         *dList = NULL;
     }
-    return false;
+    return 0;
 }
 
 void Effect_Effect357_Draw(Effect357* this) {

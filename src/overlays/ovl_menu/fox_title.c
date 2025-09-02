@@ -2666,7 +2666,7 @@ void Title_Team_Draw(TitleTeam teamIdx) {
     Matrix_Pop(&gGfxMatrix);
 }
 
-bool Title_Team_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
+s32 Title_Team_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
     f32 x;
     f32 y;
     f32 z;

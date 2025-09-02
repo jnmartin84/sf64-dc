@@ -12,31 +12,9 @@
 
 u64 osClockRate = 62500000;
 
-#if 0
-s32 osPiStartDma(UNUSED OSIoMesg* mb, UNUSED s32 priority, UNUSED s32 direction, uintptr_t devAddr, void* vAddr,
-                 size_t nbytes, UNUSED OSMesgQueue* mq) {
-    void* vdevAddr = segmented_to_virtual((void*) devAddr);
-    n64_memcpy(vAddr, (const void*) vdevAddr, nbytes);
-    return 0;
-}
-#endif
-#if 0
-typedef struct OSTimer_s {
-	struct OSTimer_s	*next;	/* point to next timer in list */
-	struct OSTimer_s	*prev;	/* point to previous timer in list */
-	OSTime			interval;	/* duration set by user */
-	OSTime			value;		/* time remaining before */
-						/* timer fires           */
-	OSMesgQueue		*mq;		/* Message Queue */
-	OSMesg			msg;		/* Message to send */
-} OSTimer;
-#endif
-
 OSTimer timerList = {0};
 
 int ever_set = 0;
-
-
 
 #include <kos/oneshot_timer.h>
 
@@ -227,13 +205,15 @@ struct state_pak openFile[16] = { 0 };
 
 int fileIndex = 0;
 
-static uint8_t eeprom_block[512];
+static uint8_t eeprom_block[512] = {0};
 
 #include <kos.h>
 
 static file_t eeprom_file = -1;
 static mutex_t eeprom_lock;
 static int eeprom_init = 0;
+#include "sf64save.h"
+
 
 // thanks @zcrc
 #include <kos/oneshot_timer.h>
@@ -241,6 +221,17 @@ static int eeprom_init = 0;
  * This is because the emulator might open/modify/close often, and we want the
  * VMU VFS driver to only write to the VMU once we're done modifying the file. */
 static oneshot_timer_t* timer;
+
+static char full_fn[20];
+
+char *get_vmu_fn(maple_device_t *vmudev, char *fn) {
+	if (fn)
+		sprintf(full_fn, "/vmu/%c%d/%s", 'a'+vmudev->port, vmudev->unit, fn);
+	else
+		sprintf(full_fn, "/vmu/%c%d", 'a'+vmudev->port, vmudev->unit);
+
+	return full_fn;
+}
 
 void eeprom_flush(UNUSED void* arg) {
     mutex_lock_scoped(&eeprom_lock);
@@ -266,9 +257,9 @@ s32 osEepromProbe(UNUSED OSMesgQueue* mq) {
         return 0;
     }
     vid_border_color(255, 0, 255);
-    eeprom_file = fs_open(get_vmu_fn(vmudev, "mk64.rec"), O_RDONLY | O_META);
+    eeprom_file = fs_open(get_vmu_fn(vmudev, "sf64.rec"), O_RDONLY | O_META);
     if (-1 == eeprom_file) {
-        eeprom_file = fs_open(get_vmu_fn(vmudev, "mk64.rec"), O_RDWR | O_CREAT | O_META);
+        eeprom_file = fs_open(get_vmu_fn(vmudev, "sf64.rec"), O_RDWR | O_CREAT | O_META);
         if (-1 == eeprom_file) {
             vid_border_color(0, 0, 0);
             return 1;
@@ -277,16 +268,16 @@ s32 osEepromProbe(UNUSED OSMesgQueue* mq) {
         vmu_pkg_t pkg;
         memset(eeprom_block, 0, 512);
         memset(&pkg, 0, sizeof(vmu_pkg_t));
-        strcpy(pkg.desc_short, "Records");
-        strcpy(pkg.desc_long, "Mario Kart 64");
-        strcpy(pkg.app_id, "Mario Kart 64");
-        sprintf(texfn, "%s/kart.ico", fnpre);
-        pkg.icon_cnt = 2;
-        pkg.icon_data = icondata;
+        strcpy(pkg.desc_short, "Savegame");
+        strcpy(pkg.desc_long, "Star Fox 64");
+        strcpy(pkg.app_id, "Star Fox 64");
+//        sprintf(texfn, "%s/kart.ico", fnpre);
+        pkg.icon_cnt = 0;
+        pkg.icon_data = NULL;//icondata;
         pkg.icon_anim_speed = 5;
         pkg.data_len = 512;
-        pkg.data = &gSaveData;
-        vmu_pkg_load_icon(&pkg, texfn);
+        pkg.data = &eeprom_block;
+        //vmu_pkg_load_icon(&pkg, texfn);
         uint8_t* pkg_out;
         ssize_t pkg_size;
         vmu_pkg_build(&pkg, &pkg_out, &pkg_size);
@@ -299,13 +290,10 @@ s32 osEepromProbe(UNUSED OSMesgQueue* mq) {
         fs_write(eeprom_file, pkg_out, pkg_size);
         free(pkg_out);
         oneshot_timer_reset(timer);
-        // see menus.c : 443 for real initialization
-        func_800B46D0();
-        D_800DC5AC = 0;
     } else {
         fs_close(eeprom_file);
         eeprom_file = -1;
-        eeprom_file = fs_open(get_vmu_fn(vmudev, "mk64.rec"), O_RDWR | O_META);
+        eeprom_file = fs_open(get_vmu_fn(vmudev, "sf64.rec"), O_RDWR | O_META);
         if (-1 == eeprom_file) {
             vid_border_color(0, 0, 0);
             return EEPROM_TYPE_4K;
@@ -329,7 +317,7 @@ static int reopen_vmu_eeprom(void) {
         return 1;
     }
 
-    eeprom_file = fs_open(get_vmu_fn(vmudev, "mk64.rec"), O_RDWR | O_META);
+    eeprom_file = fs_open(get_vmu_fn(vmudev, "sf64.rec"), O_RDWR | O_META);
     return (eeprom_file == -1);
 #endif
 return 1;
@@ -338,7 +326,7 @@ return 1;
 s32 osEepromLongRead(UNUSED OSMesgQueue* mq, u8 address, u8* buffer,
                      int length) {
 #if 0
-                        if (eeprom_file == -1) {
+    if (eeprom_file == -1) {
         if (reopen_vmu_eeprom()) {
             return 1;
         }
@@ -350,14 +338,14 @@ s32 osEepromLongRead(UNUSED OSMesgQueue* mq, u8 address, u8* buffer,
         mutex_lock_scoped(&eeprom_lock);
         ssize_t size = fs_total(eeprom_file);
 
-        if (size != 2048) {
+        if (size != 1024) {
             fs_close(eeprom_file);
             vid_border_color(0, 0, 0);
             return 1;
         }
 
         // skip header
-        fs_seek(eeprom_file, (512 * 3) + (address * 8), SEEK_SET);
+        fs_seek(eeprom_file, (512 * 1) + (address * 8), SEEK_SET);
         ssize_t rv = fs_read(eeprom_file, buffer, length);
         if (rv != length) {
             vid_border_color(0, 0, 0);
@@ -381,6 +369,7 @@ s32 osEepromRead(OSMesgQueue* mq, u8 address, u8* buffer) {
 
 s32 osEepromLongWrite(UNUSED OSMesgQueue* mq, u8 address, u8* buffer,
                       int length) {
+#if 0
     if (eeprom_file == -1) {
         if (reopen_vmu_eeprom()) {
             return 1;
@@ -392,13 +381,13 @@ s32 osEepromLongWrite(UNUSED OSMesgQueue* mq, u8 address, u8* buffer,
     if (-1 != eeprom_file) {
         mutex_lock_scoped(&eeprom_lock);
         ssize_t size = fs_total(eeprom_file);
-        if (size != 2048) {
+        if (size != 1024) {
             vid_border_color(0, 0, 0);
             fs_close(eeprom_file);
             return 1;
         }
         // skip header
-        fs_seek(eeprom_file, (512 * 3) + (address * 8), SEEK_SET);
+        fs_seek(eeprom_file, (512 * 1) + (address * 8), SEEK_SET);
         ssize_t rv = fs_write(eeprom_file, buffer, length);
         if (rv != length) {
             vid_border_color(0, 0, 0);
@@ -412,6 +401,8 @@ s32 osEepromLongWrite(UNUSED OSMesgQueue* mq, u8 address, u8* buffer,
         vid_border_color(0, 0, 0);
         return 1;
     }
+#endif
+    return 1;
 }
 
 s32 osEepromWrite(OSMesgQueue* mq, unsigned char address, unsigned char* buffer) {
@@ -421,7 +412,7 @@ s32 osEepromWrite(OSMesgQueue* mq, unsigned char address, unsigned char* buffer)
 s32 osPfsDeleteFile(OSPfs* pfs, UNUSED u16 company_code, UNUSED u32 game_code,
                     UNUSED u8* game_name, UNUSED u8* ext_name) {
 #if 0
-                        maple_device_t* vmudev = NULL;
+    maple_device_t* vmudev = NULL;
 
     vmudev = maple_enum_type(pfs->channel, MAPLE_FUNC_MEMCARD);
     if (!vmudev)

@@ -1,10 +1,3 @@
-#include "PR/os_internal.h"
-#include "piint.h"
+#include "common.h"
 
-OSMesgQueue* osPiGetCmdQueue(void) {
-    if (!__osPiDevMgr.active) {
-        return NULL;
-    } else {
-        return __osPiDevMgr.cmdQueue;
-    }
-}
+#pragma GLOBAL_ASM("asm/us/rev1/nonmatchings/libultra/io/pigetcmdq/osPiGetCmdQueue.s")

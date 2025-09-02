@@ -86,9 +86,13 @@ typedef enum {
  * seqArg >= 0x80: no sequence will play. Intended to load a soundFont asynchronously but was only half implemented
  *                 (inferred from MM).
  */
-#define SEQCMD_PLAY_SEQUENCE(seqPlayerIndex, fadeInDuration, seqArg, seqId)                                           \
+#if 0
+#define SEQCMD_PLAY_SEQUENCE(seqPlayerIndex, fadeInDuration, seqArg, seqId)     ;
+#else
+#define SEQCMD_PLAY_SEQUENCE(seqPlayerIndex, fadeInDuration, seqArg, seqId) \
     Audio_QueueSeqCmd((SEQCMD_OP_PLAY_SEQUENCE << 28) | ((u8)(seqPlayerIndex) << 24) | ((u8)(fadeInDuration) << 16) | \
                       ((u8)(seqArg) << 8) | (u16)(seqId))
+#endif
 
 /**
  * Stop a sequence on a given seqPlayer

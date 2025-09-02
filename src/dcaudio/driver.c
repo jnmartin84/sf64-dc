@@ -61,6 +61,7 @@ static bool cb_init(size_t capacity) {
     r->tail = 0;
     return true;
 }
+void n64_memcpy(void* dst, const void* src, size_t size);
 
 static size_t cb_write_data(const void *src, size_t n) {
     uint32_t head = r->head;
@@ -70,8 +71,8 @@ static size_t cb_write_data(const void *src, size_t n) {
         return 0;
     uint32_t idx = head & (r->cap - 1);
     uint32_t first = MIN(n, r->cap - idx);
-    memcpy(r->buf + idx, src, first);
-    memcpy(r->buf, (uint8_t*)src + first, n - first);
+    n64_memcpy(r->buf + idx, src, first);
+    n64_memcpy(r->buf, (uint8_t*)src + first, n - first);
     r->head = head + n;
     return n;
 }
@@ -83,8 +84,8 @@ static size_t cb_read_data(void *dst, size_t n) {
     if (n > avail) return 0;
     uint32_t idx = tail & (r->cap - 1);
     uint32_t first = MIN(n, r->cap - idx);
-    memcpy(dst, r->buf + idx, first);
-    memcpy((uint8_t*)dst + first, r->buf, n - first);
+    n64_memcpy(dst, r->buf + idx, first);
+    n64_memcpy((uint8_t*)dst + first, r->buf, n - first);
     r->tail = tail + n;
     return n;
 }
@@ -138,11 +139,12 @@ void *audio_callback(UNUSED snd_stream_hnd_t hnd, int samples_requested_bytes, i
 }
 
 static bool audio_dc_init(void) {
+#if 1
     if (snd_stream_init()) {
         printf("AICA INIT FAILURE!\n");
         return false;
     }
-
+#endif
     thd_set_hz(300);
 
     // --- Initial Pre-fill of Ring Buffer with Silence ---
@@ -155,7 +157,7 @@ static bool audio_dc_init(void) {
 
     printf("Dreamcast Audio: Initialized. Ring buffer size: %u bytes.\n",
            (unsigned int)RING_BUFFER_MAX_BYTES);
-    
+#if 1
     // Allocate the sound stream with KOS
     shnd = snd_stream_alloc(audio_callback, 8192);
     if (shnd == SND_STREAM_INVALID) {
@@ -165,10 +167,10 @@ static bool audio_dc_init(void) {
     }
 
     // Set maximum volume
-    snd_stream_volume(shnd, 24); 
+    snd_stream_volume(shnd, 224); 
 
     printf("Sound init complete!\n");
-    
+#endif
     return true;
 }
 

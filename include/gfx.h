@@ -78,12 +78,12 @@ typedef struct Color_RGBA32 {
     u8 r, g, b, a;
 } Color_RGBA32; // size = 0x4
 
-typedef union {
-    u16 data[SCREEN_HEIGHT * SCREEN_WIDTH];
-    u16 array[SCREEN_HEIGHT][SCREEN_WIDTH];
+typedef struct {
+    u16 data[4];//SCREEN_HEIGHT * SCREEN_WIDTH];
+    u16 array[4];//SCREEN_HEIGHT][SCREEN_WIDTH];
 } FrameBuffer; // size = 0x25800
 
-typedef bool (*OverrideLimbDraw)(s32 limbIndex, Gfx** dList,  Vec3f* pos, Vec3f* rot, void* this);
+typedef s32 (*OverrideLimbDraw)(s32 limbIndex, Gfx** dList,  Vec3f* pos, Vec3f* rot, void* this);
 typedef void (*PostLimbDraw)(s32, Vec3f*, void*);
 
 typedef struct {

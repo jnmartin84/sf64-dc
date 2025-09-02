@@ -94,7 +94,7 @@ void Player_UpdateTankCamOnRails(Player* player) {
         sp50 = player->pos.y + 50.0f;
         sp4C = player->pos.y;
 
-        if (0 || (gCurrentLevel == LEVEL_MACBETH) && (D_MA_801BA1E8 == 102)) {
+        if (/* 0 || */ (gCurrentLevel == LEVEL_MACBETH) && (D_MA_801BA1E8 == 102)) {
             sp4C = player->pos.y + 150.0f;
         }
         if (D_MA_801BA1E8 == 99) {
@@ -115,7 +115,7 @@ void Player_UpdateTankCamOnRails(Player* player) {
 }
 
 void func_tank_800438E0(Effect* effect, f32 xPos, f32 yPos, f32 zPos, f32 scale) {
-    f32 pad[12];
+    //f32 pad[12];
 
     Effect_Initialize(effect);
     effect->obj.status = OBJ_ACTIVE;

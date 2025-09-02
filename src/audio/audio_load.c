@@ -727,6 +727,7 @@ void AudioLoad_SyncDmaDisk(u32 devAddr, u8* ramAddr, u32 size, s32 diskParam) {
     osInvalDCache(ramAddr, size);
     func_8000FC8C(func_8000FC7C(diskParam, &addr), addr, ramAddr, size);
 }
+void n64_memcpy(void* dst, const void* src, size_t size);
 
 s32 AudioLoad_Dma(UNUSED OSIoMesg* mesg, UNUSED u32 priority, UNUSED s32 direction, u32 devAddr, void* ramAddr, u32 size,
                   OSMesgQueue* retQueue, UNUSED s32 medium, UNUSED const char* dmaType) {
@@ -734,7 +735,7 @@ s32 AudioLoad_Dma(UNUSED OSIoMesg* mesg, UNUSED u32 priority, UNUSED s32 directi
         size = ALIGN16(size);
     }
 
-    memcpy(ramAddr, (void *)devAddr, size);
+    n64_memcpy(ramAddr, (void *)devAddr, size);
 
     if (retQueue)
         osSendMesg(retQueue, (OSMesg)1, 0);
@@ -1100,9 +1101,9 @@ void AudioLoad_Init(void) {
     AudioLoad_InitTable(gSequenceTable, __audio_seq_ROM_START/* SEGMENT_ROM_START(audio_seq) */, gSequenceMedium);
     AudioLoad_InitTable(gSoundFontTable, SIZE_OF_SEQ + __audio_seq_ROM_START/* SEGMENT_ROM_START(audio_bank) */, gSoundFontMedium);
     AudioLoad_InitTable(gSampleBankTable, SIZE_OF_SEQ + SIZE_OF_BANK + __audio_seq_ROM_START/* SEGMENT_ROM_START(audio_table) */, gSampleBankMedium);
-    memcpy(&gBackupSeqTable, gSequenceTable, sizeof(AudioTable));
-    memcpy(&gBackupSoundFontTable, gSoundFontTable, sizeof(AudioTable));
-    memcpy(&gBackupSampleBankTable, gSampleBankTable, sizeof(AudioTable));
+    n64_memcpy(&gBackupSeqTable, gSequenceTable, sizeof(AudioTable));
+    n64_memcpy(&gBackupSoundFontTable, gSoundFontTable, sizeof(AudioTable));
+    n64_memcpy(&gBackupSampleBankTable, gSampleBankTable, sizeof(AudioTable));
     numFonts = gSoundFontTable->base.numEntries;
 
     gSoundFontList = AudioHeap_Alloc(&gInitPool, numFonts * sizeof(SoundFont));

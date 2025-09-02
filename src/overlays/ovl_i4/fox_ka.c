@@ -1555,7 +1555,7 @@ void Katina_KaSaucerer_Update(KaSaucerer* this) {
     }
 }
 
-bool Katina_BossOverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* data) {
+s32 Katina_BossOverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* data) {
     KaSaucerer* boss = (KaSaucerer*) data;
 
     RCP_SetupDL(&gMasterDisp, SETUPDL_29);

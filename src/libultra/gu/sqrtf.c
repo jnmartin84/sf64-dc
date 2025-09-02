@@ -1,6 +1,3 @@
-#include "PR/ultratypes.h"
-#include "libc/math.h"
+#include "common.h"
 
-f32 guSqrtf(f32 value) {
-    return sqrtf(value);
-}
+#pragma GLOBAL_ASM("asm/us/rev1/nonmatchings/libultra/gu/sqrtf/guSqrtf.s")

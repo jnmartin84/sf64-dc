@@ -268,7 +268,16 @@ volatile int do_backdrop = 0;
         _g->words.w1 = 0x46554360;                                           \
     }
 
-#define F_PI        3.14159265f   /* pi             */
+
+#define gSPSkyBlend(pkt)                                       \
+    {                                                                                   \
+        Gfx* _g = (Gfx*) (pkt);                                                         \
+                                                                                        \
+        _g->words.w0 = 0x424C4E44; \
+        _g->words.w1 = 0x46554390;                                           \
+    }
+
+//#define F_PI        3.14159265f   /* pi             */
 
 
 // TODO: use SCREEN_WIDTH and _HEIGHT
@@ -304,6 +313,7 @@ void Background_DrawBackdrop(void) {
     }
     switch (levelType) {
         case LEVELTYPE_PLANET:
+            gSPSkyBlend(gMasterDisp++);
             RCP_SetupDL(&gMasterDisp, SETUPDL_17);
             switch (levelId) {
                 case LEVEL_FORTUNA:
@@ -563,6 +573,7 @@ void Background_DrawBackdrop(void) {
                     }
                     break;
             }
+            gSPSkyBlend(gMasterDisp++);
             break;
 
         case LEVELTYPE_SPACE:        
@@ -1098,8 +1109,8 @@ void Background_DrawGround(void) {
                     break;
             }
             gDPSetTextureImage(gMasterDisp++, G_IM_FMT_RGBA, G_IM_SIZ_16b, 1, groundTex);
-            yScroll = fabsf(Math_ModF(2.0f * (gPathTexScroll * 0.2133333f), 32.0f));//128.0f));
-            xScroll = Math_ModF((10000.0f - gPlayer[gPlayerNum].xPath) * 0.32f, 32.0f);//128.0f);
+            yScroll = fabsf(Math_ModF(2.0f * (gPathTexScroll * 0.2133333f), 128.0f));
+            xScroll = Math_ModF((10000.0f - gPlayer[gPlayerNum].xPath) * 0.32f, 128.0f);
             gDPSetupTile(gMasterDisp++, G_IM_FMT_RGBA, G_IM_SIZ_16b, 32, 32, xScroll, yScroll,
                          G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP, 5, 5, G_TX_NOLOD, G_TX_NOLOD);
             Matrix_Push(&gGfxMatrix);

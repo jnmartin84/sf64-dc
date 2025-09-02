@@ -11,8 +11,10 @@
 #include <stdlib.h>
 
 //#define SAMPLES_HIGH 533
-#define SAMPLES_HIGH 560
-#define SAMPLES_LOW 528
+#define SAMPLES_HIGH 448
+//560
+#define SAMPLES_LOW 448
+//528
 
 uintptr_t arch_stack_32m = 0x8d000000;
 
@@ -39,6 +41,7 @@ void vblfunc(uint32_t c, void *d) {
 	(void)c;
 	(void)d;
     vblticker++;
+    osSendMesg(&gGfxVImesgQueue, (OSMesg)NULL, OS_MESG_NOBLOCK);
     genwait_wake_one((void *)&vblticker);
 }
 
@@ -81,6 +84,40 @@ u32 gSegments[16] = {
 0x8c010000,
 0x8c010000,
 };
+
+void* segmented_to_virtual(const void* addr) {
+    unsigned int uip_addr = (unsigned int) addr;
+
+    if ((uip_addr >= 0x8c010000) && (uip_addr <= 0x8cffffff)) {
+        return uip_addr;
+    }
+//    if(uip_addr > 0x07FFFFFF)
+  //      printf("uip_addr == %08x\n", uip_addr);
+
+    unsigned int segment = (unsigned int) (uip_addr >> 24) & 0x0f;
+
+    // investigate why this hits on Sherbet Land 4 player attract mode demo
+#if DEBUG
+    if (segment > 0xf) {
+        printf("%08x converts to bad segment %02x %08x\n", (uintptr_t) addr, segment, (uintptr_t) uip_addr);
+        printf("\n");
+        stacktrace();
+        printf("\n");
+        while (1) {}
+        exit(-1);
+    }
+#endif
+
+    unsigned int offset = (unsigned int) uip_addr & 0x00FFFFFF;
+    if ((gSegments[segment] + offset) > 0x8cffffff) {
+
+        printf("serious problem seg2vir %08x -> %08x\n", uip_addr, gSegments[segment] + offset);
+//        exit(-1);
+    }
+    return (void*) ((gSegments[segment] + offset));
+}
+
+
 OSMesgQueue gPiMgrCmdQueue;
 OSMesg sPiMgrCmdBuff[50];
 
@@ -145,9 +182,90 @@ u8 gTimerThreadStack[0x1000];    // 800DFE00
 OSThread gSerialThread;          // 800E0E00
 u8 gSerialThreadStack[0x1000];   // 800E0FB0
 
-void Main_Initialize(void) {
+volatile int called = 0;
+
+extern void AudioLoad_LoadFiles(void);
+
+void Graphics_SetTask(void) {
+    called++;
+    gGfxTask->mesgQueue = &gGfxTaskMesgQueue;
+    gGfxTask->msg = (OSMesg) TASK_MESG_2;
+    gGfxTask->task.t.type = M_GFXTASK;
+    gGfxTask->task.t.flags = 0;
+    gGfxTask->task.t.ucode_boot = NULL;
+    gGfxTask->task.t.ucode_boot_size = 0;
+    gGfxTask->task.t.ucode = NULL;
+    gGfxTask->task.t.ucode_size = SP_UCODE_SIZE;
+    gGfxTask->task.t.ucode_data = NULL;
+    gGfxTask->task.t.ucode_data_size = SP_UCODE_DATA_SIZE;
+    gGfxTask->task.t.dram_stack = gDramStack;
+    gGfxTask->task.t.dram_stack_size = SP_DRAM_STACK_SIZE8;
+    gGfxTask->task.t.output_buff = (u64*) gTaskOutputBuffer;
+    gGfxTask->task.t.output_buff_size = (u64*) gAudioHeap;
+    gGfxTask->task.t.data_ptr = (u64*) gGfxPool->masterDL;
+    gGfxTask->task.t.data_size = (gMasterDisp - gGfxPool->masterDL) * sizeof(Gfx);
+    gGfxTask->task.t.yield_data_ptr = (u64*) &gOSYieldData;
+    gGfxTask->task.t.yield_data_size = OS_YIELD_DATA_SIZE;
+    if (called > 5) {
+        gfx_run(gGfxPool->masterDL);
+
+    }
+}
+
+void Graphics_InitializeTask(u32 frameCount) {
+    gGfxPool = &gGfxPools[frameCount % 2];
+
+    gGfxTask = &gGfxPool->task;
+    gViewport = gGfxPool->viewports;
+    gGfxMtx = gGfxPool->mtx;
+    gUnkDisp1 = gGfxPool->unkDL1;
+    gMasterDisp = gGfxPool->masterDL;
+    gUnkDisp2 = gGfxPool->unkDL2;
+    gLight = gGfxPool->lights;
+
+    gFrameBuffer = &gFrameBuffers[frameCount % 3];
+    gTextureRender = &gTextureRenderBuffer[0];
+
+    gGfxMatrix = &sGfxMatrixStack[0];
+    gCalcMatrix = &sCalcMatrixStack[0];
+
+    D_80178710 = &D_80178580[0];
+}
+
+
+void Main_InitMesgQueues(void) {
+    osCreateMesgQueue(&gDmaMesgQueue, sDmaMsgBuff, ARRAY_COUNT(sDmaMsgBuff));
+    osCreateMesgQueue(&gTaskMesgQueue, sTaskMsgBuff, ARRAY_COUNT(sTaskMsgBuff));
+    osCreateMesgQueue(&gAudioVImesgQueue, sAudioVImsgBuff, ARRAY_COUNT(sAudioVImsgBuff));
+    osCreateMesgQueue(&gAudioTaskMesgQueue, sAudioTaskMsgBuff, ARRAY_COUNT(sAudioTaskMsgBuff));
+    osCreateMesgQueue(&gGfxVImesgQueue, sGfxVImsgBuff, ARRAY_COUNT(sGfxVImsgBuff));
+    osCreateMesgQueue(&gGfxTaskMesgQueue, sGfxTaskMsgBuff, ARRAY_COUNT(sGfxTaskMsgBuff));
+    osCreateMesgQueue(&gSerialEventQueue, sSerialEventBuff, ARRAY_COUNT(sSerialEventBuff));
+    //osSetEventMesg(OS_EVENT_SI, &gSerialEventQueue, NULL);
+    osCreateMesgQueue(&gMainThreadMesgQueue, sMainThreadMsgBuff, ARRAY_COUNT(sMainThreadMsgBuff));
+    //osViSetEvent(&gMainThreadMesgQueue, (OSMesg) EVENT_MESG_VI, 1);
+    //osSetEventMesg(OS_EVENT_SP, &gMainThreadMesgQueue, (OSMesg) EVENT_MESG_SP);
+    //osSetEventMesg(OS_EVENT_DP, &gMainThreadMesgQueue, (OSMesg) EVENT_MESG_DP);
+    //osSetEventMesg(OS_EVENT_PRENMI, &gMainThreadMesgQueue, (OSMesg) EVENT_MESG_PRENMI);
+    osCreateMesgQueue(&gTimerTaskMesgQueue, sTimerTaskMsgBuff, ARRAY_COUNT(sTimerTaskMsgBuff));
+    osCreateMesgQueue(&gTimerWaitMesgQueue, sTimerWaitMsgBuff, ARRAY_COUNT(sTimerWaitMsgBuff));
+    osCreateMesgQueue(&gSerialThreadMesgQueue, sSerialThreadMsgBuff, ARRAY_COUNT(sSerialThreadMsgBuff));
+    osCreateMesgQueue(&gControllerMesgQueue, sControllerMsgBuff, ARRAY_COUNT(sControllerMsgBuff));
+    osCreateMesgQueue(&gSaveMesgQueue, sSaveMsgBuff, ARRAY_COUNT(sSaveMsgBuff));
+}
+
+
+void Main_ThreadEntry(void* arg0) {
+    OSMesg osMesg;
+    u8 mesg;
+    void* sp24;
     u8 i;
-//printf("%s()\n", __func__);
+    u8 visPerFrame;
+    u8 validVIsPerFrame;
+
+    printf("loading audio files\n");
+    AudioLoad_LoadFiles();
+    printf("\tdone.\n");
 
     gVIsPerFrame = 0;
     gSysFrameCount = 0;
@@ -169,320 +287,23 @@ void Main_Initialize(void) {
     for (i = 0; i < ARRAY_COUNT(sNewGfxTasks); i += 1) {
         sNewGfxTasks[i] = NULL;
     }
-}
 
-volatile int called = 0;
-
-void Graphics_SetTask(void) {
-    //printf("%s()\n", __func__);
-called++;
-    gGfxTask->mesgQueue = &gGfxTaskMesgQueue;
-    gGfxTask->msg = (OSMesg) TASK_MESG_2;
-    gGfxTask->task.t.type = M_GFXTASK;
-    gGfxTask->task.t.flags = 0;
-    gGfxTask->task.t.ucode_boot = NULL; //rspbootTextStart;
-    gGfxTask->task.t.ucode_boot_size = 0;//(uintptr_t) rspbootTextEnd - (uintptr_t) rspbootTextStart;
-    gGfxTask->task.t.ucode = NULL;//gspF3DEX_fifoTextStart;
-    gGfxTask->task.t.ucode_size = SP_UCODE_SIZE;
-    gGfxTask->task.t.ucode_data = NULL;//(u64*) &gspF3DEX_fifoDataStart;
-    gGfxTask->task.t.ucode_data_size = SP_UCODE_DATA_SIZE;
-    gGfxTask->task.t.dram_stack = gDramStack;
-    gGfxTask->task.t.dram_stack_size = SP_DRAM_STACK_SIZE8;
-    gGfxTask->task.t.output_buff = (u64*) gTaskOutputBuffer;
-    gGfxTask->task.t.output_buff_size = (u64*) gAudioHeap;
-    gGfxTask->task.t.data_ptr = (u64*) gGfxPool->masterDL;
-    gGfxTask->task.t.data_size = (gMasterDisp - gGfxPool->masterDL) * sizeof(Gfx);
-    gGfxTask->task.t.yield_data_ptr = (u64*) &gOSYieldData;
-    gGfxTask->task.t.yield_data_size = OS_YIELD_DATA_SIZE;
-//    osWritebackDCacheAll();
-//    osSendMesg(&gTaskMesgQueue, gGfxTask, OS_MESG_NOBLOCK);
-if (called > 5) {
-        gfx_run(gGfxPool->masterDL);
-
-}
-}
-
-void Graphics_InitializeTask(u32 frameCount) {
-    //printf("%s()\n", __func__);
-
-    gGfxPool = &gGfxPools[frameCount % 2];
-
-    gGfxTask = &gGfxPool->task;
-    gViewport = gGfxPool->viewports;
-    gGfxMtx = gGfxPool->mtx;
-    gUnkDisp1 = gGfxPool->unkDL1;
-    gMasterDisp = gGfxPool->masterDL;
-    gUnkDisp2 = gGfxPool->unkDL2;
-    gLight = gGfxPool->lights;
-
-    gFrameBuffer = &gFrameBuffers[frameCount % 3];
-    gTextureRender = &gTextureRenderBuffer[0];
-
-    gGfxMatrix = &sGfxMatrixStack[0];
-    gCalcMatrix = &sCalcMatrixStack[0];
-
-    D_80178710 = &D_80178580[0];
-}
-
-void Main_SetVIMode(void) {
-    if ((gControllerHold[0].button & D_JPAD) && (gControllerHold[1].button & D_JPAD) &&
-        (gControllerHold[2].button & D_JPAD) && (gControllerHold[3].button & L_TRIG) &&
-        (gControllerHold[3].button & R_TRIG) && (gControllerHold[3].button & Z_TRIG)) {
-        sGammaMode = 1 - sGammaMode;
-    }
-#if 0
-    switch (osTvType) {
-        case OS_TV_PAL:
-            osViSetMode(&osViModePalLan1);
-            break;
-        case OS_TV_MPAL:
-            osViSetMode(&osViModeMpalLan1);
-            break;
-        default:
-        case OS_TV_NTSC:
-            osViSetMode(&osViModeNtscLan1);
-            break;
-    }
-
-    if (sGammaMode != 0) {
-        osViSetSpecialFeatures(OS_VI_DITHER_FILTER_ON | OS_VI_DIVOT_OFF | OS_VI_GAMMA_ON | OS_VI_GAMMA_DITHER_ON);
-    } else {
-        osViSetSpecialFeatures(OS_VI_DITHER_FILTER_ON | OS_VI_DIVOT_OFF | OS_VI_GAMMA_OFF | OS_VI_GAMMA_DITHER_OFF);
-    }
-#endif        
-}
-
-void *SerialInterface_ThreadEntry(void* arg0) {
-    OSMesg sp34;
-//printf("%s()\n", __func__);
-
-    Controller_Init();
-    while (true) {
-        #if 0
-//        printf("z");
-        //MQ_WAIT_FOR_MESG(&gSerialThreadMesgQueue, &sp34);
-if(MQ_GET_MESG(&gSerialThreadMesgQueue, &sp34)) {
-            switch ((s32) sp34) {
-            case SI_READ_CONTROLLER:
-                Controller_ReadData();
-                break;
-            case SI_READ_SAVE:
-                Save_ReadData();
-                break;
-            case SI_WRITE_SAVE:
-                Save_WriteData();
-                break;
-            case SI_RUMBLE:
-                Controller_Rumble();
-                break;
-        }
-    }
-    #endif
-thd_sleep(60000);
-}
-    return NULL;
-}
-
-void *Timer_ThreadEntry(void* arg0) {
-    void* sp24;
-//printf("%s()\n", __func__);
-
-    while (true) {
-//                        printf("y");
-
-//        MQ_WAIT_FOR_MESG(&gTimerTaskMesgQueue, &sp24);
-if(MQ_GET_MESG(&gTimerTaskMesgQueue, &sp24)) {
-
-Timer_CompleteTask(sp24);
-}
-thd_pass();
-}
-
-    return NULL;
-}
-
-void Main_InitMesgQueues(void) {
-    //printf("%s()\n",__func__);
-    osCreateMesgQueue(&gDmaMesgQueue, sDmaMsgBuff, ARRAY_COUNT(sDmaMsgBuff));
-    osCreateMesgQueue(&gTaskMesgQueue, sTaskMsgBuff, ARRAY_COUNT(sTaskMsgBuff));
-    osCreateMesgQueue(&gAudioVImesgQueue, sAudioVImsgBuff, ARRAY_COUNT(sAudioVImsgBuff));
-    osCreateMesgQueue(&gAudioTaskMesgQueue, sAudioTaskMsgBuff, ARRAY_COUNT(sAudioTaskMsgBuff));
-    osCreateMesgQueue(&gGfxVImesgQueue, sGfxVImsgBuff, ARRAY_COUNT(sGfxVImsgBuff));
-    osCreateMesgQueue(&gGfxTaskMesgQueue, sGfxTaskMsgBuff, ARRAY_COUNT(sGfxTaskMsgBuff));
-    osCreateMesgQueue(&gSerialEventQueue, sSerialEventBuff, ARRAY_COUNT(sSerialEventBuff));
-//    osSetEventMesg(OS_EVENT_SI, &gSerialEventQueue, NULL);
-    osCreateMesgQueue(&gMainThreadMesgQueue, sMainThreadMsgBuff, ARRAY_COUNT(sMainThreadMsgBuff));
- //   osViSetEvent(&gMainThreadMesgQueue, (OSMesg) EVENT_MESG_VI, 1);
-   // osSetEventMesg(OS_EVENT_SP, &gMainThreadMesgQueue, (OSMesg) EVENT_MESG_SP);
-   // osSetEventMesg(OS_EVENT_DP, &gMainThreadMesgQueue, (OSMesg) EVENT_MESG_DP);
-   // osSetEventMesg(OS_EVENT_PRENMI, &gMainThreadMesgQueue, (OSMesg) EVENT_MESG_PRENMI);
-    osCreateMesgQueue(&gTimerTaskMesgQueue, sTimerTaskMsgBuff, ARRAY_COUNT(sTimerTaskMsgBuff));
-    osCreateMesgQueue(&gTimerWaitMesgQueue, sTimerWaitMsgBuff, ARRAY_COUNT(sTimerWaitMsgBuff));
-    osCreateMesgQueue(&gSerialThreadMesgQueue, sSerialThreadMsgBuff, ARRAY_COUNT(sSerialThreadMsgBuff));
-    osCreateMesgQueue(&gControllerMesgQueue, sControllerMsgBuff, ARRAY_COUNT(sControllerMsgBuff));
-    osCreateMesgQueue(&gSaveMesgQueue, sSaveMsgBuff, ARRAY_COUNT(sSaveMsgBuff));
-}
-
-void Main_HandleRDP(void) {
-#if 0
-    SPTask** task = sGfxTasks;
-    u8 i;
-
-    if ((*task)->mesgQueue != NULL) {
-        osSendMesg((*task)->mesgQueue, (*task)->msg, OS_MESG_NOBLOCK);
-    }
-    (*task)->state = SPTASK_STATE_FINISHED_DP;
-
-    for (i = 0; i < ARRAY_COUNT(sGfxTasks) - 1; i += 1, task++) {
-        *task = *(task + 1);
-    }
-    *task = NULL;
-#endif
-    }
-
-void Main_HandleRSP(void) {
-    #if 0
-    SPTask* task = gCurrentTask;
-
-    gCurrentTask = NULL;
-    if (task->state == SPTASK_STATE_INTERRUPTED) {
-        //if (osSpTaskYielded(&task->task) == 0) {
-          //  task->state = SPTASK_STATE_FINISHED;
-        //}
-    } else {
-        task->state = SPTASK_STATE_FINISHED;
-        if (task->task.t.type == M_AUDTASK) {
-            if (task->mesgQueue != NULL) {
-                osSendMesg(task->mesgQueue, task->msg, OS_MESG_NOBLOCK);
-            }
-            sAudioTasks[0] = NULL;
-        }
-    }
-        #endif
-}
-
-void Main_GetNewTasks(void) {
-    u8 i;
-    SPTask** audioTask;
-    SPTask** gfxTask;
-    SPTask** newAudioTask;
-    SPTask** newGfxTask;
-    OSMesg spTaskMsg;
-    SPTask* newTask;
-
-    newAudioTask = sNewAudioTasks;
-    newGfxTask = sNewGfxTasks;
-    for (i = 0; i < ARRAY_COUNT(sNewAudioTasks); i += 1) {
-        *(newAudioTask++) = NULL;
-    }
-    for (i = 0; i < ARRAY_COUNT(sNewGfxTasks); i += 1) {
-        *(newGfxTask++) = NULL;
-    }
-
-    newAudioTask = sNewAudioTasks;
-    newGfxTask = sNewGfxTasks;
-    while (MQ_GET_MESG(&gTaskMesgQueue, &spTaskMsg)) {
-        newTask = (SPTask*) spTaskMsg;
-        newTask->state = SPTASK_STATE_NOT_STARTED;
-
-        switch (newTask->task.t.type) {
-            case M_AUDTASK:
-                *(newAudioTask++) = newTask;
-                break;
-            case M_GFXTASK:
-                *(newGfxTask++) = newTask;
-                break;
-        }
-    }
-    newAudioTask = sNewAudioTasks;
-    newGfxTask = sNewGfxTasks;
-    audioTask = sAudioTasks;
-    gfxTask = sGfxTasks;
-
-    for (i = 0; i < ARRAY_COUNT(sAudioTasks); i += 1, audioTask++) {
-        if (*audioTask == NULL) {
-            break;
-        }
-    }
-    for (i; i < ARRAY_COUNT(sAudioTasks); i += 1) {
-        *(audioTask++) = *(newAudioTask++);
-    }
-
-    for (i = 0; i < ARRAY_COUNT(sGfxTasks); i += 1, gfxTask++) {
-        if (*gfxTask == NULL) {
-            break;
-        }
-    }
-    for (i; i < ARRAY_COUNT(sGfxTasks); i += 1) {
-        *(gfxTask++) = *(newGfxTask++);
-    }
-}
-
-void Main_StartNextTask(void) {
-    #if 0
-    if (sAudioTasks[0] != NULL) {
-        if (gCurrentTask != NULL) {
-            if (gCurrentTask->task.t.type == M_GFXTASK) {
-                gCurrentTask->state = SPTASK_STATE_INTERRUPTED;
-                //osSpTaskYield();
-            }
-        } else {
-            gCurrentTask = sAudioTasks[0];
-         //   osSpTaskLoad(&gCurrentTask->task);
-           // osSpTaskStartGo(&gCurrentTask->task);
-            gCurrentTask->state = SPTASK_STATE_RUNNING;
-        }
-    } else if ((gCurrentTask == NULL) && (sGfxTasks[0] != NULL) && (sGfxTasks[0]->state != SPTASK_STATE_FINISHED)) {
-        gCurrentTask = sGfxTasks[0];
-//        osDpSetStatus(DPC_CLR_TMEM_CTR | DPC_CLR_PIPE_CTR | DPC_CLR_CMD_CTR | DPC_CLR_CLOCK_CTR);
-  //      osSpTaskLoad(&gCurrentTask->task);
-    //    osSpTaskStartGo(&gCurrentTask->task);
-        gCurrentTask->state = SPTASK_STATE_RUNNING;
-    }
-        
-        #endif
-
-    }
-
-
-void Main_ThreadEntry(void* arg0) {
-    OSMesg osMesg;
-    u8 mesg;
-
-    kthread_attr_t main_attr3;
-    main_attr3.create_detached = 1;
-	main_attr3.stack_size = 32768;
-	main_attr3.stack_ptr = NULL;
-	main_attr3.prio = 11;
-	main_attr3.label = "SerialInterface";
-    thd_create_ex(&main_attr3, &SerialInterface_ThreadEntry, arg0);
-
-    kthread_attr_t main_attr2;
-    main_attr2.create_detached = 1;
-	main_attr2.stack_size = 32768;
-	main_attr2.stack_ptr = NULL;
-	main_attr2.prio = 11;
-	main_attr2.label = "Timer";
-    thd_create_ex(&main_attr2, &Timer_ThreadEntry, arg0);
+    Lib_FillScreen(1);
 
     kthread_attr_t main_attr5;
     main_attr5.create_detached = 1;
-	main_attr5.stack_size = 32768;
-	main_attr5.stack_ptr = NULL;
-	main_attr5.prio = 11;
-	main_attr5.label = "SPINNING";
+    main_attr5.stack_size = 32768;
+    main_attr5.stack_ptr = NULL;
+    main_attr5.prio = 11;
+    main_attr5.label = "SPINNING";
     thd_create_ex(&main_attr5, &SPINNING_THREAD, arg0);
 
+    Controller_Init();
     Main_InitMesgQueues();
 
+    gfx_init(wm_api, rendering_api, "Star Fox 64", false);
 
-{
-    u8 i;
-    u8 visPerFrame;
-    u8 validVIsPerFrame;
-   gfx_init(wm_api, rendering_api, "Star Fox 64", false);
-
-   _AudioInit();
+    _AudioInit();
     AudioLoad_Init();
     Audio_InitSounds();
     vblank_handler_add(&vblfunc, NULL);
@@ -499,100 +320,45 @@ void Main_ThreadEntry(void* arg0) {
         gSPEndDisplayList(gMasterDisp++);
     }
     Graphics_SetTask();
+
     while (true) {
-gfx_start_frame();
+        if (MQ_GET_MESG(&gTimerTaskMesgQueue, &sp24)) {
+            Timer_CompleteTask(sp24);
+        }
+
+        gfx_start_frame();
         gSysFrameCount++;
         Graphics_InitializeTask(gSysFrameCount);
         Controller_UpdateInput();
         Controller_Rumble();
-        {
-            gSPSegment(gUnkDisp1++, 0, 0);
-            gSPDisplayList(gMasterDisp++, gGfxPool->unkDL1);
-            Game_Update();
-//            printf("did yo uget out\n");
-//            if (gStartNMI == 1) {
-//                Graphics_NMIWipe();
-  //          }
-            gSPEndDisplayList(gUnkDisp1++);
-            gSPEndDisplayList(gUnkDisp2++);
-            gSPDisplayList(gMasterDisp++, gGfxPool->unkDL2);
-            gDPFullSync(gMasterDisp++);
-            gSPEndDisplayList(gMasterDisp++);
-        }
-//        MQ_WAIT_FOR_MESG(&gGfxTaskMesgQueue, NULL);
-
+        gSPSegment(gUnkDisp1++, 0, 0);
+        gSPDisplayList(gMasterDisp++, gGfxPool->unkDL1);
+        Game_Update();
+        gSPEndDisplayList(gUnkDisp1++);
+        gSPEndDisplayList(gUnkDisp2++);
+        gSPDisplayList(gMasterDisp++, gGfxPool->unkDL2);
+        gDPFullSync(gMasterDisp++);
+        gSPEndDisplayList(gMasterDisp++);
         Graphics_SetTask();
-
-        if (!gFillScreen) {
-////            osViSwapBuffer(&gFrameBuffers[(gSysFrameCount - 1) % 3]);
-        }
-
-    //    Fault_SetFrameBuffer(&gFrameBuffers[(gSysFrameCount - 1) % 3], SCREEN_WIDTH, 16);
-
         visPerFrame = MIN(gVIsPerFrame, 4);
         validVIsPerFrame = MAX(visPerFrame, gGfxVImesgQueue.validCount + 1);
         for (i = 0; i < validVIsPerFrame; i += 1) { // Can't be ++
-      //      MQ_WAIT_FOR_MESG(&gGfxVImesgQueue, NULL);
+            MQ_WAIT_FOR_MESG(&gGfxVImesgQueue, NULL);
         }
 
         Audio_Update();
-gfx_end_frame();     
-thd_pass();
-    }    
-}
-}
-
-void Idle_ThreadEntry(void* arg0) {
-    Main_SetVIMode();
-    Lib_FillScreen(1);
-    Main_ThreadEntry(NULL);
-    Fault_Init();
-    osSetThreadPri(NULL, OS_PRIORITY_IDLE);
-    for (;;) {thd_sleep(60000);}
+        gfx_end_frame();
+        thd_pass();
+    }
 }
 
-extern void AudioLoad_LoadFiles(void);
-
-typedef struct {                                  // Little Endian
-    /* 0x00 */ uint8_t strongLeft : 1;            // 0000 0001
-    /* 0x00 */ uint8_t strongRight : 1;           // 0000 0010
-    /* 0x00 */ uint8_t bit2 : 2;                  // 0000 0100
-    /* 0x00 */ uint8_t unused : 2;                // 0001 0000
-    /* 0x00 */ uint8_t usesHeadsetPanEffects : 1; // 0100 0000
-    /* 0x00 */ uint8_t stereoHeadsetEffects : 1;  // 1000 0000
-} StereoDataTest;
-
-typedef union {
-    StereoDataTest data;
-    uint8_t raw;
-} StereoUnionTest;
-
-void testBits(void) {
-    StereoUnionTest test;
-
-    test.raw = 0; // Clear all bits
-    test.data.stereoHeadsetEffects = 1;
-
-    printf("Raw byte value: 0x%08X\n", test.raw);
-}
-
-//void bootproc(void) {
 int main(int argc, char **argv) {
-    //RdRam_CheckIPL3();
-//    osInitialize();
-//#if MODS_ISVIEWER == 1
-//    ISViewer_Init();
-//#endif
-//printf("%s(%d, %08x)\n", __func__, argc, argv);
-//testBits();
-//exit(0);
     FILE* fntest = fopen("/pc/sf_data/ast_logo.bin", "rb");
     if (NULL == fntest) {
         fntest = fopen("/cd/sf_data/ast_logo.bin", "rb");
         if (NULL == fntest) {
             printf("Cant load from /pc or /cd");
             printf("\n");
-//            while(1){}
            exit(-1);
         } else {
             printf("             using /cd for assets\n");
@@ -604,19 +370,9 @@ int main(int argc, char **argv) {
     }
 
     fclose(fntest);
-    printf("loading audio files\n");
-AudioLoad_LoadFiles();
-printf("\tdone.\n");
-Main_Initialize();
 
+    Main_ThreadEntry(NULL);
 
-//    osCreateThread(&sIdleThread, THREAD_ID_IDLE, &Idle_ThreadEntry, NULL, sIdleThreadStack + sizeof(sIdleThreadStack),
-  //                 255);
-   // osStartThread(&sIdleThread);
-   Idle_ThreadEntry(NULL);
-    while (1) {
-        thd_sleep(60000);
-    }
     return 0;
 }
 
@@ -628,23 +384,22 @@ void *SPINNING_THREAD(UNUSED void *arg) {
     uint64_t last_vbltick = vblticker;
 
     while (1) {
-//        {
-  //          irq_disable_scoped();
-            while (vblticker <= last_vbltick)
-                genwait_wait((void*)&vblticker, NULL, 15, NULL);
-    //    }
+        while (vblticker <= last_vbltick /* + 1 */)
+            genwait_wait((void*)&vblticker, NULL, 15, NULL);
 
         last_vbltick = vblticker;
 
-        int num_samples = //448;//
-        448;//544;//called & 1 ? SAMPLES_HIGH : SAMPLES_LOW;
-
+        int num_samples = //534;//
+       // 448;//
+       called & 1 ? SAMPLES_HIGH : SAMPLES_LOW;
+#if 1
         irq_disable();
         AudioThread_CreateNextAudioBuffer(audio_buffer, num_samples);
-//        AudioThread_CreateNextAudioBuffer(audio_buffer + (num_samples * 2), num_samples);
+ //       AudioThread_CreateNextAudioBuffer(audio_buffer + (num_samples * 2), num_samples);
         irq_enable();
         audio_api->play((u8 *)audio_buffer, (num_samples * 2 * 2 /* * 2 */));
-    }
+ #endif
+        }
 
     return NULL;
 }

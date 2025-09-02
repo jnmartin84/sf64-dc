@@ -140,7 +140,7 @@ void Display_DrawHelpAlert(void) {
     }
 }
 
-bool Display_OnFootCharacter_OverrideLimbDraw(s32 limbIndex, Gfx** gfxPtr, Vec3f* pos, Vec3f* rot, void* data) {
+s32 Display_OnFootCharacter_OverrideLimbDraw(s32 limbIndex, Gfx** gfxPtr, Vec3f* pos, Vec3f* rot, void* data) {
     Player* player = (Player*) data;
 
     gSPSetGeometryMode(gMasterDisp++, G_CULL_BACK);
@@ -194,7 +194,7 @@ bool Display_OnFootCharacter_OverrideLimbDraw(s32 limbIndex, Gfx** gfxPtr, Vec3f
             rot->x += -player->unk_15C * 0.2f;
         }
     }
-    return false;
+    return 0;
 }
 
 void Display_OnFootFox_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* data) {
@@ -452,7 +452,7 @@ void Display_SetCullingMode(void) {
     }
 }
 
-bool Display_ArwingOverrideLimbDraw(s32 limbIndex, Gfx** gfxPtr, Vec3f* pos, Vec3f* rot, void* wingData) {
+s32 Display_ArwingOverrideLimbDraw(s32 limbIndex, Gfx** gfxPtr, Vec3f* pos, Vec3f* rot, void* wingData) {
     ArwingInfo* arwing = (ArwingInfo*) wingData;
 
     if (D_display_800CA22C && (gPlayer[0].dmgEffect == 0)) {
@@ -558,7 +558,7 @@ bool Display_ArwingOverrideLimbDraw(s32 limbIndex, Gfx** gfxPtr, Vec3f* pos, Vec
             pos->x += arwing->laserGunsXpos;
             break;
     }
-    return false;
+    return 0;
 }
 
 void Display_Arwing_Skel(ArwingInfo* arwing) {
@@ -1941,7 +1941,7 @@ void Display_Update(void) {
     sPlayersVisible[gPlayerNum] = false;
     Matrix_Pop(&gGfxMatrix);
 
-                 gLaserStrength[0] = 2;
+    gLaserStrength[0] = 2;
     gLifeCount[0] = 9;
     gBombCount[0] = 9;
 
@@ -1959,5 +1959,5 @@ void Display_Update(void) {
         gControllerLock = 3;
         gBackToMap = 1;
     }
-}
+    }
 }

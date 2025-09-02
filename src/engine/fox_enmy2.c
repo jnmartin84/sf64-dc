@@ -3815,7 +3815,7 @@ void ActorEvent_Update(ActorEvent* this) {
 
 UNK_TYPE D_800D129C[140] = { 0 }; // unused
 
-bool ActorEvent_CruiserGun_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
+s32 ActorEvent_CruiserGun_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
     Actor* this = thisx;
 
     if (limbIndex == 1) {
@@ -3824,10 +3824,10 @@ bool ActorEvent_CruiserGun_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* p
     if (limbIndex == 2) {
         rot->z -= this->fwork[EVA_FWORK_15];
     }
-    return false;
+    return 0;
 }
 
-bool ActorEvent_SxWarpGate_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
+s32 ActorEvent_SxWarpGate_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
     Actor* this = thisx;
     s32 healthFraction;
 
@@ -3853,9 +3853,9 @@ bool ActorEvent_SxWarpGate_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* p
             gSPDisplayList(gMasterDisp++, *dList);
             RCP_SetupDL_29(gFogRed, gFogGreen, gFogBlue, gFogAlpha, gFogNear, gFogFar);
         }
-        return true;
+        return 1;
     }
-    return false;
+    return 0;
 }
 
 void ActorEvent_SxWarpGate_Draw(ActorEvent* this) {
@@ -3869,13 +3869,13 @@ void ActorEvent_SxWarpGate_Draw(ActorEvent* this) {
                            &gIdentityMatrix);
 }
 
-bool ActorEvent_OverrideLimbDrawUnused(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
+s32 ActorEvent_OverrideLimbDrawUnused(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
     gSPClearGeometryMode(gMasterDisp++, G_TEXTURE_GEN);
     if ((limbIndex == 3) || (limbIndex == 5)) {
         gSPTexture(gMasterDisp++, 5000, 5000, 0, G_TX_RENDERTILE, G_ON);
         gSPSetGeometryMode(gMasterDisp++, G_TEXTURE_GEN);
     }
-    return false;
+    return 0;
 }
 
 s32 SyShipDebris_Draw(SyShipDebris* this) {

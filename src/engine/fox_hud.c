@@ -863,7 +863,8 @@ void HUD_DrawLevelClearScreen(void) {
     levelIdx = HUD_GetLevelIndex();
 
     if (levelClearState != LEVEL_CLEAR_STATE_0) {
-        RCP_SetupDL(&gMasterDisp, SETUPDL_76);
+//        RCP_SetupDL(&gMasterDisp, SETUPDL_76);
+        RCP_SetupDL(&gMasterDisp, SETUPDL_83);
         gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
         x = 98.0f;
         y = 64.0f;

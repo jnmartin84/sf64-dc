@@ -77,6 +77,7 @@ void Titania_LevelStart(Player* player) {
             player->hideShadow = 1;
             player->csState = 1;
             gFogFar = 1006;
+            if (gFogFar <= gFogNear) gFogFar = gFogNear + 4;
             gPlayer[0].unk_19C = 0;
             gBgColor = 0x78C1; // 120, 24, 0
 

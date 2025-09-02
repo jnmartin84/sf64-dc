@@ -1,6 +1,3 @@
-#include "PR/os_internal.h"
-#include "PR/rcp.h"
+#include "common.h"
 
-void osSpTaskYield(void) {
-    __osSpSetStatus(SP_SET_YIELD);
-}
+#pragma GLOBAL_ASM("asm/us/rev1/nonmatchings/libultra/io/sptaskyield/osSpTaskYield.s")

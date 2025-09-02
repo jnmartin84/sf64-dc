@@ -2828,7 +2828,7 @@ void Solar_SoVulkain_Update(SoVulkain* this) {
     }
 }
 
-bool Solar_SoVulkain_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
+s32 Solar_SoVulkain_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
     SoVulkain* this = (SoVulkain*) thisx;
     Vec3f sp58 = { 0.0f, 0.0f, 0.0f };
     Vec3f sp4C = { 10.0f, 0.0f, 0.0f };
@@ -2893,7 +2893,7 @@ bool Solar_SoVulkain_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Ve
             }
             break;
     }
-    return false;
+    return 0;
 }
 
 void Solar_SoVulkain_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* thisx) {

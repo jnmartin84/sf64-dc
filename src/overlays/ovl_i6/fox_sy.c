@@ -1732,7 +1732,7 @@ void SectorY_SyShogun_Update(SyShogun* this) {
     }
 }
 
-bool SectorY_8019DC4C(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
+s32 SectorY_8019DC4C(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
     SyShogun* boss = (SyShogun*) thisx;
     Vec3f sp10 = { 0.0f, 0.0f, 0.0f };
 
@@ -1774,10 +1774,10 @@ bool SectorY_8019DC4C(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* 
             rot->y -= boss->fwork[5];
             break;
     }
-    return false;
+    return 0;
 }
 
-bool SectorY_SyShogun_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
+s32 SectorY_SyShogun_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
     SyShogun* this = (SyShogun*) thisx;
     Vec3f sp38 = { 0.0f, 0.0f, 0.0f };
 
@@ -1826,7 +1826,7 @@ bool SectorY_SyShogun_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, V
             rot->y -= this->fwork[5];
             break;
     }
-    return false;
+    return 0;
 }
 
 void SectorY_SyShogun_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* thisx) {
@@ -3806,7 +3806,7 @@ s32 D_i6_801A6B28[3] = { 255, 150, 150 };
 s32 D_i6_801A6B34[3] = { 150, 255, 150 };
 s32 D_i6_801A6B40[6] = { 150, 150, 255 };
 
-bool SectorY_SyRobot_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
+s32 SectorY_SyRobot_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
     SyRobot* actor = (SyRobot*) thisx;
 
     if (limbIndex == 4) {
@@ -3840,7 +3840,7 @@ bool SectorY_SyRobot_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Ve
         rot->x += actor->fwork[21];
     }
 
-    return false;
+    return 0;
 }
 
 void SectorY_SyRobot_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* thisx) {

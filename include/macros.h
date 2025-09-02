@@ -3,34 +3,8 @@
 #include <stdio.h>
 #include "alignment.h"
 extern long unsigned int gSegments[16];
-static inline void* segmented_to_virtual(const void* addr) {
-    unsigned int uip_addr = (unsigned int) addr;
 
-    if ((uip_addr >= 0x8c010000) && (uip_addr <= 0x8cffffff)) {
-        return uip_addr;
-    }
-
-    unsigned int segment = (unsigned int) (uip_addr >> 24) & 0x0f;
-
-    // investigate why this hits on Sherbet Land 4 player attract mode demo
-#if DEBUG
-    if (segment > 0xf) {
-        printf("%08x converts to bad segment %02x %08x\n", (uintptr_t) addr, segment, (uintptr_t) uip_addr);
-        printf("\n");
-        stacktrace();
-        printf("\n");
-        while (1) {}
-        exit(-1);
-    }
-#endif
-
-    unsigned int offset = (unsigned int) uip_addr & 0x00FFFFFF;
-    if ((gSegments[segment] + offset) > 0x8cffffff) {
-        printf("serious problem seg2vir %08x -> %08x\n", uip_addr, gSegments[segment] + offset);
-//        exit(-1);
-    }
-    return (void*) ((gSegments[segment] + offset));
-}
+extern void* segmented_to_virtual(const void* addr);
 
 #define SCREEN_WIDTH  320
 #define SCREEN_HEIGHT 240
@@ -45,7 +19,7 @@ static inline void* segmented_to_virtual(const void* addr) {
 #define RAND_FLOAT(max) (Rand_ZeroOne()*(max))
 #define RAND_INT(max) ((s32)(Rand_ZeroOne()*(max)))
 #define RAND_FLOAT_CENTERED(width) ((Rand_ZeroOne()-0.5f)*(width))
-#define RAND_DOUBLE_CENTERED(width) ((Rand_ZeroOne()-0.5)*(width))
+#define RAND_DOUBLE_CENTERED(width) ((Rand_ZeroOne()-0.5f)*(width))
 #define RAND_RANGE(min, max) (((max) - (min)) * (Rand_ZeroOne() - (min) / ((min) - (max))))
 
 #define RAND_FLOAT_SEEDED(max) (Rand_ZeroOneSeeded()*(max))
@@ -63,13 +37,14 @@ static inline void* segmented_to_virtual(const void* addr) {
 #define SQ(x) ((x) * (x))
 #define CUBE(x) ((x) * (x) * (x))
 
-#define DOT_XYZ(v1Ptr, v2Ptr) ((v1Ptr)->x * (v2Ptr)->x + (v1Ptr)->y * (v2Ptr)->y + (v1Ptr)->z * (v2Ptr)->z)
+#define DOT_XYZ(v1Ptr, v2Ptr) (((v1Ptr)->x * (v2Ptr)->x) + ((v1Ptr)->y * (v2Ptr)->y) + ((v1Ptr)->z * (v2Ptr)->z))
 #define VEC3F_MAG(vecPtr) sqrtf(DOT_XYZ(vecPtr, vecPtr))
 #define ABS(x) ((x) >= 0 ? (x) : -(x))
 #define ABSF(x) ((x) >= 0.0f ? (x) : -(x))
 #define ROUND(float) ((s32)((float)+0.5f))
-#define F_PI        3.14159265f   /* pi             */
-
+#ifndef F_PI
+#define F_PI        3.1415926f   /* pi             */
+#endif
 #define RAD_TO_DEG(radians) (((radians) * 180.0f) / F_PI)
 #define DEG_TO_RAD(degrees) (((degrees) / 180.0f) * F_PI)
 

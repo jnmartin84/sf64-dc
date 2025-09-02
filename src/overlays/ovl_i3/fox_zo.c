@@ -525,12 +525,12 @@ void Zoness_ActorDebris_Spawn(Vec3f* pos, Vec3f* rot, f32 xVel, f32 yVel, f32 zV
     }
 }
 
-bool Zoness_ZoBird_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
+s32 Zoness_ZoBird_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
     gSPSetGeometryMode(gMasterDisp++, G_CULL_BACK);
     if ((limbIndex >= 4) && (limbIndex < 10)) {
         gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK);
     }
-    return false;
+    return 0;
 }
 
 void Zoness_ZoBird_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* thisx) {
@@ -1744,7 +1744,7 @@ f32 Zoness_80193CC8(s32 arg0) {
     return var_fv1;
 }
 
-bool Zoness_ZoSarumarine_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
+s32 Zoness_ZoSarumarine_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
     ZoSarumarine* this = (ZoSarumarine*) thisx;
 
     if (sZoLimbTimers[limbIndex] == LIMB_DESTROYED) {
@@ -1887,7 +1887,7 @@ bool Zoness_ZoSarumarine_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos
             pos->y += sZoFwork[ZO_BSF_105];
             break;
     }
-    return false;
+    return 0;
 }
 
 void Zoness_ZoSarumarine_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* thisx) {
@@ -4623,7 +4623,7 @@ void Zoness_ZoSearchLight_Update(ZoSearchLight* this) {
 }
 
 void Zoness_ZoSearchLight_Draw(ZoSearchLight* this) {
-    RCP_SetupDL(&gMasterDisp, SETUPDL_72);
+    RCP_SetupDL(&gMasterDisp, SETUPDL_49);//SETUPDL_72);
 
     if (this->iwork[0] != 0) {
         Matrix_Translate(gGfxMatrix, 0.0f, this->fwork[0], 0.0f, MTXF_APPLY);
@@ -4706,7 +4706,7 @@ void Zoness_ZoBarrier_Update(ZoBarrier* this) {
     }
 }
 
-bool Zoness_ZoBarrier_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
+s32 Zoness_ZoBarrier_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
     ZoBarrier* this = (ZoBarrier*) thisx;
 
     switch (this->state) {
@@ -4726,7 +4726,7 @@ bool Zoness_ZoBarrier_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, V
             }
             break;
     }
-    return false;
+    return 0;
 }
 
 void Zoness_ZoBarrier_Draw(ZoBarrier* this) {

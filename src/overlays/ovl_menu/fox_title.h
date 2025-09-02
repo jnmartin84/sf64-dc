@@ -259,7 +259,7 @@ void Title_ArwingShadow_Draw(s32);
 void Title_Corneria_Draw(f32 zPos);
 void Title_GreatFox_Draw(void);
 void Title_CorneriaExplosions_Draw(void);
-bool Title_Team_OverrideLimbDraw(s32, Gfx**, Vec3f*, Vec3f*, void*);
+s32 Title_Team_OverrideLimbDraw(s32, Gfx**, Vec3f*, Vec3f*, void*);
 void Title_TeamRunning_Draw(TitleTeam);
 void Title_Passage_Draw(void);
 void Title_Sun_Draw(void);

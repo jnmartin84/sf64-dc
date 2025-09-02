@@ -658,14 +658,14 @@ void Bolse_BoLaserCannon_Update(BoLaserCannon* this) {
     this->iwork[0] = 0;
 }
 
-bool Bolse_BoLaserCannon_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
+s32 Bolse_BoLaserCannon_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
     BoLaserCannon* actor = (BoLaserCannon*) thisx;
 
     if (limbIndex == 2) {
         rot->x -= actor->orient.x;
         rot->y += actor->orient.y;
     }
-    return false;
+    return 0;
 }
 
 void Bolse_BoLaserCannon_Draw(BoLaserCannon* this) {
@@ -762,7 +762,7 @@ void Bolse_BoShieldReactor_Update(BoShieldReactor* this) {
     this->scale = -1.0f;
 }
 
-bool Bolse_BoShieldReactor_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
+s32 Bolse_BoShieldReactor_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
     BoShieldReactor* actor = (BoShieldReactor*) thisx;
 
     RCP_SetupDL(&gMasterDisp, SETUPDL_29);
@@ -774,7 +774,7 @@ bool Bolse_BoShieldReactor_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* p
         *dList = NULL;
     }
 
-    return false;
+    return 0;
 }
 
 void Bolse_BoShieldReactor_Draw(BoShieldReactor* this) {
@@ -1983,7 +1983,7 @@ void Bolse_BoBaseCore_Update(BoBaseCore* this) {
     }
 }
 
-bool Bolse_BoBaseCore_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
+s32 Bolse_BoBaseCore_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx) {
     BoBaseCore* baseCore = (BoBaseCore*) thisx;
 
     RCP_SetupDL(&gMasterDisp, SETUPDL_29);
@@ -2025,7 +2025,7 @@ bool Bolse_BoBaseCore_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, V
             }
             break;
     }
-    return false;
+    return 0;
 }
 
 void Bolse_BoBaseCore_PostLimbDraw(s32 index, Vec3f* vec, void* thisx) {

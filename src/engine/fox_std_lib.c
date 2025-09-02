@@ -147,12 +147,12 @@ s32 Animation_GetLimbIndex(Limb* limb, Limb** skeleton) {
 
 void Animation_DrawLimb(s32 mode, Limb* limb, Limb** skeleton, Vec3f* jointTable, OverrideLimbDraw overrideLimbDraw,
                         PostLimbDraw postLimbDraw, void* data) {
-    bool override;
-    s32 limbIndex;
-    Gfx* dList;
-    Vec3f trans;
-    Vec3f rot;
-    Vec3f pos;
+    s32 override = 0;
+    s32 limbIndex = 0;
+    Gfx* dList = NULL;
+    Vec3f trans = { 0.0f, 0.0f, 0.0f };
+    Vec3f rot = { 0.0f, 0.0f, 0.0f };
+    Vec3f pos = { 0.0f, 0.0f, 0.0f };
     Vec3f origin = { 0.0f, 0.0f, 0.0f };
 
     Matrix_Push(&gCalcMatrix);
@@ -171,6 +171,7 @@ void Animation_DrawLimb(s32 mode, Limb* limb, Limb** skeleton, Vec3f* jointTable
     } else {
         override = overrideLimbDraw(limbIndex - 1, &dList, &trans, &rot, data);
     }
+
     if (!override) {
         Matrix_Translate(gCalcMatrix, trans.x, trans.y, trans.z, MTXF_APPLY);
         Matrix_RotateZ(gCalcMatrix, rot.z * M_DTOR, MTXF_APPLY);
@@ -204,13 +205,13 @@ void Animation_DrawLimb(s32 mode, Limb* limb, Limb** skeleton, Vec3f* jointTable
 
 void Animation_DrawSkeleton(s32 mode, Limb** skeletonSegment, Vec3f* jointTable, OverrideLimbDraw overrideLimbDraw,
                             PostLimbDraw postLimbDraw, void* data, Matrix* transform) {
-    bool override;
-    Limb** skeleton;
-    Limb* rootLimb;
-    s32 rootIndex;
-    Gfx* dList;
-    Vec3f baseTrans;
-    Vec3f baseRot;
+    s32 override;//=0;
+    Limb** skeleton;//=NULL;
+    Limb* rootLimb;//=NULL;
+    s32 rootIndex;//=0;
+    Gfx* dList;//=NULL;
+    Vec3f baseTrans;// = {0.0f,0.0f,0.0f};
+    Vec3f baseRot;// = {0.0f,0.0f,0.0f};
 
     Matrix_Push(&gCalcMatrix);
     Matrix_Copy(gCalcMatrix, transform);
@@ -232,12 +233,12 @@ void Animation_DrawSkeleton(s32 mode, Limb** skeletonSegment, Vec3f* jointTable,
 
     dList = rootLimb->dList;
     Matrix_Push(&gGfxMatrix);
-
     if (overrideLimbDraw == NULL) {
         override = 0;
     } else {
         override = overrideLimbDraw(rootIndex - 1, &dList, &baseTrans, &baseRot, data);
     }
+
     if (!override) {
         Matrix_Translate(gCalcMatrix, baseTrans.x, baseTrans.y, baseTrans.z, MTXF_APPLY);
         Matrix_RotateZ(gCalcMatrix, baseRot.z * M_DTOR, MTXF_APPLY);
@@ -266,19 +267,15 @@ void Animation_DrawSkeleton(s32 mode, Limb** skeletonSegment, Vec3f* jointTable,
 
 #include <stdio.h>
 #include <stdlib.h>
+extern Animation D_TI_A0002BC;
 s16 Animation_GetFrameData(Animation* animationSegment, s32 frame, Vec3f* frameTable) {
     Animation* animation = SEGMENTED_TO_VIRTUAL(animationSegment);
+
     u16 limbCount = animation->limbCount;
     JointKey* key = SEGMENTED_TO_VIRTUAL(animation->jointKey);
     u16* frameData = SEGMENTED_TO_VIRTUAL(animation->frameData);
     s32 i;
     s32 temp;
-//printf("%s\n",__func__);
-
-    if ((uintptr_t)frameData < 0x8c010000 || (uintptr_t)frameData > 0x8cffffff) {
-        printf("invalid frame->data %08x\n", frameData);
-        exit(-1);
-    }
 
     temp = (frame < key->xLen) ? frameData[key->x + frame] : frameData[key->x];
     frameTable->x = (s16) temp;
@@ -425,7 +422,6 @@ void Animation_GetSkeletonBoundingBox(Limb** skeletonSegment, Animation* animati
 
 f32 Math_SmoothStepToF(f32* value, f32 target, f32 scale, f32 maxStep, f32 minStep) {
     f32 step = target - *value;
-//printf("%s\n",__func__);
 
     if (step != 0.0f) {
         step *= scale;
