@@ -397,6 +397,7 @@ void Macbeth_InitLevel(void) {
 
 /* 32 x 32 pixels texture rotation */
 void Macbeth_Texture_RotateZ(u8* destTex, u8* srcTex, f32 angle) {
+#if 1
     s32 i;
     s32 j;
     s32 xDest;
@@ -430,14 +431,36 @@ void Macbeth_Texture_RotateZ(u8* destTex, u8* srcTex, f32 angle) {
         }
     }
     Matrix_Pop(&gCalcMatrix);
+#else
+    destTex = SEGMENTED_TO_VIRTUAL(destTex);
+    srcTex = SEGMENTED_TO_VIRTUAL(srcTex);
+    memcpy(destTex, srcTex, 32*32*2);
+#endif
 }
 
 void Macbeth_Texture_Scroll(u8* tex, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
+#if 1
     u8* texPtr = SEGMENTED_TO_VIRTUAL(tex);
     s32 i;
     s32 j;
     u8 a;
     u8 b;
+
+#if 0
+
+    for (i = 0; i < 8; i++) {
+        b = texPtr[i];
+        a = texPtr[i+16];
+    
+        for (j = 1; j < 16; j+= 2) {
+            texPtr[(16 * (j - 1)) + i] = texPtr[(16 * (j + 1)) + i];
+        }
+        texPtr[((16 - 2) * 16) + i] = b;
+        texPtr[((16 - 1) * 16) + i] = a;
+    }
+
+
+#endif
 
     for (i = arg3; i < arg3 + arg4; i++) {
         b = texPtr[i];
@@ -451,23 +474,37 @@ void Macbeth_Texture_Scroll(u8* tex, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
         texPtr[((arg2 - 2) * arg1) + i] = b;
         texPtr[((arg2 - 1) * arg1) + i] = a;
     }
+#endif
 }
 
-void Macbeth_Texture_Scroll2(u16* tex, s32 arg1, s32 arg2) {
+void Macbeth_Texture_Scroll2(u16* tex, UNUSED s32 arg1, UNUSED s32 arg2) {
+#if 1
     u16* texPtr = SEGMENTED_TO_VIRTUAL(tex);
     u16 a;
     s32 i;
     s32 j;
+#if 0
+    for (i = 0; i < 4; i++) {
+        a = texPtr[(8 - 1) * 4 + i];
 
+        for (j = 8; j > 0; j--) {
+            texPtr[(j * 4) + i] = texPtr[((j - 1) * 4) + i];
+        }
+
+        texPtr[i] = a;
+    }
+#else
     for (i = 0; i < arg1; i++) {
         a = texPtr[(arg2 - 1) * arg1 + i];
 
-        for (j = arg2; j > 0; j--) {
+        for (j = (arg2 - 1); j > 0; j--) {
             texPtr[j * arg1 + i] = texPtr[(j - 1) * arg1 + i];
         }
 
         texPtr[i] = a;
     }
+#endif
+#endif
 }
 
 void Macbeth_Train_Init(Actor* this) {
@@ -3866,6 +3903,8 @@ void Macbeth_801A68F8(MaMechbeth* this, s16 arg1, f32 arg2, f32 arg3, f32 arg4, 
     gTexturedLines[arg1].posBB.z = arg7;
 }
 
+uint32_t scroll2_ult=0,scroll2_lrt=31;
+extern Gfx D_MA_6012C00[];
 void Macbeth_801A6984(MaMechbeth* this) {
     s16 var_s3 = 0;
     Vec3f test;
@@ -3930,7 +3969,31 @@ void Macbeth_801A6984(MaMechbeth* this) {
     }
     Macbeth_Texture_Scroll2(D_MA_6012C98, 4, 8);
     gfx_texture_cache_invalidate(D_MA_6012C98);
-}
+#if 0
+
+Gfx D_MA_6012C00[] = {
+    gsDPTileSync(),
+    gsDPSetTile(G_IM_FMT_RGBA, G_IM_SIZ_16b, 1, 0x0000, G_TX_RENDERTILE, 0, G_TX_NOMIRROR | G_TX_WRAP, 3, G_TX_NOLOD, G_TX_NOMIRROR | G_TX_WRAP, 2, G_TX_NOLOD),
+    gsDPSetTileSize(G_TX_RENDERTILE, 0, 0, 0x000C, 0x001C),
+    gsDPSetTextureImage(G_IM_FMT_RGBA, G_IM_SIZ_16b, 1, D_MA_6012C98),
+    gsDPTileSync(),
+    gsDPSetTile(G_IM_FMT_RGBA, G_IM_SIZ_16b, 0, 0x0000, G_TX_LOADTILE, 0, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOLOD),
+    gsDPLoadSync(),
+    gsDPLoadBlock(G_TX_LOADTILE, 0, 0, 31, 2048),
+    gsSPVertex(ast_macbeth_seg6_vtx_12C58, 4, 0),
+    gsSP2Triangles(1, 2, 3, 0, 1, 3, 0, 0),
+    gsSPEndDisplayList(),
+};
+#endif
+#if 0
+    scroll2_ult = (scroll2_ult + 4) & 0x1F;
+    scroll2_lrt = (scroll2_ult + 31) & 0xFFF;
+
+    Gfx *cmd = (Gfx *)segmented_to_virtual((void *)((Gfx*)(D_MA_6012C00 + 2)));
+	cmd->words.w0 = (G_SETTILESIZE << 24)        | scroll2_ult;
+    cmd->words.w1 = (cmd->words.w1 & 0x0700F000) | scroll2_lrt;
+#endif
+    }
 
 void Macbeth_801A6C78(MaMechbeth* this) {
     // FAKE

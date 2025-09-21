@@ -131,14 +131,12 @@ struct __attribute__((aligned(32))) LoadedVertex {
 };
 
 
-static inline uint64_t pack_key(uint32_t a, uint16_t b, uint16_t c, uint8_t d, uint8_t e, uint8_t pal) {
-    uint64_t key = 0;
-    key |= ((uint64_t)((a >> 5) & 0x7FFFF)) << 44; // 19 bits
-    key |= ((uint64_t)b & 0xFFFF) << 28;           // 16 bits
-    key |= ((uint64_t)c & 0xFFFF) << 12;           // 16 bits
-    key |= ((uint64_t)d & 0xFF)   << 4;            // 8 bits
-    key |= ((uint64_t)(e & 0x3))<<2;               // 2 bits
-    key |= ((uint64_t)(pal & 0x3));                // 2 bits
+static inline uint32_t pack_key(uint32_t a, uint8_t d, uint8_t e, uint8_t pal) {
+    uint32_t key = 0;
+    key |= ((uint32_t)((a >> 5) & 0x7FFFF)) << 12; // 19 bits
+    key |= ((uint32_t)d & 0xFF)   << 4;            // 8 bits
+    key |= ((uint32_t)(e & 0x3))<<2;               // 2 bits
+    key |= ((uint32_t)(pal & 0x3));                // 2 bits
 	return key;
 }
 
@@ -149,6 +147,18 @@ struct TextureHashmapNode {
 	struct TextureHashmapNode* next;
 	// 4
 	uint32_t texture_id;
+	// 8
+	uint32_t key;
+	// 12
+	uint8_t dirty;
+	// 13
+	uint8_t linear_filter;
+	// 14
+	uint8_t cms;
+	// 15
+	uint8_t cmt;
+
+#if 0
 	// 8
 	const uint8_t* texture_addr;
 	// 12
@@ -171,6 +181,7 @@ struct TextureHashmapNode {
 	uint8_t pad11;
 	// 28
 	uint32_t pad41;
+#endif
 };
 
 uint32_t last_palette = 0;
@@ -313,7 +324,7 @@ void n64_memcpy(void *dst, const void *src, size_t size);
 
 static  __attribute__((noinline)) void gfx_generate_cc(struct ColorCombiner* comb, uint32_t cc_id) {
 	uint8_t c[2][4];
-	uint32_t shader_id = (cc_id >> 24) << 24;
+	uint32_t shader_id = cc_id & 0xff000000;//(cc_id >> 24) << 24;
 	uint8_t shader_input_mapping[2][4] = { { 0 } };
 	int i, j;
 
@@ -387,24 +398,98 @@ static  __attribute__((noinline)) struct ColorCombiner* gfx_lookup_or_create_col
 void gfx_clear_texidx(GLuint texidx);
 
 
+#if 0
+struct TextureHashmapNode {
+	// 0
+	struct TextureHashmapNode* next;
+	// 4
+	uint32_t texture_id;
+	// 8
+	const uint8_t* texture_addr;
+	// 12
+	uint32_t tmem;
+	// 16
+	uint16_t uls;
+	// 18
+	uint16_t ult;
+	// 20
+	uint8_t fmt, siz;
+	// 22
+	uint8_t dirty;
+	// 23
+	uint8_t linear_filter;
+	// 24
+	uint8_t cms, cmt;
+	// 26
+	uint8_t pal;
+	// 27
+	uint8_t pad11;
+	// 28
+	uint32_t pad41;
+};
+#endif
 void reset_texcache(void) {
 	gfx_texture_cache.pool_pos = 0;
+//	printf("BEGIN DUMP !!!\n\n");
+//	for (uint32_t i=0;i<gfx_texture_cache.pool_pos;i++) {
+//		if (gfx_texture_cache.pool[i].pad11) {
+//			if (!gfx_texture_cache.pool[i].pad41) {
+//				printf("0x%08x %u %u %u %u %u %u \n", gfx_texture_cache.pool[i].texture_addr,
+//				gfx_texture_cache.pool[i].tmem, gfx_texture_cache.pool[i].uls, gfx_texture_cache.pool[i].ult,
+//			gfx_texture_cache.pool[i].fmt, gfx_texture_cache.pool[i].siz, gfx_texture_cache.pool[i].pal );
+//			}
+//		}
+//	}
+//	printf("END DUMP !!!\n\n");
+	memset(&gfx_texture_cache, 0, sizeof(gfx_texture_cache));
+//	memset(gfx_texture_cache.hashmap, 0, sizeof(gfx_texture_cache.hashmap));
 }
 
 
+static inline uint32_t unpack_A(uint64_t key) {
+    // Extract 19-bit field
+    uint32_t a19 = (uint32_t)((key >> 12) & 0x7FFFF);
+
+    // Shift back to original position (restore the lost low 5 bits as 0s)
+//    uint32_t a = (a19 << 5);
+
+    // Restore the constant top 8 bits (0x8C per your earlier note)
+//    a |= 0x8C000000;
+
+    return a19;
+}
+
+static inline uint64_t hash64(uint64_t key) {
+    uint64_t h = 1469598103934665603ULL; // FNV offset basis
+    h ^= key; 
+    h *= 1099511628211ULL;               // FNV prime
+    return h;
+}
+
+void *virtual_to_segmented(const void *addr);
 void gfx_texture_cache_invalidate(void* orig_addr) {
  	void* segaddr = segmented_to_virtual(orig_addr);
 
 	size_t hash = (uintptr_t) segaddr;
 	hash = (hash >> 5) & 0x3ff;
+
+	uintptr_t addrcomp = ((uintptr_t)segaddr>>5)&0x7FFFF;
+
 	struct TextureHashmapNode** node = &gfx_texture_cache.hashmap[hash];
 	uintptr_t last_node = &gfx_texture_cache.pool[gfx_texture_cache.pool_pos];
 	while (*node != NULL && ((uintptr_t)*node < last_node)) {
-		__builtin_prefetch((*node)->next);
-		if ((*node)->texture_addr == segaddr) {
-			(*node)->dirty = 1;
+		struct TextureHashmapNode* cur_node = (*node);
+		__builtin_prefetch(cur_node->next);
+//		if (cur_node->texture_addr == segaddr) {
+		uintptr_t unpaddr = (uintptr_t)unpack_A((*node)->key);
+		if (unpaddr == addrcomp) {
+			if (cur_node->dirty)
+				return;
+//			printf("inval %d (%08x)\n", cur_node->texture_id, virtual_to_segmented(segaddr));
+			cur_node->dirty = 1;
+//			cur_node->pad41++;
 		}
-		node = &(*node)->next;
+		node = &cur_node->next;
 	}
 }
 
@@ -420,7 +505,8 @@ static  __attribute__((noinline)) uint8_t gfx_texture_cache_lookup(int tile, str
 	void* segaddr = segmented_to_virtual((void *)orig_addr);
 	size_t hash = (uintptr_t) segaddr;
 	hash = (hash >> 5) & 0x3ff;
-//	hash = (hash >> 6) & 0x1ff;
+
+	uint32_t newkey = pack_key(segaddr, fmt, siz, pal);
 
 	struct TextureHashmapNode** node = &gfx_texture_cache.hashmap[hash];
 	if ((uintptr_t)rdp.loaded_texture[tile].addr < 0x8c010000u) {
@@ -435,8 +521,8 @@ static  __attribute__((noinline)) uint8_t gfx_texture_cache_lookup(int tile, str
 	while (*node != NULL && ((uintptr_t)*node < last_node)) {
 		__builtin_prefetch((*node)->next);
 
-		if ((*node)->texture_addr == segaddr && /* (*node)->ult == ult && (*node)->uls == uls && */
-			(*node)->fmt == fmt && (*node)->siz == siz && (*node)->pal == pal) {
+		//if ((*node)->texture_addr == segaddr && (*node)->fmt == fmt && (*node)->siz == siz && (*node)->pal == pal) {
+		if ((*node)->key == newkey) {
 			gfx_rapi->select_texture(tile, (*node)->texture_id);
 			gfx_opengl_set_tile_addr(tile, segaddr);
 
@@ -462,27 +548,32 @@ static  __attribute__((noinline)) uint8_t gfx_texture_cache_lookup(int tile, str
 	}
 
 	*node = &gfx_texture_cache.pool[gfx_texture_cache.pool_pos++];
-	if ((*node)->texture_addr == NULL) {
-		(*node)->texture_id = gfx_rapi->new_texture();
-	}
+	//if ((*node)->texture_addr == NULL) {
+//	if ((*node)->key == 0) {
+	(*node)->texture_id = gfx_rapi->new_texture();
+//	}
 	gfx_rapi->select_texture(tile, (*node)->texture_id);
 	gfx_opengl_set_tile_addr(tile, segaddr);
 
 	gfx_rapi->set_sampler_parameters(tile, 0, 0, 0);
 
-	(*node)->texture_addr = segaddr;
-	(*node)->fmt = fmt;
-	(*node)->siz = siz;
+//	(*node)->texture_addr = segaddr;
+//	(*node)->fmt = fmt;
+//	(*node)->siz = siz;
 /* 	(*node)->uls = uls;
 	(*node)->ult = ult; */
-	(*node)->pal = pal;
+//	(*node)->pal = pal;
+
+	(*node)->key = newkey;
+
 	(*node)->dirty = 0;
 
-	(*node)->tmem = tmem;
+//	(*node)->tmem = tmem;
 	(*node)->cms = 0;
 	(*node)->cmt = 0;
 	(*node)->linear_filter = 0;
 	(*node)->next = NULL;
+//	(*node)->pad11 = 1;
 	*n = *node;
 
 	return 0;
@@ -1722,6 +1813,7 @@ extern int cc_debug_toggle;
 //int total_tri=0;
 //int rej_tri=0;
 //int nearz_tri = 0;
+#if 1
 extern u16 aCoGroundGrassTex[];
 extern u16 D_CO_6028A60[];
 extern u16 aVe1GroundTex[];
@@ -1729,6 +1821,7 @@ extern u16 aMaGroundTex[];
 extern u16 aAqGroundTex[];
 extern u16 aAqWaterTex[];
 int last_was_special = 0;
+#endif
 static void  __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx2_idx, uint8_t vtx3_idx) {
     struct LoadedVertex* v1 = &rsp.loaded_vertices[vtx1_idx];
     struct LoadedVertex* v2 = &rsp.loaded_vertices[vtx2_idx];
@@ -1736,11 +1829,14 @@ static void  __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx
     struct LoadedVertex* v_arr[3] = { v1, v2, v3 };
 
 //	total_tri++;
+#if 0
 			if (last_was_special) gfx_flush();
-
+#endif
 	if (v1->clip_rej & v2->clip_rej & v3->clip_rej) {
+#if 0
 		last_was_special = 0;
-        // The whole triangle lies outside the visible area
+#endif
+		// The whole triangle lies outside the visible area
 
 //		nearz_tri++;
 /* 		if (nearz_tri == 1) {
@@ -1776,20 +1872,20 @@ static void  __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx
                 switch (rsp.geometry_mode & G_CULL_BOTH) {
                     case G_CULL_FRONT:
                         if (cross <= 0) {
-		last_was_special = 0;
+//		last_was_special = 0;
 //							rej_tri++;
 							return;
                         }
 						break;
                     case G_CULL_BACK:
                         if (cross >= 0) {
-		last_was_special = 0;
+//		last_was_special = 0;
 //							rej_tri++;
 							return;
                         }
 						break;
                     case G_CULL_BOTH: {
-		last_was_special = 0;
+//		last_was_special = 0;
                         // Why is this even an option?
 //						rej_tri++;
                         return;
@@ -1905,7 +2001,7 @@ static void  __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx
     uint8_t used_textures[2];
     gfx_rapi->shader_get_info(prg, &num_inputs, used_textures);
     int i;
-	
+	#if 1
 	void * texaddr = segmented_to_virtual(rdp.texture_to_load.addr);
 	void * grass = segmented_to_virtual(aCoGroundGrassTex);
 	void * water = segmented_to_virtual(D_CO_6028A60);
@@ -1913,7 +2009,7 @@ static void  __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx
 	void * maground = segmented_to_virtual(aMaGroundTex);
 	void * aqground = segmented_to_virtual(aAqGroundTex);
 	void * aqwater = segmented_to_virtual(aAqWaterTex);
-
+#endif
     for (i = 0; i < 1/* 2 */; i++) {
         if (used_textures[i]) {
             if (rdp.textures_changed[i]) {
@@ -1926,7 +2022,8 @@ static void  __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx
             uint8_t cmt = rdp.texture_tile.cmt;
 //printf("grass %08x water %08x ve1ground %08x maground %08x aqground %08x aqwater %08x\n",
 //grass,water,ve1ground,maground,aqground,aqwater);
-			uint8_t special_cm = (
+#if 1
+uint8_t special_cm = (
 			((gCurrentLevel == LEVEL_CORNERIA) && ((texaddr == grass) || (texaddr == water))) 
 			|| 
 			((gCurrentLevel == LEVEL_VENOM_1) && (texaddr == ve1ground))
@@ -1935,21 +2032,22 @@ static void  __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx
 			||
 			((gCurrentLevel == LEVEL_AQUAS) && ((texaddr == aqground) || (texaddr == aqwater)))
 			);
-			if (((!last_was_special) && special_cm) || (last_was_special && (!special_cm))) {
-				gfx_flush();
-			}
+//			if (((!last_was_special) && special_cm) || (last_was_special && (!special_cm))) {
+//				gfx_flush();
+//			}
 /* 			if (texaddr == aqwater) {
 				printf("cms %d cmt %d\n", cms, cmt);
 				cms = 1;
 				cmt = 1;
 			} else */ if (special_cm) {
-				last_was_special = 1;
+//				last_was_special = 1;
 //				printf("prev cms %d cmt %d\n", cms, cmt);
 				cms = 0;
 				cmt = 0;
 			} else { // if (!(special_cm  || (texaddr == aqwater ))) {
 //				return;
-				last_was_special = 0;
+//				last_was_special = 0;
+#endif
 				uint32_t tex_size_bytes = rdp.loaded_texture[rdp.texture_to_load.tile_number].size_bytes;
 				uint32_t line_size = rdp.texture_tile.line_size_bytes;
 
@@ -1990,8 +2088,9 @@ static void  __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx
 	//                tm |= ((1 << (2 * i)) + 1);
 					cmt &= (~G_TX_CLAMP);
 				}
+#if 1
 			}
-
+#endif
 			uint8_t linear_filter = (rdp.other_mode_h & (3U << G_MDSFT_TEXTFILT)) != G_TF_POINT;
 
       		if ((linear_filter != rendering_state.textures[i]->linear_filter) ||
@@ -3629,10 +3728,39 @@ static inline void* seg_addr(uintptr_t w1) {
 
 volatile int do_reticle = 0;
 int do_fillrect_blend = 0;
-
+#if 0
+extern Gfx aCoBuilding1DL[];
+extern uint32_t cob1_uls, cob1_ult, cob1_lrs, cob1_lrt;
+extern Gfx aSoLava1DL[];
+extern Gfx aSoLava2DL[];
+extern uint32_t sol_uls, sol_ult, sol_lrs, sol_lrt;
+extern Gfx D_10182C0[];
+extern uint32_t e383_uls, e383_ult, e383_lrs, e383_lrt;
+#endif
 static void  __attribute__((noinline)) gfx_run_dl(Gfx* cmd) {
 	cmd = seg_addr((uintptr_t) cmd);
 	for (;;) {
+#if 0
+		if (cmd == (Gfx *)segmented_to_virtual((void *)((Gfx*)(aCoBuilding1DL + 36)))) {
+			cmd->words.w0 = (G_SETTILESIZE << 24) | (cob1_uls << 12) | cob1_ult;
+            cmd->words.w1 = (cmd->words.w1 & 0x07000000) | (cob1_lrs << 12) | cob1_lrt;
+		}
+
+		if (cmd == (Gfx *)segmented_to_virtual((void *)((Gfx*)(aSoLava1DL + 2)))) {
+			cmd->words.w0 = (G_SETTILESIZE << 24) | (sol_uls << 12) | sol_ult;
+            cmd->words.w1 = (cmd->words.w1 & 0x07000000) | (sol_lrs << 12) | sol_lrt;
+		}
+
+		if (cmd == (Gfx *)segmented_to_virtual((void *)((Gfx*)(aSoLava2DL + 2)))) {
+			cmd->words.w0 = (G_SETTILESIZE << 24) | (sol_uls << 12) | sol_ult;
+            cmd->words.w1 = (cmd->words.w1 & 0x07000000) | (sol_lrs << 12) | sol_lrt;
+		}
+
+		if (cmd == (Gfx *)segmented_to_virtual((void *)((Gfx*)(D_10182C0 + 6)))) {
+			cmd->words.w0 = (G_SETTILESIZE << 24) | (e383_uls << 12) | e383_ult;
+            cmd->words.w1 = (cmd->words.w1 & 0x07000000) | (e383_lrs << 12) | e383_lrt;
+		}
+#endif
 		uint32_t opcode = cmd->words.w0 >> 24;
 
 		// custom f3d opcodes, sorry

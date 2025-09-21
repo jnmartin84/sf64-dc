@@ -885,8 +885,16 @@ void Effect_Effect357_Draw(Effect357* this) {
     }
 }
 
+uint32_t e383_ult=0, e383_lrt=127;
+
 void Effect_Effect383_Update(Effect383* this) {
-    Lib_Texture_Scroll(D_10190C0, 16, 32, 0);
+//    Lib_Texture_Scroll(D_10190C0, 16, 32, 0);
+    e383_ult = (e383_ult - 4) & 0x7F;
+    e383_lrt = (e383_ult + 127) & 0xFFF;
+    Gfx *cmd = (Gfx *)segmented_to_virtual((void *)((Gfx*)(D_10182C0 + 6)));
+	cmd->words.w0 = (G_SETTILESIZE << 24)        | e383_ult;
+    cmd->words.w1 = (cmd->words.w1 & 0x0703F000) | e383_lrt;
+
     gGroundClipMode = 2;
     this->obj.rot.y += 1.0f;
     Math_SmoothStepToF(&this->scale2, this->scale1, 0.05f, 1.5f, 0.001f);

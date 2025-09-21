@@ -6683,6 +6683,8 @@ void Camera_SetupLights(Player* player) {
 }
 
 void gfx_texture_cache_invalidate(void *addr);
+uint32_t cob1_uls=0, cob1_lrs=255;
+uint32_t sol_ult=0, sol_lrt=127;
 void Play_UpdateLevel(void) {
     s32 cycleMask;
     s32 sp40;
@@ -6769,10 +6771,15 @@ void Play_UpdateLevel(void) {
 
         case LEVEL_CORNERIA:
             HUD_Texture_Wave(D_CO_603EB38, D_CO_6028A60);
-            gfx_texture_cache_invalidate(D_CO_6028A60);
-            if ((gGameFrameCount % 2) != 0) {
-                Lib_Texture_Scroll(D_CO_600CBD8, 64, 32, 3);
-                gfx_texture_cache_invalidate(D_CO_600CBD8);
+            if (gGameFrameCount & 1) {
+                // "GOODLUCK!"
+                // what would it take to do this with UV scrolling?
+                cob1_uls = (cob1_uls - 4) & 0xFF;
+                cob1_lrs = (cob1_uls + 255) & 0xFFF;
+                Gfx* cmd = (Gfx *)segmented_to_virtual((void *)((Gfx*)(aCoBuilding1DL + 36)));
+			    cmd->words.w0 = (G_SETTILESIZE << 24)        | (cob1_uls << 12);
+                cmd->words.w1 = (cmd->words.w1 & 0x0700007F) | (cob1_lrs << 12);
+		        //Lib_Texture_Scroll(D_CO_600CBD8, 64, 32, 3);
             }
             break;
 
@@ -6784,15 +6791,25 @@ void Play_UpdateLevel(void) {
             Play_UpdateDynaFloor();
 
             for (gPathTexScroll; gPathTexScroll >= 10.0f; gPathTexScroll -= 10.0f) {
-                Lib_Texture_Scroll(aSoLavaTex, 32, 32, 1);
-                gfx_texture_cache_invalidate(aSoLavaTex);
+                sol_ult += 4;
+                //Lib_Texture_Scroll(aSoLavaTex, 32, 32, 1);
             }
             if (gPlayer[0].state == PLAYERSTATE_NEXT) {
-                Lib_Texture_Scroll(aSoLavaTex, 32, 32, 1);
-                gfx_texture_cache_invalidate(aSoLavaTex);
+                sol_ult += 4;
+                //Lib_Texture_Scroll(aSoLavaTex, 32, 32, 1);
             }
+
+            sol_lrt = (sol_ult + 127) & 0xFFF;
+            Gfx* cmd1 = (Gfx *)segmented_to_virtual((void *)((Gfx*)(aSoLava1DL + 2)));
+            Gfx* cmd2 = (Gfx *)segmented_to_virtual((void *)((Gfx*)(aSoLava2DL + 2)));
+            uint32_t words_w0 = (G_SETTILESIZE << 24)        | sol_ult;
+            uint32_t words_w1 = (cmd1->words.w1 & 0x0707F000) | sol_lrt;
+            cmd1->words.w0 = words_w0;
+            cmd1->words.w1 = words_w1;
+	    	cmd2->words.w0 = words_w0;
+            cmd2->words.w1 = words_w1;
+
             Lib_Texture_Mottle(aSoBackdropTex, D_SO_6020F60, 3);
-            gfx_texture_cache_invalidate(aSoBackdropTex);
 
             if (gPlayer[0].pos.y > 600.0f) {
                 cycleMask = 8 - 1;
@@ -6854,15 +6871,12 @@ void Play_UpdateLevel(void) {
             Play_UpdateDynaFloor();
             for (gPathTexScroll; gPathTexScroll >= 20.0f; gPathTexScroll -= 20.0f) {
                 Lib_Texture_Scroll(D_ZO_602C2CC, 32, 32, 1);
-                gfx_texture_cache_invalidate(D_ZO_602C2CC);
             }
             if (gPlayer[0].state == PLAYERSTATE_NEXT) {
                 Lib_Texture_Scroll(D_ZO_602C2CC, 32, 32, 1);
-                gfx_texture_cache_invalidate(D_ZO_602C2CC);
             }
 
             HUD_Texture_Wave(D_ZO_602C2CC, aZoWaterTex);
-            gfx_texture_cache_invalidate(aZoWaterTex);
 
             if (Play_CheckDynaFloorCollision(&sp3C, &sp40, gPlayer[0].cam.eye.x, gPlayer[0].cam.eye.y,
                                              gPlayer[0].cam.eye.z - gPathProgress)) {

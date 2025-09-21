@@ -390,22 +390,92 @@ void Matrix_ToMtx(Mtx* m) {
     guMtxF2L(gGfxMatrix->m, m->m);
 }
 
+static inline void shz_xmtrx_store_4x4_unaligned(float matrix[16]) {
+    asm volatile(R"(
+        frchg
+        add     #64, %[mtx]
+        fmov.s  fr15, @-%[mtx]
+        add     #-32, %[mtx]
+        pref    @%[mtx]
+        add     #32, %[mtx]
+        fmov.s  fr14, @-%[mtx]
+        fmov.s  fr13, @-%[mtx]
+        fmov.s  fr12, @-%[mtx]
+        fmov.s  fr11, @-%[mtx]
+        fmov.s  fr10, @-%[mtx]
+        fmov.s  fr9, @-%[mtx]
+        fmov.s  fr8, @-%[mtx]
+        fmov.s  fr7, @-%[mtx]
+        fmov.s  fr6, @-%[mtx]
+        fmov.s  fr5, @-%[mtx]
+        fmov.s  fr4, @-%[mtx]
+        fmov.s  fr3, @-%[mtx]
+        fmov.s  fr2, @-%[mtx]
+        fmov.s  fr1, @-%[mtx]
+        fmov.s  fr0, @-%[mtx]
+        frchg
+    )"
+    : "=m" (*matrix)
+    : [mtx] "r" (matrix));
+}
+static inline void shz_xmtrx_load_4x4_unaligned(const float matrix[16]) {
+    asm volatile(R"(
+        frchg
+        fmov.s  @%[mtx]+, fr0
+        add     #32, %[mtx]
+        pref    @%[mtx]
+        add     #-32, %[mtx]
+        fmov.s  @%[mtx]+, fr1
+        fmov.s  @%[mtx]+, fr2
+        fmov.s  @%[mtx]+, fr3
+        fmov.s  @%[mtx]+, fr4
+        fmov.s  @%[mtx]+, fr5
+        fmov.s  @%[mtx]+, fr6
+        fmov.s  @%[mtx]+, fr7
+        fmov.s  @%[mtx]+, fr8
+        fmov.s  @%[mtx]+, fr9
+        fmov.s  @%[mtx]+, fr10
+        fmov.s  @%[mtx]+, fr11
+        fmov.s  @%[mtx]+, fr12
+        fmov.s  @%[mtx]+, fr13
+        fmov.s  @%[mtx]+, fr14
+        fmov.s  @%[mtx]+, fr15
+        frchg
+    )"
+    : [mtx] "+r" (matrix)
+    :  "m" (*matrix));
+}
+#include <kos.h>
+
 // Applies the transform matrix mtx to the vector src, putting the result in dest
 void Matrix_MultVec3f(Matrix* mtx, Vec3f* src, Vec3f* dest) {
-    dest->x = //fipr(mtx->m[0][0],mtx->m[1][0],mtx->m[2][0],mtx->m[3][0],src->x,src->y,src->z,1);//
-    (mtx->m[0][0] * src->x) + (mtx->m[1][0] * src->y) + (mtx->m[2][0] * src->z) + mtx->m[3][0];
-    dest->y = //fipr(mtx->m[0][1],mtx->m[1][1],mtx->m[2][1],mtx->m[3][1],src->x,src->y,src->z,1);//
-    (mtx->m[0][1] * src->x) + (mtx->m[1][1] * src->y) + (mtx->m[2][1] * src->z) + mtx->m[3][1];
-    dest->z = //fipr(mtx->m[0][2],mtx->m[1][2],mtx->m[2][2],mtx->m[3][2],src->x,src->y,src->z,1);//
-    (mtx->m[0][2] * src->x) + (mtx->m[1][2] * src->y) + (mtx->m[2][2] * src->z) + mtx->m[3][2];
+    shz_xmtrx_load_4x4_unaligned(mtx);
+    float w = 1;
+    dest->x = src->x;
+    dest->y = src->y;
+    dest->z = src->z;
+    mat_trans_single3_nodivw(dest->x, dest->y, dest->z, w);
+//    dest->x = //fipr(mtx->m[0][0],mtx->m[1][0],mtx->m[2][0],mtx->m[3][0],src->x,src->y,src->z,1);//
+  //  (mtx->m[0][0] * src->x) + (mtx->m[1][0] * src->y) + (mtx->m[2][0] * src->z) + mtx->m[3][0];
+    //dest->y = //fipr(mtx->m[0][1],mtx->m[1][1],mtx->m[2][1],mtx->m[3][1],src->x,src->y,src->z,1);//
+   // (mtx->m[0][1] * src->x) + (mtx->m[1][1] * src->y) + (mtx->m[2][1] * src->z) + mtx->m[3][1];
+    //dest->z = //fipr(mtx->m[0][2],mtx->m[1][2],mtx->m[2][2],mtx->m[3][2],src->x,src->y,src->z,1);//
+    //(mtx->m[0][2] * src->x) + (mtx->m[1][2] * src->y) + (mtx->m[2][2] * src->z) + mtx->m[3][2];
 }
 
 // Applies the linear part of the transformation matrix mtx to the vector src, ignoring any translation that mtx might
 // have. Puts the result in dest.
 void Matrix_MultVec3fNoTranslate(Matrix* mtx, Vec3f* src, Vec3f* dest) {
-    dest->x = (mtx->m[0][0] * src->x) + (mtx->m[1][0] * src->y) + (mtx->m[2][0] * src->z);
-    dest->y = (mtx->m[0][1] * src->x) + (mtx->m[1][1] * src->y) + (mtx->m[2][1] * src->z);
-    dest->z = (mtx->m[0][2] * src->x) + (mtx->m[1][2] * src->y) + (mtx->m[2][2] * src->z);
+shz_xmtrx_load_4x4_unaligned(mtx);
+    float w = 0;
+    dest->x = src->x;
+    dest->y = src->y;
+    dest->z = src->z;
+    mat_trans_single3_nodivw(dest->x, dest->y, dest->z, w);
+
+//    dest->x = (mtx->m[0][0] * src->x) + (mtx->m[1][0] * src->y) + (mtx->m[2][0] * src->z);
+  //  dest->y = (mtx->m[0][1] * src->x) + (mtx->m[1][1] * src->y) + (mtx->m[2][1] * src->z);
+    //dest->z = (mtx->m[0][2] * src->x) + (mtx->m[1][2] * src->y) + (mtx->m[2][2] * src->z);
 //    dest->x = fipr(mtx->m[0][0],mtx->m[1][0],mtx->m[2][0],0,src->x,src->y,src->z,0);//(mtx->m[0][0] * src->x) + (mtx->m[1][0] * src->y) + (mtx->m[2][0] * src->z) + mtx->m[3][0];
   //  dest->y = fipr(mtx->m[0][1],mtx->m[1][1],mtx->m[2][1],0,src->x,src->y,src->z,0);//(mtx->m[0][1] * src->x) + (mtx->m[1][1] * src->y) + (mtx->m[2][1] * src->z) + mtx->m[3][1];
     //dest->z = fipr(mtx->m[0][2],mtx->m[1][2],mtx->m[2][2],0,src->x,src->y,src->z,0);//(mtx->m[0][2] * src->x) + (mtx->m[1][2] * src->y) + (mtx->m[2][2] * src->z) + mtx->m[3][2];

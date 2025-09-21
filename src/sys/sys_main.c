@@ -136,6 +136,34 @@ __attribute__((noinline)) void stacktrace() {
 	}
 }
 
+extern u8 seg_used[15];
+void *virtual_to_segmented(const void *addr) {
+    unsigned int uip_addr = (unsigned int) addr;
+
+    uint32_t lowest_dist = 0xffffffff;
+    uint32_t lowest_index = 0xffffffff;
+
+    for (int i=15;i>0;i--) {
+        if (seg_used[i] == 0)
+            continue;
+        if ((uip_addr >= gSegments[i]) && (uip_addr <= (gSegments[i] + 0xffffff))) {
+            if ((uip_addr - gSegments[i]) < lowest_dist) {
+                lowest_dist = (uip_addr - gSegments[i]);
+                lowest_index = i;
+            }
+
+//            return (void*)((uip_addr - gSegments[i]) | (i << 24));
+        }
+    }
+
+    if (lowest_index != 0xffffffff) {
+        return (void*)((uip_addr - gSegments[lowest_index]) | ((lowest_index+1) << 24));
+    }
+
+    return uip_addr;
+}
+
+
 void* segmented_to_virtual(const void* addr) {
     unsigned int uip_addr = (unsigned int) addr;
 

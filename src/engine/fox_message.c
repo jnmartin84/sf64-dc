@@ -51,6 +51,7 @@ s32 Message_GetCharCount(u16* msgPtr) {
 }
 #include <stdio.h>
 extern void gfx_texture_cache_invalidate(void *addr);
+
 void Message_DisplayChar(Gfx** gfxPtr, u16 msgChar, s32 xpos, s32 ypos) {
 #if 0
     if(msgChar >= MSGCHAR_A && msgChar <= MSGCHAR_Z) {
@@ -64,7 +65,7 @@ void Message_DisplayChar(Gfx** gfxPtr, u16 msgChar, s32 xpos, s32 ypos) {
     }
 #endif
 
-    gfx_texture_cache_invalidate(gTextCharTextures[msgChar >> 2]);
+//    gfx_texture_cache_invalidate(gTextCharTextures[msgChar >> 2]);
     // the texture - gTextCharTextures[msgChar >> 2] 
     // color indexed
     // 16 wide

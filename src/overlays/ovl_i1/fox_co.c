@@ -1339,7 +1339,8 @@ void Corneria_Garuda_HandleDamage(Actor* this) {
                                this->vel.z, 0.1f, 10);
     }
 }
-
+uint32_t garuda_ult=0,garuda_lrt=63;
+extern Gfx ast_corneria_seg6_gfx_31ED0[];
 void Corneria_CoGaruda1_Update(CoGaruda1* this) {
     Vec3f frameTable[20];
     f32 sin;
@@ -1358,7 +1359,15 @@ void Corneria_CoGaruda1_Update(CoGaruda1* this) {
     switch (this->state) {
         case 0:
             this->fwork[1] += 20.0f;
-            Lib_Texture_Scroll(aCoGarudaTracksTex, 16, 16, 1);
+//            Lib_Texture_Scroll(aCoGarudaTracksTex, 16, 16, 1);
+            garuda_ult = (garuda_ult - 4) & 0x3F;
+            garuda_lrt = (garuda_ult + 63) & 0xFFF;
+            // gfx+59
+            Gfx *cmd = (Gfx *)segmented_to_virtual((void *)((Gfx*)(ast_corneria_seg6_gfx_31ED0 + 59)));
+            // upper left coords
+            cmd->words.w0 = (G_SETTILESIZE << 24)        | garuda_ult;
+            // lower right coords
+            cmd->words.w1 = (cmd->words.w1 & 0x0703F000) | garuda_lrt;
             this->animFrame = 0;
 
             this->fwork[0] += 1.0f;
@@ -1439,7 +1448,17 @@ void Corneria_CoGaruda2_Update(CoGaruda2* this) {
 
         case 1:
             this->fwork[0] = -10.0f;
-            Lib_Texture_Scroll(aCoGarudaTracksTex, 16, 16, 1);
+            {
+//            Lib_Texture_Scroll(aCoGarudaTracksTex, 16, 16, 1);
+            garuda_ult = (garuda_ult - 4) & 0x3F;
+            garuda_lrt = (garuda_ult + 63) & 0xFFF;
+            // gfx+59
+            Gfx *cmd = (Gfx *)segmented_to_virtual((void *)((Gfx*)(ast_corneria_seg6_gfx_31ED0 + 59)));
+            // upper left coords
+            cmd->words.w0 = (G_SETTILESIZE << 24)        | garuda_ult;
+            // lower right coords
+            cmd->words.w1 = (cmd->words.w1 & 0x0703F000) | garuda_lrt;
+            }
             if (this->timer_0BC == 0) {
                 this->state = 2;
                 this->iwork[2] = RAND_INT(10.0f) + 10;
@@ -1448,7 +1467,17 @@ void Corneria_CoGaruda2_Update(CoGaruda2* this) {
 
         case 2:
             this->fwork[0] = -10.0f;
-            Lib_Texture_Scroll(aCoGarudaTracksTex, 16, 16, 1);
+            {
+            //            Lib_Texture_Scroll(aCoGarudaTracksTex, 16, 16, 1);
+            garuda_ult = (garuda_ult - 4) & 0x3F;
+            garuda_lrt = (garuda_ult + 63) & 0xFFF;
+            // gfx+59
+            Gfx *cmd = (Gfx *)segmented_to_virtual((void *)((Gfx*)(ast_corneria_seg6_gfx_31ED0 + 59)));
+            // upper left coords
+            cmd->words.w0 = (G_SETTILESIZE << 24)        | garuda_ult;
+            // lower right coords
+            cmd->words.w1 = (cmd->words.w1 & 0x0703F000) | garuda_lrt;
+            }
             this->animFrame++;
 
             if (this->animFrame >= Animation_GetFrameCount(&D_CO_602AA04)) {
@@ -1507,7 +1536,15 @@ void Corneria_CoGaruda3_Update(CoGaruda3* this) {
         case 1:
             this->fwork[0] = 5.0f;
             this->fwork[1] += 5.0f;
-            Lib_Texture_Scroll(aCoGarudaTracksTex, 16, 16, 1);
+            //Lib_Texture_Scroll(aCoGarudaTracksTex, 16, 16, 1);
+            garuda_ult = (garuda_ult - 4) & 0x3F;
+            garuda_lrt = (garuda_ult + 63) & 0xFFF;
+            // gfx+59
+            Gfx *cmd = (Gfx *)segmented_to_virtual((void *)((Gfx*)(ast_corneria_seg6_gfx_31ED0 + 59)));
+            // upper left coords
+            cmd->words.w0 = (G_SETTILESIZE << 24)        | garuda_ult;
+            // lower right coords
+            cmd->words.w1 = (cmd->words.w1 & 0x0703F000) | garuda_lrt;
             this->animFrame++;
             if (this->animFrame >= Animation_GetFrameCount(&aCoGaruda3Anim)) {
                 this->animFrame = 0;

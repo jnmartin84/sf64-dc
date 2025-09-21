@@ -2057,7 +2057,7 @@ void Bolse_BoBaseCore_Draw(BoBaseCore* this) {
         Animation_DrawSkeleton(3, aBoBaseCoreSkel, this->vwork, NULL, NULL, this, gCalcMatrix);
     }
 }
-
+#if 0
 void Bolse_BoBaseShield_Update(BoBaseShield* this) {
     D_i4_801A0530 = 0;
 
@@ -2065,7 +2065,26 @@ void Bolse_BoBaseShield_Update(BoBaseShield* this) {
 
     Lib_Texture_Scroll(aBoBaseShieldTex, 16, 16, 0);
     Lib_Texture_Scroll(aBoBaseShieldTex, 16, 16, 0);
+#else
+uint32_t bolse_ult=0,bolse_lrt=63; //
+extern Gfx aBoBaseShieldDL[];
+void Bolse_BoBaseShield_Update(BoBaseShield* this) {
+    D_i4_801A0530 = 0;
 
+    Math_SmoothStepToF(&this->fwork[0], D_BO_801A03DC * 9.0f + 10.0f, 1.0f, 10.0f, 0.0f);
+
+    //Lib_Texture_Scroll(aBoBaseShieldTex, 16, 16, 0);
+    bolse_ult = (bolse_ult + 4) & 0x3F;
+    //Lib_Texture_Scroll(aBoBaseShieldTex, 16, 16, 0);
+    bolse_ult = (bolse_ult + 4) & 0x3F;
+    bolse_lrt = (bolse_ult + 63) & 0xFFF;
+    // pointer to the SetTileSize cmd
+    Gfx *cmd = (Gfx *)segmented_to_virtual((void *)((Gfx*)(aBoBaseShieldDL + 2)));
+    // upper left coords
+    cmd->words.w0 = (G_SETTILESIZE << 24)        | bolse_ult;
+    // lower right coords
+    cmd->words.w1 = (cmd->words.w1 & 0x0703F000) | bolse_lrt;
+#endif
     switch (this->state) {
         case 2:
             break;

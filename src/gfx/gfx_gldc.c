@@ -300,13 +300,13 @@ static void gfx_opengl_apply_shader(struct ShaderProgram* prg) {
         glDisable(GL_FOG);
     }
 
-//    if (prg->shader_id & SHADER_OPT_TEXTURE_EDGE) {
-  //      glEnable(GL_ALPHA_TEST);
-    //    glAlphaFunc(GL_GREATER, 0.125); //1.0f/8.0f);
-      //  glDisable(GL_BLEND);
-    //} else {
+    if (prg->shader_id & SHADER_OPT_TEXTURE_EDGE) {
+        glEnable(GL_ALPHA_TEST);
+        glAlphaFunc(GL_GREATER, 0.125); //1.0f/8.0f);
+        glDisable(GL_BLEND);
+    } else {
         glDisable(GL_ALPHA_TEST);
-    //}
+    }
 
     // configure texenv
     GLenum mode;
@@ -415,18 +415,19 @@ static void gfx_opengl_shader_get_info(struct ShaderProgram* prg, uint8_t* num_i
 #endif
 }
 
-GLuint newest_texture;
+GLuint newest_texture = 0;
 
 
 static void gfx_clear_all_textures(void) {
     GLuint index = 0;
     if (newest_texture != 0) {
-        for (index = 1; index <= newest_texture; index++)
-            glDeleteTextures(0, &index);
+        for (index = 2; index <= newest_texture; index++)
+            glDeleteTextures(1, &index);
 
         tmu_state[0].tex = 0;
         tmu_state[1].tex = 0;
     }
+    newest_texture = 0;
 }
 
 
@@ -444,6 +445,7 @@ static uint32_t gfx_opengl_new_texture(void) {
     GLuint ret;
     glGenTextures(1, &ret);
     newest_texture = ret;
+    printf("new tex %d\n", ret);
     return (uint32_t) ret;
 }
 
@@ -462,7 +464,7 @@ static void gfx_opengl_select_texture(int tile, uint32_t texture_id) {
 /* Used for rescaling textures into pow2 dims */
 /* static */ uint8_t __attribute__((aligned(32))) scaled[64 * 64 * 8 * 2];
 
-/* static */ uint16_t __attribute__((aligned(32))) scaled2[512*256];//64 * 64 * 8 * 2];
+/* static */ uint16_t __attribute__((aligned(32))) scaled2[64*64];//64 * 64 * 8 * 2];
 
 
 #define LET_GLDC_TWIDDLE 0
@@ -1174,6 +1176,7 @@ extern void reset_texcache(void);
 extern float screen_2d_z;
 
 void nuke_everything(void) {
+    printf("NUKE IT ALL\n");
     gfx_clear_all_textures();
     reset_texcache();
 }
@@ -1219,7 +1222,7 @@ shaderidx = 0;
     glPopMatrix();
 #endif
 //ext_gfx_dp_fill_rectangle(0, 0, 320<<2,240<<2);
-    newest_texture = 0;
+//    newest_texture = 0;
 }
 
 static void gfx_opengl_end_frame(void) {

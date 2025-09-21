@@ -944,12 +944,12 @@ void Ending_80191710(u32 arg0, AssetInfo* asset) {
 #endif
         //gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 140);
         gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK);
-    } else if (asset->unk_00 == aEndBackdrop2DL) {
+    } /* else if (asset->unk_00 == aEndBackdrop2DL) {
         Matrix_Translate(gGfxMatrix, 0,
                      0,
                      -1000, MTXF_APPLY);
     Matrix_SetGfxMtx(&gMasterDisp);
-    }
+    } */
     gSPDisplayList(gMasterDisp++, asset->unk_00);
 }
 
