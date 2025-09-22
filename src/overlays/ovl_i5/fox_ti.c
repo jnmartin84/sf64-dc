@@ -796,6 +796,7 @@ void Titania_TiRasco_Update(TiRasco* this) {
 
         case 1:
             Matrix_RotateY(gCalcMatrix, this->obj.rot.y * M_DTOR, MTXF_NEW);
+            Matrix_LoadOnly(gCalcMatrix);
             if ((this->animFrame >= 26) && (this->animFrame <= 53) && (sp3C != NULL)) {
                 if (this->animFrame == 26) {
                     sp3C->work_046 = 2;
@@ -806,7 +807,7 @@ void Titania_TiRasco_Update(TiRasco* this) {
                     src.x = 0.0f;
                     src.y = this->fwork[1];
                     src.z = 20.0f;
-                    Matrix_MultVec3fNoTranslate(gCalcMatrix, &src, &dest);
+                    Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */ &src, &dest);
                     sp3C->vel.x = dest.x;
                     sp3C->vel.y = dest.y;
                     sp3C->vel.z = dest.z;
@@ -817,7 +818,7 @@ void Titania_TiRasco_Update(TiRasco* this) {
                 src.x = this->fwork[3];
                 src.y = this->fwork[4] + 50.0f;
                 src.z = this->fwork[5];
-                Matrix_MultVec3f(gCalcMatrix, &src, &dest);
+                Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &src, &dest);
                 sp3C->obj.pos.x = this->obj.pos.x + dest.x;
                 sp3C->obj.pos.y = this->obj.pos.y + dest.y;
                 sp3C->obj.pos.z = this->obj.pos.z + dest.z;
@@ -834,7 +835,7 @@ void Titania_TiRasco_Update(TiRasco* this) {
                     src.x = 0.0f;
                     src.y = this->fwork[1];
                     src.z = 20.0f;
-                    Matrix_MultVec3fNoTranslate(gCalcMatrix, &src, &dest);
+                    Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */ &src, &dest);
                     sp38->vel.x = dest.x;
                     sp38->vel.y = dest.y;
                     sp38->vel.z = dest.z;
@@ -845,7 +846,7 @@ void Titania_TiRasco_Update(TiRasco* this) {
                 src.x = this->fwork[6];
                 src.y = this->fwork[7] + 50.0f;
                 src.z = this->fwork[8];
-                Matrix_MultVec3f(gCalcMatrix, &src, &dest);
+                Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &src, &dest);
                 sp38->obj.pos.x = this->obj.pos.x + dest.x;
                 sp38->obj.pos.y = this->obj.pos.y + dest.y;
                 sp38->obj.pos.z = this->obj.pos.z + dest.z;
@@ -884,7 +885,7 @@ void Titania_TiRasco_Dying(TiRasco* this) {
     Vec3f sp70;
 
     Matrix_RotateY(gCalcMatrix, this->obj.rot.y * M_DTOR, MTXF_NEW);
-
+Matrix_LoadOnly(gCalcMatrix);
     var_s1 = SEGMENTED_TO_VIRTUAL(D_i5_801BDA30);
 
     for (i = 0; i < 10; i++, var_s1++) {
@@ -893,7 +894,7 @@ void Titania_TiRasco_Dying(TiRasco* this) {
             actorPtr->obj.status = OBJ_ACTIVE;
             actorPtr->state = 46;
             actorPtr->work_048 = i;
-            Matrix_MultVec3f(gCalcMatrix, &var_s1->pos, &sp70);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &var_s1->pos, &sp70);
             actorPtr->obj.pos.x = this->obj.pos.x + sp70.x;
             actorPtr->obj.pos.y = this->obj.pos.y + sp70.y;
             actorPtr->obj.pos.z = this->obj.pos.z + sp70.z;
@@ -1222,7 +1223,7 @@ void Titania_8018C3D8(s32 limbIndex, Vec3f* rot, void* thisx) {
     if (this->iwork[8] != 0) {
         var_v0_2[0] = 25.0f;
         var_v0_2++;
-
+        Matrix_LoadOnly(gCalcMatrix);
         for (i = 0; i < 9U; i++) {
             var_t0 = D_i5_801B74F0[i][2];
             if (limbIndex == D_i5_801B74F0[i][0]) {
@@ -1232,7 +1233,7 @@ void Titania_8018C3D8(s32 limbIndex, Vec3f* rot, void* thisx) {
                     sp54.x = var_s0_2[0];
                     sp54.y = var_s0_2[1];
                     sp54.z = var_s0_2[2];
-                    Matrix_MultVec3f(gCalcMatrix, &sp54, &sp48);
+                    Matrix_MultVec3f_NoLoad(/* gCalcMatrix,  */&sp54, &sp48);
                     var_v0_2[0] = sp48.z;
                     var_v0_2[1] = var_s0_2[3];
                     var_v0_2[2] = sp48.y;
@@ -1400,19 +1401,20 @@ void Titania_TiDesertCrawler_Update(TiDesertCrawler* this) {
             Matrix_RotateX(gCalcMatrix, this->obj.rot.x * M_DTOR, MTXF_NEW);
             Matrix_RotateY(gCalcMatrix, this->obj.rot.y * M_DTOR, MTXF_APPLY);
             Matrix_RotateZ(gCalcMatrix, this->obj.rot.z * M_DTOR, MTXF_APPLY);
-            Matrix_MultVec3f(gCalcMatrix, (Vec3f*) &this->fwork[12], &sp8C);
+            Matrix_LoadOnly(gCalcMatrix);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ (Vec3f*) &this->fwork[12], &sp8C);
             this->fwork[12] = sp8C.x;
             this->fwork[13] = sp8C.y;
             this->fwork[14] = sp8C.z;
-            Matrix_MultVec3f(gCalcMatrix, (Vec3f*) &this->fwork[9], &sp8C);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ (Vec3f*) &this->fwork[9], &sp8C);
             this->fwork[9] = sp8C.x;
             this->fwork[10] = sp8C.y;
             this->fwork[11] = sp8C.z;
-            Matrix_MultVec3f(gCalcMatrix, (Vec3f*) &this->fwork[3], &sp8C);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix,  */(Vec3f*) &this->fwork[3], &sp8C);
             this->fwork[3] = sp8C.x;
             this->fwork[4] = sp8C.y;
             this->fwork[5] = sp8C.z;
-            Matrix_MultVec3f(gCalcMatrix, (Vec3f*) &this->fwork[6], &sp8C);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ (Vec3f*) &this->fwork[6], &sp8C);
             this->fwork[6] = sp8C.x;
             this->fwork[7] = sp8C.y;
             this->fwork[8] = sp8C.z;
@@ -1556,17 +1558,17 @@ void Titania_TiDesertCrawler_Update(TiDesertCrawler* this) {
                 Matrix_RotateY(gCalcMatrix, this->obj.rot.y * M_DTOR, MTXF_NEW);
                 Matrix_RotateX(gCalcMatrix, this->obj.rot.x * M_DTOR, MTXF_APPLY);
                 Matrix_RotateZ(gCalcMatrix, this->obj.rot.z * M_DTOR, MTXF_APPLY);
-
-                Matrix_MultVec3f(gCalcMatrix, (Vec3f*) &this->fwork[12], &sp158);
+                Matrix_LoadOnly(gCalcMatrix);
+                Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ (Vec3f*) &this->fwork[12], &sp158);
                 Effect_Effect359_Spawn(this->obj.pos.x + sp158.x, this->obj.pos.y + sp158.y, this->obj.pos.z + sp158.z,
                                        20.0f, 255, 8, 0);
-                Matrix_MultVec3f(gCalcMatrix, (Vec3f*) &this->fwork[9], &sp158);
+                Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */(Vec3f*) &this->fwork[9], &sp158);
                 Effect_Effect359_Spawn(this->obj.pos.x + sp158.x, this->obj.pos.y + sp158.y, this->obj.pos.z + sp158.z,
                                        20.0f, 255, 8, 0);
-                Matrix_MultVec3f(gCalcMatrix, (Vec3f*) &this->fwork[3], &sp158);
+                Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */(Vec3f*) &this->fwork[3], &sp158);
                 Effect_Effect359_Spawn(this->obj.pos.x + sp158.x, this->obj.pos.y + sp158.y, this->obj.pos.z + sp158.z,
                                        20.0f, 255, 8, 0);
-                Matrix_MultVec3f(gCalcMatrix, (Vec3f*) &this->fwork[6], &sp158);
+                Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ (Vec3f*) &this->fwork[6], &sp158);
                 Effect_Effect359_Spawn(this->obj.pos.x + sp158.x, this->obj.pos.y + sp158.y, this->obj.pos.z + sp158.z,
                                        20.0f, 255, 8, 0);
                 AUDIO_PLAY_SFX(NA_SE_OB_METAL_BOUND_M, this->sfxSource, 4);
@@ -1576,16 +1578,17 @@ void Titania_TiDesertCrawler_Update(TiDesertCrawler* this) {
                 Matrix_RotateY(gCalcMatrix, this->obj.rot.y * M_DTOR, MTXF_NEW);
                 Matrix_RotateX(gCalcMatrix, this->obj.rot.x * M_DTOR, MTXF_APPLY);
                 Matrix_RotateZ(gCalcMatrix, this->obj.rot.z * M_DTOR, MTXF_APPLY);
-                Matrix_MultVec3f(gCalcMatrix, (Vec3f*) &this->fwork[12], &sp158);
+                Matrix_LoadOnly(gCalcMatrix);
+                Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ (Vec3f*) &this->fwork[12], &sp158);
                 Effect_FireSmoke1_Spawn3(this->obj.pos.x + sp158.x, this->obj.pos.y + sp158.y,
                                          this->obj.pos.z + sp158.z, 1.5f);
-                Matrix_MultVec3f(gCalcMatrix, (Vec3f*) &this->fwork[9], &sp158);
+                Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ (Vec3f*) &this->fwork[9], &sp158);
                 Effect_FireSmoke1_Spawn3(this->obj.pos.x + sp158.x, this->obj.pos.y + sp158.y,
                                          this->obj.pos.z + sp158.z, 1.5f);
-                Matrix_MultVec3f(gCalcMatrix, (Vec3f*) &this->fwork[3], &sp158);
+                Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ (Vec3f*) &this->fwork[3], &sp158);
                 Effect_FireSmoke1_Spawn3(this->obj.pos.x + sp158.x, this->obj.pos.y + sp158.y,
                                          this->obj.pos.z + sp158.z, 1.5f);
-                Matrix_MultVec3f(gCalcMatrix, (Vec3f*) &this->fwork[6], &sp158);
+                Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */(Vec3f*) &this->fwork[6], &sp158);
                 Effect_FireSmoke1_Spawn3(this->obj.pos.x + sp158.x, this->obj.pos.y + sp158.y,
                                          this->obj.pos.z + sp158.z, 1.5f);
             }
@@ -1614,6 +1617,7 @@ void Titania_TiDesertCrawler_Update(TiDesertCrawler* this) {
                     Matrix_RotateY(gCalcMatrix, this->obj.rot.y * M_DTOR, MTXF_NEW);
                     Matrix_RotateX(gCalcMatrix, this->obj.rot.x * M_DTOR, MTXF_APPLY);
                     Matrix_RotateZ(gCalcMatrix, this->obj.rot.z * M_DTOR, MTXF_APPLY);
+                    Matrix_LoadOnly(gCalcMatrix);
                     Effect_FireSmoke1_Spawn3(this->obj.pos.x, this->fwork[27] + this->obj.pos.y, this->obj.pos.z,
                                              15.0f);
                     var_s1 = D_i5_801BD738[this->iwork[0]];
@@ -1622,7 +1626,7 @@ void Titania_TiDesertCrawler_Update(TiDesertCrawler* this) {
                         if ((actorPtr != NULL) && D_i5_801B7630[i][1] == 1) {
                             actorPtr->state = 47;
                             actorPtr->work_048 = i;
-                            Matrix_MultVec3f(gCalcMatrix, &var_s1->unk_00.pos, &sp158);
+                            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */&var_s1->unk_00.pos, &sp158);
                             actorPtr->obj.pos.x = this->obj.pos.x + sp158.x;
                             actorPtr->obj.pos.y = this->obj.pos.y + sp158.y;
                             actorPtr->obj.pos.z = this->obj.pos.z + sp158.z;
@@ -1661,7 +1665,7 @@ void Titania_TiDesertCrawler_Update(TiDesertCrawler* this) {
                             if (actorPtr != NULL) {
                                 actorPtr->state = 47;
                                 actorPtr->work_048 = 9;
-                                Matrix_MultVec3f(gCalcMatrix, &var_s1->unk_00.pos, &sp158);
+                                Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */&var_s1->unk_00.pos, &sp158);
                                 actorPtr->obj.pos.x = this->obj.pos.x + sp158.x;
                                 actorPtr->obj.pos.y = this->obj.pos.y + sp158.y;
                                 actorPtr->obj.pos.z = this->obj.pos.z + sp158.z;
@@ -1896,12 +1900,12 @@ void Titania_TiDelphorHead_Update(TiDelphorHead* this) {
     if ((this->state == 0) || (this->state == 1)) {
         Matrix_RotateY(gCalcMatrix, this->obj.rot.y * M_DTOR, MTXF_NEW);
         Matrix_RotateX(gCalcMatrix, this->obj.rot.x * M_DTOR, MTXF_APPLY);
-
+        Matrix_LoadOnly(gCalcMatrix);
         sp90.x = 0.0f;
         sp90.y = 39.0f;
         sp90.z = 115.0f;
 
-        Matrix_MultVec3f(gCalcMatrix, &sp90, &sp84);
+        Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &sp90, &sp84);
 
         this->fwork[0] = sp84.x;
         this->fwork[1] = sp84.y;
@@ -1911,7 +1915,7 @@ void Titania_TiDelphorHead_Update(TiDelphorHead* this) {
         sp90.y = 39.0f;
         sp90.z = 3115.0f;
 
-        Matrix_MultVec3f(gCalcMatrix, &sp90, &sp84);
+        Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &sp90, &sp84);
 
         this->fwork[3] = sp84.x;
         this->fwork[4] = sp84.y;
@@ -2551,7 +2555,7 @@ void Titania_8019002C(s32 limbIndex, Vec3f* rot, void* thisx) {
     s32 temp_s3;
     Vec3f sp64;
     s32 temp;
-
+    Matrix_LoadOnly(gCalcMatrix);
     for (i = 0; i < 4; i++) {
         var_s6 = D_i5_801B8C24[i];
         temp_s3 = var_s6[2];
@@ -2563,7 +2567,7 @@ void Titania_8019002C(s32 limbIndex, Vec3f* rot, void* thisx) {
                 sp80.x = D_i5_801B8BBC[temp + j][0];
                 sp80.y = D_i5_801B8BBC[temp + j][1];
                 sp80.z = D_i5_801B8BBC[temp + j][2];
-                Matrix_MultVec3f(gCalcMatrix, &sp80, &sp74);
+                Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &sp80, &sp74);
                 var_s0[0] = sp74.z;
                 var_s0[1] = D_i5_801B8BBC[temp + j][3];
                 var_s0[2] = sp74.y;
@@ -2692,7 +2696,7 @@ void Titania_8019081C(s32 limbIndex, Vec3f* rot, void* thisx) {
     Vec3f sp5C;
     Vec3f sp50;
     s32 temp;
-
+    Matrix_LoadOnly(gCalcMatrix);
     for (i = 0; i < 2; i++) {
         temp_s3 = D_i5_801B8CD4[i][2];
         if (limbIndex == D_i5_801B8CD4[i][0]) {
@@ -2703,7 +2707,7 @@ void Titania_8019081C(s32 limbIndex, Vec3f* rot, void* thisx) {
                 sp5C.y = D_i5_801B8C64[temp + j][1];
                 sp5C.z = D_i5_801B8C64[temp + j][2];
 
-                Matrix_MultVec3f(gCalcMatrix, &sp5C, &sp50);
+                Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &sp5C, &sp50);
 
                 var_s0[0] = sp50.z;
                 var_s0[1] = D_i5_801B8C64[temp + j][3];
@@ -2721,10 +2725,10 @@ void Titania_8019081C(s32 limbIndex, Vec3f* rot, void* thisx) {
         if (1) {} */
         switch ((s32) D_i5_801BBEF0[25]) {
             case 0:
-                Matrix_MultVec3f(gCalcMatrix, &D_i5_801B8D00, (Vec3f*) &D_i5_801BBEF4[68]);
+                Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &D_i5_801B8D00, (Vec3f*) &D_i5_801BBEF4[68]);
                 break;
             case 1:
-                Matrix_MultVec3f(gCalcMatrix, &D_i5_801B8D00, (Vec3f*) &D_i5_801BBEF4[71]);
+                Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &D_i5_801B8D00, (Vec3f*) &D_i5_801BBEF4[71]);
                 break;
         }
     }
@@ -3091,7 +3095,7 @@ void Titania_80191AE8(s32 limbIndex, Vec3f* rot, void* thisx) {
 
     var_s0_2 = aTiGorasHitbox;
     *(var_s0_2++) = 86.0f;
-
+    Matrix_LoadOnly(gCalcMatrix);
     for (i = 0; i < ARRAY_COUNTU(D_i5_801B7FD0); i++) {
         temp_s4 = D_i5_801B7FD0[i][2];
         if (limbIndex == D_i5_801B7FD0[i][0]) {
@@ -3106,7 +3110,7 @@ void Titania_80191AE8(s32 limbIndex, Vec3f* rot, void* thisx) {
                     spB4.x = var_s1[0];
                     spB4.y = var_s1[1];
                     spB4.z = var_s1[2];
-                    Matrix_MultVec3f(gCalcMatrix, &spB4, &spA8);
+                    Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &spB4, &spA8);
                     *var_s0_2++ = spA8.z;
                     *var_s0_2++ = var_s1[3];
                     *var_s0_2++ = spA8.y;
@@ -3133,13 +3137,13 @@ void Titania_80191AE8(s32 limbIndex, Vec3f* rot, void* thisx) {
 
     switch (limbIndex) {
         case 3:
-            Matrix_MultVec3f(gCalcMatrix, &D_i5_801B8D30, (Vec3f*) &this->fwork[17]);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &D_i5_801B8D30, (Vec3f*) &this->fwork[17]);
             break;
         case 10:
-            Matrix_MultVec3f(gCalcMatrix, &D_i5_801B8D00, (Vec3f*) &D_i5_801BBEF4[68]);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &D_i5_801B8D00, (Vec3f*) &D_i5_801BBEF4[68]);
             break;
         case 16:
-            Matrix_MultVec3f(gCalcMatrix, &D_i5_801B8D00, (Vec3f*) &D_i5_801BBEF4[71]);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &D_i5_801B8D00, (Vec3f*) &D_i5_801BBEF4[71]);
             break;
         case 71:
             Matrix_GetYPRAngles(gCalcMatrix, (Vec3f*) &this->fwork[20]);
@@ -3181,10 +3185,10 @@ void Titania_80191AE8(s32 limbIndex, Vec3f* rot, void* thisx) {
             break;
 
         case 34:
-            Matrix_MultVec3f(gCalcMatrix, &D_i5_801B8D24, (Vec3f*) &this->fwork[5]);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &D_i5_801B8D24, (Vec3f*) &this->fwork[5]);
             break;
         case 37:
-            Matrix_MultVec3f(gCalcMatrix, &D_i5_801B8D24, (Vec3f*) &this->fwork[8]);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &D_i5_801B8D24, (Vec3f*) &this->fwork[8]);
             break;
         default:
             break;

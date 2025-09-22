@@ -32,7 +32,7 @@ void Lib_Texture_Scroll(u16* texture, s32 width, s32 height, u8 mode) {
     u16 tempPxl;
     s32 u;
     s32 v;
-    gfx_texture_cache_invalidate(pixel);
+//    gfx_texture_cache_invalidate(pixel);
     switch (mode) {
         case 0:
             for (u = 0; u < width; u++) {
@@ -270,8 +270,11 @@ void Animation_DrawSkeleton(s32 mode, Limb** skeletonSegment, Vec3f* jointTable,
 
 //#include <stdio.h>
 //#include <stdlib.h>
+// 360/65536
+#define FRAMEDATA_SCALE 0.00549316f
 extern Animation D_TI_A0002BC;
 s16 Animation_GetFrameData(Animation* animationSegment, s32 frame, Vec3f* frameTable) {
+
     Animation* animation = SEGMENTED_TO_VIRTUAL(animationSegment);
     u16 limbCount = animation->limbCount;
     JointKey* key = SEGMENTED_TO_VIRTUAL(animation->jointKey);
@@ -289,11 +292,11 @@ s16 Animation_GetFrameData(Animation* animationSegment, s32 frame, Vec3f* frameT
     frameTable++, key++;
     for (i = 1; i <= limbCount; i++, key++, frameTable++) {
         temp = (frame < key->xLen) ? frameData[key->x + frame] : frameData[key->x];
-        frameTable->x = temp * 360.0f / 65536.0f;
+        frameTable->x = temp * FRAMEDATA_SCALE;
         temp = (frame < key->yLen) ? frameData[key->y + frame] : frameData[key->y];
-        frameTable->y = temp * 360.0f / 65536.0f;
+        frameTable->y = temp * FRAMEDATA_SCALE;
         temp = (frame < key->zLen) ? frameData[key->z + frame] : frameData[key->z];
-        frameTable->z = temp * 360.0f / 65536.0f;
+        frameTable->z = temp * FRAMEDATA_SCALE;
     }
     return limbCount + 1;
 }
@@ -423,8 +426,9 @@ void Animation_GetSkeletonBoundingBox(Limb** skeletonSegment, Animation* animati
 }
 
 f32 Math_SmoothStepToF(f32* value, f32 target, f32 scale, f32 maxStep, f32 minStep) {
-    f32 step = target - *value;
-
+    f32 val = *value;
+    f32 step = target - val;
+    
     if (step != 0.0f) {
         step *= scale;
         if ((step >= minStep) || (-minStep >= step)) {
@@ -433,26 +437,29 @@ f32 Math_SmoothStepToF(f32* value, f32 target, f32 scale, f32 maxStep, f32 minSt
             } else if (step < -maxStep) {
                 step = -maxStep;
             }
-            *value += step;
+            val += step;
         } else if (step < minStep) { // bug? should check sign, not size.
             step = minStep;
-            *value += step;
-            if (*value > target) {
-                *value = target;
+            val += step;
+            if (val > target) {
+                val = target;
             }
         } else if (step > -minStep) {
             step = -minStep;
-            *value += step;
-            if (*value < target) {
-                *value = target;
+            val += step;
+            if (val < target) {
+                val = target;
             }
         }
+        *value = val;
     }
+    *value = val;
     return step;
 }
 
 f32 Math_SmoothStepToAngle(f32* angle, f32 target, f32 scale, f32 maxStep, f32 minStep) {
-    f32 var_fv1 = target - *angle;
+    f32 ang = *angle;
+    f32 var_fv1 = target - ang;
 
     if (var_fv1 != 0.0f) {
         if (var_fv1 > 180.0f) {
@@ -467,26 +474,27 @@ f32 Math_SmoothStepToAngle(f32* angle, f32 target, f32 scale, f32 maxStep, f32 m
             } else if (var_fv1 < -maxStep) {
                 var_fv1 = -maxStep;
             }
-            *angle += var_fv1;
+            ang += var_fv1;
         } else if (var_fv1 < minStep) { // bug? should check sign, not size.
             var_fv1 = minStep;
-            *angle += minStep;
-            if (*angle > target) {
-                *angle = target;
+            ang += minStep;
+            if (ang > target) {
+                ang = target;
             }
         } else if (var_fv1 > -minStep) {
             var_fv1 = -minStep;
-            *angle += var_fv1;
-            if (*angle < target) {
-                *angle = target;
+            ang += var_fv1;
+            if (ang < target) {
+                ang = target;
             }
         }
     }
-    if (*angle >= 360.0f) {
-        *angle -= 360.0f;
-    } else if (*angle < 0.0f) {
-        *angle += 360.0f;
+    if (ang >= 360.0f) {
+        ang -= 360.0f;
+    } else if (ang < 0.0f) {
+        ang += 360.0f;
     }
+    *angle = ang;
     return var_fv1;
 }
 
@@ -522,6 +530,7 @@ void Math_SmoothStepToVec3fArray(Vec3f* src, Vec3f* dst, s32 mode, s32 count, f3
             break;
     }
 }
+#include "sh4zam.h"
 
 s32 Math_PursueVec3f(Vec3f* pos, Vec3f* target, Vec3f* rot, f32 stepSize, f32 scaleTurn, f32 maxTurn, f32 dist) {
     Vec3f diff;
@@ -536,7 +545,7 @@ s32 Math_PursueVec3f(Vec3f* pos, Vec3f* target, Vec3f* rot, f32 stepSize, f32 sc
     diff.z = target->z - pos->z;
 
     targetRotY = Math_RadToDeg(Math_Atan2F(diff.x, diff.z));
-    targetRotX = Math_RadToDeg(-Math_Atan2F(diff.y, sqrtf(SQ(diff.x) + SQ(diff.z))));
+    targetRotX = Math_RadToDeg(-Math_Atan2F(diff.y, shz_sqrtf_fsrra(SQ(diff.x) + SQ(diff.z))));
     Math_SmoothStepToAngle(&rot->y, targetRotY, scaleTurn, maxTurn, 0.0f);
     Math_SmoothStepToAngle(&rot->x, targetRotX, scaleTurn, maxTurn, 0.0f);
     Matrix_RotateY(&worldTransform, rot->y * M_DTOR, MTXF_NEW);
@@ -722,34 +731,20 @@ void Lib_TextureRect_RGBA32(Gfx** gfxPtr, u32* texture, u32 width, u32 height, f
         _g->words.w0 = 0x424C4E44; \
         _g->words.w1 = 0x46554380;                                           \
     }
+
 volatile int doing_glare = 0;
+
 void Graphics_FillRectangle(Gfx** gfxPtr, s32 ulx, s32 uly, s32 lrx, s32 lry, u8 r, u8 g, u8 b, u8 a) {
-//return;
     if (a != 0) {
-//       if(doing_glare)
-  //      gSPFillrectBlend((*gfxPtr)++);
         gDPPipeSync((*gfxPtr)++);
         gDPSetPrimColor((*gfxPtr)++, 0x00, 0x00, r, g, b, a);
-//        gDPSetColorDither((*gfxPtr)++, G_CD_NOISE);
-  //      gDPSetAlphaDither((*gfxPtr)++, G_AD_NOISE);
-    //    gDPSetCycleType((*gfxPtr)++, G_CYC_1CYCLE);
-//        gDPSetCombineMode((*gfxPtr)++, G_CC_PRIMITIVE, G_CC_PRIMITIVE);
-    //   if(doing_glare == 1) {
-      //      gDPSetEnvColor((*gfxPtr)++, 0,0,0, 255);
-        //} else {
-                  //}
-   
-                  gDPSetRenderMode((*gfxPtr)++,G_RM_AA_ZB_XLU_SURF, G_RM_AA_ZB_XLU_SURF2);
-   if (!doing_glare) {
-                  gDPSetEnvColor((*gfxPtr)++, 255-r, 255-g, 255-b, 255);
-
-        gDPSetCombineLERP((*gfxPtr)++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+        gDPSetRenderMode((*gfxPtr)++,G_RM_AA_ZB_XLU_SURF, G_RM_AA_ZB_XLU_SURF2);
+        if (!doing_glare) {
+            gDPSetEnvColor((*gfxPtr)++, 255-r, 255-g, 255-b, 255);
+            gDPSetCombineLERP((*gfxPtr)++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
                       TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-   }
-                      //        gDPSetRenderMode((*gfxPtr)++, G_RM_CLD_SURF, G_RM_CLD_SURF2);
+        }
         gDPFillRectangle((*gfxPtr)++, ulx, uly, lrx, lry);
-//        if(doing_glare)
-  //      gSPFillrectBlend((*gfxPtr)++);
     }
 }
 
@@ -770,49 +765,6 @@ f32 Math_RadToDeg(f32 rAngle) {
         rAngle += 360.0f;
     }
     return rAngle;
-}
-
-u16* Graphics_SetupTextureRender(Gfx** gfxPtr, u8 width, u8 height) {
-    u16* texture;
-    u16 norm;
-
-    width += 0xF;
-    width &= 0x70;
-    texture = gTextureRender;
-    gTextureRender = gTextureRender + width * height;
-    gDPPipeSync((*gfxPtr)++);
-    gDPSetCycleType((*gfxPtr)++, G_CYC_FILL);
-    gDPSetRenderMode((*gfxPtr)++, G_RM_NOOP, G_RM_NOOP2);
-    gViewport->vp.vscale[0] = width * 2;
-    gViewport->vp.vscale[1] = height * 2;
-    gViewport->vp.vscale[2] = G_MAXZ / 2;
-    gViewport->vp.vscale[3] = 0;
-    gViewport->vp.vtrans[0] = width * 2;
-    gViewport->vp.vtrans[1] = height * 2;
-    gViewport->vp.vtrans[2] = G_MAXZ / 2;
-    gViewport->vp.vtrans[3] = 0;
-    gSPViewport((*gfxPtr)++, gViewport++);
-    gDPSetScissor((*gfxPtr)++, G_SC_NON_INTERLACE, 0, 0, width, height);
-    gDPSetDepthImage((*gfxPtr)++, &gZBuffer);
-    gDPSetColorImage((*gfxPtr)++, G_IM_FMT_RGBA, G_IM_SIZ_16b, width, &gZBuffer);
-    gDPSetFillColor((*gfxPtr)++, FILL_COLOR(GPACK_ZDZ(G_MAXFBZ, 0)));
-    gDPFillRectangle((*gfxPtr)++, 0, 0, width - 1, height - 1);
-    gDPPipeSync((*gfxPtr)++);
-    gDPSetDepthSource((*gfxPtr)++, G_ZS_PIXEL);
-    gDPSetColorImage((*gfxPtr)++, G_IM_FMT_RGBA, G_IM_SIZ_16b, width, texture);
-    gDPSetColorDither((*gfxPtr)++, G_CD_DISABLE);
-    gDPSetFillColor((*gfxPtr)++, 0);
-    gDPSetFillColor((*gfxPtr)++, FILL_COLOR(gBgColor | 1));
-    gDPFillRectangle((*gfxPtr)++, 0, 0, width - 1, height - 1);
-    gDPPipeSync((*gfxPtr)++);
-    guPerspective(gGfxMtx, &norm, gFovY, (f32) width / height, 10.0f, 12800.0f, 1.0f);
-//    gSPPerspNormalize((*gfxPtr)++, norm);
-    gSPMatrix((*gfxPtr)++, gGfxMtx++, G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_PROJECTION);
-    guLookAt(gGfxMtx, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, -12800.0f, 0.0f, 1.0f, 0.0f);
-    gSPMatrix((*gfxPtr)++, gGfxMtx++, G_MTX_NOPUSH | G_MTX_MUL | G_MTX_PROJECTION);
-    Matrix_Copy(gGfxMatrix, &gIdentityMatrix);
-
-    return texture;
 }
 
 void Graphics_DisplayHUDNumber(s32 xPos, s32 yPos, s32 number) {

@@ -10,6 +10,7 @@
 #include "assets/ast_landmaster.h"
 #include "assets/ast_enmy_planet.h"
 // #include "prevent_bss_reordering2.h"
+#include "sh4zam.h"
 
 typedef struct {
     /* 0x00 */ f32 unk_00;
@@ -394,6 +395,8 @@ void Macbeth_InitLevel(void) {
         D_i5_801BE368[i] = 0;
     }
 }
+void Matrix_LoadOnly(Matrix* mtx);
+void Matrix_MultVec3f_NoLoad(Vec3f* src, Vec3f* dest);
 
 /* 32 x 32 pixels texture rotation */
 void Macbeth_Texture_RotateZ(u8* destTex, u8* srcTex, f32 angle) {
@@ -401,10 +404,11 @@ void Macbeth_Texture_RotateZ(u8* destTex, u8* srcTex, f32 angle) {
     s32 i;
     s32 j;
     s32 xDest;
+    s32 xDest2;
     s32 yDest;
     Vec3f var_fs0;
-    Vec3f dest;
-    Vec3f src;
+    Vec4f dest;
+    Vec4f src;
 
     Matrix_Push(&gCalcMatrix);
 
@@ -412,29 +416,44 @@ void Macbeth_Texture_RotateZ(u8* destTex, u8* srcTex, f32 angle) {
     srcTex = SEGMENTED_TO_VIRTUAL(srcTex);
 
     Matrix_RotateZ(gCalcMatrix, M_DTOR * angle, MTXF_NEW);
-
+    Matrix_LoadOnly(gCalcMatrix);
     src.z = 0.0f;
 
     for (i = 0, var_fs0.y = 0.0f; i < 32; i++, var_fs0.y++) {
-        for (j = 0, var_fs0.x = 0.0f; j < 32; j++, var_fs0.x++) {
+        for (j = 0, var_fs0.x = 0.0f; j < 32; j+=2, var_fs0.x+=2) {
             src.y = var_fs0.y - 16.0f;
             src.x = var_fs0.x - 16.0f;
+            src.z = var_fs0.x - 15.0f;
 
-            Matrix_MultVec3f(gCalcMatrix, &src, &dest);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix,  */&src, &dest);
+            // try transforming two xy pairs per iteration
 
             xDest = (s32) (dest.x + 16.0f);
+            xDest2 = (s32) (dest.z + 15.0f);
             yDest = (s32) (dest.y + 16.0f);
 
-            if ((xDest >= 0) && (xDest < 32) && (yDest >= 0) && (yDest < 32)) {
+            if ((yDest >= 0) && (yDest < 32)) {
+                if ((xDest >= 0) && (xDest < 32)) {
+                    destTex[xDest + (yDest << 5)] = srcTex[(i << 5) + j];
+                }
+                if ((xDest2 >= 0) && (xDest2 < 32)) {
+                    destTex[xDest2 + (yDest << 5)] = srcTex[(i << 5) + (j+1)];
+                }
+            }
+
+/*             if ((xDest >= 0) && (xDest < 32) && (yDest >= 0) && (yDest < 32)) {
                 destTex[xDest + (yDest << 5)] = srcTex[(i << 5) + j];
             }
-        }
+            if ((xDest2 >= 0) && (xDest2 < 32) && (yDest >= 0) && (yDest < 32)) {
+                destTex[xDest + (yDest << 5)] = srcTex[(i << 5) + j];
+            }
+ */        }
     }
     Matrix_Pop(&gCalcMatrix);
 #else
     destTex = SEGMENTED_TO_VIRTUAL(destTex);
     srcTex = SEGMENTED_TO_VIRTUAL(srcTex);
-    memcpy(destTex, srcTex, 32*32*2);
+    memcpy(destTex, srcTex, 32*32);
 #endif
 }
 
@@ -1787,7 +1806,7 @@ void Macbeth_8019F164(MaCannonCar* this) {
         sp78.z = sp84.z - D_i5_801BA708.z;
 
         Math_SmoothStepToAngle(&this->fwork[4], Math_RadToDeg(Math_Atan2F(sp78.x, sp78.z)), 0.1f, 2.0f, 0.01f);
-        Math_SmoothStepToAngle(&this->fwork[3], Math_RadToDeg(-Math_Atan2F(sp78.y, sqrtf(SQ(sp78.x) + SQ(sp78.z)))),
+        Math_SmoothStepToAngle(&this->fwork[3], Math_RadToDeg(-Math_Atan2F(sp78.y, shz_sqrtf_fsrra(SQ(sp78.x) + SQ(sp78.z)))),
                                0.1f, 2.0f, 0.01f);
 
         if ((this->fwork[4] > 120.0f) && (this->fwork[4] < 180.0f)) {
@@ -2806,6 +2825,7 @@ void Macbeth_MaTower_Draw(MaTower* this) {
 
 // Scenery 77 to 82, and 84 to 91
 void Macbeth_IndicatorSign_Draw(Scenery* this) {
+    
     if (gPlayer[0].state == PLAYERSTATE_LEVEL_COMPLETE) {
         Object_Kill(&this->obj, this->sfxSource);
     }
@@ -2935,7 +2955,10 @@ void Macbeth_MaTrainStopBlock_Draw(MaTrainStopBlock* this) {
                            &gIdentityMatrix);
     gSPSetGeometryMode(gMasterDisp++, G_CULL_BACK);
 }
-
+static inline float approx_recip_sign(float v) {
+	float _v = 1.0f / sqrtf(v * v);
+	return copysignf(_v, v);
+}
 s32 Macbeth_801A3300(Player* player, f32 arg1, f32 arg2) {
     s16 var_v1 = D_MA_801BE250[6];
     s16 temp_a0;
@@ -2990,20 +3013,21 @@ s32 Macbeth_801A3300(Player* player, f32 arg1, f32 arg2) {
         }
     }
 
-    sp2C = 1.0f - ((sp30 - arg1) / (sp30 - temp_ft4));
+    sp2C = 1.0f - ((sp30 - arg1) * approx_recip_sign(sp30 - temp_ft4));
+    // / (sp30 - temp_ft4));
 
     if ((temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_4) || (temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_5) ||
         (temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_7) || (temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_8)) {
-        temp_fv0_2 = fabsf((sp30 - temp_ft4) / 3.0f);
+        temp_fv0_2 = fabsf((sp30 - temp_ft4) * 0.3333333f /* / 3.0f */);
         if (sp2C < 0.3333333f) {
             if ((temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_4) || (temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_7)) {
                 D_MA_801BE250[9] =
                     (((sp38 - temp_fa0) * sp2C) + temp_fa0) -
-                    (52.160667f * (1.0f - (((temp_ft4 - temp_fv0_2) - arg1) / ((temp_ft4 - temp_fv0_2) - temp_ft4))));
+                    (52.160667f * (1.0f - (((temp_ft4 - temp_fv0_2) - arg1) * approx_recip_sign((temp_ft4 - temp_fv0_2) - temp_ft4))));
             } else {
                 D_MA_801BE250[9] =
                     ((sp38 - temp_fa0) * sp2C) + temp_fa0 +
-                    (52.160667f * (1.0f - (((temp_ft4 - temp_fv0_2) - arg1) / ((temp_ft4 - temp_fv0_2) - temp_ft4))));
+                    (52.160667f * (1.0f - (((temp_ft4 - temp_fv0_2) - arg1) * approx_recip_sign((temp_ft4 - temp_fv0_2) - temp_ft4))));
             }
         } else if (sp2C < 0.666666f) {
             if ((temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_4) || (temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_7)) {
@@ -3014,11 +3038,11 @@ s32 Macbeth_801A3300(Player* player, f32 arg1, f32 arg2) {
         } else if ((temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_4) || (temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_7)) {
             D_MA_801BE250[9] =
                 (((sp38 - temp_fa0) * sp2C) + temp_fa0) -
-                (52.160667f * (1.0f - (1.0f - ((sp30 - arg1) / (sp30 - (temp_ft4 - (temp_fv0_2 * 2)))))));
+                (52.160667f * (1.0f - (1.0f - ((sp30 - arg1) * approx_recip_sign(sp30 - (temp_ft4 - (temp_fv0_2 * 2)))))));
         } else {
             D_MA_801BE250[9] =
                 ((sp38 - temp_fa0) * sp2C) + temp_fa0 +
-                (52.160667f * (1.0f - (1.0f - ((sp30 - arg1) / (sp30 - (temp_ft4 - (temp_fv0_2 * 2)))))));
+                (52.160667f * (1.0f - (1.0f - ((sp30 - arg1) * approx_recip_sign(sp30 - (temp_ft4 - (temp_fv0_2 * 2)))))));
         }
     } else {
         D_MA_801BE250[9] = ((sp38 - temp_fa0) * sp2C) + temp_fa0;
@@ -3093,20 +3117,20 @@ s32 Macbeth_801A3790(Player* player, f32 arg1, f32 arg2) {
         }
     }
 
-    sp2C = 1.0f - ((sp30 - arg1) / (sp30 - temp_ft4));
+    sp2C = 1.0f - ((sp30 - arg1) * approx_recip_sign(sp30 - temp_ft4));
 
     if ((temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_4) || (temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_5) ||
         (temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_7) || (temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_8)) {
-        temp_fv0_2 = fabsf((sp30 - temp_ft4) / 3.0f);
+        temp_fv0_2 = fabsf((sp30 - temp_ft4) * 0.3333333f);//// / 3.0f);
         if (sp2C < 0.3333333f) {
             if ((temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_4) || (temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_7)) {
                 D_MA_801BE250[19] =
                     (((sp38 - temp_fa0) * sp2C) + temp_fa0) -
-                    (52.160667f * (1.0f - (((temp_ft4 - temp_fv0_2) - arg1) / ((temp_ft4 - temp_fv0_2) - temp_ft4))));
+                    (52.160667f * (1.0f - (((temp_ft4 - temp_fv0_2) - arg1) * approx_recip_sign((temp_ft4 - temp_fv0_2) - temp_ft4))));
             } else {
                 D_MA_801BE250[19] =
                     ((sp38 - temp_fa0) * sp2C) + temp_fa0 +
-                    (52.160667f * (1.0f - (((temp_ft4 - temp_fv0_2) - arg1) / ((temp_ft4 - temp_fv0_2) - temp_ft4))));
+                    (52.160667f * (1.0f - (((temp_ft4 - temp_fv0_2) - arg1) * approx_recip_sign((temp_ft4 - temp_fv0_2) - temp_ft4))));
             }
         } else if (sp2C < 0.666666f) {
             if ((temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_4) || (temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_7)) {
@@ -3117,11 +3141,11 @@ s32 Macbeth_801A3790(Player* player, f32 arg1, f32 arg2) {
         } else if ((temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_4) || (temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_7)) {
             D_MA_801BE250[19] =
                 (((sp38 - temp_fa0) * sp2C) + temp_fa0) -
-                (52.160667f * (1.0f - (1.0f - ((sp30 - arg1) / (sp30 - (temp_ft4 - (temp_fv0_2 * 2)))))));
+                (52.160667f * (1.0f - (1.0f - ((sp30 - arg1) * approx_recip_sign(sp30 - (temp_ft4 - (temp_fv0_2 * 2)))))));
         } else {
             D_MA_801BE250[19] =
                 ((sp38 - temp_fa0) * sp2C) + temp_fa0 +
-                (52.160667f * (1.0f - (1.0f - ((sp30 - arg1) / (sp30 - (temp_ft4 - (temp_fv0_2 * 2)))))));
+                (52.160667f * (1.0f - (1.0f - ((sp30 - arg1) * approx_recip_sign(sp30 - (temp_ft4 - (temp_fv0_2 * 2)))))));
         }
     } else {
         D_MA_801BE250[19] = ((sp38 - temp_fa0) * sp2C) + temp_fa0;
@@ -3170,7 +3194,7 @@ s32 Macbeth_801A3C20(f32 arg0) {
         return 0;
     }
 
-    temp_fv0_2 = 1.0f - ((sp2C - arg0) / (sp2C - sp38));
+    temp_fv0_2 = 1.0f - ((sp2C - arg0) * approx_recip_sign(sp2C - sp38));
 
     D_MA_801BE250[21] = (((sp34 - sp40) * temp_fv0_2) + sp40);
     D_MA_801BE250[22] = (((sp30 - sp3C) * temp_fv0_2) + sp3C);
@@ -3326,9 +3350,10 @@ void Macbeth_MaBoulder_Update(MaBoulder* this) {
                             this->vel.y = -this->vel.y * (this->work_046 * 0.07f);
                         }
 
-                        this->fwork[0] /= 1.2f + RAND_FLOAT(1.0f) / 2.0f;
+                        this->fwork[0] // /= 1.2f + RAND_FLOAT(1.0f) / 2.0f;
+                        = this->fwork[0] * approx_recip_sign(1.2f + RAND_FLOAT(1.0f)*0.5f);
                         this->work_046--;
-                        this->vel.z /= 1.5f;
+                        this->vel.z *= 0.6666667f;// /= 1.5f;
                         if (this->work_046 == 0) {
                             this->timer_0BE = RAND_INT(30.0f);
                         }
@@ -3936,21 +3961,22 @@ void Macbeth_801A6984(MaMechbeth* this) {
     temp_fs3 = VEC3F_MAG(&test);
 
     Math_Atan2F(test.x, test.z);
-    Math_Atan2F(test.y, sqrtf(SQ(test.x) + SQ(test.z)));
+    Math_Atan2F(test.y, //sqrtf
+        shz_sqrtf_fsrra(SQ(test.x) + SQ(test.z)));
 
-    var_s4 = (s32) (temp_fs3 / 40.0f);
+    var_s4 = (s32) (temp_fs3 * 0.025f);//// / 40.0f);
     if (var_s4 == 0) {
         var_s4 = 1;
     }
-
-    spA8 = (180.0f / var_s4) + 1.0f;
+    f32 rec_var_s4 = approx_recip_sign((float)var_s4);
+    spA8 = (180.0f * rec_var_s4) + 1.0f;
     var_fs5 = this->obj.pos.x;
     spA0 = this->obj.pos.y;
     sp9C = this->obj.pos.z;
 
-    sp88 = (D_i5_801BE368[4] - this->obj.pos.x) / (float) var_s4;
-    sp84 = (D_i5_801BE368[5] - this->obj.pos.y) / (float) var_s4;
-    sp80 = (D_i5_801BE368[6] - this->obj.pos.z) / (float) var_s4;
+    sp88 = (D_i5_801BE368[4] - this->obj.pos.x) * rec_var_s4; // / (float) var_s4;
+    sp84 = (D_i5_801BE368[5] - this->obj.pos.y) * rec_var_s4; // / (float) var_s4;
+    sp80 = (D_i5_801BE368[6] - this->obj.pos.z) * rec_var_s4; // / (float) var_s4;
 
     for (i = 0; i < var_s4; i++) {
         if (D_i5_801BE320[1] == 0) {
@@ -3958,7 +3984,7 @@ void Macbeth_801A6984(MaMechbeth* this) {
         } else {
             Math_SmoothStepToF(&D_i5_801BE368[7], 100.0f, 0.01f, 0.01f, 0.01f);
         }
-        temp = SIN_DEG(i * spA8) * (-(D_i5_801BE368[7] * 3.0f) * (1.0f - ((f32) i / var_s4)));
+        temp = SIN_DEG(i * spA8) * (-(D_i5_801BE368[7] * 3.0f) * (1.0f - ((f32) i * rec_var_s4 /* / var_s4 */)));
         temp_fs2_2 = this->obj.pos.x + (sp88 * i);
         temp_fs3_2 = this->obj.pos.y + (sp84 * i) + temp;
         temp_fs4 = this->obj.pos.z + (sp80 * i);
@@ -4284,7 +4310,7 @@ void Macbeth_MaMechbeth_FacePlayer(MaMechbeth* this) {
     xDist = gPlayer[0].pos.x - this->obj.pos.x;
     yDist = (gPlayer[0].trueZpos - 130.0f) - this->obj.pos.z;
 
-    EuclDist = sqrtf(SQ(xDist) + SQ(yDist));
+    EuclDist = shz_sqrtf_fsrra(SQ(xDist) + SQ(yDist));
 
     yRot = Math_Atan2F(xDist, yDist);
     xRot = -Math_Atan2F(gPlayer[0].pos.y - this->obj.pos.y, EuclDist);
@@ -5040,7 +5066,7 @@ void Macbeth_MaMechbeth_Update(MaMechbeth* this) {
 
                     D_i5_801BE368[14] = Math_RadToDeg(Math_Atan2F(sp354.x, sp354.z));
 
-                    temp = sqrtf(SQ(sp354.x) + SQ(sp354.z));
+                    temp = shz_sqrtf_fsrra(SQ(sp354.x) + SQ(sp354.z));
 
                     D_i5_801BE368[13] = Math_RadToDeg(-Math_Atan2F(sp354.y, temp));
 
@@ -5076,7 +5102,7 @@ void Macbeth_MaMechbeth_Update(MaMechbeth* this) {
 
                     D_i5_801BE368[14] = Math_RadToDeg(Math_Atan2F(sp354.x, sp354.z));
 
-                    temp = sqrtf(SQ(sp354.x) + SQ(sp354.z));
+                    temp = shz_sqrtf_fsrra(SQ(sp354.x) + SQ(sp354.z));
 
                     D_i5_801BE368[13] = Math_RadToDeg(-Math_Atan2F(sp354.y, temp));
 
@@ -5638,6 +5664,8 @@ void Macbeth_CsGreatFox_Setup(ActorCutscene* this) {
 }
 
 f32 D_i5_801BA768 = 0.0f;
+extern uint32_t lm6_ult,lm6_lrt;
+extern Gfx aLandmasterModelDL[];
 
 void Macbeth_LevelStart(Player* player) {
     f32 sp4C;
@@ -5766,8 +5794,34 @@ void Macbeth_LevelStart(Player* player) {
     player->rockPhase += player->vel.z * 5.0f;
     player->rockAngle = SIN_DEG(player->rockPhase) * 0.7f;
 
-    Lib_Texture_Scroll(aLandmasterModelTex6, 32, 32, 0);
+//    Lib_Texture_Scroll(aLandmasterModelTex6, 32, 32, 0);
+        lm6_ult = (lm6_ult + 4) & 0x7F;
+        lm6_lrt = (lm6_ult + 127) & 0xFFF;
+        // aLandmasterModelDL
+        // + 92
+        // + 141
+        // + 150
+        // + 177
+        Gfx *cmd = (Gfx *)segmented_to_virtual((void *)((Gfx*)(aLandmasterModelDL + 92)));
+        uint32_t cmd_words_w0, cmd_words_w1;
+        // upper left coords
+        cmd_words_w0 = (G_SETTILESIZE << 24)        | lm6_ult;
+        // lower right coords
+        cmd_words_w1 = (cmd->words.w1 & 0x0707F000) | lm6_lrt;
+        cmd->words.w0 = cmd_words_w0;
+        cmd->words.w1 = cmd_words_w1;
 
+        cmd = (Gfx *)segmented_to_virtual((void *)((Gfx*)(aLandmasterModelDL + 141)));
+        cmd->words.w0 = cmd_words_w0;
+        cmd->words.w1 = cmd_words_w1;
+
+        cmd = (Gfx *)segmented_to_virtual((void *)((Gfx*)(aLandmasterModelDL + 150)));
+        cmd->words.w0 = cmd_words_w0;
+        cmd->words.w1 = cmd_words_w1;
+
+        cmd = (Gfx *)segmented_to_virtual((void *)((Gfx*)(aLandmasterModelDL + 177)));
+        cmd->words.w0 = cmd_words_w0;
+        cmd->words.w1 = cmd_words_w1;
     if ((gCsFrameCount > 150) && ((-player->trueZpos - player->zPath) > 200.0f)) {
         if (D_i5_801BA768 < 11.5f) {
             D_i5_801BA768 += 0.2f;
@@ -6254,7 +6308,7 @@ void Macbeth_Effect379_Setup(Effect379* this, f32 xPos, f32 yPos, f32 zPos, f32 
     this->unk_4A = zPos - arg6;
 
     sp48 = Math_Atan2F(arg4 - xPos, arg6 - zPos);
-    sp44 = sqrtf(SQ(arg4 - xPos) + SQ(arg6 - zPos));
+    sp44 = shz_sqrtf_fsrra(SQ(arg4 - xPos) + SQ(arg6 - zPos));
     sp4C = -Math_Atan2F(arg5 - yPos, sp44);
 
     Matrix_RotateY(gCalcMatrix, sp48, MTXF_NEW);

@@ -17,16 +17,16 @@
 void n64_memcpy(void* dst, const void* src, size_t size) {
     uint8_t* bdst = (uint8_t*) dst;
     uint8_t* bsrc = (uint8_t*) src;
-    uint32_t* sdst = (uint16_t*) dst;
-    uint32_t* ssrc = (uint16_t*) src;
+//    uint32_t* sdst = (uint16_t*) dst;
+//    uint32_t* ssrc = (uint16_t*) src;
     uint32_t* wdst = (uint32_t*) dst;
     uint32_t* wsrc = (uint32_t*) src;
 
     int size_to_copy = size;
     int words_to_copy = size_to_copy >> 2;
-    int shorts_to_copy = size_to_copy >> 1;
+//    int shorts_to_copy = size_to_copy >> 1;
     int bytes_to_copy = size_to_copy - (words_to_copy<<2);
-    int sbytes_to_copy = size_to_copy - (shorts_to_copy<<1);
+//    int sbytes_to_copy = size_to_copy - (shorts_to_copy<<1);
 
     __builtin_prefetch(bsrc);
     if ((!(((uintptr_t)bdst | (uintptr_t)bsrc) & 3))) {
@@ -58,7 +58,7 @@ void n64_memcpy(void* dst, const void* src, size_t size) {
             case 7:
                 goto n64copy7; */
         }
-    } else if ((!(((uintptr_t)sdst | (uintptr_t)ssrc) & 1))) {
+    }/*  else if ((!(((uintptr_t)sdst | (uintptr_t)ssrc) & 1))) {
         while (shorts_to_copy--) {
             *sdst++ = *ssrc++;
         }
@@ -69,7 +69,7 @@ void n64_memcpy(void* dst, const void* src, size_t size) {
         if (sbytes_to_copy) {
             goto n64copy1;
         }
-    }
+    } */
     else {
         while (words_to_copy > 0) {
             uint8_t b1, b2, b3, b4;
@@ -1768,7 +1768,7 @@ void aMixImpl(uint16_t count, int16_t gain, uint16_t in_addr, uint16_t out_addr)
     int i;
     int32_t sample;
 
-#if 0
+#if 1
     if (gain == -0x8000) {
         while (nbytes > 0) {
             for (i = 0; i < 16; i++) {

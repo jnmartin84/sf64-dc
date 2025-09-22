@@ -146,7 +146,6 @@ void Lib_TextureRect_IA16_MirY(Gfx **gfxPtr, u16* texture, u32 width, u32 height
 void Lib_TextureRect_IA16_MirXY(Gfx **gfxPtr, u16* texture, u32 width, u32 height, f32 xPos, f32 yPos, f32 xScale, f32 yScale);
 void Lib_TextureRect_RGBA32(Gfx **gfxPtr, u32* texture, u32 width, u32 height, f32 xPos, f32 yPos, f32 xScale, f32 yScale);
 void Graphics_FillRectangle(Gfx **gfxPtr, s32 ulx, s32 uly, s32 lrx, s32 lry, u8 r, u8 g, u8 b, u8 a);
-u16*  Graphics_SetupTextureRender(Gfx **gfxPtr, u8 width, u8 height);
 void Graphics_DisplayHUDNumber(s32 xPos, s32 yPos, s32 number);
 void Graphics_DisplaySmallNumber(s32 xPos, s32 yPos, s32 number);
 void Graphics_DisplayLargeText(s32 xPos, s32 yPos, f32 xScale, f32 yScale, char *text);

@@ -3913,7 +3913,8 @@ void Effect_Effect395_Update(Effect395* this) {
         Effect_CheckPlayerCollision(&gPlayer[0], this, sp84);
     }
 }
-
+uint32_t a6_ult=0,a6_lrt=63; //
+extern Gfx D_A6_6012550[];
 void Effect_Effect395_Draw(Effect395* this) {
     //! FAKE: Probably some debug stuff printing different messages depending on what unk_4E is.
     if ((this->state != 0) && (this->state != 6)) {
@@ -4006,7 +4007,12 @@ void Effect_Effect395_Draw(Effect395* this) {
 
         case 10:
             if (gPlayState != PLAY_PAUSE) {
-                Lib_Texture_Scroll(D_A6_6012840, 16, 16, 0);
+//                Lib_Texture_Scroll(D_A6_6012840, 16, 16, 0);
+                a6_ult = (a6_ult - 4) & 0x3F;
+                a6_lrt = (a6_ult + 63) & 0xFFF;
+                Gfx* cmd = (Gfx*)(D_A6_6012550 + 6);
+                cmd->words.w0 = (G_SETTILESIZE << 24)        | a6_ult;
+                cmd->words.w1 = (cmd->words.w1 & 0x0703F000) | a6_lrt;            
             }
             RCP_SetupDL(&gMasterDisp, SETUPDL_53);
             Matrix_Scale(gGfxMatrix, this->orient.x, this->orient.y, this->orient.z, MTXF_APPLY);

@@ -6,6 +6,14 @@
 #define MTXF_NEW 0
 #define MTXF_APPLY 1
 
+typedef struct Vec4f {
+    /* 0x0 */ f32 x;
+    /* 0x4 */ f32 y;
+    /* 0x8 */ f32 z;
+    /* 0x8 */ f32 w;
+} Vec4f; // size = 0x10
+
+
 typedef struct Vec3f {
     /* 0x0 */ f32 x;
     /* 0x4 */ f32 y;
@@ -118,6 +126,9 @@ void __attribute__((noinline))  Matrix_RotateAxis(Matrix* mtx, f32 angle, f32 ax
 // Converts the current Gfx matrix to a Mtx
 void __attribute__((noinline))  Matrix_ToMtx(Mtx* dest);
 
+void Matrix_LoadOnly(Matrix* mtx);
+void Matrix_MultVec3f_NoLoad(Vec3f* src, Vec3f* dest);
+void Matrix_MultVec3fNoTranslate_NoLoad(Vec3f* src, Vec3f* dest);
 // Applies the transform matrix mtx to the vector src, putting the result in dest
 void __attribute__((noinline))  Matrix_MultVec3f(Matrix* mtx, Vec3f* src, Vec3f* dest);
 

@@ -259,9 +259,10 @@ void Player_WaterEffects(Player* player) {
         Matrix_RotateY(gCalcMatrix, (player->yRot_114 + player->rot.y + 180.0f) * M_DTOR, MTXF_APPLY);
         Matrix_RotateX(gCalcMatrix, -((player->rot.x + player->aerobaticPitch) * M_DTOR), MTXF_APPLY);
         Matrix_RotateZ(gCalcMatrix, -(player->bankAngle * M_DTOR), MTXF_APPLY);
+        Matrix_LoadOnly(gCalcMatrix);
 
-        Matrix_MultVec3f(gCalcMatrix, &sp54, &sp3C);
-        Matrix_MultVec3f(gCalcMatrix, &sp48, &sp30);
+        Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &sp54, &sp3C);
+        Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &sp48, &sp30);
 
         if (player->pos.y < (gGroundHeight + 100.0f)) {
             if ((sp3C.y < gGroundHeight + 80.0f) && ((gGameFrameCount % 2) == 0)) {
@@ -1467,19 +1468,19 @@ s32 Player_CheckPolyCollision(Player* player, ObjectId objId, f32 x, f32 y, f32 
     sp84.z = z;
 
     Matrix_RotateY(gCalcMatrix, -angle * M_DTOR, MTXF_NEW);
-
+    Matrix_LoadOnly(gCalcMatrix);
     src.x = player->vel.x;
     src.y = player->vel.y;
     src.z = player->vel.z;
 
-    Matrix_MultVec3fNoTranslate(gCalcMatrix, &src, &sp54);
+    Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */ &src, &sp54);
 
     if ((player->form == FORM_LANDMASTER) || (player->form == FORM_ON_FOOT)) {
         src.x = player->pos.x - sp84.x;
         src.y = player->pos.y - sp84.y;
         src.z = player->trueZpos - sp84.z;
 
-        Matrix_MultVec3fNoTranslate(gCalcMatrix, &src, &sp6C);
+        Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */ &src, &sp6C);
 
         if (Play_CheckPolyCollision(objId, sp84.x, sp84.y, sp84.z, sp6C.x + sp84.x, sp6C.y + sp84.y, sp6C.z + sp84.z,
                                     &sp60, &sp54)) {
@@ -1501,7 +1502,7 @@ s32 Player_CheckPolyCollision(Player* player, ObjectId objId, f32 x, f32 y, f32 
     src.y = player->hit3.y - sp84.y;
     src.z = player->hit3.z - sp84.z;
 
-    Matrix_MultVec3fNoTranslate(gCalcMatrix, &src, &sp6C);
+   Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */&src, &sp6C);
     if (Play_CheckPolyCollision(objId, sp84.x, sp84.y, sp84.z, sp6C.x + sp84.x, sp6C.y + sp84.y, sp6C.z + sp84.z, &sp60,
                                 &sp54)) {
         return 3;
@@ -1511,7 +1512,7 @@ s32 Player_CheckPolyCollision(Player* player, ObjectId objId, f32 x, f32 y, f32 
     src.y = player->hit4.y - sp84.y;
     src.z = player->hit4.z - sp84.z;
 
-    Matrix_MultVec3fNoTranslate(gCalcMatrix, &src, &sp6C);
+    Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */ &src, &sp6C);
 
     if (Play_CheckPolyCollision(objId, sp84.x, sp84.y, sp84.z, sp6C.x + sp84.x, sp6C.y + sp84.y, sp6C.z + sp84.z, &sp60,
                                 &sp54)) {
@@ -1522,7 +1523,7 @@ s32 Player_CheckPolyCollision(Player* player, ObjectId objId, f32 x, f32 y, f32 
     src.y = player->hit1.y - sp84.y;
     src.z = player->hit1.z - sp84.z;
 
-    Matrix_MultVec3fNoTranslate(gCalcMatrix, &src, &sp6C);
+    Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */ &src, &sp6C);
 
     if (Play_CheckPolyCollision(objId, sp84.x, sp84.y, sp84.z, sp6C.x + sp84.x, sp6C.y + sp84.y, sp6C.z + sp84.z, &sp60,
                                 &sp54)) {
@@ -1533,7 +1534,7 @@ s32 Player_CheckPolyCollision(Player* player, ObjectId objId, f32 x, f32 y, f32 
     src.y = player->hit2.y - sp84.y;
     src.z = player->hit2.z - sp84.z;
 
-    Matrix_MultVec3fNoTranslate(gCalcMatrix, &src, &sp6C);
+    Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */ &src, &sp6C);
 
     if (Play_CheckPolyCollision(objId, sp84.x, sp84.y, sp84.z, sp6C.x + sp84.x, sp6C.y + sp84.y, sp6C.z + sp84.z, &sp60,
                                 &sp54)) {
@@ -1594,6 +1595,7 @@ void Player_UpdateHitbox(Player* player) {
     Vec3f sp3C;
 
     Matrix_Translate(gCalcMatrix, player->pos.x, player->pos.y, player->trueZpos, MTXF_NEW);
+    Matrix_LoadOnly(gCalcMatrix);
     if (player->form == FORM_LANDMASTER) {
         player->rot_104.z = 0.0f;
         player->rot_104.x = 0.0f;
@@ -1601,27 +1603,27 @@ void Player_UpdateHitbox(Player* player) {
         sp3C.x = -40.0f;
         sp3C.y = 40.0f;
         sp3C.z = 0.0f;
-        Matrix_MultVec3f(gCalcMatrix, &sp3C, &player->hit2);
+        Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &sp3C, &player->hit2);
         sp3C.x = 40.0f;
-        Matrix_MultVec3f(gCalcMatrix, &sp3C, &player->hit1);
+        Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &sp3C, &player->hit1);
         sp3C.x = 0.0f;
         sp3C.z = -40.0f;
-        Matrix_MultVec3f(gCalcMatrix, &sp3C, &player->hit3);
+        Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &sp3C, &player->hit3);
         sp3C.z = 40.0f;
-        Matrix_MultVec3f(gCalcMatrix, &sp3C, &player->hit4);
+        Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &sp3C, &player->hit4);
     }
     if ((player->form == FORM_ON_FOOT) || (player->form == FORM_UNK_4)) {
         sp3C.x = 20.0f;
         sp3C.y = 20.0f;
         sp3C.z = 0.0f;
-        Matrix_MultVec3f(gCalcMatrix, &sp3C, &player->hit2);
+        Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &sp3C, &player->hit2);
         sp3C.x = -20.0f;
-        Matrix_MultVec3f(gCalcMatrix, &sp3C, &player->hit1);
+        Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &sp3C, &player->hit1);
         sp3C.x = 0.0f;
         sp3C.z = -20.0f;
-        Matrix_MultVec3f(gCalcMatrix, &sp3C, &player->hit3);
+        Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &sp3C, &player->hit3);
         sp3C.z = 20.0f;
-        Matrix_MultVec3f(gCalcMatrix, &sp3C, &player->hit4);
+        Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &sp3C, &player->hit4);
     }
     if ((player->form == FORM_ARWING) || (player->form == FORM_BLUE_MARINE)) {
         Matrix_RotateY(gCalcMatrix, (player->yRot_114 + 180.0f) * M_DTOR, MTXF_APPLY);
@@ -1637,7 +1639,7 @@ void Player_UpdateHitbox(Player* player) {
         if (player->form == FORM_BLUE_MARINE) {
             sp3C.x = 24.0f;
         }
-        Matrix_MultVec3f(gCalcMatrix, &sp3C, &player->hit2);
+        Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &sp3C, &player->hit2);
 
         if (player->arwing.rightWingState == WINGSTATE_INTACT) {
             sp3C.x = -40.0f;
@@ -1647,13 +1649,13 @@ void Player_UpdateHitbox(Player* player) {
         if (player->form == FORM_BLUE_MARINE) {
             sp3C.x = -24.0f;
         }
-        Matrix_MultVec3f(gCalcMatrix, &sp3C, &player->hit1);
+        Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &sp3C, &player->hit1);
 
         sp3C.x = 0.0f;
         sp3C.y = 24.0f;
-        Matrix_MultVec3f(gCalcMatrix, &sp3C, &player->hit3);
+        Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &sp3C, &player->hit3);
         sp3C.y = -24.0f;
-        Matrix_MultVec3f(gCalcMatrix, &sp3C, &player->hit4);
+        Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &sp3C, &player->hit4);
     }
 }
 

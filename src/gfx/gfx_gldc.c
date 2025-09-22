@@ -114,17 +114,17 @@ static uint8_t gl_depth = 0;
 
 static void resample_32bit(const uint16_t* in, int inwidth, int inheight, uint16_t* out, int outwidth, int outheight ) {
     int i, j;
+    __builtin_prefetch(in);
+    float scale = (float)inheight / (float)outheight;
     uint32_t* out32 = (uint32_t*)out;
     int fracstep = (inwidth << 16) / outwidth;
     int outwidth32 = outwidth >> 1; // two pixels per 32-bit write
 
     for (i = 0; i < outheight; i++, out32 += outwidth32) {
-        const uint16_t* inrow = in + inwidth * (i * inheight /outheight);
+        const uint16_t* inrow = in + inwidth * (int)((float)i * scale);
         int frac = fracstep >> 1;
 
         for (j = 0; j < outwidth32; j++) {
-            if (((j << 1) & 7) == 0)
-                __builtin_prefetch(inrow + 16);
 
             uint16_t p1 = inrow[frac >> 16];
             frac += fracstep;
@@ -133,6 +133,7 @@ static void resample_32bit(const uint16_t* in, int inwidth, int inheight, uint16
 
             out32[j] = ((uint32_t)p2 << 16) | p1;
         }
+        __builtin_prefetch(inrow + 32);
     }
 }
 
@@ -464,10 +465,10 @@ static void gfx_opengl_select_texture(int tile, uint32_t texture_id) {
 /* Used for rescaling textures into pow2 dims */
 /* static */ uint8_t __attribute__((aligned(32))) scaled[64 * 64 * 8 * 2];
 
-/* static */ uint16_t __attribute__((aligned(32))) scaled2[64*64];//64 * 64 * 8 * 2];
+/* static */ uint16_t __attribute__((aligned(32))) scaled2[128*256];//64 * 64 * 8 * 2];
 
 
-#define LET_GLDC_TWIDDLE 0
+#define LET_GLDC_TWIDDLE 1
 
 static inline uint16_t rgb565_to_argb1555(uint16_t rgb565) {
     // Extract components from RGB565
@@ -487,14 +488,14 @@ static inline uint16_t rgb565_to_argb1555(uint16_t rgb565) {
     return rgba5551;
 }
 
-void capture_framebuffer(void) {
+void capture_framebuffer(int num) {
 #if 1
-    const uint16_t* in = vram_s;
+    const uint16_t* in = vram_s;// + (num * 640 * 120);
     int inwidth = 640;
-    int inheight = 480;
-    uint16_t* out = scaled2;
-    int outwidth = 64;
-    int outheight = 64;
+    int inheight = 480;//120;
+    uint16_t* out = scaled2;// + (num * 128 * 32);
+    int outwidth = 64;//128;
+    int outheight = 64;//32;
     int i, j;
     uint32_t* out32 = (uint32_t*)out;
     int fracstep = (inwidth << 16) / outwidth;
@@ -528,12 +529,15 @@ void capture_framebuffer(void) {
     }
 #endif
 }
-
+extern int do_the_blur;
 static void gfx_opengl_upload_texture(const uint8_t* rgba32_buf, int width, int height, unsigned int type) {
     GLint intFormat;
 
 #if LET_GLDC_TWIDDLE
-    if (type == GL_UNSIGNED_SHORT_1_5_5_5_REV) {
+    if (do_the_blur && type == GL_UNSIGNED_SHORT_1_5_5_5_REV) {
+        intFormat = GL_ARGB1555_KOS;
+    }
+    else if (type == GL_UNSIGNED_SHORT_1_5_5_5_REV) {
         intFormat = GL_ARGB1555_TWID_KOS;
     } else {
         intFormat = GL_ARGB4444_TWID_KOS;

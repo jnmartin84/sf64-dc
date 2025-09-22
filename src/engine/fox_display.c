@@ -1083,8 +1083,9 @@ void Display_ArwingLaserCharge(Player* player) {
                     gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 128, 255, 255, 160);
                     gDPSetEnvColor(gMasterDisp++, 128, 128, 255, 160);
                 }
-                Matrix_MultVec3f(gCalcMatrix, &spAC, &sp94);
-                Matrix_MultVec3f(gCalcMatrix, &spA0, &sp88);
+                Matrix_LoadOnly(gCalcMatrix);
+                Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &spAC, &sp94);
+                Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &spA0, &sp88);
                 Matrix_Push(&gGfxMatrix);
                 Matrix_Translate(gGfxMatrix, sp94.x, sp94.y, sp94.z, MTXF_NEW);
                 Matrix_Scale(gGfxMatrix, gMuzzleFlashScale[player->num], gMuzzleFlashScale[player->num], 1.0f,
@@ -1750,8 +1751,8 @@ void Display_Update(void) {
         tempVec.x = camPlayer->cam.eye.x - camPlayer->pos.x;
         tempVec.y = camPlayer->cam.eye.y - camPlayer->pos.y;
         tempVec.z = camPlayer->cam.eye.z - (camPlayer->trueZpos + camPlayer->zPath);
-
-        Matrix_MultVec3f(gCalcMatrix, &tempVec, &gPlayCamEye);
+        Matrix_LoadOnly(gCalcMatrix);
+        Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &tempVec, &gPlayCamEye);
 
         gPlayCamEye.x += camPlayer->pos.x;
         gPlayCamEye.y += camPlayer->pos.y;
@@ -1761,7 +1762,7 @@ void Display_Update(void) {
         tempVec.y = camPlayer->cam.at.y - camPlayer->pos.y;
         tempVec.z = camPlayer->cam.at.z - (camPlayer->trueZpos + camPlayer->zPath);
 
-        Matrix_MultVec3f(gCalcMatrix, &tempVec, &gPlayCamAt);
+        Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &tempVec, &gPlayCamAt);
 
         gPlayCamAt.x += camPlayer->pos.x;
         gPlayCamAt.y += camPlayer->pos.y;
@@ -1787,6 +1788,7 @@ void Display_Update(void) {
     Matrix_RotateY(gCalcMatrix, -camPlayer->camYaw, MTXF_NEW);
     Matrix_RotateX(gCalcMatrix, camPlayer->camPitch, MTXF_APPLY);
     Matrix_RotateZ(gCalcMatrix, -camPlayer->camRoll * M_DTOR, MTXF_APPLY);
+    
     tempVec.x = 0.0f;
     tempVec.y = 100.0f;
     tempVec.z = 0.0f;

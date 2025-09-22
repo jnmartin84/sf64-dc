@@ -158,7 +158,7 @@ s32 Game_ChangeScene(void) {
         _g->words.w1 = 0x46554369;                                           \
     }
 
-void capture_framebuffer(void);
+void capture_framebuffer(int num);
 
 extern uint8_t scaled2[];
 
@@ -178,7 +178,7 @@ void Game_InitMasterDL(Gfx** dList) {
 
     if (gBlurAlpha < 255) {
 //        if (gGameFrameCount & 1) {
-        capture_framebuffer();
+        capture_framebuffer(0);//gGameFrameCount & 3);
         gfx_texture_cache_invalidate(scaled2);
 //        }
         gDPPipeSync((*dList)++);

@@ -278,8 +278,8 @@ void Matrix_Translate(Matrix* mtx, f32 x, f32 y, f32 z, u8 mode) {
             rx = mtx->m[0][i];
             ry = mtx->m[1][i];
 
-            mtx->m[3][i] += //fipr(rx,ry,mtx->m[2][i],0,x,y,z,0);
-            (rx * x) + (ry * y) + (mtx->m[2][i] * z);
+            mtx->m[3][i] += fipr(rx,ry,mtx->m[2][i],0,x,y,z,0);
+            //(rx * x) + (ry * y) + (mtx->m[2][i] * z);
         }
     } else {
         mtx->m[3][0] = x;
@@ -511,6 +511,41 @@ void Matrix_ToMtx(Mtx* m) {
 
 #include <kos.h>
 
+void Matrix_LoadOnly(Matrix* mtx) {
+    shz_xmtrx_load_4x4_unaligned(mtx);
+}
+
+
+// Applies the transform matrix mtx to the vector src, putting the result in dest
+void Matrix_MultVec4f_NoLoad(Vec4f* src, Vec4f* dest) {
+    dest->x = src->x;
+    dest->y = src->y;
+    dest->z = src->z;
+    dest->w = src->w;
+    mat_trans_single3_nodivw(dest->x, dest->y, dest->z, dest->w);
+//    dest->x = //fipr(mtx->m[0][0],mtx->m[1][0],mtx->m[2][0],mtx->m[3][0],src->x,src->y,src->z,1);//
+  //  (mtx->m[0][0] * src->x) + (mtx->m[1][0] * src->y) + (mtx->m[2][0] * src->z) + mtx->m[3][0];
+    //dest->y = //fipr(mtx->m[0][1],mtx->m[1][1],mtx->m[2][1],mtx->m[3][1],src->x,src->y,src->z,1);//
+   // (mtx->m[0][1] * src->x) + (mtx->m[1][1] * src->y) + (mtx->m[2][1] * src->z) + mtx->m[3][1];
+    //dest->z = //fipr(mtx->m[0][2],mtx->m[1][2],mtx->m[2][2],mtx->m[3][2],src->x,src->y,src->z,1);//
+    //(mtx->m[0][2] * src->x) + (mtx->m[1][2] * src->y) + (mtx->m[2][2] * src->z) + mtx->m[3][2];
+}
+
+// Applies the transform matrix mtx to the vector src, putting the result in dest
+void Matrix_MultVec3f_NoLoad(Vec3f* src, Vec3f* dest) {
+    float w = 1;
+    dest->x = src->x;
+    dest->y = src->y;
+    dest->z = src->z;
+    mat_trans_single3_nodivw(dest->x, dest->y, dest->z, w);
+//    dest->x = //fipr(mtx->m[0][0],mtx->m[1][0],mtx->m[2][0],mtx->m[3][0],src->x,src->y,src->z,1);//
+  //  (mtx->m[0][0] * src->x) + (mtx->m[1][0] * src->y) + (mtx->m[2][0] * src->z) + mtx->m[3][0];
+    //dest->y = //fipr(mtx->m[0][1],mtx->m[1][1],mtx->m[2][1],mtx->m[3][1],src->x,src->y,src->z,1);//
+   // (mtx->m[0][1] * src->x) + (mtx->m[1][1] * src->y) + (mtx->m[2][1] * src->z) + mtx->m[3][1];
+    //dest->z = //fipr(mtx->m[0][2],mtx->m[1][2],mtx->m[2][2],mtx->m[3][2],src->x,src->y,src->z,1);//
+    //(mtx->m[0][2] * src->x) + (mtx->m[1][2] * src->y) + (mtx->m[2][2] * src->z) + mtx->m[3][2];
+}
+
 // Applies the transform matrix mtx to the vector src, putting the result in dest
 void Matrix_MultVec3f(Matrix* mtx, Vec3f* src, Vec3f* dest) {
     shz_xmtrx_load_4x4_unaligned(mtx);
@@ -526,6 +561,24 @@ void Matrix_MultVec3f(Matrix* mtx, Vec3f* src, Vec3f* dest) {
     //dest->z = //fipr(mtx->m[0][2],mtx->m[1][2],mtx->m[2][2],mtx->m[3][2],src->x,src->y,src->z,1);//
     //(mtx->m[0][2] * src->x) + (mtx->m[1][2] * src->y) + (mtx->m[2][2] * src->z) + mtx->m[3][2];
 }
+
+
+
+void Matrix_MultVec3fNoTranslate_NoLoad(Vec3f* src, Vec3f* dest) {
+    float w = 0;
+    dest->x = src->x;
+    dest->y = src->y;
+    dest->z = src->z;
+    mat_trans_single3_nodivw(dest->x, dest->y, dest->z, w);
+
+//    dest->x = (mtx->m[0][0] * src->x) + (mtx->m[1][0] * src->y) + (mtx->m[2][0] * src->z);
+  //  dest->y = (mtx->m[0][1] * src->x) + (mtx->m[1][1] * src->y) + (mtx->m[2][1] * src->z);
+    //dest->z = (mtx->m[0][2] * src->x) + (mtx->m[1][2] * src->y) + (mtx->m[2][2] * src->z);
+//    dest->x = fipr(mtx->m[0][0],mtx->m[1][0],mtx->m[2][0],0,src->x,src->y,src->z,0);//(mtx->m[0][0] * src->x) + (mtx->m[1][0] * src->y) + (mtx->m[2][0] * src->z) + mtx->m[3][0];
+  //  dest->y = fipr(mtx->m[0][1],mtx->m[1][1],mtx->m[2][1],0,src->x,src->y,src->z,0);//(mtx->m[0][1] * src->x) + (mtx->m[1][1] * src->y) + (mtx->m[2][1] * src->z) + mtx->m[3][1];
+    //dest->z = fipr(mtx->m[0][2],mtx->m[1][2],mtx->m[2][2],0,src->x,src->y,src->z,0);//(mtx->m[0][2] * src->x) + (mtx->m[1][2] * src->y) + (mtx->m[2][2] * src->z) + mtx->m[3][2];
+}
+
 
 // Applies the linear part of the transformation matrix mtx to the vector src, ignoring any translation that mtx might
 // have. Puts the result in dest.

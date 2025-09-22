@@ -460,7 +460,7 @@ int main(int argc, char **argv) {
 //533
 void *SPINNING_THREAD(UNUSED void *arg) {
     uint64_t last_vbltick = vblticker;
-
+//    return NULL;
     while (1) {
         while (vblticker <= last_vbltick /*  + 1 */)
             genwait_wait((void*)&vblticker, NULL, 16, NULL);
@@ -471,10 +471,10 @@ void *SPINNING_THREAD(UNUSED void *arg) {
   //      448;//
        //called & 1 ? SAMPLES_HIGH : SAMPLES_LOW;
 #if 1
-        irq_disable();
+//        irq_disable();
         AudioThread_CreateNextAudioBuffer(audio_buffer, 448);//num_samples);
 //        AudioThread_CreateNextAudioBuffer(audio_buffer + (num_samples * 2), num_samples);
-        irq_enable();
+  //      irq_enable();
         audio_api->play((u8 *)audio_buffer, 1792);// (num_samples * 2 * 2  * 2));
  #endif
         }
