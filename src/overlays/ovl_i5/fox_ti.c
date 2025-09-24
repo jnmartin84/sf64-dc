@@ -4280,6 +4280,7 @@ void Titania_80193DF0(TiGoras* this) {
 
         case 10:
             Matrix_RotateY(gCalcMatrix, this->obj.rot.y * M_DTOR, MTXF_NEW);
+            Matrix_LoadOnly(gCalcMatrix);
             spA4 = 0;
 
             for (i = 0; i < 33; i++) {
@@ -4287,7 +4288,7 @@ void Titania_80193DF0(TiGoras* this) {
                 if (actor != NULL) {
                     if (D_i5_801B8198[i].unk_0C == 0) {
                         pad2 = D_i5_801B8198[i].unk_00;
-                        Matrix_MultVec3f(gCalcMatrix, &D_i5_801BBF00[pad2].unk_00.pos, &spC8);
+                        Matrix_MultVec3f_NoLoad(/* gCalcMatrix,  */&D_i5_801BBF00[pad2].unk_00.pos, &spC8);
 
                         sp9C =
                             fabsf(Math_SmoothStepToF(&actor->obj.pos.x, this->obj.pos.x + spC8.x, 1.0f, 40.0f, 0.01f));
@@ -5322,9 +5323,9 @@ void Titania_TiGoras_Draw(TiGoras* boss) {
                 RCP_SetupDL(&gMasterDisp, SETUPDL_69);
 //                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
   //                    TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
+/*                 gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
                            TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
-                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 0, 0, 0, 255);
+ */                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 0, 0, 0, 255);
                 gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 255);
 
                 Matrix_RotateX(gGfxMatrix, -F_PI / 2, MTXF_APPLY);
@@ -5375,16 +5376,16 @@ gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TE
                     temp_fv0 = 1.0f - sp120;
 
 // FUCKING GORAS JNMARTIN84 FIX THIS SHIT FUCK
-gSPFillrectBlend(gMasterDisp++);
+//gSPFillrectBlend(gMasterDisp++);
 //                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
   //                    TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
 //gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
-  //                         TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
+   //                        TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
 
                     gDPSetPrimColor(gMasterDisp++,   0x00, 0x00,   (s32) (temp_fv0 * 255.0f),
                                     (s32) ((temp_fv0 * 128.0f) + 127.0f), (s32) ((temp_fv0 * 60.0f) + 195.0f),
                                     255);
-                    gDPSetEnvColor(gMasterDisp++,/* 0,0, */255,255,255,(s32) ((temp_fv0 * 155.0f) + 100.0f));
+                    gDPSetEnvColor(gMasterDisp++,/* 0,0, */255,255, 255,(s32) ((temp_fv0 * 155.0f) + 100.0f));
                     for (j = 0; j < 360; j += 45) {
                         Matrix_Push(&gGfxMatrix);
                         Matrix_RotateZ(gGfxMatrix, (j + boss->fwork[43] * 360.0f) * M_DTOR, MTXF_APPLY);
@@ -5393,7 +5394,7 @@ gSPFillrectBlend(gMasterDisp++);
                         gSPDisplayList(gMasterDisp++, D_Gfx_800D94D0);
                         Matrix_Pop(&gGfxMatrix);
                     }
-                    gSPFillrectBlend(gMasterDisp++);
+//                    gSPFillrectBlend(gMasterDisp++);
 
                 }
                 Matrix_Pop(&gGfxMatrix);
@@ -5404,19 +5405,19 @@ gSPFillrectBlend(gMasterDisp++);
             if (D_i5_801BBEF0[7] != 0) {
                 Matrix_Push(&gGfxMatrix);
                 sp120 = D_i5_801BBEF0[7] * 16.0f;
-                RCP_SetupDL(&gMasterDisp, SETUPDL_64);
+                RCP_SetupDL(&gMasterDisp, SETUPDL_49/* 64 */);
                 Matrix_RotateX(gGfxMatrix, F_PI / 2, MTXF_APPLY);
                 Matrix_Push(&gGfxMatrix);
                 Matrix_Scale(gGfxMatrix, sp120, 1.0f, sp120, MTXF_APPLY);
                 Matrix_SetGfxMtx(&gMasterDisp);
 //                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
   //                    TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-  gSPFillrectBlend(gMasterDisp++);
+//  gSPFillrectBlend(gMasterDisp++);
 
 //  gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
   //                         TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
-                gDPSetPrimColor(gMasterDisp++,0,0,120, 255, 220,D_i5_801BBEF0[7] * 50);
-                gDPSetEnvColor(gMasterDisp++,  /* 0x00, 0x00,   */ 255,255,255,255);
+                gDPSetEnvColor(gMasterDisp++,/* 0,0, */120, 255, 220,D_i5_801BBEF0[7] * 50);
+                gDPSetPrimColor(gMasterDisp++,  0x00, 0x00,   255,255,255,255);
                 gSPDisplayList(gMasterDisp++, D_BG_PLANET_20112C0);
                 Matrix_Pop(&gGfxMatrix);
 
@@ -5439,7 +5440,7 @@ gSPFillrectBlend(gMasterDisp++);
   
   gSPDisplayList(gMasterDisp++, D_BG_PLANET_20112C0);
                 }
-                gSPFillrectBlend(gMasterDisp++);
+//                gSPFillrectBlend(gMasterDisp++);
 
                 Matrix_Pop(&gGfxMatrix);
             }
@@ -5456,7 +5457,7 @@ gSPFillrectBlend(gMasterDisp++);
                              MTXF_APPLY);
                 Matrix_SetGfxMtx(&gMasterDisp);
                 RCP_SetupDL(&gMasterDisp, SETUPDL_49);
-gSPFillrectBlend(gMasterDisp++);
+//gSPFillrectBlend(gMasterDisp++);
 
 //                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
 //                    TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
@@ -5465,7 +5466,7 @@ gSPFillrectBlend(gMasterDisp++);
                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00,  0, 128, 60, 178);
                 gDPSetEnvColor(gMasterDisp++,/*  0,0, */255, 255, 255, 255);
                 gSPDisplayList(gMasterDisp++, D_TI2_7005300);
-gSPFillrectBlend(gMasterDisp++);
+//gSPFillrectBlend(gMasterDisp++);
 
                 Matrix_Pop(&gGfxMatrix);
             }
@@ -5480,17 +5481,17 @@ gSPFillrectBlend(gMasterDisp++);
 
                 Matrix_Scale(gGfxMatrix, 4.0f, 4.0f, 4.0f, MTXF_APPLY);
                 Matrix_SetGfxMtx(&gMasterDisp);
-gSPFillrectBlend(gMasterDisp++);
+//gSPFillrectBlend(gMasterDisp++);
 
                 RCP_SetupDL(&gMasterDisp, SETUPDL_49);
 //                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
   //                    TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
 //gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
   //                         TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
-                gDPSetEnvColor(gMasterDisp++, /*  0,0, */255, 255, 255, 255);
                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00,0,128 ,60 , (s32) ((D_i5_801BBEF0[17] * 89.0f) / 3.0f));
+                gDPSetEnvColor(gMasterDisp++, /*  0,0, */255, 255, 255, 255);
                 gSPDisplayList(gMasterDisp++, D_TI2_7005300);
-gSPFillrectBlend(gMasterDisp++);
+//gSPFillrectBlend(gMasterDisp++);
 
                 Matrix_Pop(&gGfxMatrix);
             }
@@ -5507,15 +5508,15 @@ gSPFillrectBlend(gMasterDisp++);
                 Matrix_Push(&gGfxMatrix);
                 Matrix_Scale(gGfxMatrix, half * sp120, half * sp120, temp_fs2, MTXF_APPLY);
                 Matrix_SetGfxMtx(&gMasterDisp);
-                RCP_SetupDL(&gMasterDisp, SETUPDL_72);
+                RCP_SetupDL(&gMasterDisp, SETUPDL_49/* 72 */);
 //                   gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
   //                    TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-  gSPFillrectBlend(gMasterDisp++);
+//  gSPFillrectBlend(gMasterDisp++);
 
 //gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
   //                         TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
-                gDPSetEnvColor(gMasterDisp++,/* 0,0, */ 255, 255, 255, 255);
                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 0, 128 , 60, 178);
+                gDPSetEnvColor(gMasterDisp++,/* 0,0, */ 255, 255, 255, 255);
                 gSPDisplayList(gMasterDisp++, D_TI_8000D90);
 
                 Matrix_Pop(&gGfxMatrix);
@@ -5527,14 +5528,15 @@ gSPFillrectBlend(gMasterDisp++);
   //                    TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
 //  gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
   //                         TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
-                gDPSetEnvColor(gMasterDisp++,/* 0,0, */ 255, 255, 255, 255);
                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00,  0, 128 ,  110, 64);
+                gDPSetEnvColor(gMasterDisp++,/* 0,0, */ 255, 255, 255, 255);
                 gSPDisplayList(gMasterDisp++, D_TI_8000D90);
-gSPFillrectBlend(gMasterDisp++);
+//gSPFillrectBlend(gMasterDisp++);
 
                 Matrix_RotateY(gCalcMatrix, (boss->fwork[21] - 90.0f) * M_DTOR, MTXF_NEW);
                 Matrix_RotateX(gCalcMatrix, (boss->fwork[22] - 180.0f) * M_DTOR, MTXF_APPLY);
                 Matrix_RotateZ(gCalcMatrix, (boss->fwork[20] + boss->fwork[42]) * M_DTOR, MTXF_APPLY);
+                Matrix_LoadOnly(gCalcMatrix);
 
                 temp_fs0 = boss->obj.pos.x + boss->fwork[17];
                 temp_fs1 = boss->obj.pos.y + boss->fwork[18];
@@ -5548,7 +5550,7 @@ gSPFillrectBlend(gMasterDisp++);
                         spF4.y = D_i5_801B8E24[i][1] * boss->fwork[41];
                         spF4.z = boss->fwork[42];
 
-                        Matrix_MultVec3f(gCalcMatrix, &spF4, &spE8);
+                        Matrix_MultVec3f_NoLoad(/* gCalcMatrix,  */&spF4, &spE8);
 
                         gTexturedLines[temp_v1_28].posAA.x = temp_fs0;
                         gTexturedLines[temp_v1_28].posAA.y = temp_fs1;

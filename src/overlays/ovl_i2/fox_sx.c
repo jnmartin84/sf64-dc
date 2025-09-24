@@ -1184,8 +1184,11 @@ s32 SectorX_SxSpyborg_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, V
             rot->z += boss->fwork[6] + boss->fwork[7];
 
             if ((boss->timer_054 % 2) != 0) {
-                RCP_SetupDL_27();
-                gDPSetPrimColor(gMasterDisp++, 0, 0, 64, 64, 255, 255);
+//                RCP_SetupDL_27();
+         gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+            TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+            gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 255);
+               gDPSetPrimColor(gMasterDisp++, 0, 0, 64, 64, 255, 255);
             }
 
             if (boss->swork[4] == 1) {

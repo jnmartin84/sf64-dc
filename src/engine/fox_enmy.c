@@ -622,6 +622,19 @@ void Object_LoadLevelObjects(void) {
 
     gLastPathChange = 0;
 
+    // jnmartin84 - TITANIA BOSS
+//if (gCurrentLevel == LEVEL_CORNERIA) {
+  //  static ObjectInit aCoLevelObjects_Boss[] =
+//{      { 100.0f,   -6820,   -1449,       0, {  0,  90,   0}, OBJ_BOSS_CO_GRANGA }};
+
+  //  gLevelObjects = aCoLevelObjects_Boss;
+//}
+
+if (gCurrentLevel == LEVEL_TITANIA) {
+    static ObjectInit aTiLevelObjects_Boss[] = { { 300.0f, -1000, 0, 0, { 0, 0, 0 }, OBJ_BOSS_TI_GORAS } };
+    gLevelObjects = aTiLevelObjects_Boss;
+}
+
     for (i = 0, objInit = &gLevelObjects[gObjectLoadIndex]; i < 10000; i++, gObjectLoadIndex++, objInit++) {
         if (objInit->id <= OBJ_INVALID) {
             break;
@@ -1934,12 +1947,15 @@ void func_enmy_80066A8C(CoBuilding9* this) {
     if (this->obj.rot.y > 90.0f) {
         src.x = 120.0f;
     }
-
+    Matrix_RotateY(gCalcMatrix, this->obj.rot.y * M_DTOR, MTXF_NEW);
+    Matrix_RotateX(gCalcMatrix, this->obj.rot.x * M_DTOR, MTXF_APPLY);
+    Matrix_LoadOnly(gCalcMatrix);
+    
     for (yf = 0.0f; yf < 680.0f; yf += 100.0f) {
-        Matrix_RotateY(gCalcMatrix, this->obj.rot.y * M_DTOR, MTXF_NEW);
-        Matrix_RotateX(gCalcMatrix, this->obj.rot.x * M_DTOR, MTXF_APPLY);
+        //Matrix_RotateY(gCalcMatrix, this->obj.rot.y * M_DTOR, MTXF_NEW);
+        //Matrix_RotateX(gCalcMatrix, this->obj.rot.x * M_DTOR, MTXF_APPLY);
         src.y = yf;
-        Matrix_MultVec3fNoTranslate(gCalcMatrix, &src, &dest);
+        Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */ &src, &dest);
         Effect_FireSmoke1_Spawn4(this->obj.pos.x + dest.x, this->obj.pos.y + dest.y, this->obj.pos.z + dest.z, 4.0f);
     }
 }
@@ -1957,10 +1973,10 @@ void func_enmy_80066C00(CoBuilding9* this) {
     }
 
     Matrix_RotateY(gCalcMatrix, this->obj.rot.y * M_DTOR, MTXF_NEW);
-
+    Matrix_LoadOnly(gCalcMatrix);
     for (zf = -180.0f; zf <= 0.0f; zf += 30.0f) {
         src.z = zf;
-        Matrix_MultVec3fNoTranslate(gCalcMatrix, &src, &dest);
+        Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */ &src, &dest);
         Effect_FireSmoke1_Spawn4(this->obj.pos.x + dest.x, this->obj.pos.y + dest.y, this->obj.pos.z + dest.z,
                                  RAND_FLOAT(1.0f) + 2.0f);
     }
@@ -3029,7 +3045,7 @@ void TexturedLine_Update(TexturedLine* this) {
     this->xRot = -Math_Atan2F(dy, shz_sqrtf_fsrra(SQ(dx) + SQ(dz)));
 
     if (this->mode != 4) {
-        this->zScale = shz_sqrtf_fsrra(SQ(dx) + SQ(dy) + SQ(dz));
+        this->zScale = shz_sqrtf_fsrra(shz_mag_sqr4f(dx,dy,dz,0));//(dx) + SQ(dy) + SQ(dz));
     }
 
     if (gGameState == GSTATE_PLAY) {

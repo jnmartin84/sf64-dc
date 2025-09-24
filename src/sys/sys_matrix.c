@@ -88,7 +88,7 @@ void  Matrix_Push(Matrix** mtxStack) {
 void  Matrix_Pop(Matrix** mtxStack) {
     (*mtxStack)--;
 }
-
+#if 0
 static inline void shz_xmtrx_store_4x4_unaligned(float matrix[16]) {
     asm volatile(R"(
         frchg
@@ -202,7 +202,7 @@ static inline void shz_xmtrx_apply_4x4_unaligned(const float matrix[16]) {
     : "r0", "r7", "fr0", "fr1", "fr2", "fr3", "fr4", "fr5", "fr6",
       "fr7", "fr8", "fr9", "fr10", "fr11", "fr12");
 }
-
+#endif
 // Copies tf into mtx (MTXF_NEW) or applies it to mtx (MTXF_APPLY)
 void  Matrix_Mult(Matrix* mtx, Matrix* tf, u8 mode) {
     f32 rx;

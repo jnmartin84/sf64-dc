@@ -322,7 +322,7 @@ void Audio_ProcessNotes(void) {
         }
     }
 }
-
+#define recip256 0.00390625f
 void Audio_SeqLayerDecayRelease(SequenceLayer* layer, s32 arg1) {
     Note* note;
     NoteAttributes* noteAttr;
@@ -379,7 +379,7 @@ void Audio_SeqLayerDecayRelease(SequenceLayer* layer, s32 arg1) {
                         layer->adsr.decayIndex * gAudioBufferParams.ticksPerUpdateInvScaled;
                 }
                 note->playbackState.adsr.sustain =
-                    (s32) layer->channel->adsr.sustain * note->playbackState.adsr.current / 256.0f;
+                    (s32) layer->channel->adsr.sustain * note->playbackState.adsr.current * recip256;// / 256.0f;
             }
         }
         if (arg1 == 6) {
@@ -427,6 +427,7 @@ s32 Audio_BuildSyntheticWave(Note* note, SequenceLayer* layer, s32 waveId) {
     note->noteSubEu.waveSampleAddr = &gWaveSamples[waveId - 128][harmonicIndex * 64];
     return harmonicIndex;
 }
+#define approx_recip(x) (1.0f / sqrtf((x)*(x)))
 
 void Audio_InitSyntheticWave(Note* note, SequenceLayer* layer) {
     s32 harmonicIndex;
@@ -437,9 +438,10 @@ void Audio_InitSyntheticWave(Note* note, SequenceLayer* layer) {
         waveId = layer->channel->instOrWave;
     }
     harmonicIndex = note->playbackState.harmonicIndex;
-    note->synthesisState.samplePosInt =
-        (note->synthesisState.samplePosInt * sSamplesPerWavePeriod[Audio_BuildSyntheticWave(note, layer, waveId)]) /
-        sSamplesPerWavePeriod[harmonicIndex];
+    f32 recipSSPWP = approx_recip((f32)sSamplesPerWavePeriod[harmonicIndex]);
+    note->synthesisState.samplePosInt = (s32)(
+        (f32)(note->synthesisState.samplePosInt * sSamplesPerWavePeriod[Audio_BuildSyntheticWave(note, layer, waveId)]) * recipSSPWP);
+        // / sSamplesPerWavePeriod[harmonicIndex];
 }
 
 void Audio_InitNoteList(AudioListItem* item) {

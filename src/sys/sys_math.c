@@ -10,8 +10,8 @@ s32 sSeededRandSeed1;
 s32 sSeededRandSeed2;
 
 f32 Math_ModF(f32 value, f32 mod) {
-    return fmodf(value, mod);
-//        return value - ((s32) (value / mod) * mod);
+//    return fmodf(value, mod);
+    return value - ((s32) (value / mod) * mod);
 }
 extern volatile OSTime osGetTime(void);
 void Rand_Init(void) {

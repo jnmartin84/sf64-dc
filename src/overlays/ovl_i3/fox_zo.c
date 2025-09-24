@@ -1220,17 +1220,18 @@ void Zoness_ZoTroika_Update(ZoTroika* this) {
                 Matrix_RotateY(gCalcMatrix, this->obj.rot.y * M_DTOR, MTXF_NEW);
                 Matrix_RotateX(gCalcMatrix, this->obj.rot.x * M_DTOR, MTXF_APPLY);
                 Matrix_RotateZ(gCalcMatrix, this->fwork[2] * M_DTOR, MTXF_APPLY);
+                Matrix_LoadOnly(gCalcMatrix);
                 sp70.x = 0.0f;
                 sp70.y = this->fwork[3];
                 sp70.z = 0.0f;
-                Matrix_MultVec3fNoTranslate(gCalcMatrix, &sp70, &sp94);
+                Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */ &sp70, &sp94);
                 sp94.x += this->obj.pos.x;
                 sp94.y += this->obj.pos.y;
                 sp94.z = this->obj.pos.z - 200.0f;
                 sp70.x = 0.0f;
                 sp70.y = 0.0f;
                 sp70.z = 100.0f;
-                Matrix_MultVec3fNoTranslate(gCalcMatrix, &sp70, &sp88);
+                Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix,  */&sp70, &sp88);
                 Effect_SpawnById1(OBJ_EFFECT_BLUE_ORB, &sp94, &sp7C, &sp7C, &sp88, 1.0f);
                 this->fwork[2] += 40.0f;
                 this->fwork[2] = Math_ModF(this->fwork[2], 360.0f);
@@ -1911,16 +1912,18 @@ void Zoness_ZoSarumarine_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* thisx) {
     Vec3f sp20 = { 0.0f, 0.0f, 0.0f };
     f32 var_fv1;
 
+    Matrix_LoadOnly(gCalcMatrix);
+
     switch (limbIndex) {
         case ZO_LIMB_2:
-            Matrix_MultVec3f(gCalcMatrix, &spA4, &spB4);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &spA4, &spB4);
             sZoFwork[ZO_BSF_32_X] = spB4.x;
             sZoFwork[ZO_BSF_32_Y] = spB4.y;
             sZoFwork[ZO_BSF_32_Z] = spB4.z;
             break;
 
         case ZO_LIMB_4:
-            Matrix_MultVec3f(gCalcMatrix, &sp38, &spB4);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &sp38, &spB4);
             sZoFwork[ZO_BSF_99_X] = spB4.x;
             sZoFwork[ZO_BSF_99_Y] = spB4.y;
             sZoFwork[ZO_BSF_99_Z] = spB4.z;
@@ -1931,108 +1934,108 @@ void Zoness_ZoSarumarine_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* thisx) {
             if (sZoFwork[ZO_BSF_4] < 0.0f) {
                 var_fv1 = 1.0f;
             }
-            sp74.z = fabsf(sZoFwork[ZO_BSF_4] / 10.0f) * var_fv1;
-            Matrix_MultVec3f(gCalcMatrix, &sp74, &spB4);
+            sp74.z = fabsf(sZoFwork[ZO_BSF_4] * 0.1f /* / 10.0f */) * var_fv1;
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &sp74, &spB4);
             sZoFwork[ZO_BSF_60_X] = spB4.x;
             sZoFwork[ZO_BSF_60_Y] = spB4.y;
             sZoFwork[ZO_BSF_60_Z] = spB4.z;
             break;
 
         case ZO_LIMB_6:
-            Matrix_MultVec3f(gCalcMatrix, &sp80, &spB4);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &sp80, &spB4);
             sZoFwork[ZO_BSF_52_X] = spB4.x;
             sZoFwork[ZO_BSF_52_Y] = spB4.y;
             sZoFwork[ZO_BSF_52_Z] = spB4.z;
             break;
 
         case ZO_LIMB_7:
-            Matrix_MultVec3f(gCalcMatrix, &sp2C, &spB4);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &sp2C, &spB4);
             sZoFwork[ZO_BSF_106_X] = spB4.x;
             sZoFwork[ZO_BSF_106_Y] = spB4.y;
             sZoFwork[ZO_BSF_106_Z] = spB4.z;
             break;
 
         case ZO_LIMB_8:
-            Matrix_MultVec3f(gCalcMatrix, &sp44, &spB4);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &sp44, &spB4);
             sZoFwork[ZO_BSF_93_X] = spB4.x;
             sZoFwork[ZO_BSF_93_Y] = spB4.y;
             sZoFwork[ZO_BSF_93_Z] = spB4.z;
             break;
 
         case ZO_LIMB_9:
-            Matrix_MultVec3f(gCalcMatrix, &sp44, &spB4);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &sp44, &spB4);
             sZoFwork[ZO_BSF_96_X] = spB4.x;
             sZoFwork[ZO_BSF_96_Y] = spB4.y;
             sZoFwork[ZO_BSF_96_Z] = spB4.z;
             break;
 
         case ZO_LIMB_10:
-            Matrix_MultVec3f(gCalcMatrix, &spA4, &spB4);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &spA4, &spB4);
             sZoFwork[ZO_BSF_29_X] = spB4.x;
             sZoFwork[ZO_BSF_29_Y] = spB4.y;
             sZoFwork[ZO_BSF_29_Z] = spB4.z;
             break;
 
         case ZO_LIMB_11:
-            Matrix_MultVec3f(gCalcMatrix, &sp20, &spB4);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &sp20, &spB4);
             sZoFwork[ZO_BSF_109_X] = spB4.x;
             sZoFwork[ZO_BSF_109_Y] = spB4.y;
             sZoFwork[ZO_BSF_109_Z] = spB4.z;
             break;
 
         case ZO_LIMB_14:
-            Matrix_MultVec3f(gCalcMatrix, &sp80, &spB4);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &sp80, &spB4);
             sZoFwork[ZO_BSF_43_X] = spB4.x;
             sZoFwork[ZO_BSF_43_Y] = spB4.y;
             sZoFwork[ZO_BSF_43_Z] = spB4.z;
             break;
 
         case ZO_LIMB_16:
-            Matrix_MultVec3f(gCalcMatrix, &sp38, &spB4);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &sp38, &spB4);
             sZoFwork[ZO_BSF_102_X] = spB4.x;
             sZoFwork[ZO_BSF_102_Y] = spB4.y;
             sZoFwork[ZO_BSF_102_Z] = spB4.z;
             break;
 
         case ZO_LIMB_22:
-            Matrix_MultVec3f(gCalcMatrix, &sp98, &spB4);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &sp98, &spB4);
             sZoFwork[ZO_BSF_37_X] = spB4.x;
             sZoFwork[ZO_BSF_37_Y] = spB4.y;
             sZoFwork[ZO_BSF_37_Z] = spB4.z;
-            Matrix_MultVec3f(gCalcMatrix, &sp80, &spB4);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &sp80, &spB4);
             sZoFwork[ZO_BSF_46_X] = spB4.x;
             sZoFwork[ZO_BSF_46_Y] = spB4.y;
             sZoFwork[ZO_BSF_46_Z] = spB4.z;
-            Matrix_MultVec3f(gCalcMatrix, &sp5C, &spB4);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &sp5C, &spB4);
             sZoFwork[ZO_BSF_68_X] = spB4.x;
             sZoFwork[ZO_BSF_68_Y] = spB4.y;
             sZoFwork[ZO_BSF_68_Z] = spB4.z;
             break;
 
         case ZO_LIMB_24:
-            Matrix_MultVec3f(gCalcMatrix, &sp8C, &spB4);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &sp8C, &spB4);
             sZoFwork[ZO_BSF_40_X] = spB4.x;
             sZoFwork[ZO_BSF_40_Y] = spB4.y;
             sZoFwork[ZO_BSF_40_Z] = spB4.z;
-            Matrix_MultVec3f(gCalcMatrix, &sp80, &spB4);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &sp80, &spB4);
             sZoFwork[ZO_BSF_49_X] = spB4.x;
             sZoFwork[ZO_BSF_49_Y] = spB4.y;
             sZoFwork[ZO_BSF_49_Z] = spB4.z;
-            Matrix_MultVec3f(gCalcMatrix, &sp50, &spB4);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &sp50, &spB4);
             sZoFwork[ZO_BSF_71_X] = spB4.x;
             sZoFwork[ZO_BSF_71_Y] = spB4.y;
             sZoFwork[ZO_BSF_71_Z] = spB4.z;
             break;
 
         case ZO_LIMB_25:
-            Matrix_MultVec3f(gCalcMatrix, &sp68, &spB4);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &sp68, &spB4);
             sZoFwork[ZO_BSF_65_X] = spB4.x;
             sZoFwork[ZO_BSF_65_Y] = spB4.y;
             sZoFwork[ZO_BSF_65_Z] = spB4.z;
             break;
 
         case ZO_LIMB_36:
-            Matrix_MultVec3f(gCalcMatrix, &sp80, &spB4);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &sp80, &spB4);
             sZoFwork[ZO_BSF_55_X] = spB4.x;
             sZoFwork[ZO_BSF_55_Y] = spB4.y;
             sZoFwork[ZO_BSF_55_Z] = spB4.z;
@@ -2390,8 +2393,8 @@ void Zoness_ZoSarumarine_Update(ZoSarumarine* this) {
                 spE4.x = gPlayer[0].pos.x - sZoFwork[ZO_BSF_93_X];
                 spE4.y = gPlayer[0].pos.y - sZoFwork[ZO_BSF_93_Y];
                 spE4.z = gPlayer[0].trueZpos - sZoFwork[ZO_BSF_93_Z];
-
-                Matrix_MultVec3f(gCalcMatrix, &spE4, &spC0);
+                Matrix_LoadOnly(gCalcMatrix);
+                Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &spE4, &spC0);
 
                 sp10C = Math_Atan2F(spC0.x, spC0.z);
                 sp10C = Math_RadToDeg(sp10C);
@@ -2416,7 +2419,7 @@ void Zoness_ZoSarumarine_Update(ZoSarumarine* this) {
                 spE4.y = gPlayer[0].pos.y - sZoFwork[ZO_BSF_96_Y];
                 spE4.z = gPlayer[0].trueZpos - sZoFwork[ZO_BSF_96_Z];
 
-                Matrix_MultVec3f(gCalcMatrix, &spE4, &spB4);
+                Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &spE4, &spB4);
 
                 sp104 = Math_Atan2F(spB4.x, spB4.z);
                 sp104 = Math_RadToDeg(sp104);
@@ -2741,9 +2744,9 @@ void Zoness_ZoSarumarine_Update(ZoSarumarine* this) {
     if ((this->state >= 3) && (this->state < 6)) {
         Matrix_RotateY(gCalcMatrix, this->obj.rot.y * M_DTOR, MTXF_NEW);
         Matrix_RotateX(gCalcMatrix, this->obj.rot.x * M_DTOR, MTXF_APPLY);
-
-        Matrix_MultVec3f(gCalcMatrix, &spA8, &spD8);
-        Matrix_MultVec3f(gCalcMatrix, &sp9C, &spCC);
+        Matrix_LoadOnly(gCalcMatrix);
+        Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &spA8, &spD8);
+        Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &sp9C, &spCC);
 
         sp78 = spD8;
         sp6C = spCC;
@@ -2754,8 +2757,8 @@ void Zoness_ZoSarumarine_Update(ZoSarumarine* this) {
         spE4.x = gPlayer[0].pos.x - (this->obj.pos.x + spD8.x);
         spE4.y = gPlayer[0].pos.y - (this->obj.pos.y + spD8.y);
         spE4.z = gPlayer[0].trueZpos - (this->obj.pos.z + spD8.z);
-
-        Matrix_MultVec3f(gCalcMatrix, &spE4, &spD8);
+        Matrix_LoadOnly(gCalcMatrix);
+        Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &spE4, &spD8);
 
         sp11C = Math_Atan2F(spD8.x, spD8.z);
         sp11C = Math_RadToDeg(sp11C);
@@ -2767,7 +2770,7 @@ void Zoness_ZoSarumarine_Update(ZoSarumarine* this) {
         spE4.y = gPlayer[0].pos.y - (this->obj.pos.y + spCC.y);
         spE4.z = gPlayer[0].trueZpos - (this->obj.pos.z + spCC.z);
 
-        Matrix_MultVec3f(gCalcMatrix, &spE4, &spCC);
+        Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &spE4, &spCC);
 
         sp114 = Math_Atan2F(spCC.x, spCC.z);
         sp114 = Math_RadToDeg(sp114);
@@ -4060,11 +4063,11 @@ void Zoness_ZoTanker_Init(ZoTanker* actor) {
     actor->scale = -1.0f;
 
     Matrix_RotateY(gCalcMatrix, actor->obj.rot.y * M_DTOR, MTXF_NEW);
-
+    Matrix_LoadOnly(gCalcMatrix);
     tankerVelSrc.x = tankerVelSrc.y = 0.0f;
     tankerVelSrc.z = actor->obj.rot.z;
 
-    Matrix_MultVec3fNoTranslate(gCalcMatrix, &tankerVelSrc, &tankerVelDest);
+    Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */  &tankerVelSrc, &tankerVelDest);
 
     actor->vel.x = tankerVelDest.x;
     actor->vel.z = tankerVelDest.z;
@@ -4080,9 +4083,9 @@ void Zoness_ZoTanker_Init(ZoTanker* actor) {
     for (i = 0, j = 0; (containerIdx < 3) && (i < ARRAY_COUNT(gActors)); i++) {
         if (gActors[i].obj.status == OBJ_FREE) {
             if (actor->state == 0) {
-                Matrix_MultVec3f(gCalcMatrix, &sTankerContainerInitPos[containerIdx], &containerOffsetPos);
+                Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &sTankerContainerInitPos[containerIdx], &containerOffsetPos);
             } else {
-                Matrix_MultVec3f(gCalcMatrix, &sSupplyCraneContainerInitPos[containerIdx], &containerOffsetPos);
+                Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &sSupplyCraneContainerInitPos[containerIdx], &containerOffsetPos);
             }
 
             Actor_Initialize(&gActors[i]);
@@ -4133,14 +4136,14 @@ void Zoness_ZoTanker_Update(ZoTanker* this) {
     Actor* actor;
 
     Matrix_RotateY(gCalcMatrix, this->obj.rot.y * M_DTOR, MTXF_NEW);
-
+    Matrix_LoadOnly(gCalcMatrix);
     switch (this->state) {
         case 0:
             for (i = 1; i < 3; i++) {
                 actor = &gActors[this->iwork[i]];
                 if ((actor->obj.status != OBJ_FREE) && (actor->iwork[1] == this->index) &&
                     (actor->obj.id == OBJ_ACTOR_ZO_CONTAINER)) {
-                    Matrix_MultVec3f(gCalcMatrix, &sTankerContainerInitPos[i], &sp58);
+                    Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &sTankerContainerInitPos[i], &sp58);
                     actor->obj.pos.x = this->obj.pos.x + sp58.x;
                     actor->obj.pos.y = this->obj.pos.y + sp58.y;
                     actor->obj.pos.z = this->obj.pos.z + sp58.z;
@@ -4153,7 +4156,7 @@ void Zoness_ZoTanker_Update(ZoTanker* this) {
                 actor = &gActors[this->iwork[i]];
                 if ((actor->obj.status != OBJ_FREE) && (actor->obj.id == OBJ_ACTOR_ZO_SUPPLYCRANE) &&
                     (actor->iwork[1] == this->index)) {
-                    Matrix_MultVec3f(gCalcMatrix, &sSupplyCraneContainerInitPos[i], &sp58);
+                    Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &sSupplyCraneContainerInitPos[i], &sp58);
                     actor->obj.pos.x = this->obj.pos.x + sp58.x;
                     actor->obj.pos.y = this->obj.pos.y + sp58.y;
                     actor->obj.pos.z = this->obj.pos.z + sp58.z;

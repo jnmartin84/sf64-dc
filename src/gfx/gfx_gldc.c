@@ -111,7 +111,7 @@ static struct SamplerState tmu_state[2];
 static const dc_fast_t* cur_buf = NULL;
 static uint8_t gl_blend = 0;
 static uint8_t gl_depth = 0;
-
+//recip
 static void resample_32bit(const uint16_t* in, int inwidth, int inheight, uint16_t* out, int outwidth, int outheight ) {
     int i, j;
     __builtin_prefetch(in);

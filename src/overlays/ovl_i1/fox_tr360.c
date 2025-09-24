@@ -200,6 +200,8 @@ void Training_SpawnEnemies(void) {
         src.y = 0.0f;
         src.z = -15000.0f;
 
+        Matrix_RotateY(gCalcMatrix, (gGameFrameCount * 6.0f) * M_DTOR, MTXF_NEW);
+        Matrix_LoadOnly(gCalcMatrix);
         for (i = aiTypeIndex, enemy = &gActors[i + 10]; i < 16; i++, enemy++) {
             if (enemy->obj.status == OBJ_FREE) {
                 Actor_Initialize(enemy);
@@ -207,8 +209,9 @@ void Training_SpawnEnemies(void) {
                 enemy->obj.status = OBJ_ACTIVE;
                 enemy->obj.id = OBJ_ACTOR_ALLRANGE;
 
-                Matrix_RotateY(gCalcMatrix, (gGameFrameCount * 6.0f) * M_DTOR, MTXF_NEW);
-                Matrix_MultVec3fNoTranslate(gCalcMatrix, &src, &dest);
+//                Matrix_RotateY(gCalcMatrix, (gGameFrameCount * 6.0f) * M_DTOR, MTXF_NEW);
+//                Matrix_MultVec3fNoTranslate(gCalcMatrix, &src, &dest);
+                Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */ &src, &dest);
 
                 enemy->obj.pos.x = dest.x;
                 enemy->obj.pos.y = 2000.0f;

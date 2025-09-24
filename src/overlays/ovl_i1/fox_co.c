@@ -1176,12 +1176,11 @@ s32 Corneria_CoGranga_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, V
     // Damage indicator
     if (((boss->swork[limbIndex] % 2) != 0) || ((boss->timer_05C % 2) != 0)) {
         RCP_SetupDL_64();
-                    // jnmartin84 ????
-                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                      gDPSetEnvColor(gMasterDisp++, 255-64,255-64,255-255, 255);//255);
-
+        // jnmartin84 ????
         gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 64, 64, 255, 255);
+        gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+            TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+            gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 255);
     }
     return 0;
 }
@@ -1197,8 +1196,10 @@ void Corneria_CoGranga_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* data) {
     Vec3f sp38 = { 70.0f, -170.0f, 11.0f };
     Vec3f sp2C = { 64.0f, 0.0f, -236.0f };
 
+    Matrix_LoadOnly(gCalcMatrix);
+
     if ((limbIndex >= 4) && (limbIndex < 10)) {
-        Matrix_MultVec3f(gCalcMatrix, &sp80, &sp74);
+        Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &sp80, &sp74);
 
         sCoGrangaWork[limbIndex + 16] = sp74.x;
         sCoGrangaWork[limbIndex + 22] = sp74.y;
@@ -1213,47 +1214,47 @@ void Corneria_CoGranga_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* data) {
 
     switch (limbIndex) {
         case 1:
-            Matrix_MultVec3f(gCalcMatrix, &sp68, &sp74);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &sp68, &sp74);
             sCoGrangaWork[GRANGA_WORK_03] = sp74.x;
             sCoGrangaWork[GRANGA_WORK_04] = sp74.y;
             sCoGrangaWork[GRANGA_WORK_05] = sp74.z;
-            Matrix_MultVec3f(gCalcMatrix, &sp5C, &sp74);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &sp5C, &sp74);
             sCoGrangaWork[GRANGA_WORK_00] = sp74.x;
             sCoGrangaWork[GRANGA_WORK_01] = sp74.y;
             sCoGrangaWork[GRANGA_WORK_02] = sp74.z;
             break;
 
         case 2:
-            Matrix_MultVec3f(gCalcMatrix, &sp68, &sp74);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &sp68, &sp74);
             sCoGrangaWork[GRANGA_WORK_09] = sp74.x;
             sCoGrangaWork[GRANGA_WORK_10] = sp74.y;
             sCoGrangaWork[GRANGA_WORK_11] = sp74.z;
-            Matrix_MultVec3f(gCalcMatrix, &sp5C, &sp74);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &sp5C, &sp74);
             sCoGrangaWork[GRANGA_WORK_06] = sp74.x;
             sCoGrangaWork[GRANGA_WORK_07] = sp74.y;
             sCoGrangaWork[GRANGA_WORK_08] = sp74.z;
             break;
 
         case 3:
-            Matrix_MultVec3f(gCalcMatrix, &sp50, &sp74);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &sp50, &sp74);
             sCoGrangaWork[GRANGA_WORK_12] = sp74.x;
             sCoGrangaWork[GRANGA_WORK_13] = sp74.y;
             sCoGrangaWork[GRANGA_WORK_14] = sp74.z;
             break;
 
         case 17:
-            Matrix_MultVec3f(gCalcMatrix, &sp44, &sp74);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &sp44, &sp74);
             sCoGrangaWork[GRANGA_WORK_56] = sp74.x;
             sCoGrangaWork[GRANGA_WORK_57] = sp74.y;
             sCoGrangaWork[GRANGA_WORK_58] = sp74.z;
-            Matrix_MultVec3f(gCalcMatrix, &sp38, &sp74);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &sp38, &sp74);
             sCoGrangaWork[GRANGA_WORK_59] = sp74.x;
             sCoGrangaWork[GRANGA_WORK_60] = sp74.y;
             sCoGrangaWork[GRANGA_WORK_61] = sp74.z;
             break;
 
         case 10:
-            Matrix_MultVec3f(gCalcMatrix, &sp2C, &sp74);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &sp2C, &sp74);
             sCoGrangaWork[GRANGA_WORK_62] = sp74.x;
             sCoGrangaWork[GRANGA_WORK_63] = sp74.y;
             sCoGrangaWork[GRANGA_WORK_64] = sp74.z;
@@ -1810,7 +1811,7 @@ void Corneria_CoCarrier_Update(CoCarrier* this) {
     Matrix_RotateY(gCalcMatrix, this->obj.rot.y * M_DTOR, MTXF_NEW);
     Matrix_RotateX(gCalcMatrix, this->obj.rot.x * M_DTOR, MTXF_APPLY);
     Matrix_RotateZ(gCalcMatrix, this->obj.rot.z * M_DTOR, MTXF_APPLY);
-
+    Matrix_LoadOnly(gCalcMatrix);
     if (!sFightCarrier) {
         if (this->obj.pos.x > 6000.0f) {
             Object_Kill(&this->obj, this->sfxSource);
@@ -1824,7 +1825,7 @@ void Corneria_CoCarrier_Update(CoCarrier* this) {
         src.y = 0.0f;
         src.z = 60.0f;
 
-        Matrix_MultVec3f(gCalcMatrix, &src, &dest);
+        Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &src, &dest);
 
         this->vel.x = dest.x;
         this->vel.y = dest.y;
@@ -1833,9 +1834,9 @@ void Corneria_CoCarrier_Update(CoCarrier* this) {
         this->fwork[16] = 4.0f;
 
         if ((gGameFrameCount % 2) == 0) {
-            Matrix_MultVec3f(gCalcMatrix, &D_i1_80199914[0], &sp84[6]);
-            Matrix_MultVec3f(gCalcMatrix, &D_i1_80199914[1], &sp84[7]);
-            Matrix_MultVec3f(gCalcMatrix, &D_i1_8019992C, &sp84[8]);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &D_i1_80199914[0], &sp84[6]);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &D_i1_80199914[1], &sp84[7]);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &D_i1_8019992C, &sp84[8]);
             Effect_Effect362_Spawn(sp84[6].x + this->obj.pos.x, sp84[6].y + this->obj.pos.y,
                                    sp84[6].z + this->obj.pos.z, 20.0f);
             Effect_Effect362_Spawn(sp84[7].x + this->obj.pos.x, sp84[7].y + this->obj.pos.y,
@@ -1851,9 +1852,9 @@ void Corneria_CoCarrier_Update(CoCarrier* this) {
             gLight2BTarget = 20;
             gPlayer[0].shadowing = 100;
         }
-        Matrix_MultVec3f(gCalcMatrix, &D_i1_801998CC, &sp84[0]);
-        Matrix_MultVec3f(gCalcMatrix, &D_i1_801998D8, &sp84[1]);
-        Matrix_MultVec3f(gCalcMatrix, &D_i1_801998E4, &sp84[2]);
+        Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &D_i1_801998CC, &sp84[0]);
+        Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &D_i1_801998D8, &sp84[1]);
+        Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &D_i1_801998E4, &sp84[2]);
 
         if (this->health != 601) {
             k = this->health - 601;
@@ -1866,7 +1867,7 @@ void Corneria_CoCarrier_Update(CoCarrier* this) {
 
             for (j = 0, k = 13; j < i; j++, k++) {
                 if ((gGameFrameCount % 16U) == (j % 16U)) {
-                    Matrix_MultVec3f(gCalcMatrix, &D_i1_8019995C[j], &sp84[k]);
+                    Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &D_i1_8019995C[j], &sp84[k]);
                     Effect_FireSmoke1_Spawn4(sp84[k].x + this->obj.pos.x, sp84[k].y + this->obj.pos.y,
                                              sp84[k].z + this->obj.pos.z, this->fwork[17]);
                     Effect_Effect390_Spawn(sp84[k].x + this->obj.pos.x, sp84[k].y + this->obj.pos.y,
@@ -1922,7 +1923,7 @@ void Corneria_CoCarrier_Update(CoCarrier* this) {
         }
 
         if ((gBosses[CARRIER_LEFT].state != 0) && ((gGameFrameCount % 16) == 0)) {
-            Matrix_MultVec3f(gCalcMatrix, &D_i1_80199908, &sp84[5]);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &D_i1_80199908, &sp84[5]);
             Effect_FireSmoke1_Spawn4(gBosses[CARRIER].obj.pos.x + sp84[5].x, gBosses[CARRIER].obj.pos.y + sp84[5].y,
                                      gBosses[CARRIER].obj.pos.z + sp84[5].z, 5.0f);
         }
@@ -1931,13 +1932,13 @@ void Corneria_CoCarrier_Update(CoCarrier* this) {
             gBosses[CARRIER_BOTTOM].drawShadow = true;
             if (gBosses[CARRIER_BOTTOM].state != 0) {
                 if ((gGameFrameCount % 8) == 0) {
-                    Matrix_MultVec3f(gCalcMatrix, &D_i1_80199950, &sp84[11]);
+                    Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &D_i1_80199950, &sp84[11]);
                     Effect_FireSmoke1_Spawn4(gBosses[CARRIER].obj.pos.x + sp84[11].x,
                                              gBosses[CARRIER].obj.pos.y + sp84[11].y,
                                              gBosses[CARRIER].obj.pos.z + sp84[11].z, 7.0f);
                 }
             } else if ((gGameFrameCount % 16) == 0) {
-                Matrix_MultVec3f(gCalcMatrix, &D_i1_80199938, &sp84[9]);
+                Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &D_i1_80199938, &sp84[9]);
                 Effect_FireSmoke1_Spawn4(gBosses[CARRIER].obj.pos.x + sp84[9].x, gBosses[CARRIER].obj.pos.y + sp84[9].y,
                                          gBosses[CARRIER].obj.pos.z + sp84[9].z, 5.0f);
             }
@@ -1945,15 +1946,15 @@ void Corneria_CoCarrier_Update(CoCarrier* this) {
 
         if ((gBosses[CARRIER_BOTTOM].state != 0) && (gBosses[CARRIER_UPPER].state == 0) &&
             ((gGameFrameCount % 16) == 0)) {
-            Matrix_MultVec3f(gCalcMatrix, &D_i1_80199944, &sp84[10]);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &D_i1_80199944, &sp84[10]);
             Effect_FireSmoke1_Spawn4(gBosses[CARRIER].obj.pos.x + sp84[10].x, gBosses[CARRIER].obj.pos.y + sp84[10].y,
                                      gBosses[CARRIER].obj.pos.z + sp84[10].z, 5.0f);
         }
 
         if (((this->state == CARRIER_STATE_1) || (this->state == CARRIER_STATE_2)) && ((gGameFrameCount % 8) == 0)) {
-            Matrix_MultVec3f(gCalcMatrix, &D_i1_80199914[0], &sp84[6]);
-            Matrix_MultVec3f(gCalcMatrix, &D_i1_80199914[1], &sp84[7]);
-            Matrix_MultVec3f(gCalcMatrix, &D_i1_8019992C, &sp84[8]);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &D_i1_80199914[0], &sp84[6]);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &D_i1_80199914[1], &sp84[7]);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &D_i1_8019992C, &sp84[8]);
 
             Effect_Effect362_Spawn(sp84[6].x + this->obj.pos.x, sp84[6].y + this->obj.pos.y,
                                    sp84[6].z + this->obj.pos.z, 20.0f);
@@ -2150,7 +2151,7 @@ void Corneria_CoCarrier_Update(CoCarrier* this) {
 
                         if ((gGameFrameCount % 8) == 0) {
                             if (fabsf(this->obj.pos.z - gPlayer[0].trueZpos) > 700.0f) {
-                                Matrix_MultVec3f(gCalcMatrix, &D_i1_801998F0[0], &sp84[3]);
+                                Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &D_i1_801998F0[0], &sp84[3]);
 
                                 for (effect398 = &gEffects[0], i = 0; i < ARRAY_COUNT(gEffects); i++, effect398++) {
                                     if (effect398->obj.status == OBJ_FREE) {
@@ -2212,7 +2213,7 @@ void Corneria_CoCarrier_Update(CoCarrier* this) {
                     src.y = 0.0f;
                     src.z = 40.0f;
 
-                    Matrix_MultVec3f(gCalcMatrix, &src, &dest);
+                    Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &src, &dest);
 
                     this->vel.x = dest.x;
                     this->vel.y = dest.y;
@@ -2264,7 +2265,7 @@ void Corneria_CoCarrier_Update(CoCarrier* this) {
                         src.x = 0.0f;
                         src.y = 0.0f;
                         src.z = 20.0f;
-                        Matrix_MultVec3f(gCalcMatrix, &src, &dest);
+                        Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &src, &dest);
                         this->vel.x = dest.x;
                         this->vel.y = dest.y;
                         this->vel.z = dest.z - gPathVelZ;
@@ -3450,6 +3451,7 @@ void Corneria_CsLevelComplete1_TeamSetup(ActorCutscene* this, s32 index) {
     Player* player = &gPlayer[0];
 
     Matrix_RotateY(gCalcMatrix, player->rot.y * M_DTOR, MTXF_NEW);
+    Matrix_LoadOnly(gCalcMatrix);
     sp5C.x = D_i1_80199AE4[index];
     sp5C.y = D_i1_80199AF0[index];
     sp5C.z = D_i1_80199AFC[index];
@@ -3458,8 +3460,8 @@ void Corneria_CsLevelComplete1_TeamSetup(ActorCutscene* this, s32 index) {
     sp44.y = D_i1_80199B14[index];
     sp44.z = D_i1_80199B20[index];
 
-    Matrix_MultVec3fNoTranslate(gCalcMatrix, &sp5C, &sp50);
-    Matrix_MultVec3fNoTranslate(gCalcMatrix, &sp44, &sp38);
+    Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */  &sp5C, &sp50);
+    Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */  &sp44, &sp38);
 
     Actor_Initialize(this);
 

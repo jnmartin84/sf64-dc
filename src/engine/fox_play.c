@@ -1181,7 +1181,7 @@ s32 Player_CheckHitboxCollision(Player* player, f32* hitboxData, s32* index, f32
                 Matrix_RotateX(gCalcMatrix, -arg9 * M_DTOR, MTXF_APPLY);
                 Matrix_RotateY(gCalcMatrix, -argA * M_DTOR, MTXF_APPLY);
             }
-
+            Matrix_LoadOnly(gCalcMatrix);
             if ((yRot == 0.0f) && (zRot == 0.0f) && (xRot == 0.0f) && !spA0) {
                 var_fv0 = player->hit3.x;
                 var_fv1 = player->hit3.y;
@@ -1190,7 +1190,7 @@ s32 Player_CheckHitboxCollision(Player* player, f32* hitboxData, s32* index, f32
                 sp94.x = player->hit3.x - xPos;
                 sp94.y = player->hit3.y - yPos;
                 sp94.z = player->hit3.z - zPos;
-                Matrix_MultVec3fNoTranslate(gCalcMatrix, &sp94, &sp88);
+                Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */  &sp94, &sp88);
                 var_fv0 = sp88.x + xPos;
                 var_fv1 = sp88.y + yPos;
                 var_fa0 = sp88.z + zPos;
@@ -1216,7 +1216,7 @@ s32 Player_CheckHitboxCollision(Player* player, f32* hitboxData, s32* index, f32
                     sp94.x = player->hit4.x - xPos;
                     sp94.y = player->hit4.y - yPos;
                     sp94.z = player->hit4.z - zPos;
-                    Matrix_MultVec3fNoTranslate(gCalcMatrix, &sp94, &sp88);
+                    Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */  &sp94, &sp88);
                     var_fv0 = sp88.x + xPos;
                     var_fv1 = sp88.y + yPos;
                     var_fa0 = sp88.z + zPos;
@@ -1235,7 +1235,7 @@ s32 Player_CheckHitboxCollision(Player* player, f32* hitboxData, s32* index, f32
                     sp94.x = player->hit1.x - xPos;
                     sp94.y = player->hit1.y - yPos;
                     sp94.z = player->hit1.z - zPos;
-                    Matrix_MultVec3fNoTranslate(gCalcMatrix, &sp94, &sp88);
+                    Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */  &sp94, &sp88);
                     var_fv0 = sp88.x + xPos;
                     var_fv1 = sp88.y + yPos;
                     var_fa0 = sp88.z + zPos;
@@ -1254,7 +1254,7 @@ s32 Player_CheckHitboxCollision(Player* player, f32* hitboxData, s32* index, f32
                     sp94.x = player->hit2.x - xPos;
                     sp94.y = player->hit2.y - yPos;
                     sp94.z = player->hit2.z - zPos;
-                    Matrix_MultVec3fNoTranslate(gCalcMatrix, &sp94, &sp88);
+                    Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */  &sp94, &sp88);
                     var_fv0 = sp88.x + xPos;
                     var_fv1 = sp88.y + yPos;
                     var_fa0 = sp88.z + zPos;
@@ -1658,7 +1658,7 @@ void Player_UpdateHitbox(Player* player) {
         Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &sp3C, &player->hit4);
     }
 }
-
+#include "sh4zam.h"
 void Player_CollisionCheck(Player* player) {
     s32 i;
     s32 j;
@@ -1740,7 +1740,7 @@ void Player_CollisionCheck(Player* player) {
                     spC8.x = scenery360->obj.pos.x - player->pos.x;
                     spC8.z = scenery360->obj.pos.z - player->trueZpos;
 
-                    if (sqrtf(SQ(spC8.x) + SQ(spC8.z)) < sp8C) {
+                    if (shz_sqrtf_fsrra(SQ(spC8.x) + SQ(spC8.z)) < sp8C) {
                         if ((scenery360->obj.id == OBJ_SCENERY_AQ_CORAL_REEF_1) ||
                             (scenery360->obj.id == OBJ_SCENERY_VS_KA_FLBASE) ||
                             (scenery360->obj.id == OBJ_SCENERY_VS_PYRAMID_2) ||
@@ -1869,7 +1869,7 @@ void Player_CollisionCheck(Player* player) {
                         (scenery->obj.id == OBJ_SCENERY_CO_BUMP_2) || (scenery->obj.id == OBJ_SCENERY_CO_BUMP_3)) {
                         spC8.x = scenery->obj.pos.x - player->pos.x;
                         spC8.z = scenery->obj.pos.z - player->trueZpos;
-                        if (sqrtf(SQ(spC8.x) + SQ(spC8.z)) < 1100.0f) {
+                        if (shz_sqrtf_fsrra(SQ(spC8.x) + SQ(spC8.z)) < 1100.0f) {
                             temp_v0 = Player_CheckPolyCollision(
                                 player, scenery->obj.id, scenery->obj.pos.x, scenery->obj.pos.y, scenery->obj.pos.z,
                                 scenery->obj.rot.x, scenery->obj.rot.y, scenery->obj.rot.z);
@@ -2406,11 +2406,12 @@ void Player_FloorCheck(Player* player) {
                     (scenery->obj.id == OBJ_SCENERY_ZO_ISLAND) || (scenery->obj.id == OBJ_SCENERY_CO_BUMP_4) ||
                     (scenery->obj.id == OBJ_SCENERY_CO_BUMP_5)) {
                     Matrix_RotateY(gCalcMatrix, -sp120 * M_DTOR, MTXF_NEW);
+                    Matrix_LoadOnly(gCalcMatrix);
                     for (var_fs1 = var_fs0 = -50.0f; var_fs0 > -500.0f; var_fs0 -= 5.0f, var_fs1 -= 5.0f) {
                         spEC.x = player->pos.x - tempx;
                         spEC.y = player->pos.y + var_fs0 - tempy;
                         spEC.z = player->trueZpos + var_fs1 - tempz;
-                        Matrix_MultVec3fNoTranslate(gCalcMatrix, &spEC, &spE0);
+                        Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */  &spEC, &spE0);
                         if ((player->pos.y + var_fs0) <= gGroundHeight) {
                             break;
                         }
@@ -2468,12 +2469,13 @@ void Player_FloorCheck(Player* player) {
                             } else {
                                 Matrix_RotateY(gCalcMatrix, -sp120 * M_DTOR, MTXF_NEW);
                             }
+                            Matrix_LoadOnly(gCalcMatrix);
                             hitbox = (Hitbox*) hitboxData;
                             for (var_fs0 = var_fs1 = -50.0f; var_fs0 > -500.0f; var_fs0 -= 5.0f, var_fs1 -= 5.0f) {
                                 spEC.x = player->pos.x - tempx;
                                 spEC.y = player->pos.y + var_fs0 - tempy;
                                 spEC.z = player->trueZpos + var_fs1 - tempz;
-                                Matrix_MultVec3fNoTranslate(gCalcMatrix, &spEC, &spE0);
+                                Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */  &spEC, &spE0);
                                 tempx2 = spE0.x + tempx;
                                 tempy2 = spE0.y + tempy;
                                 tempz2 = spE0.z + tempz;
@@ -2895,7 +2897,7 @@ void Player_SetupArwingShot(Player* player, PlayerShot* shot, f32 arg2, f32 arg3
     Matrix_RotateZ(gCalcMatrix, -((player->bankAngle + player->rockAngle) * M_DTOR), MTXF_APPLY);
 
     Matrix_Translate(gCalcMatrix, player->xShake, player->yBob, 0.0f, MTXF_APPLY);
-
+    Matrix_LoadOnly(gCalcMatrix);
     if (gVersusMode && (shotId <= PLAYERSHOT_TWIN_LASER)) {
         speed *= 0.5f;
     }
@@ -2904,13 +2906,13 @@ void Player_SetupArwingShot(Player* player, PlayerShot* shot, f32 arg2, f32 arg3
     sp44.y = 0.0f;
     sp44.z = speed;
 
-    Matrix_MultVec3f(gCalcMatrix, &sp44, &sp38);
+    Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &sp44, &sp38);
 
     sp44.x = arg2;
     sp44.y = -5.0f + arg3;
     sp44.z = 0.0f;
 
-    Matrix_MultVec3f(gCalcMatrix, &sp44, &sp2C);
+    Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &sp44, &sp2C);
 
     shot->obj.status = SHOT_ACTIVE;
     shot->vel.x = sp38.x;
@@ -3934,13 +3936,14 @@ void Player_MoveArwingOnRails(Player* player) {
 
     Matrix_RotateY(gCalcMatrix, player->yRot_114 * M_DTOR, MTXF_NEW);
     Matrix_RotateX(gCalcMatrix, player->xRot_120 * M_DTOR, MTXF_APPLY);
-    Matrix_MultVec3fNoTranslate(gCalcMatrix, &sp44, &sp5C);
+    Matrix_LoadOnly(gCalcMatrix);
+    Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */  &sp44, &sp5C);
 
     sp68.x = 0.0f;
     sp68.y = 0.0f;
     sp68.z = -player->boostSpeed;
 
-    Matrix_MultVec3fNoTranslate(gCalcMatrix, &sp68, &sp50);
+    Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */  &sp68, &sp50);
 
     player->vel.x = (sp5C.x + sp50.x) * player->unk_150;
     player->vel.y = (sp5C.y + sp50.y) * player->unk_150;
@@ -3953,7 +3956,7 @@ void Player_MoveArwingOnRails(Player* player) {
     sp68.y = 0.0f;
     sp68.z = -player->boostSpeed;
 
-    Matrix_MultVec3fNoTranslate(gCalcMatrix, &sp68, &sp50);
+    Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */  &sp68, &sp50);
 
     if (player->arwing.rightWingState <= WINGSTATE_BROKEN) {
         player->vel.x += 2.5f;
@@ -4077,14 +4080,14 @@ void Player_MoveTank360(Player* player) {
     Matrix_RotateX(gCalcMatrix, player->rot_104.x * M_DTOR, MTXF_NEW);
     Matrix_RotateZ(gCalcMatrix, player->rot_104.z * M_DTOR, MTXF_APPLY);
     Matrix_RotateY(gCalcMatrix, (player->yRot_114 + player->rot.y + 180.0f) * M_DTOR, MTXF_APPLY);
-
+    Matrix_LoadOnly(gCalcMatrix);
     sp44.x = 0.0f;
     sp44.y = 0.0f;
     sp44.z = player->baseSpeed;
     sp44.z -= fabsf((player->unk_184 * 0.4f * player->baseSpeed) / 15.0f);
     sp44.z += SIN_DEG(player->unk_000) * player->boostSpeed;
 
-    Matrix_MultVec3fNoTranslate(gCalcMatrix, &sp44, &sp38);
+    Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */  &sp44, &sp38);
 
     player->vel.x = sp38.x;
     player->vel.z = sp38.z;
@@ -4113,7 +4116,7 @@ void Player_MoveTank360(Player* player) {
     sp44.y = 0;
     sp44.z = 0;
 
-    Matrix_MultVec3fNoTranslate(gCalcMatrix, &sp44, &sp38);
+    Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */  &sp44, &sp38);
 
     player->pos.x += sp38.x;
     player->pos.z += sp38.z;
@@ -6273,7 +6276,7 @@ void Camera_UpdateArwing360(Player* player, bool arg1) {
 
     Matrix_RotateY(gCalcMatrix, (player->yRot_114 + (player->damageShake * 0.2f)) * M_DTOR, MTXF_NEW);
     Matrix_RotateX(gCalcMatrix, player->damageShake * 0.2f * M_DTOR, MTXF_APPLY);
-
+    Matrix_LoadOnly(gCalcMatrix);
     sp74.x = 0.0f;
     sp74.y = 0.0f;
     if (player->alternateView) {
@@ -6286,7 +6289,7 @@ void Camera_UpdateArwing360(Player* player, bool arg1) {
         sp74.z += 500.0f;
     }
 
-    Matrix_MultVec3fNoTranslate(gCalcMatrix, &sp74, &sp68);
+    Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */ &sp74, &sp68);
 
     if (!gVersusMode) {
         var_fv0 = -gInputPress->stick_y;
@@ -6318,7 +6321,7 @@ void Camera_UpdateArwing360(Player* player, bool arg1) {
     sp74.y = 0.0f;
     sp74.z = 0.f;
 
-    Matrix_MultVec3fNoTranslate(gCalcMatrix, &sp74, &sp68);
+    Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */  &sp74, &sp68);
 
     eyeX += sp68.x;
     eyeZ += sp68.z;
@@ -6360,7 +6363,7 @@ void Camera_UpdateTank360(Player* player, s32 arg1) {
     Matrix_RotateZ(gCalcMatrix, player->rot.z * M_DTOR, MTXF_APPLY);
     Matrix_RotateY(gCalcMatrix, (player->yRot_114 + (player->damageShake * 0.2f)) * M_DTOR, MTXF_APPLY);
     Matrix_RotateX(gCalcMatrix, player->damageShake * 0.2f * M_DTOR, MTXF_APPLY);
-
+    Matrix_LoadOnly(gCalcMatrix);
     sp54.x = 0.0f;
     if (player->alternateView) {
         sp54.y = 150.0f;
@@ -6370,7 +6373,7 @@ void Camera_UpdateTank360(Player* player, s32 arg1) {
         sp54.z = 250.0f - player->camDist;
     }
 
-    Matrix_MultVec3fNoTranslate(gCalcMatrix, &sp54, &sp48);
+    Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */  &sp54, &sp48);
 
     if (player->alternateView) {
         Math_SmoothStepToF(&player->unk_02C, -player->unk_17C * 3.0f + 30.0f, 0.2f, 8.0f, 0.001f);
@@ -6392,7 +6395,7 @@ void Camera_UpdateTank360(Player* player, s32 arg1) {
     sp54.y = 0.0f;
     sp54.z = 0.0f;
 
-    Matrix_MultVec3fNoTranslate(gCalcMatrix, &sp54, &sp48);
+    Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */  &sp54, &sp48);
 
     sp44 += sp48.x;
     sp3C += sp48.z;
@@ -6421,12 +6424,12 @@ void Camera_UpdateOnFoot360(Player* player, s32 arg1) {
     Matrix_RotateZ(gCalcMatrix, player->zRot_0FC * M_DTOR, MTXF_APPLY);
     Matrix_RotateY(gCalcMatrix, (player->yRot_114 + (player->damageShake * 0.02f)) * M_DTOR, MTXF_APPLY);
     Matrix_RotateX(gCalcMatrix, player->damageShake * 0.02f * M_DTOR, MTXF_APPLY);
-
+    Matrix_LoadOnly(gCalcMatrix);
     sp64.x = 0.0f;
     sp64.y = 20.0f;
     sp64.z = 60.0f - player->camDist;
 
-    Matrix_MultVec3fNoTranslate(gCalcMatrix, &sp64, &sp58);
+    Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */  &sp64, &sp58);
     Math_SmoothStepToF(&player->unk_02C, -player->unk_158 * 0.5f, 0.07f, 3.0f, 0.001f);
 
     sp4C.x = player->pos.x + sp58.x;
@@ -6444,7 +6447,7 @@ void Camera_UpdateOnFoot360(Player* player, s32 arg1) {
     sp64.y = 0.0f;
     sp64.z = 0.0f;
 
-    Matrix_MultVec3fNoTranslate(gCalcMatrix, &sp64, &sp58);
+    Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */  &sp64, &sp58);
 
     sp4C.x += sp58.x;
     sp4C.z += sp58.z;
@@ -6472,10 +6475,9 @@ void Camera_SetStarfieldPos(f32 xEye, f32 yEye, f32 zEye, f32 xAt, f32 yAt, f32 
     f32 yaw;
     f32 tempf;
     f32 sp20;
-//printf("%s\n",__func__);
 
     yaw = -Math_Atan2F(xEye - xAt, zEye - zAt);
-    tempf = sqrtf(SQ(zEye - zAt) + SQ(xEye - xAt));
+    tempf = shz_sqrtf_fsrra(SQ(zEye - zAt) + SQ(xEye - xAt));
     pitch = -Math_Atan2F(yEye - yAt, tempf);
     if (yaw >= F_PI / 2) {
         yaw -= F_PI;

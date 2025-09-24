@@ -1941,7 +1941,8 @@ void PlayerShot_ApplyExplosionDamage(PlayerShot* shot, s32 damage) {
             dx = scenery->obj.pos.x - shot->obj.pos.x;
             dy = scenery->obj.pos.y - shot->obj.pos.y;
             dz = scenery->obj.pos.z - shot->obj.pos.z;
-            if (shz_sqrtf_fsrra(SQ(dx) + SQ(dy) + SQ(dz)) < radius) {
+            if (shz_sqrtf_fsrra(shz_mag_sqr4f(dx,dy,dz,0)) 
+                /* SQ(dx) + SQ(dy) + SQ(dz) */ < radius) {
                 scenery->dmgType = DMG_EXPLOSION;
             }
             scenery->dmgPart = 0;
@@ -1956,7 +1957,8 @@ void PlayerShot_ApplyExplosionDamage(PlayerShot* shot, s32 damage) {
             dx = sprite->obj.pos.x - shot->obj.pos.x;
             dy = sprite->obj.pos.y - shot->obj.pos.y;
             dz = sprite->obj.pos.z - shot->obj.pos.z;
-            if (shz_sqrtf_fsrra(SQ(dx) + SQ(dy) + SQ(dz)) < radius) {
+            if (shz_sqrtf_fsrra(shz_mag_sqr4f(dx,dy,dz,0)) < radius) {
+                //SQ(dx) + SQ(dy) + SQ(dz)) < radius) {
                 sprite->destroy = true;
             }
         }
@@ -1980,7 +1982,7 @@ void PlayerShot_ApplyExplosionDamage(PlayerShot* shot, s32 damage) {
             actor->hitPos.y = shot->obj.pos.y;
             actor->hitPos.z = shot->obj.pos.z;
 
-            if (shz_sqrtf_fsrra(SQ(dx) + SQ(dy) + SQ(dz)) < radius) {
+            if (shz_sqrtf_fsrra(/* SQ(dx) + SQ(dy) + SQ(dz) */shz_mag_sqr4f(dx,dy,dz,0)) < radius) {
                 if ((actor->obj.id == OBJ_ACTOR_CO_RADAR) || (actor->obj.id == OBJ_ACTOR_ME_LASER_CANNON_1) ||
                     (actor->obj.id == OBJ_ACTOR_MISSILE_SEEK_TEAM) || (actor->obj.id == OBJ_ACTOR_ME_HOPBOT) ||
                     (actor->obj.id == OBJ_ACTOR_ME_METEO_BALL) || (actor->obj.id == OBJ_ACTOR_ME_LASER_CANNON_2) ||
@@ -2035,7 +2037,7 @@ void PlayerShot_ApplyExplosionDamage(PlayerShot* shot, s32 damage) {
             dx = effect->obj.pos.x - shot->obj.pos.x;
             dy = effect->obj.pos.y - shot->obj.pos.y;
             dz = effect->obj.pos.z - shot->obj.pos.z;
-            if (shz_sqrtf_fsrra(SQ(dx) + SQ(dy) + SQ(dz)) < radius) {
+            if (shz_sqrtf_fsrra(/* SQ(dx) + SQ(dy) + SQ(dz) */shz_mag_sqr4f(dx,dy,dz,0)) < radius) {
                 if (effect->info.unk_16 == 0) {
                     Object_Kill(&effect->obj, effect->sfxSource);
                 }
@@ -2064,7 +2066,7 @@ void PlayerShot_ApplyExplosionDamage(PlayerShot* shot, s32 damage) {
                 dx = player->pos.x - shot->obj.pos.x;
                 dy = player->pos.y - shot->obj.pos.y;
                 dz = player->trueZpos - shot->obj.pos.z;
-                if (shz_sqrtf_fsrra(SQ(dx) + SQ(dy) + SQ(dz)) < radius) {
+                if (shz_sqrtf_fsrra(/* SQ(dx) + SQ(dy) + SQ(dz) */shz_mag_sqr4f(dx,dy,dz,0)) < radius) {
                     player->attacker = shot->sourceId + 1;
                     switch (player->form) {
                         case FORM_ARWING:

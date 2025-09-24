@@ -25,29 +25,30 @@ extern char *fnpre;
 extern u8 *SEG_BUF[15];
 
 
+char segfiles[16][32] = {0};
+
 u8 seg_used[15] = {0};
 
 void Load_RomFile(char *fname, int snum) {
     gSegments[snum] = SEG_BUF[snum - 1];
-//    memset(SEG_BUF[snum - 1], 0, sizeof(*SEG_BUF[snum-1]));
     if (strcmp("",fname)) { 
-        char fullfn[256];
-        seg_used[snum-1] = 1;
-        // dest is always SEG_BUF[snum - 1]
-        sprintf(fullfn, "%s/sf_data/%s.bin", fnpre, fname);
-        file_t rom_file = fs_open(fullfn, O_RDONLY);
-        if ((file_t)-1 == rom_file) {
-            printf("Could not open %s for reading.\n", fullfn);
-            exit(-1);
+        if (strcmp(segfiles[snum], fname)) {
+            strcpy(segfiles[snum],fname);
+            char fullfn[256];
+            seg_used[snum-1] = 1;
+            // dest is always SEG_BUF[snum - 1]
+            sprintf(fullfn, "%s/sf_data/%s.bin", fnpre, fname);
+            file_t rom_file = fs_open(fullfn, O_RDONLY);
+            if ((file_t)-1 == rom_file) {
+                printf("Could not open %s for reading.\n", fullfn);
+                exit(-1);
+            }
+            size_t rom_file_size = fs_seek(rom_file, 0, SEEK_END);
+            fs_seek(rom_file, 0, SEEK_SET);
+            fs_read(rom_file, SEG_BUF[snum - 1], rom_file_size);
+            fs_close(rom_file);
         }
-        size_t rom_file_size = fs_seek(rom_file, 0, SEEK_END);
-        fs_seek(rom_file, 0, SEEK_SET);
-        fs_read(rom_file, SEG_BUF[snum - 1], rom_file_size);
-        fs_close(rom_file);
-        //printf("loaded %s (%d bytes) to SEG_BUF[%d] (%08x)\n", fullfn, rom_file_size, snum - 1, SEG_BUF[snum - 1]);
     }  else {
-      //  gSegments[snum] = SEG_BUF[snum - 1];
-        //memset(SEG_BUF[snum - 1], 0, sizeof(*SEG_BUF[snum-1]));
         seg_used[snum-1] = 0;
     } 
 }

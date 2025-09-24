@@ -40,12 +40,13 @@ void func_tank_80043280(u16* text0, u16* text1, f32 zRot) {
     text0 = SEGMENTED_TO_VIRTUAL(text0);
     text1 = SEGMENTED_TO_VIRTUAL(text1);
     Matrix_RotateZ(gCalcMatrix, M_DTOR * zRot, MTXF_NEW);
+    Matrix_LoadOnly(gCalcMatrix);
     sp74.z = 0.0f;
     for (i = 0, dy = 0.0f; i < 32; i++, dy += 1.0f) {
         for (j = 0, dx = 0.0f; j < 32; j++, dx += 1.0f) {
             sp74.x = dx - 16.0f;
             sp74.y = dy - 16.0f;
-            Matrix_MultVec3f(gCalcMatrix, &sp74, &sp80);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &sp74, &sp80);
             px = (s32) (sp80.x + 16.0f);
             py = (s32) (sp80.y + 16.0f);
             if ((px >= 0) && (px < 32) && (py >= 0) && (py < 32)) {
@@ -923,14 +924,15 @@ void func_tank_8004641C(Player* player, s32 arg1, f32 arg2, f32 arg3, f32 arg4, 
     Vec3f sp4C;
 
     Matrix_RotateY(gCalcMatrix, -arg6 * M_DTOR, MTXF_NEW);
+    Matrix_LoadOnly(gCalcMatrix);
     sp70.x = player->vel.x;
     sp70.y = player->vel.y;
     sp70.z = player->vel.z;
-    Matrix_MultVec3fNoTranslate(gCalcMatrix, &sp70, &sp4C);
+    Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */  &sp70, &sp4C);
     sp70.x = player->pos.x - arg2;
     sp70.y = player->pos.y - arg3;
     sp70.z = player->trueZpos - arg4;
-    Matrix_MultVec3fNoTranslate(gCalcMatrix, &sp70, &sp64);
+    Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */  &sp70, &sp64);
     sp84 = sp64.x + arg2;
     sp80 = sp64.y + arg3;
     sp7C = sp64.z + arg4;
@@ -1119,6 +1121,7 @@ s32 func_tank_80046E40(Player* player, f32* hitboxData, s32* index, f32 xPos, f3
                 Matrix_RotateX(gCalcMatrix, -arg9 * M_DTOR, MTXF_APPLY);
                 Matrix_RotateY(gCalcMatrix, -argA * M_DTOR, MTXF_APPLY);
             }
+            Matrix_LoadOnly(gCalcMatrix);
             if ((yRot == 0.0f) && (zRot == 0.0f) && (xRot == 0.0f) && (spA0 == 0)) {
                 var_fv0 = player->hit1.x;
                 var_fv1 = player->hit1.y;
@@ -1127,7 +1130,7 @@ s32 func_tank_80046E40(Player* player, f32* hitboxData, s32* index, f32 xPos, f3
                 sp94.x = player->hit1.x - xPos;
                 sp94.y = player->hit1.y - yPos;
                 sp94.z = player->hit1.z - zPos;
-                Matrix_MultVec3fNoTranslate(gCalcMatrix, &sp94, &sp88);
+                Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */  &sp94, &sp88);
                 var_fv0 = sp88.x + xPos;
                 var_fv1 = sp88.y + yPos;
                 var_fa0 = sp88.z + zPos;
@@ -1144,7 +1147,7 @@ s32 func_tank_80046E40(Player* player, f32* hitboxData, s32* index, f32 xPos, f3
                 sp94.x = player->hit2.x - xPos;
                 sp94.y = player->hit2.y - yPos;
                 sp94.z = player->hit2.z - zPos;
-                Matrix_MultVec3fNoTranslate(gCalcMatrix, &sp94, &sp88);
+                Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */  &sp94, &sp88);
                 var_fv0 = sp88.x + xPos;
                 var_fv1 = sp88.y + yPos;
                 var_fa0 = sp88.z + zPos;
@@ -1161,7 +1164,7 @@ s32 func_tank_80046E40(Player* player, f32* hitboxData, s32* index, f32 xPos, f3
                 sp94.x = player->hit3.x - xPos;
                 sp94.y = player->hit3.y - yPos;
                 sp94.z = player->hit3.z - zPos;
-                Matrix_MultVec3fNoTranslate(gCalcMatrix, &sp94, &sp88);
+                Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */  &sp94, &sp88);
                 var_fv0 = sp88.x + xPos;
                 var_fv1 = sp88.y + yPos;
                 var_fa0 = sp88.z + zPos;
@@ -1185,7 +1188,7 @@ s32 func_tank_80046E40(Player* player, f32* hitboxData, s32* index, f32 xPos, f3
                 sp94.x = player->hit4.x - xPos;
                 sp94.y = player->hit4.y - yPos;
                 sp94.z = player->hit4.z - zPos;
-                Matrix_MultVec3fNoTranslate(gCalcMatrix, &sp94, &sp88);
+                Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */  &sp94, &sp88);
                 var_fv0 = sp88.x + xPos;
                 var_fv1 = sp88.y + yPos;
                 var_fa0 = sp88.z + zPos;

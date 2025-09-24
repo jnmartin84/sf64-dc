@@ -6003,12 +6003,12 @@ void Aquas_CsLevelComplete(Player* player) {
 
     Matrix_RotateY(gCalcMatrix, M_DTOR * (player->rot.y + player->yRot_114 + 180.0f), MTXF_NEW);
     Matrix_RotateX(gCalcMatrix, -(M_DTOR * player->rot.x), MTXF_APPLY);
-
+    Matrix_LoadOnly(gCalcMatrix);
     src.x = 0.0f;
     src.y = 0.0f;
     src.z = player->baseSpeed;
 
-    Matrix_MultVec3fNoTranslate(gCalcMatrix, &src, &dest);
+    Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */  &src, &dest);
 
     player->vel.x = dest.x;
     player->vel.y = dest.y;
@@ -6032,7 +6032,7 @@ void Aquas_CsLevelComplete(Player* player) {
         src.x = 0.0f;
         src.y = 0.0f;
         src.z = -70.0f;
-        Matrix_MultVec3fNoTranslate(gCalcMatrix, &src, &dest);
+        Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */  &src, &dest);
         Aquas_Bubble_Spawn(player->pos.x + dest.x + RAND_FLOAT_CENTERED(10.0f),
                            player->pos.y + dest.y + RAND_FLOAT_CENTERED(10.0f),
                            player->pos.z + dest.z + RAND_FLOAT_CENTERED(10.0f), 0.4f, 1);

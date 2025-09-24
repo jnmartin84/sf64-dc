@@ -1864,9 +1864,9 @@ static void  __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx
  		return;
     }
 #if 1
-	float rw1 = 1.0f / (v1->_w);
-	float rw2 = 1.0f / (v2->_w);
-	float rw3 = 1.0f / (v3->_w);
+	float rw1 = approx_recip_sign(v1->_w); // .0f / (v1->_w);
+	float rw2 = approx_recip_sign(v2->_w); // 1.0f / (v2->_w);
+	float rw3 =approx_recip_sign(v3->_w); //  1.0f / (v3->_w);
 	if ((rsp.geometry_mode & G_CULL_BOTH) != 0) {
 
         float dx1 = (v1->_x * rw1) - (v2->_x * rw2);
@@ -3861,7 +3861,7 @@ static void  __attribute__((noinline)) gfx_run_dl(Gfx* cmd) {
 				break;
 
 			case G_VTX:
-				gfx_sp_vertex(C0(10, 6), C0(16, 8) / 2, seg_addr(cmd->words.w1));
+				gfx_sp_vertex(C0(10, 6), C0(16, 8) >> 1, seg_addr(cmd->words.w1));
 				break;
 
 			case G_DL:
@@ -4093,7 +4093,6 @@ struct GfxRenderingAPI* gfx_get_current_rendering_api(void) {
 void gfx_start_frame(void) {
 	gfx_wapi->handle_events();
 }
-
 
 void gfx_run(Gfx* commands) {
 	gfx_sp_reset();

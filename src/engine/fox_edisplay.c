@@ -1717,14 +1717,14 @@ void Object_DrawAll(s32 cullDirection) {
         if (gDrawBackdrop == 5) {
             gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK);
         }
-
+        Matrix_LoadOnly(&D_BO_8019EE80);
         for (i = 0, scenery360 = gScenery360; i < 200; i++, scenery360++) {
             if ((scenery360->obj.status == OBJ_ACTIVE) && (scenery360->obj.id != OBJ_SCENERY_LEVEL_OBJECTS)) {
                 if (gCurrentLevel == LEVEL_BOLSE) {
                     spAC.x = scenery360->sfxSource[0];
                     spAC.y = scenery360->sfxSource[1];
                     spAC.z = scenery360->sfxSource[2];
-                    Matrix_MultVec3fNoTranslate(&D_BO_8019EE80, &spAC, &scenery360->obj.pos);
+                    Matrix_MultVec3fNoTranslate_NoLoad(/* (&D_BO_8019EE80, */ &spAC, &scenery360->obj.pos);
                     scenery360->obj.rot.y = scenery360->unk_54 + gBosses->obj.rot.y;
                 }
                 Matrix_Push(&gGfxMatrix);
@@ -1753,7 +1753,10 @@ void Object_DrawAll(s32 cullDirection) {
             if ((boss->timer_05C % 2) == 0) {
                 RCP_SetupDL_29(gFogRed, gFogGreen, gFogBlue, gFogAlpha, gFogNear, gFogFar);
             } else {
-                RCP_SetupDL_27();
+//                RCP_SetupDL_27();
+        gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+            TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+            gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 255);
                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 64, 64, 255, 255);
             }
 
@@ -1802,12 +1805,12 @@ void Object_DrawAll(s32 cullDirection) {
                     // jnmartin84 ????
                     gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
                       TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                      gDPSetEnvColor(gMasterDisp++, 0, 255, 255, 255);
+                      gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 255);
                     gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
                 } else {
                     gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
                       TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                      gDPSetEnvColor(gMasterDisp++, 192, 192, 0, 255);
+                      gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 255);
                     gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 64, 64, 255, 255);
                 }
             }
@@ -1905,8 +1908,11 @@ void Effect_DrawAll(s32 arg0) {
             if ((boss->timer_05C % 2) == 0) {
                 RCP_SetupDL_29(gFogRed, gFogGreen, gFogBlue, gFogAlpha, gFogNear, gFogFar);
             } else {
-                RCP_SetupDL_27();
-                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 64, 64, 255, 255);
+//                RCP_SetupDL_27();
+//                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 64, 64, 255, 255);
+        gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+            TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+            gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 255);
             }
             Matrix_Push(&gGfxMatrix);
             Boss_Draw(boss, arg0);

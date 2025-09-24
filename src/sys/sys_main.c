@@ -460,6 +460,7 @@ int main(int argc, char **argv) {
 //533
 void *SPINNING_THREAD(UNUSED void *arg) {
     uint64_t last_vbltick = vblticker;
+    
 //    return NULL;
     while (1) {
         while (vblticker <= last_vbltick /*  + 1 */)
