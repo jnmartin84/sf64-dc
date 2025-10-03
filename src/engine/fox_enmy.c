@@ -630,10 +630,16 @@ void Object_LoadLevelObjects(void) {
   //  gLevelObjects = aCoLevelObjects_Boss;
 //}
 
-if (gCurrentLevel == LEVEL_TITANIA) {
-    static ObjectInit aTiLevelObjects_Boss[] = { { 300.0f, -1000, 0, 0, { 0, 0, 0 }, OBJ_BOSS_TI_GORAS } };
-    gLevelObjects = aTiLevelObjects_Boss;
-}
+//if (gCurrentLevel == LEVEL_TITANIA) {
+  //  static ObjectInit aTiLevelObjects_Boss[] = { { 300.0f, -1000, 0, 0, { 0, 0, 0 }, OBJ_BOSS_TI_GORAS } };
+   // gLevelObjects = aTiLevelObjects_Boss;
+//}
+
+//if (gCurrentLevel == LEVEL_ZONESS) {
+  //static ObjectInit aZoLevelObjects_Boss[] = { { 100.0f,    3000,     -30,       0, {  0,   0,   0}, OBJ_BOSS_ZO_SARUMARINE }};
+    //gLevelObjects = aZoLevelObjects_Boss;
+//}
+
 
     for (i = 0, objInit = &gLevelObjects[gObjectLoadIndex]; i < 10000; i++, gObjectLoadIndex++, objInit++) {
         if (objInit->id <= OBJ_INVALID) {

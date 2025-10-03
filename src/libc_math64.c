@@ -36,9 +36,9 @@ f32 Math_FAtanF(f32 x) {
     float recip1pconv = approx_signed_recip(1.0f + conv);
 
     if (sector > 0) {
-        return F_PI / 2.0f - (x * recip1pconv);/// (1.0f + conv));
+        return F_PI_2 - (x * recip1pconv);/// (1.0f + conv));
     } else if (sector < 0) {
-        return -F_PI / 2.0f - (x * recip1pconv);/// (1.0f + conv));
+        return -F_PI_2 - (x * recip1pconv);/// (1.0f + conv));
     } else {
         return x * recip1pconv;/// (1.0f + conv);
     }

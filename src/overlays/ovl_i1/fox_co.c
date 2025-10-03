@@ -9,6 +9,7 @@
 #include "assets/ast_corneria.h"
 #include "fox_co.h"
 
+#include "sh4zam.h"
 u8 sFightCarrier;
 f32 sCoGrangaWork[68];
 
@@ -557,7 +558,6 @@ void Corneria_CoGranga_1UpCheck(CoGranga* this) {
 
             if ((gTeamShields[TEAM_ID_FALCO] > 0) || (gTeamShields[TEAM_ID_SLIPPY] > 0) ||
                 (gTeamShields[TEAM_ID_PEPPY] > 0)) {
-                if (0) {};
 
                 do {
                     teamId = RAND_INT(2.9f) + 1;
@@ -610,9 +610,10 @@ static void sincosdeg(float arg, float *s, float *c) {
     *c = cosf(darg);
 }
 
-float cots,cotc;
+static float cots,cotc;
 
 void Corneria_CoGranga_Update(CoGranga* this) {
+    Vec3f __attribute__((aligned(32))) frameTable[30];
     Vec3f sp21C = { 0.0f, 0.0f, 0.0f };
     s32 sp218;
     f32 sp214;
@@ -624,7 +625,6 @@ void Corneria_CoGranga_Update(CoGranga* this) {
     f32 sp1FC;
     f32 sp1F8;
     Vec3f sp1EC = { 0.0f, 0.0f, 5.0f };
-    Vec3f frameTable[30];
     Vec3f sp78 = { 0.0f, 0.0f, 40.0f };
     Vec3f sp6C = { 0.0f, 0.0f, -30.0f };
     f32 sp5C;
@@ -720,6 +720,10 @@ void Corneria_CoGranga_Update(CoGranga* this) {
         }
 
         Corneria_CoGranga_HandleDamage(this);
+// avoiding 
+// during RTL pass: reload
+// src/overlays/ovl_i1/fox_co.c: In function ‘Corneria_CoGranga_Update’:
+// src/overlays/ovl_i1/fox_co.c:1105:1: internal compiler error: in gen_reg_rtx, at emit-rtl.cc:1177
 
 sincosdeg(this->swork[GRANGA_SWK_18] * 50.0f, &cots, &cotc);
         
@@ -754,7 +758,7 @@ sincosdeg(this->swork[GRANGA_SWK_23] * 12.0f, &cots, &cotc);
         sp20C = sCoGrangaWork[GRANGA_TARGET_Z] - this->obj.pos.z;
 
         sp1FC = Math_RadToDeg(Math_Atan2F(sp214, sp20C));
-        sp204 = sqrtf(SQ(sp214) + SQ(sp20C));
+        sp204 = shz_sqrtf_fsrra(SQ(sp214) + SQ(sp20C));
         sp200 = Math_RadToDeg(-Math_Atan2F(sp210, sp204));
 
         if ((sp200 > 50.0f) && (sp200 < 180.0f)) {
@@ -943,11 +947,11 @@ sincosdeg(this->swork[GRANGA_SWK_23] * 12.0f, &cots, &cotc);
                         this->obj.rot.z = 60.0f;
                         Corneria_80188C7C(this);
 
-                        if ((gGameFrameCount % 512U) == 0) {
+                        if ((gGameFrameCount & 0x1FF) == 0) { // % 512
                             Radio_PlayMessage(gMsg_ID_2275, RCID_BOSS_CORNERIA);
                         }
 
-                        if ((gGameFrameCount % 512U) == 256) {
+                        if ((gGameFrameCount & 0x1FF) == 256) { // % 512
                             Radio_PlayMessage(gMsg_ID_2220, RCID_BOSS_CORNERIA);
                         }
                     }
@@ -958,10 +962,10 @@ sincosdeg(this->swork[GRANGA_SWK_23] * 12.0f, &cots, &cotc);
                         this->obj.rot.z = -60.0f;
                         Corneria_80188C7C(this);
 
-                        if ((gGameFrameCount % 512U) == 0) {
+                        if ((gGameFrameCount & 0x1FF) == 0) { // % 512
                             Radio_PlayMessage(gMsg_ID_2275, RCID_BOSS_CORNERIA);
                         }
-                        if ((gGameFrameCount % 512U) == 256) {
+                        if ((gGameFrameCount & 0x1FF) == 256) { // % 512
                             Radio_PlayMessage(gMsg_ID_2220, RCID_BOSS_CORNERIA);
                         }
                     }
@@ -1176,11 +1180,12 @@ s32 Corneria_CoGranga_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, V
     // Damage indicator
     if (((boss->swork[limbIndex] % 2) != 0) || ((boss->timer_05C % 2) != 0)) {
         RCP_SetupDL_64();
-        // jnmartin84 ????
-        gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 64, 64, 255, 255);
+        // jnmartin84
         gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
             TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-            gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 255);
+        gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 255);
+
+        gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 64, 64, 255, 255);
     }
     return 0;
 }
@@ -1210,6 +1215,8 @@ void Corneria_CoGranga_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* data) {
         sCoGrangaWork[limbIndex + 34] = sp74.x;
         sCoGrangaWork[limbIndex + 40] = sp74.y;
         sCoGrangaWork[limbIndex + 46] = sp74.z;
+
+        Matrix_LoadOnly(gCalcMatrix);
     }
 
     switch (limbIndex) {
@@ -1433,9 +1440,11 @@ void Corneria_CoGaruda2_Update(CoGaruda2* this) {
 
     scenery = &gScenery[this->iwork[0]];
 
-    sin = SIN_DEG(this->obj.rot.y);
+    sincosdeg(this->obj.rot.y, &sin, &cos);
+
+//    sin = SIN_DEG(this->obj.rot.y);
     this->vel.x = this->fwork[0] * sin;
-    cos = COS_DEG(this->obj.rot.y);
+//    cos = COS_DEG(this->obj.rot.y);
     this->vel.z = this->fwork[0] * cos;
 
     Matrix_RotateY(gCalcMatrix, this->obj.rot.y * M_DTOR, MTXF_NEW);
@@ -1524,9 +1533,10 @@ void Corneria_CoGaruda3_Update(CoGaruda3* this) {
 
     Corneria_Garuda_HandleDamage(this);
 
-    sin = SIN_DEG(this->obj.rot.y);
+    sincosdeg(this->obj.rot.y, &sin, &cos);
+//    sin = SIN_DEG(this->obj.rot.y);
     this->vel.x = this->fwork[0] * sin;
-    cos = COS_DEG(this->obj.rot.y);
+//    cos = COS_DEG(this->obj.rot.y);
     this->vel.z = this->fwork[0] * cos;
 
     switch (this->state) {
@@ -2356,7 +2366,7 @@ void Corneria_CoCarrier_Update(CoCarrier* this) {
             gShowBossHealth = true;
         }
         if (gBossFrameCount >= 587) {
-            gBossHealthBar = (this->health / 601.0f) * 255.0f;
+            gBossHealthBar = (this->health * 0.42429285f); // / 601.0f) * 255.0f;
         }
     }
 }
@@ -2953,7 +2963,7 @@ void Corneria_LevelStart(Player* player) {
     }
 
     sp2C = -Math_Atan2F(player->cam.eye.x - x, player->cam.eye.z - z);
-    sp30 = -Math_Atan2F(player->cam.eye.y - y, sqrtf(SQ(player->cam.eye.z - z) + SQ(player->cam.eye.x - x)));
+    sp30 = -Math_Atan2F(player->cam.eye.y - y, shz_sqrtf_fsrra(SQ(player->cam.eye.z - z) + SQ(player->cam.eye.x - x)));
 
     sp44 = Math_RadToDeg(sp2C) - D_ctx_80177A48[4];
     sp40 = Math_RadToDeg(sp30) - D_ctx_80177A48[5];
@@ -3528,7 +3538,7 @@ void Corneria_LevelComplete1(Player* player) {
             sp4C = player->cam.eye.z - sCoGrangaWork[64];
 
             D_ctx_80177A48[0] = Math_RadToDeg(Math_Atan2F(sp54, sp4C));
-            D_ctx_80177A48[1] = sqrtf(SQ(sp54) + SQ(sp4C));
+            D_ctx_80177A48[1] = shz_sqrtf_fsrra(SQ(sp54) + SQ(sp4C));
 
             player->csState++;
 

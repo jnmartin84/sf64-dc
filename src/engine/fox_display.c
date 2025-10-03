@@ -86,10 +86,10 @@ void Display_DrawHelpAlert(void) {
             case false:
                 if (gTeamHelpActor->sfxSource[0] > 0.0f) {
                     sp78 = 20.0f;
-                    sp74 = F_PI / 2;
+                    sp74 = F_PI_2;
                 } else {
                     sp78 = -20.0f;
-                    sp74 = -F_PI / 2;
+                    sp74 = -F_PI_2;
                 }
                 Matrix_Push(&gGfxMatrix);
                 Matrix_Translate(gGfxMatrix, sp78, 0.0f, -50.0f, MTXF_APPLY);
@@ -103,7 +103,7 @@ void Display_DrawHelpAlert(void) {
             case true:
                 Matrix_Push(&gGfxMatrix);
                 Matrix_Translate(gGfxMatrix, 20.0f, 0.0f, -50.0f, MTXF_APPLY);
-                Matrix_RotateZ(gGfxMatrix, -F_PI / 2, MTXF_APPLY);
+                Matrix_RotateZ(gGfxMatrix, -F_PI_2, MTXF_APPLY);
                 Matrix_Scale(gGfxMatrix, 0.03f, 0.03f, 0.03f, MTXF_APPLY);
                 Matrix_SetGfxMtx(&gMasterDisp);
                 gSPDisplayList(gMasterDisp++, D_1023700);
@@ -111,7 +111,7 @@ void Display_DrawHelpAlert(void) {
                 sp78 = -20.0f;
                 Matrix_Push(&gGfxMatrix);
                 Matrix_Translate(gGfxMatrix, -20.0f, 0.0f, -50.0f, MTXF_APPLY);
-                Matrix_RotateZ(gGfxMatrix, F_PI / 2, MTXF_APPLY);
+                Matrix_RotateZ(gGfxMatrix, F_PI_2, MTXF_APPLY);
                 Matrix_Scale(gGfxMatrix, 0.03f, 0.03f, 0.03f, MTXF_APPLY);
                 Matrix_SetGfxMtx(&gMasterDisp);
                 gSPDisplayList(gMasterDisp++, D_1023700);
@@ -588,6 +588,7 @@ void Display_Arwing_Skel(ArwingInfo* arwing) {
     D_display_800CA22C = false;
 
     drawFace = arwing->drawFace;
+
     if (D_display_800CA220 != 0) {
         drawFace = true;
     }
@@ -835,7 +836,7 @@ void Display_PlayerShadow_Draw(Player* player) {
         case FORM_ON_FOOT:
             Matrix_Push(&gGfxMatrix);
             Matrix_Scale(gGfxMatrix, 0.5f, 0.5f, 0.5f, MTXF_APPLY);
-            Matrix_RotateX(gGfxMatrix, F_PI / 2, MTXF_APPLY);
+            Matrix_RotateX(gGfxMatrix, F_PI_2, MTXF_APPLY);
             Matrix_SetGfxMtx(&gMasterDisp);
             gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK);
             gSPDisplayList(gMasterDisp++, aBallDL);
@@ -1271,7 +1272,7 @@ void Display_ArwingWingTrail_Draw(Player* player) {
             Matrix_RotateY(gGfxMatrix, -(M_DTOR * yRot), MTXF_APPLY);
             Matrix_Scale(gGfxMatrix, player->contrailScale, 1.0f, 50.0f, MTXF_APPLY);
             Matrix_Translate(gGfxMatrix, 0.0f, 0.0f, -17.5f, MTXF_APPLY);
-            Matrix_RotateX(gGfxMatrix, F_PI / 2, MTXF_APPLY);
+            Matrix_RotateX(gGfxMatrix, F_PI_2, MTXF_APPLY);
             Matrix_RotateY(gGfxMatrix, M_DTOR * sp54, MTXF_APPLY);
             Matrix_SetGfxMtx(&gMasterDisp);
             gSPDisplayList(gMasterDisp++, aBallDL);
@@ -1284,7 +1285,7 @@ void Display_ArwingWingTrail_Draw(Player* player) {
             Matrix_RotateY(gGfxMatrix, -(M_DTOR * yRot), MTXF_APPLY);
             Matrix_Scale(gGfxMatrix, player->contrailScale, 1.0f, 50.0f, MTXF_APPLY);
             Matrix_Translate(gGfxMatrix, 0.0f, 0.0f, -17.5f, MTXF_APPLY);
-            Matrix_RotateX(gGfxMatrix, F_PI / 2, MTXF_APPLY);
+            Matrix_RotateX(gGfxMatrix, F_PI_2, MTXF_APPLY);
             Matrix_RotateY(gGfxMatrix, M_DTOR * sp54, MTXF_APPLY);
             Matrix_SetGfxMtx(&gMasterDisp);
             gSPDisplayList(gMasterDisp++, aBallDL);

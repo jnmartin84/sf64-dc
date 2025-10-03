@@ -22,7 +22,7 @@ int wav_init(void);
 void wav_shutdown(void);
 void wav_destroy(void);
 
-wav_stream_hnd_t wav_create(const char *filename, int loop, size_t loops, size_t loope);
+wav_stream_hnd_t wav_create(const char *filename, float ratemul, int loop, size_t loops, size_t loope);
 
 void wav_play(void);
 void wav_pause(void);

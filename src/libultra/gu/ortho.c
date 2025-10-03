@@ -1,18 +1,34 @@
 #include "PR/ultratypes.h"
 #include "PR/gu.h"
+#include <math.h>
+static inline float approx_recip_sign(float v) {
+	float _v = 1.0f / sqrtf(v * v);
+	return copysignf(_v, v);
+}
 
 void guOrthoF(float m[4][4], float left, float right, float bottom, float top, float near, float far, float scale) {
     int row;
     int col;
+    f32 recip_rsubl = approx_recip_sign((right - left));
+    f32 recip_tsubb = approx_recip_sign(top - bottom);
+    f32 recip_fsubn = approx_recip_sign(far - near);
     guMtxIdentF(m);
-    m[0][0] = 2.0f / (right - left);
+    m[0][0] = 2.0f * recip_rsubl;
+    m[1][1] = 2.0f * recip_tsubb;
+    m[2][2] = -2.0f * recip_fsubn;
+    m[3][0] = -(right + left) * recip_rsubl;
+    m[3][1] = -(top + bottom) * recip_tsubb;
+    m[3][2] = -(far + near) * recip_fsubn;
+    m[3][3] = 1.0f;
+
+/*     m[0][0] = 2.0f / (right - left);
     m[1][1] = 2.0f / (top - bottom);
     m[2][2] = -2.0f / (far - near);
     m[3][0] = -(right + left) / (right - left);
     m[3][1] = -(top + bottom) / (top - bottom);
     m[3][2] = -(far + near) / (far - near);
     m[3][3] = 1.0f;
-
+ */
     if (scale != 1.0f) {
         for (row = 0; row < 4; row++) {
             for (col = 0; col < 4; col++) {

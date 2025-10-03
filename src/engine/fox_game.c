@@ -65,7 +65,7 @@ void Game_Initialize(void) {
     gBgColor = 0;
     gBlurAlpha = 255;
     gFovY = 45.0f;
-    gProjectNear = 10.0f;
+    gProjectNear = 1.0f;
     gProjectFar = 12800.0f;
     gNextVsViewScale = gVsViewScale = 0.0f;
     gSceneId = SCENE_LOGO;
@@ -415,7 +415,7 @@ void Game_Update(void) {
             case GSTATE_SHOW_LOGO:
                 RCP_SetupDL(&gMasterDisp, SETUPDL_76);
                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255);
-                Lib_TextureRect_IA8(&gMasterDisp, &aNintendoLogoTex[128 * 16 * 0], 128, 16, 100.0f, 86.0f, 1.0f, 1.0f);
+                Lib_TextureRect_IA8(&gMasterDisp, &aNintendoLogoTex[ 128 * 16 * 0], 128, 16, 100.0f, 86.0f, 1.0f, 1.0f);
                 Lib_TextureRect_IA8(&gMasterDisp, &aNintendoLogoTex[128 * 16 * 1], 128, 16, 100.0f, 102.0f, 1.0f, 1.0f);
                 Lib_TextureRect_IA8(&gMasterDisp, &aNintendoLogoTex[128 * 16 * 2], 128, 16, 100.0f, 118.0f, 1.0f, 1.0f);
                 Lib_TextureRect_IA8(&gMasterDisp, &aNintendoLogoTex[128 * 16 * 3], 128, 16, 100.0f, 134.0f, 1.0f, 1.0f);
@@ -435,7 +435,7 @@ void Game_Update(void) {
                     Save_Write();
                 }
                 gGameState++;
-                Timer_CreateTask(/* MSEC_TO_CYCLES(1000) */1000, Timer_Increment, (s32*) &gGameState, 1);
+                Timer_CreateTask(1000, Timer_Increment, (s32*) &gGameState, 1);
                 /* fallthrough */
 
             case GSTATE_LOGO_WAIT:
@@ -446,9 +446,6 @@ void Game_Update(void) {
                 Lib_TextureRect_IA8(&gMasterDisp, &aNintendoLogoTex[128 * 16 * 2], 128, 16, 100.0f, 118.0f, 1.0f, 1.0f);
                 Lib_TextureRect_IA8(&gMasterDisp, &aNintendoLogoTex[128 * 16 * 3], 128, 16, 100.0f, 134.0f, 1.0f, 1.0f);
                 Lib_TextureRect_IA8(&gMasterDisp, &aNintendoLogoTex[128 * 16 * 4], 128, 10, 100.0f, 150.0f, 1.0f, 1.0f);
-//                gGameState++;
-  //                              gGameState = //GSTATE_PLAY;//105;
-  
                 break;
 
             case GSTATE_START:
@@ -517,9 +514,9 @@ void Game_Update(void) {
                 }
 
                 SEQCMD_SET_SOUND_MODE(soundMode);
-                gVolumeSettings[AUDIO_TYPE_MUSIC] = 99;//gSaveFile.save.data.musicVolume;
-                gVolumeSettings[AUDIO_TYPE_VOICE] = 99;//gSaveFile.save.data.voiceVolume;
-                gVolumeSettings[AUDIO_TYPE_SFX] = 99;//gSaveFile.save.data.sfxVolume;
+                gVolumeSettings[AUDIO_TYPE_MUSIC] = gSaveFile.save.data.musicVolume;
+                gVolumeSettings[AUDIO_TYPE_VOICE] = gSaveFile.save.data.voiceVolume;
+                gVolumeSettings[AUDIO_TYPE_SFX] = gSaveFile.save.data.sfxVolume;
 
                 if (gVolumeSettings[AUDIO_TYPE_MUSIC] > 99) {
                     gVolumeSettings[AUDIO_TYPE_MUSIC] = 99;
@@ -563,29 +560,20 @@ void Game_Update(void) {
 
         Game_Draw(0);
         if(gBlurAlpha < 255) {
-//        gDPPipeSync((gMasterDisp)++);
-  //      gDPSetCycleType((gMasterDisp)++, G_CYC_1CYCLE);
-    //    gDPSetCombineMode((gMasterDisp)++, G_CC_PRIMITIVE, G_CC_PRIMITIVE);
-      //  gDPSetRenderMode((gMasterDisp)++, G_RM_XLU_SURF, G_RM_XLU_SURF2);
-/*         gDPSetPrimColor((gMasterDisp)++, 0x00, 0x00, RGBA16_RED(gBgColor) * 8, RGBA16_GRN(gBgColor) * 8,
-                        RGBA16_BLU(gBgColor) * 8, gBlurAlpha);
- */
-                    RCP_SetupDL(&gMasterDisp, SETUPDL_76);
+            RCP_SetupDL(&gMasterDisp, SETUPDL_76);
             gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, gBlurAlpha);
-                    gSPTheBlur(gMasterDisp++);
-                Lib_TextureRect_RGBA16(&gMasterDisp, (u16 *)scaled2, 64, 64, 0, 0, 5.0f, 1.875f);
-                    gSPTheBlur(gMasterDisp++);
-            }
+            gSPTheBlur(gMasterDisp++);
+            Lib_TextureRect_RGBA16(&gMasterDisp, (u16 *)scaled2, 64, 64, 0, 0, 5.0f, 1.875f);
+            gSPTheBlur(gMasterDisp++);
+        }
 
         if (gCamCount == 2) {
-            //printf("gCamCount == 2\n");
             Game_InitViewport(&gMasterDisp, gCamCount, 1);
             Game_Draw(1);
             gDPPipeSync(gMasterDisp++);
             gDPSetScissor(gMasterDisp++, G_SC_NON_INTERLACE, SCREEN_MARGIN, SCREEN_MARGIN, SCREEN_WIDTH - SCREEN_MARGIN,
                           SCREEN_HEIGHT - SCREEN_MARGIN);
         } else if ((gCamCount == 4) && (gDrawMode != DRAW_NONE)) {
-            //printf("gCamCount == 4 && !DRAW_NONE\n");
             Game_InitViewport(&gMasterDisp, gCamCount, 3);
             Game_Draw(3);
             Game_InitViewport(&gMasterDisp, gCamCount, 2);
@@ -617,7 +605,7 @@ void Game_Update(void) {
             gSPFixDepthCut(gMasterDisp++);
             gDPFillRectangle(gMasterDisp++, SCREEN_WIDTH / 2 - 1 - 1, SCREEN_MARGIN, SCREEN_WIDTH / 2 + 1,
                              SCREEN_HEIGHT - SCREEN_MARGIN);
-        gDPFillRectangle(gMasterDisp++, SCREEN_MARGIN, SCREEN_HEIGHT / 2 - 1 - 1, SCREEN_WIDTH - SCREEN_MARGIN,
+            gDPFillRectangle(gMasterDisp++, SCREEN_MARGIN, SCREEN_HEIGHT / 2 - 1 - 1, SCREEN_WIDTH - SCREEN_MARGIN,
                              SCREEN_HEIGHT / 2 + 1);
             gSPFixDepthCut(gMasterDisp++);
 
@@ -627,14 +615,12 @@ void Game_Update(void) {
         partialFill = 0;
 
         if (gCamCount == 1) {
-            //printf("gCamCount == 1\n");
-                doing_glare = 1;
-
+            doing_glare = 1;
             Graphics_FillRectangle(&gMasterDisp, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, gPlayerGlareReds[0],
                                    gPlayerGlareGreens[0], gPlayerGlareBlues[0], gPlayerGlareAlphas[0]);
-    doing_glare = 0;
+            doing_glare = 0;
 
-    if ((gDrawMode == DRAW_PLAY) || (gDrawMode == DRAW_ENDING)) {
+            if ((gDrawMode == DRAW_PLAY) || (gDrawMode == DRAW_ENDING)) {
                 Radio_Draw();
                 if (gShowHud) {
                     HUD_Draw();
@@ -642,10 +628,7 @@ void Game_Update(void) {
                 }
                 HUD_DrawBossHealth();
             }
-            //printf("gCamCount == 1 path\n");
         } else {
-            //printf("gCamCount == %d path\n", gCamCount);
-
             for (i = 0; i < gCamCount; i++) {
                 if (gPlayer[i].dmgEffectTimer != 0) {
 
@@ -654,12 +637,12 @@ void Game_Update(void) {
                                            gFillScreenAlpha);
                     partialFill = 1;
                 } else {
-    doing_glare = 1;
+                    doing_glare = 1;
 
                     Graphics_FillRectangle(&gMasterDisp, sVsCameraULx[i], sVsCameraULy[i], sVsCameraLRx[i],
                                            sVsCameraLRy[i], gPlayerGlareReds[i], gPlayerGlareGreens[i],
                                            gPlayerGlareBlues[i], gPlayerGlareAlphas[i]);
-    doing_glare = 0;
+                    doing_glare = 0;
                 }
             }
         }
@@ -681,22 +664,8 @@ void Game_Update(void) {
         Audio_dummy_80016A50();
 
 
-//        if (gBlurAlpha < 255) {
-//                Game_InitMasterDL(&gUnkDisp1);
-        //capture_framebuffer();
 #if 0
-        gDPPipeSync(gMasterDisp++);
-        gDPSetCycleType(gMasterDisp++, G_CYC_1CYCLE);
-        gDPSetCombineMode(gMasterDisp++, G_CC_PRIMITIVE, G_CC_PRIMITIVE);
-        gDPSetRenderMode(gMasterDisp++, G_RM_XLU_SURF, G_RM_XLU_SURF2);
-        gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, RGBA16_RED(gBgColor) * 8, RGBA16_GRN(gBgColor) * 8,
-                        RGBA16_BLU(gBgColor) * 8, gBlurAlpha);
-        gfx_texture_cache_invalidate(scaled2);
-#endif
-  //  }
-
-#if 0
-        #if MODS_RAM_MOD == 1
+#if MODS_RAM_MOD == 1
         RamMod_Update();
 #endif
 #if MODS_FPS_COUNTER == 1

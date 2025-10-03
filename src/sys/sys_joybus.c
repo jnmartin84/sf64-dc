@@ -175,7 +175,7 @@ extern char *fnpre;
 int shader_debug_toggle = 0;
 int cc_debug_toggle = 0;
 #include <dc/maple/keyboard.h>
-
+#include "../dcprofiler.h"
 void Map_Main(void);
 
 void Controller_UpdateInput(void) {
@@ -202,8 +202,8 @@ void Controller_UpdateInput(void) {
     if (strcmp("/pc", fnpre) == 0) {
         if (/* (state->buttons & CONT_START) &&  */state->ltrig && state->rtrig) {
             if (state->buttons & CONT_START) {
-            //profiler_stop();
-            //profiler_clean_up();
+//            profiler_stop();
+//            profiler_clean_up();
             // give vmu a chance to write and close
             exit(0);
             } //else {

@@ -672,7 +672,7 @@ void Aquas_BlueMarineReticle_Draw(void) {
             Matrix_Scale(gGfxMatrix, D_i3_801C41B8[5], D_i3_801C41B8[5], D_i3_801C41B8[5], MTXF_APPLY);
 
             for (i = 0; i < 4; i++) {
-                Matrix_RotateZ(gGfxMatrix, F_PI / 2, MTXF_APPLY);
+                Matrix_RotateZ(gGfxMatrix, F_PI_2, MTXF_APPLY);
                 Matrix_Translate(gGfxMatrix, x, y, 0.0f, MTXF_APPLY);
                 Matrix_Push(&gGfxMatrix);
                 Matrix_SetGfxMtx(&gMasterDisp);
@@ -5328,13 +5328,13 @@ void Aquas_AqSquid_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* thisx) {
                     case 0:
                         break;
                     case 1:
-                        Matrix_RotateX(gCalcMatrix, F_PI / 2, MTXF_APPLY);
+                        Matrix_RotateX(gCalcMatrix, F_PI_2, MTXF_APPLY);
                         break;
                     case 2:
                         Matrix_RotateX(gCalcMatrix, F_PI, MTXF_APPLY);
                         break;
                     case 3:
-                        Matrix_RotateX(gCalcMatrix, 3 * F_PI / 2, MTXF_APPLY);
+                        Matrix_RotateX(gCalcMatrix, F_3PI_2, MTXF_APPLY);
                         break;
                 }
 

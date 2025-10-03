@@ -42,6 +42,9 @@ s32 BonusText_Display(f32 xPos, f32 yPos, f32 zPos, s32 hits) {
             break;
         }
     }
+#if AVOID_UB
+    return i;
+#endif
 }
 
 void BonusText_Update(void) {
@@ -386,7 +389,7 @@ void Effect_TorpedoTrail_Draw(EffectTorpedoTrail* this) {
 void Effect_Clouds_Draw(EffectClouds* this) {
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, this->unk_46);
     Graphics_SetScaleMtx(this->scale2);
-    Matrix_RotateX(gGfxMatrix, F_PI / 2, MTXF_APPLY);
+    Matrix_RotateX(gGfxMatrix, F_PI_2, MTXF_APPLY);
     Matrix_SetGfxMtx(&gMasterDisp);
     gSPDisplayList(gMasterDisp++, D_BG_PLANET_200D750);
 }
@@ -414,7 +417,7 @@ void Effect_Effect344_Draw(Effect344* this) {
     gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK);
     Matrix_Scale(gGfxMatrix, this->scale2, this->scale2, this->scale2, MTXF_APPLY);
     if (this->alpha >= 2) {
-        Matrix_RotateX(gGfxMatrix, F_PI / 2, MTXF_APPLY);
+        Matrix_RotateX(gGfxMatrix, F_PI_2, MTXF_APPLY);
     }
     Matrix_SetGfxMtx(&gMasterDisp);
     gSPDisplayList(gMasterDisp++, D_1029780);
@@ -425,7 +428,7 @@ void Effect_Effect345_Draw(Effect345* this) {
     RCP_SetupDL_60(gFogRed, gFogGreen, gFogBlue, gFogAlpha, gFogNear, gFogFar);
     gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK);
     Matrix_Scale(gGfxMatrix, this->scale2 * 0.6f, 1.0f, this->scale2 * 3.5f, MTXF_APPLY);
-    Matrix_RotateX(gGfxMatrix, F_PI / 2, MTXF_APPLY);
+    Matrix_RotateX(gGfxMatrix, F_PI_2, MTXF_APPLY);
     Matrix_SetGfxMtx(&gMasterDisp);
     gSPDisplayList(gMasterDisp++, D_1029780);
     RCP_SetupDL(&gMasterDisp, SETUPDL_64);
@@ -884,6 +887,13 @@ void Effect_Effect357_Draw(Effect357* this) {
         gSPFogPosition(gMasterDisp++, gFogNear, gFogFar);
     }
 }
+#define gSPFillrectBlend(pkt)                                       \
+    {                                                                                   \
+        Gfx* _g = (Gfx*) (pkt);                                                         \
+                                                                                        \
+        _g->words.w0 = 0x424C4E44; \
+        _g->words.w1 = 0x46554380;                                           \
+    }
 
 uint32_t e383_ult=0, e383_lrt=127;
 
@@ -927,9 +937,11 @@ void Effect_Effect383_Draw(Effect383* this) {
         Matrix_Scale(gGfxMatrix, this->scale2, this->scale2, this->scale2, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
         RCP_SetupDL_64_2();
+//        gSPFillrectBlend(gMasterDisp++);
         gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, this->alpha);
         gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK);
         gSPDisplayList(gMasterDisp++, D_10182C0);
+//        gSPFillrectBlend(gMasterDisp++);
         gSPSetGeometryMode(gMasterDisp++, G_CULL_BACK);
         RCP_SetupDL_64_2();
     }
@@ -2410,7 +2422,7 @@ void Effect_Effect365_Draw(Effect365* this) {
     Graphics_SetScaleMtx(this->scale2);
   //  gDPSetCombineLERP(gMasterDisp++, 1, 0, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, 0,
     //                  TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-    gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, this->alpha / 4);
+    gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, this->alpha /* / 4 */);
     gSPDisplayList(gMasterDisp++, D_BG_PLANET_2010A30);
 }
 
@@ -3311,7 +3323,7 @@ void Effect_Effect394_Draw(Effect394* this) {
 
             for (i = 0; i < 7; i++) {
                 Matrix_Translate(gGfxMatrix, 0.0f, 10.0f, 0.0f, MTXF_APPLY);
-                Matrix_RotateZ(gGfxMatrix, F_PI / 4, MTXF_APPLY);
+                Matrix_RotateZ(gGfxMatrix, F_PI_4, MTXF_APPLY);
                 Matrix_Translate(gGfxMatrix, 1.0f, 20.0f, 0.0f, MTXF_APPLY);
                 Matrix_Push(&gGfxMatrix);
                 Matrix_Scale(gGfxMatrix, 0.25f, 1.0f, 1.0f, MTXF_APPLY);

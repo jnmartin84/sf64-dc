@@ -111,7 +111,7 @@ static struct SamplerState tmu_state[2];
 static const dc_fast_t* cur_buf = NULL;
 static uint8_t gl_blend = 0;
 static uint8_t gl_depth = 0;
-//recip
+
 static void resample_32bit(const uint16_t* in, int inwidth, int inheight, uint16_t* out, int outwidth, int outheight ) {
     int i, j;
     __builtin_prefetch(in);
@@ -677,9 +677,7 @@ static void gfx_opengl_set_use_alpha(uint8_t use_alpha) {
 
 
 // prim color
-extern uint8_t pr, pg, pb, pa;
-// env color
-extern uint8_t er, eg, eb, ea;
+extern uint8_t pa;
 
 // save original vertex colors for multi-pass tricks
 // this is more than enough for the circumstances where that code runs
@@ -744,8 +742,8 @@ static void zmode_decal_setup_pre(void) {
     glDepthMask(GL_TRUE);
 
     // Push the geometry slightly towards the camera
-    glPushMatrix();
-    glTranslatef(0.0f, 0.01f, 0.01f);
+//    glPushMatrix();
+//    glTranslatef(0.0f, 0.01f, 0.01f);
 }
 
 
@@ -990,7 +988,7 @@ void gfx_opengl_draw_triangles_2d(void* buf_vbo, size_t buf_vbo_len, size_t buf_
 
 if (do_rectdepfix) {
             skybox_setup_pre();
-        glDrawArrays(GL_TRIANGLES, 0, buf_vbo_len);
+        glDrawArrays(GL_QUADS, 0, 4);
 skybox_setup_post();
 }
 else {
@@ -1000,13 +998,13 @@ else {
         if (cur_shader->shader_id == 0x01a00a00)
             over_skybox_setup_pre();
 //        glDisable(GL_BLEND);
-        for (size_t i = 0; i < 3; i++) {
+/*         for (size_t i = 0; i < 4; i++) {
             tris[i].color.array.r = (tris[i].color.array.r + 64) > 255 ? 255 : (tris[i].color.array.r + 64);
             tris[i].color.array.g = (tris[i].color.array.g + 64) > 255 ? 255 : (tris[i].color.array.g + 64);
             tris[i].color.array.b = (tris[i].color.array.b + 64) > 255 ? 255 : (tris[i].color.array.b + 64);
             tris[i].color.array.a = pa;
-        }
-        glDrawArrays(GL_TRIANGLES, 0, buf_vbo_len);
+        } */
+        glDrawArrays(GL_QUADS, 0, 4);
   //      glEnable(GL_BLEND);
         if (cur_shader->shader_id == 0x01a00a00)
             over_skybox_setup_post();
@@ -1043,7 +1041,7 @@ else {
             glDepthFunc(GL_ALWAYS);
             glDisable(GL_BLEND);
         }
-        glDrawArrays(GL_TRIANGLES, 0, buf_vbo_len);
+        glDrawArrays(GL_QUADS, 0, 4);
 
         if (cur_shader->shader_id == 0x01200200)
             skybox_setup_post();

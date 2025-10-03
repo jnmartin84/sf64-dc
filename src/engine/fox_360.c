@@ -505,7 +505,8 @@ void ActorAllRange_UpdateStarWolfEvents(ActorAllRange* this) {
             Radio_PlayMessage(gMsg_ID_19465, RCID_FOX);
         }
     }
-    if ((gAllRangeEventTimer + 100 == (0, gAllRangeSpawnEvent)) && (gCurrentLevel != LEVEL_VENOM_2)) {
+    // == (0, gAllRangeSpawnEvent)
+    if ((gAllRangeEventTimer + 100 == gAllRangeSpawnEvent) && (gCurrentLevel != LEVEL_VENOM_2)) {
         // fake?
         SEQCMD_STOP_SEQUENCE(SEQ_PLAYER_BGM, 30);
         SEQCMD_STOP_SEQUENCE(SEQ_PLAYER_FANFARE, 30);

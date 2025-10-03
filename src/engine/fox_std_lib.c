@@ -628,7 +628,7 @@ void Lib_TextureRect_RGBA16_MirX(Gfx** gfxPtr, u16* texture, u32 width, u32 heig
     gDPLoadTextureBlock((*gfxPtr)++, texture, G_IM_FMT_RGBA, G_IM_SIZ_16b, width, height, 0, G_TX_NOMIRROR | G_TX_WRAP,
                         G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
     gSPTextureRectangle((*gfxPtr)++, (s32) (xPos * 4.0f), (s32) (yPos * 4.0f), (s32) ((xPos + width * xScale) * 4.0f),
-                        (s32) ((yPos + height * yScale) * 4.0f), G_TX_RENDERTILE, (width - 1) * 32, 0,
+                        (s32) ((yPos + height * yScale) * 4.0f), G_TX_RENDERTILE, (width /* - 1 */) * 32, 0,
                         (u16) (s32) (-1.0f / xScale * 1024.0f), (s32) (1.0f / yScale * 1024.0f));
 }
 
@@ -959,7 +959,7 @@ void Graphics_DisplayLargeText(s32 xPos, s32 yPos, f32 xScale, f32 yScale, char*
                 if ((text[0] == 'W') || (text[0] == 'X')) {
                     width = 32;
                 }
-                Lib_TextureRect_IA8(&gMasterDisp, sLargeCharTex[charIndex], width, 15, xPosCurrent, yPos, xScale,
+                Lib_TextureRect_IA8(&gMasterDisp, sLargeCharTex[charIndex], width, 16, xPosCurrent, yPos, xScale,
                                     yScale);
             }
             startPrint = 1;
@@ -1101,13 +1101,13 @@ void Graphics_DisplayLargeNumber(s32 xPos, s32 yPos, s32 number) {
     place = 1000000;
     for (place = 1000000; place != 1; place /= 10) {
         if ((number / place != 0) || (startNumber == 1)) {
-            Lib_TextureRect_IA8(&gMasterDisp, sLargeNumberTex[number / place], 16, 15, xPos, yPos, 1.0f, 1.0f);
+            Lib_TextureRect_IA8(&gMasterDisp, sLargeNumberTex[number / place], 16, 16, xPos, yPos, 1.0f, 1.0f);
             startNumber = 1;
             xPos += 13;
             number %= place;
         }
     }
-    Lib_TextureRect_IA8(&gMasterDisp, sLargeNumberTex[number / place], 16, 15, xPos, yPos, 1.0f, 1.0f);
+    Lib_TextureRect_IA8(&gMasterDisp, sLargeNumberTex[number / place], 16, 16, xPos, yPos, 1.0f, 1.0f);
 }
 
 void Graphics_DisplaySmallText(s32 xPos, s32 yPos, f32 xScale, f32 yScale, char* text) {

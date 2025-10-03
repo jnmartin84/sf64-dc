@@ -332,7 +332,7 @@ void Katina_StartCutsceneUpdate(void) {
     s32 i;
     Vec3f dest;
 
-    Matrix_RotateY(gCalcMatrix, -(F_PI / 4), MTXF_NEW);
+    Matrix_RotateY(gCalcMatrix, -(F_PI_4), MTXF_NEW);
 
     for (i = 0; i < 3; i++, actor++) {
         if (actor->obj.status == OBJ_FREE) {

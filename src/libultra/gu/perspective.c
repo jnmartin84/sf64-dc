@@ -13,25 +13,33 @@
 
 #include "PR/ultratypes.h"
 #include "PR/guint.h"
-
+#include <math.h>
+static inline float approx_recip_sign(float v) {
+	float _v = 1.0f / sqrtf(v * v);
+	return copysignf(_v, v);
+}
 void guPerspectiveF(float mf[4][4], u16* perspNorm, float fovy, float aspect, float near, float far, float scale) {
     float yscale;
     int row;
     int col;
+    f32 recip_aspect = approx_recip_sign(aspect);
+    f32 recip_nsubf = approx_recip_sign(near - far);
+
     guMtxIdentF(mf);
-    fovy *= 3.1415926f / 180.0f;
-    yscale = cosf(fovy / 2.0f) / sinf(fovy / 2.0f);
-    mf[0][0] = yscale / aspect;
+    fovy *= 0.01745329f;// 3.1415926f / 180.0f;
+    yscale = cosf(fovy * 0.5f) / sinf(fovy * 0.5f);
+    mf[0][0] = yscale * recip_aspect;
     mf[1][1] = yscale;
-    mf[2][2] = (near + far) / (near - far);
+    mf[2][2] = (near + far)  * recip_nsubf;
     mf[2][3] = -1.0f;
-    mf[3][2] = 2.0f * near * far / (near - far);
+    mf[3][2] = 2.0f * near * far  * recip_nsubf;
     mf[3][3] = 0.0f;
     for (row = 0; row < 4; row++) {
         for (col = 0; col < 4; col++) {
             mf[row][col] *= scale;
         }
     }
+#if 0
     if (perspNorm != NULL) {
         if (near + far <= 2.0f) {
             *perspNorm = 65535;
@@ -42,6 +50,7 @@ void guPerspectiveF(float mf[4][4], u16* perspNorm, float fovy, float aspect, fl
             }
         }
     }
+#endif
 }
 
 void guPerspective(Mtx* m, u16* perspNorm, float fovy, float aspect, float near, float far, float scale) {

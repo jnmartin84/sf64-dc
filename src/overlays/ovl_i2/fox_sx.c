@@ -12,6 +12,8 @@ Vec3f D_i2_80195650 = { 90.0f, 0.0f, 0.0f };
 Vec3f D_i2_8019565C = { 73.0f, -102.0f, -80.0f };
 Vec3f D_i2_80195668 = { 90.0f, 0.0f, 0.0f };
 
+int sx_distort = 0;
+
 s32 SectorX_SxSpyborg_OverrideLimbDraw(s32, Gfx**, Vec3f*, Vec3f*, void*);
 void SectorX_SxSpyborg_PostLimbDraw(s32, Vec3f*, void*);
 
@@ -855,6 +857,7 @@ void SectorX_SxSpyborg_Update(SxSpyborg* this) {
                 this->fwork[0] = 0.0f;
                 this->animFrame = 0;
                 this->health = 300;
+                sx_distort = 1;
                 Audio_PlaySequenceDistorted(0, gBossBgms[gCurrentLevel], 1121, 25, -1);
                 Radio_PlayMessage(gMsg_ID_19205, RCID_FOX);
                 this->timer_052 = 100;

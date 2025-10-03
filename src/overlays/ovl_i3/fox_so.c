@@ -8,6 +8,8 @@
 #include "assets/ast_bg_planet.h"
 #include "assets/ast_solar.h"
 
+#include "sh4zam.h"
+
 typedef void (*SoVulkainfunc)(SoVulkain*);
 
 typedef enum {
@@ -2788,7 +2790,7 @@ void Solar_SoVulkain_Update(SoVulkain* this) {
         Matrix_MultVec3fNoTranslate(gCalcMatrix, &src, &dest);
 
         sp1C4 = Math_RadToDeg(Math_Atan2F(dest.x, dest.z));
-        sp1CC = sqrtf(SQ(dest.x) + SQ(dest.z));
+        sp1CC = shz_sqrtf_fsrra(SQ(dest.x) + SQ(dest.z));
         sp1C8 = Math_RadToDeg(-Math_Atan2F(dest.y, sp1CC));
 
         if ((sp1C8 > 30.0f) && (sp1C8 <= 180.0f)) {
@@ -2825,7 +2827,7 @@ void Solar_SoVulkain_Update(SoVulkain* this) {
         gShowBossHealth = true;
     }
     if (gBossFrameCount >= 400) {
-        gBossHealthBar = (this->health + this->swork[SO_SWK_2] + this->swork[SO_SWK_3]) * (255.0f / 1400.0f);
+        gBossHealthBar = (this->health + this->swork[SO_SWK_2] + this->swork[SO_SWK_3]) * 0.18214286f /* (255.0f / 1400.0f) */;
     }
 }
 
@@ -2927,19 +2929,19 @@ void Solar_SoVulkain_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* thisx) {
         case 2:
             if (this->swork[SO_SWK_2] > 0) {
                 Matrix_Push(&gCalcMatrix);
-                Matrix_MultVec3f(gCalcMatrix, &sp88, &sp28);
+                Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &sp88, &sp28);
                 this->fwork[SO_FWK_28] = sp28.x;
                 this->fwork[SO_FWK_29] = sp28.y;
                 this->fwork[SO_FWK_30] = sp28.z;
                 Matrix_Pop(&gCalcMatrix);
-                Matrix_MultVec3f(gCalcMatrix, &spA0, &sp28);
+                Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &spA0, &sp28);
                 this->fwork[SO_FWK_16] = sp28.x;
                 this->fwork[SO_FWK_17] = sp28.y;
                 this->fwork[SO_FWK_18] = sp28.z;
             }
 
             if (this->swork[SO_SWK_2] < 0) {
-                Matrix_MultVec3f(gCalcMatrix, &sp34, &sp28);
+                Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &sp34, &sp28);
                 this->fwork[SO_FWK_28] = sp28.x;
                 this->fwork[SO_FWK_29] = sp28.y;
                 this->fwork[SO_FWK_30] = sp28.z;
@@ -2985,19 +2987,19 @@ void Solar_SoVulkain_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* thisx) {
         case 5:
             if (this->swork[SO_SWK_3] > 0) {
                 Matrix_Push(&gCalcMatrix);
-                Matrix_MultVec3f(gCalcMatrix, &sp88, &sp28);
+                Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &sp88, &sp28);
                 this->fwork[SO_FWK_25] = sp28.x;
                 this->fwork[SO_FWK_26] = sp28.y;
                 this->fwork[SO_FWK_27] = sp28.z;
                 Matrix_Pop(&gCalcMatrix);
-                Matrix_MultVec3f(gCalcMatrix, &spA0, &sp28);
+                Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &spA0, &sp28);
                 this->fwork[SO_FWK_13] = sp28.x;
                 this->fwork[SO_FWK_14] = sp28.y;
                 this->fwork[SO_FWK_15] = sp28.z;
                 Matrix_GetYPRAngles(gCalcMatrix, (Vec3f*) &this->fwork[SO_FWK_38]);
             }
             if (this->swork[SO_SWK_3] < 0) {
-                Matrix_MultVec3f(gCalcMatrix, &sp34, &sp28);
+                Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &sp34, &sp28);
                 this->fwork[SO_FWK_25] = sp28.x;
                 this->fwork[SO_FWK_26] = sp28.y;
                 this->fwork[SO_FWK_27] = sp28.z;
@@ -3146,7 +3148,7 @@ void Solar_801A7750(void) {
         actor->obj.status = OBJ_INIT;
         actor->obj.id = OBJ_ACTOR_CUTSCENE;
 
-        actor->obj.pos.x = D_i3_801BFB30[i].x / 2.0f + gPlayer[0].pos.x;
+        actor->obj.pos.x = D_i3_801BFB30[i].x * 0.5f + gPlayer[0].pos.x;
         actor->obj.pos.y = D_i3_801BFB30[i].y + gPlayer[0].pos.y;
         actor->obj.pos.z = D_i3_801BFB30[i].z + gPlayer[0].pos.z;
         actor->state = 1;

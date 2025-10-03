@@ -497,14 +497,15 @@ bool PlayerShot_CheckPolyCollision(PlayerShot* shot, ObjectId objId, Object* obj
     if (((fabsf(sp7C.x) < 1100.0f) && (fabsf(sp7C.z) < 1100.0f) && (shot->obj.pos.y < 900.0f)) ||
         (objId == OBJ_BOSS_SZ_GREAT_FOX) || (objId == ACTOR_EVENT_ID) || (objId == OBJ_SCENERY_ME_TUNNEL)) {
         Matrix_RotateY(gCalcMatrix, -obj->rot.y * M_DTOR, MTXF_NEW);
+        Matrix_LoadOnly(gCalcMatrix);
         sp7C.x = shot->obj.pos.x - obj->pos.x;
         sp7C.y = shot->obj.pos.y - obj->pos.y;
         sp7C.z = shot->obj.pos.z - obj->pos.z;
-        Matrix_MultVec3fNoTranslate(gCalcMatrix, &sp7C, &sp70);
+        Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */ &sp7C, &sp70);
         sp7C.x = shot->vel.x;
         sp7C.y = shot->vel.y;
         sp7C.z = shot->vel.z;
-        Matrix_MultVec3fNoTranslate(gCalcMatrix, &sp7C, &sp38);
+        Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */ &sp7C, &sp38);
         sp64.x = obj->pos.x + sp70.x;
         sp64.y = obj->pos.y + sp70.y;
         sp64.z = obj->pos.z + sp70.z;

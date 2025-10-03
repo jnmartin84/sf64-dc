@@ -10,6 +10,8 @@
 #include "gfx/gfx_dc.h"
 #include <stdlib.h>
 
+#include "../dcprofiler.h"
+
 //#define SAMPLES_HIGH 533
 #define SAMPLES_HIGH 464
 //560
@@ -29,9 +31,9 @@ char *fnpre;
 #include "src/dcaudio/audio_dc.h"
 volatile int inited = 0;
 extern struct AudioAPI audio_dc;
-s16 audio_buffer[SAMPLES_HIGH * 2 * 2 * 3] __attribute__((aligned(64)));
+s16 audio_buffer[2][SAMPLES_HIGH * 2 /* * 2 */ * 3] __attribute__((aligned(64)));
 static struct AudioAPI *audio_api = NULL;
-void AudioThread_CreateNextAudioBuffer(s16* samples, u32 num_samples);
+void AudioThread_CreateNextAudioBuffer(s16* samplesL, s16* samplesR, u32 num_samples);
 
 void *SPINNING_THREAD(UNUSED void *arg);
 
@@ -385,7 +387,8 @@ void Main_ThreadEntry(void* arg0) {
     AudioLoad_Init();
     Audio_InitSounds();
     vblank_handler_add(&vblfunc, NULL);
-
+//    profiler_init("/pc/sf64_gmon.out");
+//    profiler_start();
     Game_Initialize();
     osSendMesg(&gSerialThreadMesgQueue, (OSMesg) SI_READ_CONTROLLER, OS_MESG_NOBLOCK);
     Graphics_InitializeTask(gSysFrameCount);
@@ -461,24 +464,17 @@ int main(int argc, char **argv) {
 void *SPINNING_THREAD(UNUSED void *arg) {
     uint64_t last_vbltick = vblticker;
     
-//    return NULL;
     while (1) {
-        while (vblticker <= last_vbltick /*  + 1 */)
-            genwait_wait((void*)&vblticker, NULL, 16, NULL);
+        while (vblticker <= last_vbltick)
+            genwait_wait((void*)&vblticker, NULL, 5, NULL);
 
+        __builtin_prefetch(audio_buffer[0]);
         last_vbltick = vblticker;
+        __builtin_prefetch(audio_buffer[1]);
 
-//        int num_samples = //534;//
-  //      448;//
-       //called & 1 ? SAMPLES_HIGH : SAMPLES_LOW;
-#if 1
-//        irq_disable();
-        AudioThread_CreateNextAudioBuffer(audio_buffer, 448);//num_samples);
-//        AudioThread_CreateNextAudioBuffer(audio_buffer + (num_samples * 2), num_samples);
-  //      irq_enable();
-        audio_api->play((u8 *)audio_buffer, 1792);// (num_samples * 2 * 2  * 2));
- #endif
-        }
+        AudioThread_CreateNextAudioBuffer(audio_buffer[0], audio_buffer[1], 448);
+        audio_api->play((u8 *)audio_buffer[0], (u8*)audio_buffer[1], 1792);
+    }
 
     return NULL;
 }

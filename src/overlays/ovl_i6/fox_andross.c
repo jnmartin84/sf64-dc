@@ -3675,7 +3675,7 @@ void Andross_AndLaserEmitter_Draw(AndLaserEmitter* this) {
             scale *= 1.2f;
         }
         Matrix_Scale(gGfxMatrix, scale, scale, scale, MTXF_APPLY);
-        Matrix_RotateX(gGfxMatrix, F_PI / 2, MTXF_APPLY);
+        Matrix_RotateX(gGfxMatrix, F_PI_2, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
         RCP_SetupDL(&gMasterDisp, SETUPDL_67);
         gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, alpha);

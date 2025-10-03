@@ -1,6 +1,10 @@
 #include "n64sys.h"
 #include "sf64audio_provisional.h"
 
+static inline float approx_recip_sign(float v) {
+	float _v = 1.0f / sqrtf(v * v);
+	return copysignf(_v, v);
+}
 void Audio_SequenceChannelProcessSound(SequenceChannel* channel, s32 updateVolume) {
     s32 i;
 
@@ -93,6 +97,7 @@ s16 Audio_GetVibratoPitchChange(VibratoState* vibrato) {
     index = (vibrato->time >> 10) & 0x3F;
     return vibrato->curve[index] >> 8;
 }
+#define approx_recip(x) (1.0f / sqrtf((x)*(x)))
 
 f32 Audio_GetVibratoFreqScale(VibratoState* vibrato) {
     s32 ret;
@@ -107,8 +112,9 @@ f32 Audio_GetVibratoFreqScale(VibratoState* vibrato) {
         if (vibrato->depthChangeTimer == 1) {
             vibrato->depth = (s32) vibrato->channel->vibratoDepthTarget;
         } else {
+            f32 recipchangetimer = approx_recip_sign((f32)(s32) vibrato->depthChangeTimer);
             vibrato->depth +=
-                ((s32) vibrato->channel->vibratoDepthTarget - vibrato->depth) / (s32) vibrato->depthChangeTimer;
+                ((s32) vibrato->channel->vibratoDepthTarget - vibrato->depth) * recipchangetimer; // / (s32) vibrato->depthChangeTimer;
         }
         vibrato->depthChangeTimer--;
     } else if (vibrato->channel->vibratoDepthTarget != (s32) vibrato->depth) {
@@ -120,8 +126,10 @@ f32 Audio_GetVibratoFreqScale(VibratoState* vibrato) {
         if (vibrato->rateChangeTimer == 1) {
             vibrato->rate = (s32) vibrato->channel->vibratoRateTarget;
         } else {
+                        f32 recipchangetimer = approx_recip_sign((f32)(s32) vibrato->rateChangeTimer);
+
             vibrato->rate +=
-                ((s32) vibrato->channel->vibratoRateTarget - vibrato->rate) / (s32) vibrato->rateChangeTimer;
+                ((s32) vibrato->channel->vibratoRateTarget - vibrato->rate) * recipchangetimer; // / (s32) vibrato->rateChangeTimer;
         }
         vibrato->rateChangeTimer--;
     } else if (vibrato->channel->vibratoRateTarget != (s32) vibrato->rate) {
@@ -133,7 +141,7 @@ f32 Audio_GetVibratoFreqScale(VibratoState* vibrato) {
         return 1.0f;
     }
     ret = Audio_GetVibratoPitchChange(vibrato);
-    temp = vibrato->depth / 4096.0f;
+    temp = vibrato->depth * 0.00024414f; // / 4096.0f;
     temp2 = 1.0f + temp * (gBendPitchOneOctaveFrequencies[0x80 + ret] - 1.0f);
     return temp2;
 }
@@ -218,16 +226,19 @@ f32 Audio_AdsrUpdate(AdsrState* adsr) {
                 default:
                     if (adsr->delay >= 4) {
                         adsr->delay =
-                            (adsr->delay * gAudioBufferParams.ticksPerUpdate / gAudioBufferParams.numBuffers) / 4;
+                            (adsr->delay * gAudioBufferParams.ticksPerUpdate /* / gAudioBufferParams.numBuffers */)>>2;// / 4;
                     }
                     if (adsr->delay == 0) {
                         adsr->delay = 1;
                     }
 
-                    adsr->target = (s16)__builtin_bswap16(adsr->envelope[adsr->envIndex].arg) / 32767.0f;
+                    adsr->target = (s16)__builtin_bswap16(adsr->envelope[adsr->envIndex].arg) * 0.00003052f; // / 32767.0f;
                     adsr->target = SQ(adsr->target);
-                    adsr->velocity = (adsr->target - adsr->current) / adsr->delay;
-                    adsr->state = ADSR_STATE_FADE;
+                {
+                    f32 recipdelay = approx_recip_sign((f32)adsr->delay);
+                    adsr->velocity = (adsr->target - adsr->current) * recipdelay; // / adsr->delay;
+                                  }
+                                                    adsr->state = ADSR_STATE_FADE;
                     adsr->envIndex++;
                     break;
             }

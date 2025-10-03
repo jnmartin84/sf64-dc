@@ -1215,7 +1215,7 @@ void AudioLoad_ProcessSlowLoads(s32 resetStatus) {
             case SLOW_LOAD_LOADING:
 //                MQ_WAIT_FOR_MESG(&slowLoad->mesgQueue, NULL);
                 while (osRecvMesg(&slowLoad->mesgQueue, NULL, 0) == -1) {
-                    thd_pass();
+                    //thd_pass();
                 }
                 if (resetStatus != 0) {
                     slowLoad->state = SLOW_LOAD_DONE;
@@ -1338,7 +1338,7 @@ void AudioLoad_ProcessAsyncLoad(AudioAsyncLoad* asyncLoad, s32 resetStatus) {
         if (resetStatus != 0) {
 //            MQ_WAIT_FOR_MESG(&asyncLoad->mesgQueue, NULL);
             while (osRecvMesg(&asyncLoad->mesgQueue, NULL, 0) == -1) {
-                thd_pass();
+                //thd_pass();
             }
             asyncLoad->status = 0;
             return;

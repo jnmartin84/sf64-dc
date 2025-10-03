@@ -37,11 +37,16 @@ extern void* segmented_to_virtual(const void* addr);
 #define SQ(x) ((x) * (x))
 #define CUBE(x) ((x) * (x) * (x))
 #include "sh4zam.h"
-#define DOT_XYZ(v1Ptr, v2Ptr) shz_dot8f((f32)((v1Ptr)->x), (f32)((v1Ptr)->y), (f32)((v1Ptr)->z), 0, (f32)((v2Ptr)->x), (f32)((v2Ptr)->y), (f32)((v2Ptr)->z), 0)
+#define DOT_XYZ(v1Ptr, v2Ptr) (((v1Ptr)->x * (v2Ptr)->x) + ((v1Ptr)->y * (v2Ptr)->y) + ((v1Ptr)->z * (v2Ptr)->z))
+
+
+//shz_dot8f((f32)((v1Ptr)->x), (f32)((v1Ptr)->y), (f32)((v1Ptr)->z), 0, (f32)((v2Ptr)->x), (f32)((v2Ptr)->y), (f32)((v2Ptr)->z), 0)
 
 //(((v1Ptr)->x * (v2Ptr)->x) + ((v1Ptr)->y * (v2Ptr)->y) + ((v1Ptr)->z * (v2Ptr)->z))
 
-#define VEC3F_MAG(vecPtr) shz_sqrtf_fsrra(DOT_XYZ(vecPtr, vecPtr))
+#define VEC3F_MAG(vecPtr) sqrtf(DOT_XYZ(vecPtr, vecPtr))
+
+//shz_sqrtf_fsrra(DOT_XYZ(vecPtr, vecPtr))
 
 //sqrtf(DOT_XYZ(vecPtr, vecPtr))
 
@@ -50,6 +55,12 @@ extern void* segmented_to_virtual(const void* addr);
 #define ROUND(float) ((s32)((float)+0.5f))
 #ifndef F_PI
 #define F_PI        3.1415926f   /* pi             */
+#define F_PI_2      1.57079633f /* pi / 2*/
+#define F_PI_4      0.78539816f /* pi / 2*/
+#define F_3PI_2     4.71238898f
+#define F_3PI_4     2.35619449f
+#define F_2PI       6.28318531f
+#define F_PI_18     0.17453293f
 #endif
 #define RAD_TO_DEG(radians) (((radians) * 180.0f) / F_PI)
 #define DEG_TO_RAD(degrees) (((degrees) / 180.0f) * F_PI)

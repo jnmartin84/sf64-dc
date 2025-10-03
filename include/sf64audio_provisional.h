@@ -1089,7 +1089,7 @@ typedef struct {
 
 // audio_synthesis
 void AudioSynth_HartleyTransform(f32*, s32, f32*);
-Acmd* AudioSynth_Update(Acmd* aList, s32* cmdCount, s16* aiBufStart, s32 aiBufLen);
+Acmd* AudioSynth_Update(Acmd* aList, s32* cmdCount, s16* aiBufStartL, s16* aiBufStartR, s32 aiBufLen);
 
 // audio_effects
 void Audio_SequencePlayerProcessSound(SequencePlayer* seqplayer);

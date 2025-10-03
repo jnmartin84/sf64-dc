@@ -158,6 +158,7 @@ SHZ_FORCE_INLINE float shz_dot8f(float x1, float y1, float z1, float w1,
 
 //! Calculates 1.0f/sqrtf( \p x ), using a fast approximation.
 SHZ_FORCE_INLINE float shz_inverse_sqrtf(float x) {
+    if (x == 0.0f) return 0.0f;
     asm("fsrra %0" : "+f" (x));
     return x;
 }

@@ -425,8 +425,9 @@ void func_radio_800BAAE8(void) {
         sp38 = gRadioPortraitScaleY * 20.0f * D_800D4A74;
         RCP_SetupDL_76();
         gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255);
-
+        gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
         if (mirror) {
+#if 0
             for (i = 0, j = 0; i < 2; i++, j += 44 * 20) {
                 Lib_TextureRect_RGBA16_MirX(&gMasterDisp, &radioPortraitTex[j], 44, 20, gRadioPortraitPosX,
                                             gRadioPortraitPosY + 20.0f + sp38 + (i * 20.0f * gRadioPortraitScaleY),
@@ -435,7 +436,15 @@ void func_radio_800BAAE8(void) {
             Lib_TextureRect_RGBA16_MirX(&gMasterDisp, &radioPortraitTex[44 * 20 * 2], 44, 4, gRadioPortraitPosX,
                                         gRadioPortraitPosY + 20.0f + sp38 + (40.0f * gRadioPortraitScaleY), 1.0f,
                                         gRadioPortraitScaleY);
+#endif
+            Lib_TextureRect_RGBA16_MirX(&gMasterDisp, &radioPortraitTex[j], 44, 45, gRadioPortraitPosX,
+                                       gRadioPortraitPosY + 20.0f + sp38, 1.0f,
+                                       gRadioPortraitScaleY);
         } else {
+            Lib_TextureRect_RGBA16(&gMasterDisp, &radioPortraitTex[j], 44, 45, gRadioPortraitPosX,
+                                       gRadioPortraitPosY + 20.0f + sp38, 1.0f,
+                                       gRadioPortraitScaleY);
+#if 0
             for (i = 0, j = 0; i < 2; i++, j += 44 * 20) {
                 Lib_TextureRect_RGBA16(&gMasterDisp, &radioPortraitTex[j], 44, 20, gRadioPortraitPosX,
                                        gRadioPortraitPosY + 20.0f + sp38 + (i * 20.0f * gRadioPortraitScaleY), 1.0f,
@@ -444,7 +453,8 @@ void func_radio_800BAAE8(void) {
             Lib_TextureRect_RGBA16(&gMasterDisp, &radioPortraitTex[44 * 20 * 2], 44, 4, gRadioPortraitPosX,
                                    gRadioPortraitPosY + 20.0f + sp38 + (40.0f * gRadioPortraitScaleY), 1.0f,
                                    gRadioPortraitScaleY);
-        }
+#endif
+            }
     }
 }
 

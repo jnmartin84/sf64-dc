@@ -25,7 +25,7 @@ OSMesgQueue* gAudioResetQueue = &sAudioResetQueue;
 
 #define SAMPLES_LEFT 454
 #include <stdio.h>
-void AudioThread_CreateNextAudioBuffer(s16* samples, u32 num_samples) {
+void AudioThread_CreateNextAudioBuffer(s16* samplesL, s16* samplesR, u32 num_samples) {
     s32 abiCmdCount;
     OSMesg specId;
     OSMesg msg;
@@ -59,7 +59,7 @@ void AudioThread_CreateNextAudioBuffer(s16* samples, u32 num_samples) {
         AudioThread_ProcessCmds((u32)msg);
     }
 
-    AudioSynth_Update(gCurAbiCmdBuffer, &abiCmdCount, samples, num_samples);
+    AudioSynth_Update(gCurAbiCmdBuffer, &abiCmdCount, samplesL, samplesR, num_samples);
 
     // Spectrum Analyzer fix
     //memcpy(gAiBuffers[gCurAiBuffIndex], samples, 2 * num_samples * sizeof(s16));
@@ -188,6 +188,9 @@ SPTask* AudioThread_CreateTask(void) {
     }
 }
 #endif
+void wav_pause(void);
+void wav_play(void);
+
 
 void AudioThread_ProcessGlobalCmd(AudioCmd* cmd) {
     s32 i;
@@ -217,11 +220,13 @@ void AudioThread_ProcessGlobalCmd(AudioCmd* cmd) {
             break;
         case AUDIOCMD_OP_GLOBAL_MUTE:
             for (i = 0; i < ARRAY_COUNT(gSeqPlayers); i++) {
+
                 SequencePlayer* seqplayer = &gSeqPlayers[i];
 
                 seqplayer->muted = 1;
                 seqplayer->recalculateVolume = 1;
             }
+//            wav_pause();
             break;
         case AUDIOCMD_OP_GLOBAL_UNMUTE:
             if (cmd->asUInt == 1) {
@@ -242,6 +247,7 @@ void AudioThread_ProcessGlobalCmd(AudioCmd* cmd) {
                 seqplayer->muted = 0;
                 seqplayer->recalculateVolume = 1;
             }
+//            wav_play();
             break;
         case AUDIOCMD_OP_GLOBAL_SYNC_LOAD_INSTRUMENT:
             AudioLoad_SyncLoadInstrument(cmd->arg0, cmd->arg1, cmd->arg2);
@@ -262,10 +268,11 @@ void AudioThread_SetFadeOutTimer(s32 seqPlayId, s32 fadeTime) {
     if (fadeTime == 0) {
         fadeTime = 1;
     }
+    f32 recipfadetime = shz_inv_sqrtf((f32)fadeTime * (f32)fadeTime); // 1.0f / sqrtf((f32)fadeTime * (f32)fadeTime);
 
     gSeqPlayers[seqPlayId].state = 2;
     gSeqPlayers[seqPlayId].fadeTimer = fadeTime;
-    gSeqPlayers[seqPlayId].fadeVelocity = -(gSeqPlayers[seqPlayId].fadeVolume / fadeTime);
+    gSeqPlayers[seqPlayId].fadeVelocity = -(gSeqPlayers[seqPlayId].fadeVolume * recipfadetime); // / fadeTime);
 }
 
 void AudioThread_SetFadeInTimer(s32 seqPlayId, s32 fadeTime) {

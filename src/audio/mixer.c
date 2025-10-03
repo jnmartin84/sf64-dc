@@ -13,6 +13,8 @@
 
 #include "mixer.h"
 void n64_memcpy(void* dst, const void* src, size_t size) {
+    if (!size)
+        return;
     uint8_t* bdst = (uint8_t*) dst;
     uint8_t* bsrc = (uint8_t*) src;
     uint16_t* sdst = (uint16_t*) dst;
@@ -1187,6 +1189,7 @@ void aS8DecImpl(uint8_t flags, ADPCM_STATE state) {
 
 
 void aResampleZohImpl(uint16_t pitch, uint16_t start_fract) {
+#if 0
     int16_t* in = BUF_S16(rspa.in);
     int16_t* out = BUF_S16(rspa.out);
     int nbytes = ROUND_UP_8(rspa.nbytes);
@@ -1205,9 +1208,11 @@ void aResampleZohImpl(uint16_t pitch, uint16_t start_fract) {
 
         nbytes -= 4 * sizeof(int16_t);
     } while (nbytes > 0);
+#endif
 }
 
 void aAddMixerImpl(uint16_t count, uint16_t in_addr, uint16_t out_addr) {
+#if 0
     int16_t* in = BUF_S16(in_addr);
     int16_t* out = BUF_S16(out_addr);
     int nbytes = ROUND_UP_64(ROUND_DOWN_16(count));
@@ -1248,6 +1253,7 @@ void aAddMixerImpl(uint16_t count, uint16_t in_addr, uint16_t out_addr) {
 
         nbytes -= 16 * sizeof(int16_t);
     } while (nbytes > 0);
+#endif
 }
 
 void aUnkCmd19Impl(uint8_t f, uint16_t count, uint16_t out_addr, uint16_t in_addr) {
@@ -1332,28 +1338,46 @@ void aInterlImpl(uint16_t in_addr, uint16_t out_addr, uint16_t n_samples) {
 #endif
 
 void aHiLoGainImpl(uint8_t g, uint16_t count, uint16_t addr) {
-    int16_t* samples = BUF_S16(addr);
+    int32_t* samples = (int32_t*)((uintptr_t)BUF_S16(addr) & ~3);
     int nbytes = ROUND_UP_32(count);
 
     do {
-        *samples = clamp16((*samples * g) >> 4);
+        uint32_t s1,s2,s3,s4;
+        s1 = samples[0];
+        s2 = (s1 >> 16) & 0xffff;
+        s1 &= 0xffff;
+        s3 = samples[1];
+        s4 = (s3 >> 16) & 0xffff;
+        s3 &= 0xffff;
+//        s4 = samples[3];
+        MEM_BARRIER();
+        s1 = clamp16(s1 * g) >> 4;
+        s2 = clamp16(s2 * g) >> 4;
+        s3 = clamp16(s3 * g) >> 4;
+        s4 = clamp16(s4 * g) >> 4;
+        MEM_BARRIER();
+        *samples++ = (s2 << 16) | s1;
+//        *samples++ = s2;
+        *samples++ = (s3 << 16) | s2;
+//        *samples++ = s4;
+/*        *samples = clamp16((*samples * g) >> 4);
         samples++;
         *samples = clamp16((*samples * g) >> 4);
         samples++;
         *samples = clamp16((*samples * g) >> 4);
         samples++;
         *samples = clamp16((*samples * g) >> 4);
+        samples++;*/
+/*        *samples = clamp16((*samples * g) >> 4);
         samples++;
         *samples = clamp16((*samples * g) >> 4);
         samples++;
         *samples = clamp16((*samples * g) >> 4);
         samples++;
         *samples = clamp16((*samples * g) >> 4);
-        samples++;
-        *samples = clamp16((*samples * g) >> 4);
-        samples++;
+        samples++;*/
 
-        nbytes -= 8;
+        nbytes -= 4;
     } while (nbytes > 0);
 }
 #endif

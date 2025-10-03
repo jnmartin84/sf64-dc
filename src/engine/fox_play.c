@@ -1740,7 +1740,7 @@ void Player_CollisionCheck(Player* player) {
                     spC8.x = scenery360->obj.pos.x - player->pos.x;
                     spC8.z = scenery360->obj.pos.z - player->trueZpos;
 
-                    if (shz_sqrtf_fsrra(SQ(spC8.x) + SQ(spC8.z)) < sp8C) {
+                    if (sqrtf(SQ(spC8.x) + SQ(spC8.z)) < sp8C) {
                         if ((scenery360->obj.id == OBJ_SCENERY_AQ_CORAL_REEF_1) ||
                             (scenery360->obj.id == OBJ_SCENERY_VS_KA_FLBASE) ||
                             (scenery360->obj.id == OBJ_SCENERY_VS_PYRAMID_2) ||
@@ -1869,7 +1869,7 @@ void Player_CollisionCheck(Player* player) {
                         (scenery->obj.id == OBJ_SCENERY_CO_BUMP_2) || (scenery->obj.id == OBJ_SCENERY_CO_BUMP_3)) {
                         spC8.x = scenery->obj.pos.x - player->pos.x;
                         spC8.z = scenery->obj.pos.z - player->trueZpos;
-                        if (shz_sqrtf_fsrra(SQ(spC8.x) + SQ(spC8.z)) < 1100.0f) {
+                        if (sqrtf(SQ(spC8.x) + SQ(spC8.z)) < 1100.0f) {
                             temp_v0 = Player_CheckPolyCollision(
                                 player, scenery->obj.id, scenery->obj.pos.x, scenery->obj.pos.y, scenery->obj.pos.z,
                                 scenery->obj.rot.x, scenery->obj.rot.y, scenery->obj.rot.z);
@@ -6477,12 +6477,12 @@ void Camera_SetStarfieldPos(f32 xEye, f32 yEye, f32 zEye, f32 xAt, f32 yAt, f32 
     f32 sp20;
 
     yaw = -Math_Atan2F(xEye - xAt, zEye - zAt);
-    tempf = shz_sqrtf_fsrra(SQ(zEye - zAt) + SQ(xEye - xAt));
+    tempf = sqrtf(SQ(zEye - zAt) + SQ(xEye - xAt));
     pitch = -Math_Atan2F(yEye - yAt, tempf);
-    if (yaw >= F_PI / 2) {
+    if (yaw >= F_PI_2) {
         yaw -= F_PI;
     }
-    if (yaw <= -F_PI / 2) {
+    if (yaw <= -F_PI_2) {
         yaw += F_PI;
     }
 
@@ -6973,7 +6973,7 @@ void Play_SpawnVsItem(ObjectId objId, Item* item) {
 void Play_SetupZPos360(f32* zPos) {
     *zPos += gPathProgress + 15000.0f;
 }
-
+extern void S_SetMusicVolume(int v);
 void Play_Main(void) {
     s32 i = 0;
     f32 fovYtarget = 0;
@@ -7039,6 +7039,7 @@ void Play_Main(void) {
         case PLAY_INIT:
             Play_Init();
             sMusicVolume = gVolumeSettings[AUDIO_TYPE_MUSIC];
+            S_SetMusicVolume(sMusicVolume * 100);
             sVoiceVolume = gVolumeSettings[AUDIO_TYPE_VOICE];
             sSfxVolume = gVolumeSettings[AUDIO_TYPE_SFX];
             gPlayState = PLAY_UPDATE;

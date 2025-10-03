@@ -127,8 +127,8 @@ void func_tank_800438E0(Effect* effect, f32 xPos, f32 yPos, f32 zPos, f32 scale)
     effect->obj.pos.y = yPos;
     effect->obj.pos.z = zPos;
     effect->vel.x = RAND_FLOAT(1.0f) - RAND_FLOAT(2.0f);
-    effect->vel.y = RAND_FLOAT(3.0f) - (gPlayer[0].vel.z / 5.0f) + 3.0f;
-    effect->vel.z = RAND_FLOAT(3.0f) - (gPlayer[0].vel.z / 5.0f) + 2.0f;
+    effect->vel.y = RAND_FLOAT(3.0f) - (gPlayer[0].vel.z * 0.2f) + 3.0f;
+    effect->vel.z = RAND_FLOAT(3.0f) - (gPlayer[0].vel.z * 0.2f) + 2.0f;
     effect->scale2 = (RAND_FLOAT(0.8f) + 0.3f) * scale;
     effect->timer_50 = RAND_INT(5.0f) + 8;
     effect->obj.rot.x = RAND_FLOAT(360.0f);
@@ -458,7 +458,7 @@ void func_tank_80044868(Player* player) {
         Math_SmoothStepToF(&player->vel.x, player->unk_184 - (SIN_DEG(player->rot_104.y) * sp2C), 0.5f, 5.0f, 0.0f);
     }
 
-    player->vel.z += fabsf((player->unk_184 * 0.4f * player->baseSpeed) / 15.0f);
+    player->vel.z += fabsf((player->unk_184 * player->baseSpeed) * 0.02666667f); // * 0.4 / 15.0
 
     if (player->unk_000 == 0) {
         player->vel.z += SIN_DEG(player->rot.x) * player->boostSpeed;
@@ -517,7 +517,7 @@ void func_tank_80044868(Player* player) {
 
     if (player->baseSpeed > 0.0f) {
 //        Lib_Texture_Scroll(aLandmasterModelTex6, 32, 32, 0);
-        lm6_ult = (lm6_ult + 4) & 0x7F;
+        lm6_ult = (lm6_ult - 4) & 0x7F;
         lm6_lrt = (lm6_ult + 127) & 0xFFF;
         // aLandmasterModelDL
         // + 92
@@ -557,7 +557,7 @@ void func_tank_80044868(Player* player) {
     }
     if (player->baseSpeed > 10.0f) {
 //        Lib_Texture_Scroll(aLandmasterModelTex6, 32, 32, 0);
-        lm6_ult = (lm6_ult + 4) & 0x7F;
+        lm6_ult = (lm6_ult - 4) & 0x7F;
         lm6_lrt = (lm6_ult + 127) & 0xFFF;
         // aLandmasterModelDL
         // + 92
@@ -1395,7 +1395,8 @@ void func_tank_80047FBC(Player* player) {
     f32 temp_fv0_2;
 
     if (!(D_800C9F08 & 1)) {
-        Math_SmoothStepToF(&player->rot.z, -((player->vel.z / 5.0f) * 4.0f), 0.4f, 8.0f, 0.01f);
+        Math_SmoothStepToF(&player->rot.z, -(player->vel.z * 0.8f), 0.4f, 8.0f, 0.01f);
+            //-((player->vel.z / 5.0f) * 4.0f), 0.4f, 8.0f, 0.01f);
         if (player->rot.z >= 3.0f) {
             if (gPlayer[0].state != PLAYERSTATE_LEVEL_COMPLETE) {
                 AUDIO_PLAY_SFX(NA_SE_RAILWAY_BOUND, player->sfxSource, 0);
@@ -1403,23 +1404,24 @@ void func_tank_80047FBC(Player* player) {
             D_800C9F08 |= 1;
         }
     } else {
-        Math_SmoothStepToF(&player->rot.z, (player->vel.z / 5.0f) * 4.0f, 0.4f, 8.0f, 0.01f);
+        Math_SmoothStepToF(&player->rot.z, (player->vel.z * 0.8f), 0.4f, 8.0f, 0.01f);
+            //(player->vel.z / 5.0f) * 4.0f, 0.4f, 8.0f, 0.01f);
         if (player->rot.z <= -3.0f) {
             D_800C9F08 &= (u8) ~1;
         }
     }
     if (!(D_800C9F08 & 8)) {
-        if (-player->vel.z / 5.0f > 3.0f) {
+        if (-(player->vel.z * 0.2f) > 3.0f) {
             player->pos.y += 3.0f;
         } else {
-            player->pos.y += -player->vel.z / 5.0f;
+            player->pos.y += -(player->vel.z * 0.2f);
         }
         D_800C9F08 |= 8;
     } else {
-        if (-player->vel.z / 5.0f > 2.0f) {
+        if (-(player->vel.z * 0.2f) > 2.0f) {
             player->pos.y -= 2.0f;
         } else {
-            player->pos.y -= -player->vel.z / 5.0f;
+            player->pos.y -= -(player->vel.z * 0.2f);
         }
         D_800C9F08 &= (u8) ~8;
     }

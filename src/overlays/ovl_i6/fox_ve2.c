@@ -369,7 +369,7 @@ void Venom2_LevelComplete(Player* player) {
             pad80 = Math_SmoothStepToAngle(&player->yRot_114, sp84, 0.1f, D_ctx_80177A48[4], 0.0f) * 20.0f;
             Math_SmoothStepToF(&player->rot.z, pad80, 0.1f, 3.0f, 0.0f);
             Math_SmoothStepToF(&D_ctx_80177A48[4], 3.0f, 1.0f, 0.1f, 0.0f);
-            Matrix_RotateX(gCalcMatrix, -(D_PI / 9), MTXF_NEW);
+            Matrix_RotateX(gCalcMatrix, 0.34906585f/* -(D_PI / 9) */, MTXF_NEW);
             Matrix_RotateY(gCalcMatrix, (D_ctx_80177A48[3] + player->yRot_114) * M_DTOR, MTXF_APPLY);
 
             D_ctx_80177A48[3] += 1.0f;

@@ -4,6 +4,10 @@
 #define PORTAMENTO_IS_SPECIAL(x) ((x).mode & 0x80)
 #define PORTAMENTO_MODE(x) ((x).mode & ~0x80)
 
+static inline float approx_recip_sign(float v) {
+	float _v = 1.0f / sqrtf(v * v);
+	return copysignf(_v, v);
+}
 typedef enum {
     /* 0 */ PORTAMENTO_MODE_OFF,
     /* 1 */ PORTAMENTO_MODE_1,
@@ -383,7 +387,7 @@ void AudioSeq_SeqLayerProcessScript(SequenceLayer* layer) {
             case 0xCA: // layer_setpan
                 var_s2 = *state->pc++;
                 if (cmd == 0xC1) {
-                    layer->velocitySquare = (f32) (var_s2 * var_s2) / 16129.0f;
+                    layer->velocitySquare = (f32) (var_s2 * var_s2)*0.000062f;// / 16129.0f;
                 } else {
                     layer->pan = var_s2;
                 }
@@ -482,7 +486,7 @@ void AudioSeq_SeqLayerProcessScript(SequenceLayer* layer) {
                 switch (cmd & 0xF0) {
                     case 0xD0: // layer_setshortnotevelocityfromtable
                         cmdArg16 = (u16) seqPlayer->shortNoteVelocityTable[cmd & 0xF];
-                        layer->velocitySquare = (f32) (cmdArg16 * cmdArg16) / 16129.0f;
+                        layer->velocitySquare = (f32) (cmdArg16 * cmdArg16)*0.000062f;// / 16129.0f;
                         break;
 
                     case 0xE0: // layer_setshortnotegatetimefromtable
@@ -534,7 +538,7 @@ void AudioSeq_SeqLayerProcessScript(SequenceLayer* layer) {
                 vel = 127;
             }
 
-            layer->velocitySquare = SQ((f32) vel) / 16129.0f;
+            layer->velocitySquare = SQ((f32) vel)*0.000062f;// / 16129.0f;
             cmd -= (cmd & 0xC0);
         } else {
             switch (cmd & 0xC0) {
@@ -645,13 +649,15 @@ void AudioSeq_SeqLayerProcessScript(SequenceLayer* layer) {
                                 var_v0_2 = temp_fv1;
                                 break;
                         }
-
-                        portamento->extent = (var_v0_2 / freqMod) - 1.0f;
+                        f32 recipFreqMod = approx_recip_sign(freqMod);
+                        portamento->extent = (var_v0_2 * recipFreqMod) - 1.0f;
                         if (layer->portamento.mode & 0x80) {
-                            portamento->speed = ((s32) seqPlayer->tempo * 32512.0f) /
-                                                ((f32) layer->delay * gMaxTempo * (s32) layer->portamentoTime);
+                            f32 recip = approx_recip_sign((f32) layer->delay * gMaxTempo * (s32) layer->portamentoTime);
+                            portamento->speed = ((s32) seqPlayer->tempo * 32512.0f) * recip; // /
+//                                                ((f32) layer->delay * gMaxTempo * (s32) layer->portamentoTime);
                         } else {
-                            portamento->speed = 127.0f / (s32) layer->portamentoTime;
+                            f32 recip = approx_recip_sign((f32)(s32)layer->portamentoTime);
+                            portamento->speed = 127.0f * recip;// / (s32) layer->portamentoTime;
                         }
                         portamento->cur = 0.0f;
 
@@ -739,8 +745,7 @@ void AudioSeq_SetInstrument(SequenceChannel* channel, u8 instId) {
         channel->instrument = (Instrument*) 1; // invalid pointer, never dereferenced
     } else {
         // Instruments
-        if ((channel->instOrWave = AudioSeq_GetInstrument(channel, instId, &channel->instrument, &channel->adsr)) ==
-            0) {
+        if ((channel->instOrWave = AudioSeq_GetInstrument(channel, instId, &channel->instrument, &channel->adsr)) == 0) {
             channel->hasInstrument = 0;
             return;
         }
@@ -749,7 +754,7 @@ void AudioSeq_SetInstrument(SequenceChannel* channel, u8 instId) {
 }
 
 void AudioSeq_SequenceChannelSetVolume(SequenceChannel* channel, u8 volume) {
-    channel->volume = (s32) volume / 127.0f;
+    channel->volume = (s32) volume * 0.00787402f; // / 127.0f;
 }
 
 void AudioSeq_SequenceChannelProcessScript(SequenceChannel* channel) {
@@ -914,13 +919,13 @@ void AudioSeq_SequenceChannelProcessScript(SequenceChannel* channel) {
                         break;
 
                     case 0xE0:
-                        channel->volumeMod = (s32) AudioSeq_ScriptReadU8(state) / 128.0f;
+                        channel->volumeMod = (s32) AudioSeq_ScriptReadU8(state)*0.0078125f;// / 128.0f;
                         channel->changes.s.volume = 1;
                         break;
 
                     case 0xDE:
                         sp52 = AudioSeq_ScriptReadS16(state);
-                        channel->freqMod = (s32) sp52 / 32768.0f;
+                        channel->freqMod = (s32) sp52*0.00003052f;// / 32768.0f;
                         channel->changes.s.freqMod = 1;
                         break;
 
@@ -1365,10 +1370,12 @@ void AudioSeq_SequencePlayerProcessSequence(SequencePlayer* seqPlayer) {
                                     seqPlayer->state = temp_s2;
                                 }
                                 break;
-                            case 2:
+                            case 2: {
                                 seqPlayer->fadeTimer = temp_v0_7;
                                 seqPlayer->state = temp_s2;
-                                seqPlayer->fadeVelocity = (0.0f - seqPlayer->fadeVolume) / (s32) seqPlayer->fadeTimer;
+                                f32 recipft = approx_recip_sign((f32)(s32)seqPlayer->fadeTimer);
+                                seqPlayer->fadeVelocity = (0.0f - seqPlayer->fadeVolume)*recipft; //  / (s32) seqPlayer->fadeTimer;
+                                }
                                 break;
                         }
                         break;
@@ -1386,17 +1393,20 @@ void AudioSeq_SequencePlayerProcessSequence(SequencePlayer* seqPlayer) {
                             case 0:
                                 seqPlayer->fadeTimer = seqPlayer->fadeTimerUnkEu;
                                 if (seqPlayer->fadeTimerUnkEu != 0) {
-                                    seqPlayer->fadeVelocity = (((s32) temp_v0_8 / 127.0f) - seqPlayer->fadeVolume) /
-                                                              (s32) seqPlayer->fadeTimer;
+                                                                    f32 recipft = approx_recip_sign((f32)(s32)seqPlayer->fadeTimer);
+
+                                    seqPlayer->fadeVelocity = (((s32) temp_v0_8 * 0.00787402f/* / 127.0f */) - seqPlayer->fadeVolume)*recipft;
+                                    // /
+                                      //                        (s32) seqPlayer->fadeTimer;
                                 } else {
-                                    seqPlayer->fadeVolume = (s32) temp_v0_8 / 127.f;
+                                    seqPlayer->fadeVolume = (s32) temp_v0_8 * 0.00787402f; // / 127.f;
                                 }
                                 break;
                         }
                         break;
 
                     case 0xD9:
-                        seqPlayer->fadeVolumeMod = (s8) AudioSeq_ScriptReadU8(temp_s0) / 127.0f;
+                        seqPlayer->fadeVolumeMod = (s8) AudioSeq_ScriptReadU8(temp_s0) * 0.00787402f;// / 127.0f;
                         break;
 
                     case 0xD7:
@@ -1408,7 +1418,7 @@ void AudioSeq_SequencePlayerProcessSequence(SequencePlayer* seqPlayer) {
                         break;
 
                     case 0xD5:
-                        seqPlayer->muteVolumeMod = (s8) AudioSeq_ScriptReadU8(temp_s0) / 127.0f;
+                        seqPlayer->muteVolumeMod = (s8) AudioSeq_ScriptReadU8(temp_s0) * 0.00787402f;// / 127.0f;
                         break;
 
                     case 0xD4:

@@ -194,10 +194,10 @@ void HUD_TeamDownWrench_Draw(s32 arg0) {
                 Matrix_Translate(gGfxMatrix, sTeamDownWrenchPos[i - 1].x, sTeamDownWrenchPos[i - 1].y,
                                  sTeamDownWrenchPos[i - 1].z, MTXF_APPLY);
                 Matrix_Scale(gGfxMatrix, 0.68f, 0.68f, 1.0f, MTXF_APPLY);
-                Matrix_RotateZ(gGfxMatrix, F_PI / 4, MTXF_APPLY);
+                Matrix_RotateZ(gGfxMatrix, F_PI_4, MTXF_APPLY);
                 Matrix_SetGfxMtx(&gMasterDisp);
                 gSPDisplayList(gMasterDisp++, aDownWrenchDL);
-                Matrix_RotateZ(gGfxMatrix, 3 * F_PI / 2, MTXF_APPLY);
+                Matrix_RotateZ(gGfxMatrix, F_3PI_2, MTXF_APPLY);
                 Matrix_SetGfxMtx(&gMasterDisp);
                 gSPDisplayList(gMasterDisp++, aDownWrenchDL);
                 Matrix_Pop(&gGfxMatrix);
@@ -210,7 +210,7 @@ void HUD_TeamDownWrench_Draw(s32 arg0) {
         Matrix_Scale(gGfxMatrix, 0.68f, 0.68f, 1.0f, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
         gSPDisplayList(gMasterDisp++, aDownWrenchDL);
-        Matrix_RotateZ(gGfxMatrix, 3 * F_PI / 2, MTXF_APPLY);
+        Matrix_RotateZ(gGfxMatrix, F_3PI_2, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
         gSPDisplayList(gMasterDisp++, aDownWrenchDL);
         Matrix_Pop(&gGfxMatrix);
@@ -862,9 +862,11 @@ void HUD_DrawLevelClearScreen(void) {
 
     levelIdx = HUD_GetLevelIndex();
 
+    HUD_MsgWindowBg_Draw2(30.0f + D_800D1CFC, 60.0f, 10.97f, 4.78f);
+
     if (levelClearState != LEVEL_CLEAR_STATE_0) {
-//        RCP_SetupDL(&gMasterDisp, SETUPDL_76);
-        RCP_SetupDL(&gMasterDisp, SETUPDL_83);
+        RCP_SetupDL(&gMasterDisp, SETUPDL_76);
+//        RCP_SetupDL(&gMasterDisp, SETUPDL_83);
         gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
         x = 98.0f;
         y = 64.0f;
@@ -915,7 +917,7 @@ void HUD_DrawLevelClearScreen(void) {
                                 sLevelTitleCard[levelIdx].height, x + 112.0f, y, 1.0f, 1.0f);
 
         case LEVEL_CLEAR_STATE_5:
-            HUD_MsgWindowBg_Draw2(30.0f + D_800D1CFC, 60.0f, 10.97f, 4.78f);
+//            HUD_MsgWindowBg_Draw2(30.0f + D_800D1CFC, 60.0f, 10.97f, 4.78f);
             break;
 
         default:
@@ -1034,13 +1036,17 @@ void HUD_TeammateStatus_Draw(void) {
         } else {
             gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
         }
-
+        gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
+#if 0
         for (i = 0; i < 2; i++) {
             Lib_TextureRect_RGBA16(&gMasterDisp, sPortraitTex[j + 1] + (44 * 20 * i), 44, 20, x[j][0],
                                    y[j][0] + (f32) (20 * i), 1.0f, 1.0f);
         }
         Lib_TextureRect_RGBA16(&gMasterDisp, sPortraitTex[j + 1] + (44 * 20 * 2), 44, 4, x[j][0], y[j][0] + 40.0f, 1.0f,
                                1.0f);
+#endif
+            Lib_TextureRect_RGBA16(&gMasterDisp, sPortraitTex[j + 1] , 44, 45, x[j][0],
+                                   y[j][0], 1.0f, 1.0f);
 
         HUD_TeamShields_Draw(x[j][2], y[j][2], shield);
     }

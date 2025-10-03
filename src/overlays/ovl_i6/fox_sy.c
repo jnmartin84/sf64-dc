@@ -6,7 +6,7 @@
 
 #include "global.h"
 #include "assets/ast_sector_y.h"
-
+#include "sh4zam.h"
 #define SHOGUN_SHIP (0)
 
 typedef void (*BossFuncs)(SyShogun*);
@@ -1539,7 +1539,7 @@ void SectorY_SyShogun_Update(SyShogun* this) {
             Matrix_MultVec3fNoTranslate(gCalcMatrix, &src, &dest);
 
             sp1E4 = Math_RadToDeg(Math_Atan2F(dest.x, dest.z));
-            sp1E8 = Math_RadToDeg(-Math_Atan2F(dest.y, sqrtf(SQ(dest.x) + SQ(dest.z))));
+            sp1E8 = Math_RadToDeg(-Math_Atan2F(dest.y, shz_sqrtf_fsrra(SQ(dest.x) + SQ(dest.z))));
 
             if ((sp1E8 > 30.0f) && (sp1E8 <= 180.0f)) {
                 sp1E8 = 30.0f;
@@ -1566,7 +1566,7 @@ void SectorY_SyShogun_Update(SyShogun* this) {
             Matrix_MultVec3fNoTranslate(gCalcMatrix, &src, &dest);
 
             sp1E0 = Math_RadToDeg(Math_Atan2F(dest.x, dest.z));
-            sp1DC = Math_RadToDeg(-Math_Atan2F(dest.y, sqrtf(SQ(dest.x) + SQ(dest.z))));
+            sp1DC = Math_RadToDeg(-Math_Atan2F(dest.y, shz_sqrtf_fsrra(SQ(dest.x) + SQ(dest.z))));
 
             if ((sp1DC > 30.0f) && (sp1DC <= 180.0f)) {
                 sp1DC = 30.0f;
@@ -1591,7 +1591,7 @@ void SectorY_SyShogun_Update(SyShogun* this) {
             Matrix_MultVec3fNoTranslate(gCalcMatrix, &src, &dest);
 
             sp1D8 = Math_RadToDeg(Math_Atan2F(dest.x, dest.z));
-            sp1D4 = Math_RadToDeg(-Math_Atan2F(dest.y, sqrtf(SQ(dest.x) + SQ(dest.z))));
+            sp1D4 = Math_RadToDeg(-Math_Atan2F(dest.y, shz_sqrtf_fsrra(SQ(dest.x) + SQ(dest.z))));
 
             if ((sp1D4 > 80.0f) && (sp1D4 <= 180.0f)) {
                 sp1D4 = 80.0f;
@@ -1619,7 +1619,7 @@ void SectorY_SyShogun_Update(SyShogun* this) {
             Matrix_MultVec3fNoTranslate(gCalcMatrix, &src, &dest);
 
             sp1E4 = Math_RadToDeg(Math_Atan2F(dest.x, dest.z));
-            sp1E8 = Math_RadToDeg(-Math_Atan2F(dest.y, sqrtf(SQ(dest.x) + SQ(dest.z))));
+            sp1E8 = Math_RadToDeg(-Math_Atan2F(dest.y, shz_sqrtf_fsrra(SQ(dest.x) + SQ(dest.z))));
 
             if ((sp1E8 > 80.0f) && (sp1E8 <= 180.0f)) {
                 sp1E8 = 80.0f;
@@ -1944,7 +1944,7 @@ void SectorY_SyShogun_Draw(SyShogun* this) {
             sp94 = gPlayer[0].cam.eye.y - this->obj.pos.y;
             sp90 = gPlayer[0].cam.eye.z - (this->obj.pos.z + gPathProgress);
             sp8C = -Math_Atan2F(sp98, sp90);
-            sp9C = sqrtf(SQ(sp90) + SQ(sp98));
+            sp9C = shz_sqrtf_fsrra(SQ(sp90) + SQ(sp98));
             sp88 = Math_Atan2F(sp94, sp9C);
             Matrix_RotateY(gGfxMatrix, -sp8C, MTXF_APPLY);
             Matrix_RotateX(gGfxMatrix, -sp88, MTXF_APPLY);
@@ -1991,7 +1991,7 @@ void SectorY_SyShogun_Draw(SyShogun* this) {
             Matrix_Pop(&gGfxMatrix);
             Matrix_Push(&gGfxMatrix);
             Matrix_Translate(gGfxMatrix, this->obj.pos.x, 157.0f, this->obj.pos.z, MTXF_APPLY);
-            Matrix_RotateX(gGfxMatrix, F_PI / 2, MTXF_APPLY);
+            Matrix_RotateX(gGfxMatrix, F_PI_2, MTXF_APPLY);
             Matrix_Scale(gGfxMatrix, this->fwork[43], this->fwork[43], this->fwork[43], MTXF_APPLY);
             Matrix_SetGfxMtx(&gMasterDisp);
             gSPDisplayList(gMasterDisp++, aOrbDL);
@@ -2716,7 +2716,7 @@ void SectorY_LevelStart(Player* player) {
                 sp90 = gActors[spB0].obj.pos.y - gActors[8].obj.pos.y - 200.0f;
                 sp8C = gActors[spB0].obj.pos.z - sp80;
                 sp84 = Math_RadToDeg(Math_Atan2F(sp94, sp8C));
-                sp88 = Math_RadToDeg(-Math_Atan2F(sp90, sqrtf(SQ(sp94) + SQ(sp8C))));
+                sp88 = Math_RadToDeg(-Math_Atan2F(sp90, shz_sqrtf_fsrra(SQ(sp94) + SQ(sp8C))));
                 Matrix_RotateY(gCalcMatrix, M_DTOR * sp84, MTXF_NEW);
                 Matrix_RotateX(gCalcMatrix, M_DTOR * sp88, MTXF_APPLY);
                 spA4.x = 0.0f;
@@ -2832,7 +2832,7 @@ void SectorY_LevelStart(Player* player) {
                     sp90 = 900.0f - gActors[8].obj.pos.y;
                     sp8C = -1000.0f - gActors[8].obj.pos.z;
                     sp84 = Math_RadToDeg(Math_Atan2F(sp94, sp8C));
-                    sp88 = Math_RadToDeg(-Math_Atan2F(sp90, sqrtf(SQ(sp94) + SQ(sp8C))));
+                    sp88 = Math_RadToDeg(-Math_Atan2F(sp90, shz_sqrtf_fsrra(SQ(sp94) + SQ(sp8C))));
                     Matrix_RotateY(gCalcMatrix, M_DTOR * sp84, MTXF_NEW);
                     Matrix_RotateX(gCalcMatrix, M_DTOR * sp88, MTXF_APPLY);
                     spA4.x = 0.0f;
@@ -3708,7 +3708,7 @@ void SectorY_SyRobot_Update(SyRobot* this) {
         Matrix_MultVec3fNoTranslate(gCalcMatrix, &sp5C, &sp50);
 
         sp1D4 = Math_RadToDeg(Math_Atan2F(sp50.x, sp50.z));
-        sp1D8 = Math_RadToDeg(-Math_Atan2F(sp50.y, sqrtf(SQ(sp50.x) + SQ(sp50.z))));
+        sp1D8 = Math_RadToDeg(-Math_Atan2F(sp50.y, shz_sqrtf_fsrra(SQ(sp50.x) + SQ(sp50.z))));
 
         if ((sp1D8 > 90.0f) && (sp1D8 < 180.0f)) {
             sp1D8 = 90.0f;
@@ -3901,31 +3901,32 @@ void SectorY_SyShip3Destroyed_Update(SyShip3Destroyed* this) {
         Matrix_RotateY(gCalcMatrix, this->obj.rot.y * M_DTOR, MTXF_NEW);
         Matrix_RotateX(gCalcMatrix, this->obj.rot.x * M_DTOR, MTXF_APPLY);
         Matrix_RotateZ(gCalcMatrix, this->obj.rot.z * M_DTOR, MTXF_APPLY);
+        Matrix_LoadOnly(gCalcMatrix);
         src.x = RAND_FLOAT_CENTERED(100.0f) + 500.0f;
         src.y = RAND_FLOAT_CENTERED(900.0f) + -150.0f;
         src.z = 90.0f - RAND_FLOAT(50.0f);
-        Matrix_MultVec3f(gCalcMatrix, &src, &dest);
+        Matrix_MultVec3f_NoLoad(/* gCalcMatrix,  */&src, &dest);
         Effect_Effect390_Spawn(this->obj.pos.x + dest.x, this->obj.pos.y + dest.y, this->obj.pos.z + dest.z,
                                this->effectVel.x, this->effectVel.y, this->effectVel.z, 0.2f, 5);
 
         src.x = RAND_FLOAT_CENTERED(100.0f) + -500.0f;
         src.y = RAND_FLOAT_CENTERED(900.0f);
         src.z = 80.0f - RAND_FLOAT(50.0f);
-        Matrix_MultVec3f(gCalcMatrix, &src, &dest);
+        Matrix_MultVec3f_NoLoad(/* gCalcMatrix,  */&src, &dest);
         Effect_Effect390_Spawn(this->obj.pos.x + dest.x, this->obj.pos.y + dest.y, this->obj.pos.z + dest.z,
                                this->effectVel.x, this->effectVel.y, this->effectVel.z, 0.2f, 5);
 
         src.x = RAND_FLOAT_CENTERED(100.0f) + 500.0f;
         src.y = RAND_FLOAT_CENTERED(900.0f) + -50.0f;
         src.z = 1900.0f - RAND_FLOAT(50.0f);
-        Matrix_MultVec3f(gCalcMatrix, &src, &dest);
+        Matrix_MultVec3f_NoLoad(/* gCalcMatrix,  */&src, &dest);
         Effect_Effect390_Spawn(this->obj.pos.x + dest.x, this->obj.pos.y + dest.y, this->obj.pos.z + dest.z,
                                this->effectVel.x, this->effectVel.y, this->effectVel.z, 0.2f, 5);
 
         src.x = RAND_FLOAT_CENTERED(100.0f) + -1000.0f;
         src.y = RAND_FLOAT_CENTERED(900.0f) + -250.0f;
         src.z = 1100.0f - RAND_FLOAT(50.0f);
-        Matrix_MultVec3f(gCalcMatrix, &src, &dest);
+        Matrix_MultVec3f_NoLoad(/* gCalcMatrix,  */ &src, &dest);
         Effect_Effect390_Spawn(this->obj.pos.x + dest.x, this->obj.pos.y + dest.y, this->obj.pos.z + dest.z,
                                this->effectVel.x, this->effectVel.y, this->effectVel.z, 0.2f, 5);
     }
@@ -3944,16 +3945,17 @@ void SectorY_SyShip4Destroyed_Update(SyShip2Destroyed* this) {
         Matrix_RotateY(gCalcMatrix, this->obj.rot.y * M_DTOR, MTXF_NEW);
         Matrix_RotateX(gCalcMatrix, this->obj.rot.x * M_DTOR, MTXF_APPLY);
         Matrix_RotateZ(gCalcMatrix, this->obj.rot.z * M_DTOR, MTXF_APPLY);
+        Matrix_LoadOnly(gCalcMatrix);
         src.x = RAND_FLOAT_CENTERED(100.0f) + -800.0f;
         src.y = RAND_FLOAT_CENTERED(300.0f) + -100.0f;
         src.z = RAND_FLOAT_CENTERED(5000.0f) + 500.0f;
-        Matrix_MultVec3f(gCalcMatrix, &src, &dest);
+        Matrix_MultVec3f_NoLoad(/* gCalcMatrix,  */ &src, &dest);
         Effect_Effect390_Spawn(this->obj.pos.x + dest.x, this->obj.pos.y + dest.y, this->obj.pos.z + dest.z,
                                this->effectVel.x, this->effectVel.y, this->effectVel.z, 0.3f, 5);
         src.x = RAND_FLOAT_CENTERED(100.0f) + -600.0f;
         src.y = RAND_FLOAT_CENTERED(250.0f) + 300.0f;
         src.z = RAND_FLOAT_CENTERED(1500.0f) + -1650.0f;
-        Matrix_MultVec3f(gCalcMatrix, &src, &dest);
+        Matrix_MultVec3f_NoLoad(/* gCalcMatrix,  */&src, &dest);
         Effect_Effect390_Spawn(this->obj.pos.x + dest.x, this->obj.pos.y + dest.y, this->obj.pos.z + dest.z,
                                this->effectVel.x, this->effectVel.y, this->effectVel.z, 0.2f, 5);
     }

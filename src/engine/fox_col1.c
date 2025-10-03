@@ -141,11 +141,6 @@ void func_col1_800978C4(Vec3f* norm, s32 ax, s32 ay, s32 az, s32 bx, s32 by, s32
     norm->z = (__dx1 * __dy2) - (__dy1 * __dx2);
 }
 
-static inline float approx_recip_sign(float v) {
-	float _v = 1.0f / sqrtf(v * v);
-	return copysignf(_v, v);
-}
-//#define approx_recip_sign(v) (1.0f / sqrtf((v)*(v)))
 // Calculate the normal vector of an ordered triangle, given as vertices
 void func_col1_800979E8(Vtx_tn* tri) {
     s32 i;
@@ -177,10 +172,9 @@ void func_col1_800979E8(Vtx_tn* tri) {
     temp.z = (__dx1 * __dy2) - (__dy1 * __dx2);
     temp_fv0 = VEC3F_MAG(&temp);
     if (temp_fv0 != 0.0f) {
-        f32 recip127v0 = 127.0f * approx_recip_sign(temp_fv0);
-        temp.x = temp.x * recip127v0; // 127.0f / temp_fv0;
-        temp.y = temp.y * recip127v0; // 127.0f / temp_fv0;
-        temp.z = temp.z * recip127v0; // 127.0f / temp_fv0;
+        temp.x = temp.x * 127.0f / temp_fv0;
+        temp.y = temp.y * 127.0f / temp_fv0;
+        temp.z = temp.z * 127.0f / temp_fv0;
         for (i = 0; i < 3; i++) {
             tri->n[0] = temp.x;
             tri->n[1] = temp.y;
@@ -219,10 +213,9 @@ void func_col1_80097C88(Vec3f* norms, Vtx_tn* quad) {
 
     temp_fv0 = VEC3F_MAG(norms);
     if (temp_fv0 != 0.0f) {
-        f32 recip127v0 = 127.0f * approx_recip_sign(temp_fv0);
-        norms->x = (norms->x * recip127v0);// / temp_fv0) * 127.0f;
-        norms->y = (norms->y * recip127v0);// / temp_fv0) * 127.0f;
-        norms->z = (norms->z * recip127v0);// / temp_fv0) * 127.0f;
+        norms->x = (norms->x / temp_fv0) * 127.0f;
+        norms->y = (norms->y / temp_fv0) * 127.0f;
+        norms->z = (norms->z / temp_fv0) * 127.0f;
     }
 
     norms++;
@@ -249,10 +242,9 @@ void func_col1_80097C88(Vec3f* norms, Vtx_tn* quad) {
 
     temp_fv0 = VEC3F_MAG(norms);
     if (temp_fv0 != 0.0f) {
-        f32 recip127v0 = 127.0f * approx_recip_sign(temp_fv0);
-        norms->x = (norms->x * recip127v0);// / temp_fv0) * 127.0f;
-        norms->y = (norms->y * recip127v0);// / temp_fv0) * 127.0f;
-        norms->z = (norms->z * recip127v0);// / temp_fv0) * 127.0f;
+        norms->x = (norms->x / temp_fv0) * 127.0f;
+        norms->y = (norms->y / temp_fv0) * 127.0f;
+        norms->z = (norms->z / temp_fv0) * 127.0f;
     }
 }
 
@@ -319,10 +311,9 @@ s32 func_col1_8009808C(Vec3f* pos, Vtx_tn* quad, Vec3f* normOut) {
         if (temp_fv0 == 0) {
             return 0;
         }
-        f32 recip127v0 = 127.0f * approx_recip_sign(temp_fv0);
-        normOut->x = (normOut->x * recip127v0);// / temp_fv0) * 127.0f;
-        normOut->y = (normOut->y * recip127v0);// / temp_fv0) * 127.0f;
-        normOut->z = (normOut->z * recip127v0);// / temp_fv0) * 127.0f;
+        normOut->x = (normOut->x / temp_fv0) * 127.0f;
+        normOut->y = (normOut->y / temp_fv0) * 127.0f;
+        normOut->z = (normOut->z / temp_fv0) * 127.0f;
     }
     return var_v1;
 }
@@ -368,20 +359,17 @@ void func_col1_80098860(PlaneF* plane, Vec3f* point, Vec3f* normal) {
 
 // y dist to closest point on plane
 s32 func_col1_800988B4(Vec3f* vec, PlaneF* plane) {
-    f32 recY = approx_recip_sign(plane->normal.y);
-    return (-plane->normal.x * vec->x - plane->normal.z * vec->z - plane->dist) * recY; // / plane->normal.y;
+    return (-plane->normal.x * vec->x - plane->normal.z * vec->z - plane->dist) / plane->normal.y;
 }
 
 // z dist to closest point on plane
 s32 func_col1_800988F8(Vec3f* vec, PlaneF* plane) {
-    f32 recZ = approx_recip_sign(plane->normal.z);
-    return (-plane->normal.x * vec->x - plane->normal.y * vec->y - plane->dist) * recZ; // / plane->normal.z;
+    return (-plane->normal.x * vec->x - plane->normal.y * vec->y - plane->dist) / plane->normal.z;
 }
 
 // x dist to closest point on plane
 s32 func_col1_8009893C(Vec3f* vec, PlaneF* plane) {
-    f32 recX = approx_recip_sign(plane->normal.x);
-    return (-plane->normal.y * vec->y - plane->normal.z * vec->z - plane->dist) * recX; // / plane->normal.x;
+    return (-plane->normal.y * vec->y - plane->normal.z * vec->z - plane->dist) / plane->normal.x;
 }
 
 #define INTSIGN_OF(x) ((((x) >= 1.0f) || ((x) <= -1.0f)) ? (f32) SIGN_OF(x) : 0.0f)
@@ -500,7 +488,6 @@ bool func_col1_80098980(Vec3f* pos, Vec3s** tri, Vec3f* normal) {
 #ifndef F_PI
 #define F_PI        3.1415926f   /* pi             */
 #endif
-float my_acosf (float a);
 
 bool func_80099254(Vec3f* objPos, Vec3f* colliderPos, Vec3f* objVel, CollisionHeader* colHeader, Vec3f* hitPosOut,
                    f32* hitAnglesOut) {
@@ -608,11 +595,9 @@ bool func_80099254(Vec3f* objPos, Vec3f* colliderPos, Vec3f* objVel, CollisionHe
 
                 // check if the angle between the normal and velocity is > 90. That is, the object was moving toward the
                 // front of the polygon
-                f32 recipThing = approx_recip_sign((VEC3F_MAG(&polyPlane.normal) * speed));
-                if (/* Math_FAcosF */my_acosf(tempf * recipThing) > DEG_TO_RAD(90.0f)) {
+                if (/* Math_FAcosF */acosf(tempf / (VEC3F_MAG(&polyPlane.normal) * speed)) > DEG_TO_RAD(90.0f)) {
                     // Calculate the time since the plane was crossed. Reusing the temp is required to match
-                    f32 reciptemp = approx_recip_sign(tempf);
-                    tempf = (DOT_XYZ(&polyPlane.normal, &objRel) + polyPlane.dist) * reciptemp; // / tempf;
+                    tempf = (DOT_XYZ(&polyPlane.normal, &objRel) + polyPlane.dist) / tempf;
 
                     // find the point where the object crossed the plane of the polygon
                     hitPosRel.x = objRel.x - (objVel->x * tempf);
@@ -625,16 +610,13 @@ bool func_80099254(Vec3f* objPos, Vec3f* colliderPos, Vec3f* objVel, CollisionHe
                         hitPosOut->y = colliderPos->y + hitPosRel.y;
                         hitPosOut->z = colliderPos->z + hitPosRel.z;
                         if (polyPlane.normal.x != 0.0) {
-                            f32 recipN = approx_recip_sign(polyPlane.normal.x);
-                            polyPlane.normal.x = -polyPlane.dist * recipN; // / polyPlane.normal.x;
+                            polyPlane.normal.x = -polyPlane.dist / polyPlane.normal.x;
                         }
                         if (polyPlane.normal.y != 0.0f) {
-                            f32 recipN = approx_recip_sign(polyPlane.normal.y);
-                            polyPlane.normal.y = -polyPlane.dist * recipN; //  / polyPlane.normal.y;
+                            polyPlane.normal.y = -polyPlane.dist / polyPlane.normal.y;
                         }
                         if (polyPlane.normal.z != 0.0f) {
-                            f32 recipN = approx_recip_sign(polyPlane.normal.z);
-                            polyPlane.normal.z = -polyPlane.dist * recipN; // / polyPlane.normal.z;
+                            polyPlane.normal.z = -polyPlane.dist / polyPlane.normal.z;
                         }
                         hitAnglesOut[0] = Math_Atan2F_XY(polyPlane.normal.y, polyPlane.normal.z);
                         if (polyPlane.normal.z != 0.0f) {

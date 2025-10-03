@@ -129,7 +129,7 @@ void Background_DrawStarfield(void) {
     gDPSetCombineMode(gMasterDisp++, G_CC_SHADE, G_CC_SHADE);
     gDPSetRenderMode(gMasterDisp++, G_RM_OPA_SURF, G_RM_OPA_SURF2);
 
-    starCount = gStarCount / 2;
+    starCount = gStarCount;// / 2;
     if (starCount != 0) {
         if (gStarfieldX >= 1.5f * SCREEN_WIDTH) {
             gStarfieldX -= 1.5f * SCREEN_WIDTH;
@@ -151,7 +151,7 @@ void Background_DrawStarfield(void) {
         color = gStarFillColors;
 
         if (gGameState != GSTATE_PLAY) {
-            starCount = 1000 / 2;
+            starCount = 1000;// / 2;
         }
 
         zCos =cosf(gStarfieldRoll);
@@ -176,7 +176,7 @@ void Background_DrawStarfield(void) {
             if ((vx >= 0) && (vx < SCREEN_WIDTH-1) && (vy > 0) && (vy < SCREEN_HEIGHT-1)) {
                 gDPPipeSync(gMasterDisp++);
                 gDPSetFillColor(gMasterDisp++, *color);
-                gDPFillRectangle(gMasterDisp++, vx, vy, vx + 1, vy + 1);
+                gDPFillRectangle(gMasterDisp++, vx, vy, vx, vy);
             }
         }
     }
@@ -225,12 +225,13 @@ void Background_DrawPartialStarfield(s32 yMin, s32 yMax) {
     sp60 = gStarOffsetsX;
     sp5C = gStarOffsetsY;
     sp58 = gStarFillColors;
-    var_s2 = 500/2;
+    var_s2 = 500;///2;
 
     cos = cosf(gStarfieldRoll);
     sin = sinf(gStarfieldRoll);
 
     for (i = 0; i < var_s2/2; i++, sp5C+=2, sp60+=2, sp58+=2) {
+//    for (i = 0; i < var_s2; i++, sp5C++, sp60++, sp58++) {
         bx = *sp60 + spf68;
         by = *sp5C + spf64;
         if (bx >= SCREEN_WIDTH * 1.25f) {
@@ -247,7 +248,7 @@ void Background_DrawPartialStarfield(s32 yMin, s32 yMax) {
         if ((vx >= 0) && (vx < SCREEN_WIDTH-1) && (yMin < vy) && (vy < yMax-1)) {
             gDPPipeSync(gMasterDisp++);
             gDPSetFillColor(gMasterDisp++, *sp58);
-            gDPFillRectangle(gMasterDisp++, vx, vy, vx+1, vy+1);
+            gDPFillRectangle(gMasterDisp++, vx, vy, vx, vy);
         }
 
     }
@@ -433,7 +434,6 @@ void Background_DrawBackdrop(void) {
                             Matrix_SetGfxMtx(&gMasterDisp);
                             gSPDisplayList(gMasterDisp++, aVe2AndBrainBackdropDL);
                         } else {
-                        fake_label: // fake
                             RCP_SetupDL(&gMasterDisp, SETUPDL_62);
                             if (gDrawBackdrop == 5) {
                                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 64);
@@ -718,7 +718,7 @@ void Background_DrawBackdrop(void) {
                         case LEVEL_SECTOR_Z:
                             Matrix_Translate(gGfxMatrix, (bgXpos - 120.0f)* 41.0f, -(bgYpos - 120.0f)* 41.0f, -290.0f* 41.0f, MTXF_APPLY);
                             Matrix_Scale(gGfxMatrix, 0.5f* 41.0f, 0.5f* 41.0f, 0.5f, MTXF_APPLY);
-                            Matrix_RotateX(gGfxMatrix, F_PI / 2, MTXF_APPLY);
+                            Matrix_RotateX(gGfxMatrix, F_PI_2, MTXF_APPLY);
                             Matrix_SetGfxMtx(&gMasterDisp);
                             gSPDisplayList(gMasterDisp++, aSzBackgroundDL);
                             break;
@@ -759,7 +759,7 @@ void Background_DrawBackdrop(void) {
                     Matrix_SetGfxMtx(&gMasterDisp);
                     gSPDisplayList(gMasterDisp++, gTexturedLineDL);
                     Matrix_Pop(&gGfxMatrix);
-                    zRot += F_PI / 4;
+                    zRot += F_PI_4;
                 }
             }
 
@@ -907,7 +907,7 @@ void Background_DrawLensFlare(void) {
         Matrix_Scale(gGfxMatrix, *lensFlareScale, *lensFlareScale, *lensFlareScale, MTXF_APPLY);
 
         if (((i == 5) || (i == 11)) && (gCurrentLevel != LEVEL_KATINA)) {
-            Matrix_RotateX(gGfxMatrix, F_PI / 2, MTXF_APPLY);
+            Matrix_RotateX(gGfxMatrix, F_PI_2, MTXF_APPLY);
         }
         Matrix_SetGfxMtx(&gMasterDisp);
 
@@ -1375,7 +1375,7 @@ void Background_DrawGround(void) {
             Matrix_Translate(gGfxMatrix, 0.0f, 0.0f, -1500.0f, MTXF_APPLY);
             Matrix_Scale(gGfxMatrix, 3.0f, 2.0f, 3.0f, MTXF_APPLY);
             Matrix_SetGfxMtx(&gMasterDisp);
-            gfx_texture_cache_invalidate(aZoWaterTex);
+//            gfx_texture_cache_invalidate(aZoWaterTex);
             if ((gGameFrameCount % 2) != 0) {
                 gSPDisplayList(gMasterDisp++, aZoWater1DL);
             } else {
@@ -1391,19 +1391,9 @@ void func_bg_80042D38(void) {
     f32 xEye;
     f32 zEye;
 
-    // all sorts of fake
-
-    if (gPlayer[gPlayerNum].cam.eye.x == 0.0f) {
-        // Commented out code?
-    }
-    if (gPlayer[gPlayerNum].cam.eye.z == 0.0f) {
-        // Commented out code?
-    }
-
     Matrix_Push(&gGfxMatrix);
 
     xEye = gPlayer[gPlayerNum].cam.eye.x;
-    if (0) {} //! FAKE
     zEye = gPlayer[gPlayerNum].cam.eye.z;
 
     Matrix_Translate(gGfxMatrix, xEye, 2.0f + gCameraShakeY, zEye, MTXF_APPLY);

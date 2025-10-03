@@ -1,6 +1,10 @@
 #include "n64sys.h"
 #include "sf64audio_provisional.h"
 
+static inline float approx_recip_sign(float v) {
+	float _v = 1.0f / sqrtf(v * v);
+	return copysignf(_v, v);
+}
 
 u8 sSamplesPerWavePeriod[] = { 64, 32, 16, 8 };
 
@@ -438,7 +442,7 @@ void Audio_InitSyntheticWave(Note* note, SequenceLayer* layer) {
         waveId = layer->channel->instOrWave;
     }
     harmonicIndex = note->playbackState.harmonicIndex;
-    f32 recipSSPWP = approx_recip((f32)sSamplesPerWavePeriod[harmonicIndex]);
+    f32 recipSSPWP = approx_recip_sign((f32)sSamplesPerWavePeriod[harmonicIndex]);
     note->synthesisState.samplePosInt = (s32)(
         (f32)(note->synthesisState.samplePosInt * sSamplesPerWavePeriod[Audio_BuildSyntheticWave(note, layer, waveId)]) * recipSSPWP);
         // / sSamplesPerWavePeriod[harmonicIndex];

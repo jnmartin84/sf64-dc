@@ -165,7 +165,7 @@ static int wav_get_info_adpcm(file_t file, WavFileInfo *result) {
     return 1;
 }
 
-wav_stream_hnd_t wav_create(const char *filename, int loop, size_t loopstart, size_t loopend)
+wav_stream_hnd_t wav_create(const char *filename, float ratemul, int loop,  size_t loopstart, size_t loopend)
 {
 	file_t file;
 	WavFileInfo info;
@@ -203,7 +203,7 @@ wav_stream_hnd_t wav_create(const char *filename, int loop, size_t loopstart, si
 	stream.vol = 160;
 	stream.format = info.format;
 	stream.channels = info.channels;
-	stream.sample_rate = info.sample_rate;
+	stream.sample_rate = info.sample_rate*ratemul;
 	stream.sample_size = info.sample_size;
 	stream.data_length = info.data_length;
 	stream.data_offset = info.data_offset;
@@ -322,7 +322,7 @@ static void *sndwav_thread(void *param)
 
 	return NULL;
 }
-
+#include <errno.h>
 static void *wav_file_callback(snd_stream_hnd_t hnd, int req, int *done)
 {
 	(void)hnd;
@@ -332,7 +332,7 @@ static void *wav_file_callback(snd_stream_hnd_t hnd, int req, int *done)
 
 	if (readed == -1) {
 #if RANGECHECK
-		dbgio_printf("Failed to read from stream wave_file\nDisabling stream\n");
+		dbgio_printf("Failed to read from stream wave_file\nDisabling stream\n%s\n",strerror(errno));
 #endif
 		snd_stream_stop(stream.shnd);
 		stream.status = SNDDEC_STATUS_READY;

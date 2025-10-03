@@ -103,7 +103,12 @@ void Ground_801B4A54(UnkStruct_801C62E8* arg0) {
   //      arg0->unk_1C = arg0->unk_20 = 0;
     memset(arg0, 0, sizeof(UnkStruct_801C62E8));
 }
-#include <stdio.h>
+//#include <stdio.h>
+
+static inline float approx_recip_sign(float v) {
+	float _v = 1.0f / sqrtf(v * v);
+	return copysignf(_v, v);
+}
 void Ground_801B4AA8(s32* arg0, s32* arg1) {
     Actor actor = {0};
     UnkStruct_801C62E8* var_s2 = D_i5_801C62E8;
@@ -182,17 +187,20 @@ void Ground_801B4AA8(s32* arg0, s32* arg1) {
                     break;
 
                 case 1:
-                    for (j = 0; j < 16; j++, var_s1++) {
-                        temp_fs0 = (j * 220.0f * D_i5_801BE740) - 1760.0f - unk_08;
-                        //printf("\t\ttemp_fs0 %f unk_10 %f\n", temp_fs0, unk_10);
-                        if (fabsf(temp_fs0) <= unk_10) {
-                            temp_fs1 = sinf((var_s2->unk_20 / unk_18) * (M_DTOR * 180.0f));
-                            var_fv0 = cosf((temp_fs0 / unk_10) * (M_DTOR * 90.0f));
-                            *var_s1 += var_fv0 * unk_14 * temp_fs1;
-                            //printf("\t\t\t*var_s1 = %d\n", *var_s1);
+                    {
+                        f32 recip_unk_18 = approx_recip_sign(unk_18);
+                        f32 recip_unk_10 = approx_recip_sign(unk_10);
+                        for (j = 0; j < 16; j++, var_s1++) {
+                            temp_fs0 = (j * 220.0f * D_i5_801BE740) - 1760.0f - unk_08;
+                            //printf("\t\ttemp_fs0 %f unk_10 %f\n", temp_fs0, unk_10);
+                            if (fabsf(temp_fs0) <= unk_10) {
+                                temp_fs1 = sinf((var_s2->unk_20 * recip_unk_18) * (M_DTOR * 180.0f));
+                                var_fv0 = cosf((temp_fs0 * recip_unk_10) * (M_DTOR * 90.0f));
+                                *var_s1 += var_fv0 * unk_14 * temp_fs1;
+                                //printf("\t\t\t*var_s1 = %d\n", *var_s1);
+                            }
                         }
                     }
-
                     var_s2->unk_20 -= 220.0f;
                     //printf("\tvar_s2->unk_20 %f\n", var_s2->unk_20);
                     if (var_s2->unk_20 <= 0.0f) {
@@ -203,11 +211,12 @@ void Ground_801B4AA8(s32* arg0, s32* arg1) {
                 case 2:
                     unk_08 += (1760.0f - (unk_10 * 0.5f));
                     var_fv1 = unk_14;
-
-                    if (var_s2->unk_20 <= var_fv1 / (70.0f * M_DTOR)) {
-                        var_fv1 = var_s2->unk_20 * (70.0f * M_DTOR);
-                    } else if (var_fv1 / (70.0f * M_DTOR) >= (unk_18 - var_s2->unk_20)) {
-                        var_fv1 = (unk_18 - var_s2->unk_20) * (70.0f * M_DTOR);
+#define RECIP_70_DTOR 0.81851114f
+#define DTOR70 1.22173048f
+                    if (var_s2->unk_20 <= var_fv1 * RECIP_70_DTOR) { /// (70.0f * M_DTOR)) {
+                        var_fv1 = var_s2->unk_20 * DTOR70; // (70.0f * M_DTOR);
+                    } else if ((var_fv1 * RECIP_70_DTOR) /* / (70.0f * M_DTOR) */ >= (unk_18 - var_s2->unk_20)) {
+                        var_fv1 = (unk_18 - var_s2->unk_20) * DTOR70/* (70.0f * M_DTOR) */;
                     }
 
                     for (j = 0, var_fv0 = 0.0f; j < 16; j++, var_fv0 += 220.0f, var_s1++) {
@@ -223,22 +232,26 @@ void Ground_801B4AA8(s32* arg0, s32* arg1) {
                     break;
 
                 case 3:
-                    for (j = 0; j < 16; j++, var_s1++) {
-                        temp_fs0 =
-                            (j * 220.0f * D_i5_801BE740) - 1760.0f - var_s2->unk_08 +
-                            (sinf(((var_s2->unk_20 * 8.0f) / var_s2->unk_18) * 2 * (M_DTOR * 180.0f)) * 500.0f);
-                        if (fabsf(temp_fs0) <= var_s2->unk_10) {
-                            temp_fa0 = cosf((temp_fs0 / var_s2->unk_10) * (M_DTOR * 90.0f));
-                            if (temp_fa0 >= 0.7f) {
-                                temp_fa0 = 0.7f;
-                            }
-                            *var_s1 -=
-                                temp_fa0 * var_s2->unk_14 * 4.0f * ((var_s2->unk_18 - var_s2->unk_20) / var_s2->unk_18);
-                        }
-                        *var_s1 +=
-                            (var_s2->unk_14 - ((var_s2->unk_20 / var_s2->unk_18) * var_s2->unk_14)) * 4.0f * 0.7f;
-                    }
+                    {
+                        f32 recip_unk_18 = approx_recip_sign(var_s2->unk_18);
+                        f32 recip_unk_10 = approx_recip_sign(var_s2->unk_10);
 
+                        for (j = 0; j < 16; j++, var_s1++) {
+                            temp_fs0 =
+                                (j * 220.0f * D_i5_801BE740) - 1760.0f - var_s2->unk_08 +
+                                (sinf(((var_s2->unk_20 * 8.0f) * recip_unk_18) * 2 * (M_DTOR * 180.0f)) * 500.0f);
+                            if (fabsf(temp_fs0) <= var_s2->unk_10) {
+                                temp_fa0 = cosf((temp_fs0 * recip_unk_10) * (M_DTOR * 90.0f));
+                                if (temp_fa0 >= 0.7f) {
+                                    temp_fa0 = 0.7f;
+                                }
+                                *var_s1 -=
+                                    temp_fa0 * var_s2->unk_14 * 4.0f * ((var_s2->unk_18 - var_s2->unk_20) * recip_unk_18);
+                            }
+                            *var_s1 +=
+                                (var_s2->unk_14 - ((var_s2->unk_20 * recip_unk_18) * var_s2->unk_14)) * 4.0f * 0.7f;
+                        }
+                    }
                     var_s2->unk_20 -= 220.0f;
                     if (var_s2->unk_20 <= 0.0f) {
                         Ground_801B4A54(var_s2);
@@ -305,15 +318,6 @@ void Ground_801B5110(f32 x, f32 y, f32 z) {
     Ground_801B5244(D_i5_801C5C04, D_i5_801C5C08);
 }
 
-void print_vtx(Vtx *v) {
-
-	//short		ob[3];	/* x, y, z */
-	//unsigned short	flag;
-	//short		tc[2];	/* texture coord */
-	//signed char	n[3];	/* normal */
-        //printf("[%d,%d,%d], %04x, [%d,%d], [%d,%d,%d]\n", v->n.ob[0], v->n.ob[1], v->n.ob[2], v->n.flag, v->n.tc[0], v->n.tc[1], v->n.n[0],v->n.n[1],v->n.n[2]);
-}
-
 
 void Ground_801B5244(s32 arg0, s32 arg1) {
     s32 var_s5 = 0;
@@ -353,9 +357,6 @@ void Ground_801B5244(s32 arg0, s32 arg1) {
                 D_i5_801BE748[sp60][ia2][iv1].n.tc[0] = (ia2 % 2) * 0x400;
                 D_i5_801BE748[sp60][ia2][iv1].n.tc[1] = iv1 * 0x400;
             }
-
-            print_vtx(v0);
-            print_vtx(v1);
         }
         sp60 = (sp60 + 1) % 27;
         sp5C = (sp5C + 1) % 28;
@@ -451,9 +452,6 @@ void Ground_801B58AC(Gfx** dList, f32 arg1) {
                     D_i5_801C24B8[(D_i5_801C5C08 + 29) % 28] * -220.0f;
                 D_i5_801BE748[(D_i5_801C5C04 + 27) % 27][i][1].v.ob[2] = 0;
 
-                //print_vtx(temp_v0);
-                //print_vtx(temp_t1);
-
                 Matrix_Translate(gGfxMatrix, 0.0f, 0.0f, D_i5_801C24B8[D_i5_801C5C08] * -220.0f, MTXF_NEW);
                 Matrix_ToMtx(&D_i5_801C5C18[D_i5_801C5C04]);
             }
@@ -530,11 +528,12 @@ void Ground_801B5FE0(s32 arg0, s32 arg1, s32 arg2) {
                 v3.y = (v1.z * v2.x) - (v1.x * v2.z);
                 v3.z = (v1.x * v2.y) - (v1.y * v2.x);
 
-                var_fv0 = VEC3F_MAG(&v3);
+//                var_fv0 = VEC3F_MAG(&v3);
+                var_fv0 = 127.0f * shz_vec3_magnitude_inv((shz_vec3_t){v3.x,v3.y,v3.z});
 
-                D_i5_801C65B8[i0][i1][i2].a[0] = (v3.x * 127.0f) / var_fv0;
-                D_i5_801C65B8[i0][i1][i2].a[1] = (v3.y * 127.0f) / var_fv0;
-                D_i5_801C65B8[i0][i1][i2].a[2] = (v3.z * 127.0f) / var_fv0;
+                D_i5_801C65B8[i0][i1][i2].a[0] = (v3.x * var_fv0);//127.0f) / var_fv0;
+                D_i5_801C65B8[i0][i1][i2].a[1] = (v3.y * var_fv0);//127.0f) / var_fv0;
+                D_i5_801C65B8[i0][i1][i2].a[2] = (v3.z * var_fv0);//127.0f) / var_fv0;
             }
         }
 
@@ -568,10 +567,11 @@ void Ground_801B5FE0(s32 arg0, s32 arg1, s32 arg2) {
                 }
 
                 for (i2 = 0; i2 < 4; i2++) {
-                    var_fv0 = sqrtf(SQ(D_i5_801C6E28[i2][0]) + SQ(D_i5_801C6E28[i2][1]) + SQ(D_i5_801C6E28[i2][2]));
-                    D_i5_801C6E28[i2][0] = (D_i5_801C6E28[i2][0] / var_fv0) * 127.0f;
-                    D_i5_801C6E28[i2][1] = (D_i5_801C6E28[i2][1] / var_fv0) * 127.0f;
-                    D_i5_801C6E28[i2][2] = (D_i5_801C6E28[i2][2] / var_fv0) * 127.0f;
+//                    var_fv0 = sqrtf(SQ(D_i5_801C6E28[i2][0]) + SQ(D_i5_801C6E28[i2][1]) + SQ(D_i5_801C6E28[i2][2]));
+                var_fv0 = 127.0f * shz_vec3_magnitude_inv((shz_vec3_t){D_i5_801C6E28[i2][0],D_i5_801C6E28[i2][1],D_i5_801C6E28[i2][2]});
+                    D_i5_801C6E28[i2][0] = (D_i5_801C6E28[i2][0] * var_fv0); // / var_fv0) * 127.0f;
+                    D_i5_801C6E28[i2][1] = (D_i5_801C6E28[i2][1] * var_fv0); // / var_fv0) * 127.0f;
+                    D_i5_801C6E28[i2][2] = (D_i5_801C6E28[i2][2] * var_fv0); // / var_fv0) * 127.0f;
                 }
 
                 for (i2 = 0; i2 < 3; i2++) {

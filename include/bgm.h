@@ -95,32 +95,32 @@ typedef enum BgmSeqIds {
 #define NA_BGM_SE               (SEQ_ID_SFX)
 #define NA_BGM_VO               (SEQ_ID_VOICE)
 #define NA_BGM_VO_LYLAT         (SEQ_ID_VOICE_LYLAT)
-#define NA_BGM_STAGE_CO         (SEQ_ID_CORNERIA | SEQ_FLAG)
-#define NA_BGM_STAGE_ME         (SEQ_ID_METEO | SEQ_FLAG)
-#define NA_BGM_STAGE_TI         (SEQ_ID_TITANIA | SEQ_FLAG)
-#define NA_BGM_STAGE_SX         (SEQ_ID_SECTOR_X | SEQ_FLAG)
-#define NA_BGM_STAGE_ZO         (SEQ_ID_ZONESS | SEQ_FLAG)
-#define NA_BGM_STAGE_A6         (SEQ_ID_AREA_6 | SEQ_FLAG)
-#define NA_BGM_STAGE_SB         (SEQ_ID_AREA_6 | SEQ_FLAG)
-#define NA_BGM_STAGE_VE1        (SEQ_ID_VENOM_1 | SEQ_FLAG)
-#define NA_BGM_STAGE_SY         (SEQ_ID_SECTOR_Y | SEQ_FLAG)
-#define NA_BGM_STAGE_FO         (SEQ_ID_FORTUNA | SEQ_FLAG)
-#define NA_BGM_STAGE_SO         (SEQ_ID_SOLAR | SEQ_FLAG)
-#define NA_BGM_STAGE_BO         (SEQ_ID_BOLSE | SEQ_FLAG)
-#define NA_BGM_STAGE_KA         (SEQ_ID_KATINA | SEQ_FLAG)
-#define NA_BGM_STAGE_AQ         (SEQ_ID_AQUAS)
-#define NA_BGM_STAGE_SZ         (SEQ_ID_SECTOR_Z | SEQ_FLAG)
-#define NA_BGM_STAGE_MA         (SEQ_ID_MACBETH | SEQ_FLAG)
-#define NA_BGM_STAGE_ANDROSS    (SEQ_ID_ANDROSS | SEQ_FLAG)
-#define NA_BGM_BOSS_CO          (SEQ_ID_BOSS_CO_1 | SEQ_FLAG)
-#define NA_BGM_BOSS_ME          (SEQ_ID_BOSS_ME | SEQ_FLAG)
-#define NA_BGM_BOSS_TI          (SEQ_ID_BOSS_TI | SEQ_FLAG)
-#define NA_BGM_BOSS_SX          (SEQ_ID_BOSS_SX | SEQ_FLAG)
-#define NA_BGM_BOSS_ZO          (SEQ_ID_BOSS_ZO | SEQ_FLAG)
-#define NA_BGM_BOSS_A6          (SEQ_ID_BOSS_A6 | SEQ_FLAG)
-#define NA_BGM_BOSS_SB          (SEQ_ID_BOSS_A6 | SEQ_FLAG)
-#define NA_BGM_BOSS_VE          (SEQ_ID_BOSS_VE | SEQ_FLAG)
-#define NA_BGM_BOSS_SY          (SEQ_ID_BOSS_SY | SEQ_FLAG)
+#define NA_BGM_STAGE_CO         (SEQ_ID_CORNERIA | SEQ_FLAG) // .
+#define NA_BGM_STAGE_ME         (SEQ_ID_METEO | SEQ_FLAG) // .
+#define NA_BGM_STAGE_TI         (SEQ_ID_TITANIA | SEQ_FLAG) // .
+#define NA_BGM_STAGE_SX         (SEQ_ID_SECTOR_X | SEQ_FLAG) // .
+#define NA_BGM_STAGE_ZO         (SEQ_ID_ZONESS | SEQ_FLAG) // .
+#define NA_BGM_STAGE_A6         (SEQ_ID_AREA_6 | SEQ_FLAG) // .
+#define NA_BGM_STAGE_SB         (SEQ_ID_AREA_6 | SEQ_FLAG) // .
+#define NA_BGM_STAGE_VE1        (SEQ_ID_VENOM_1 | SEQ_FLAG) // .
+#define NA_BGM_STAGE_SY         (SEQ_ID_SECTOR_Y | SEQ_FLAG) // .
+#define NA_BGM_STAGE_FO         (SEQ_ID_FORTUNA | SEQ_FLAG) // .
+#define NA_BGM_STAGE_SO         (SEQ_ID_SOLAR | SEQ_FLAG) // NA_BGM_STAGE_SY
+#define NA_BGM_STAGE_BO         (SEQ_ID_BOLSE | SEQ_FLAG) // .
+#define NA_BGM_STAGE_KA         (SEQ_ID_KATINA | SEQ_FLAG) // .
+#define NA_BGM_STAGE_AQ         (SEQ_ID_AQUAS) // .
+#define NA_BGM_STAGE_SZ         (SEQ_ID_SECTOR_Z | SEQ_FLAG) // NA_BGM_STAGE_FO
+#define NA_BGM_STAGE_MA         (SEQ_ID_MACBETH | SEQ_FLAG) // NA_BGM_STAGE_TI
+#define NA_BGM_STAGE_ANDROSS    (SEQ_ID_ANDROSS | SEQ_FLAG) // .
+#define NA_BGM_BOSS_CO          (SEQ_ID_BOSS_CO_1 | SEQ_FLAG) // .
+#define NA_BGM_BOSS_ME          (SEQ_ID_BOSS_ME | SEQ_FLAG) // .
+#define NA_BGM_BOSS_TI          (SEQ_ID_BOSS_TI | SEQ_FLAG) // NA_BGM_BOSS_ME
+#define NA_BGM_BOSS_SX          (SEQ_ID_BOSS_SX | SEQ_FLAG) // NA_BGM_BOSS_CO -- dont have distorted version
+#define NA_BGM_BOSS_ZO          (SEQ_ID_BOSS_ZO | SEQ_FLAG) // NA_BGM_BOSS_CO
+#define NA_BGM_BOSS_A6          (SEQ_ID_BOSS_A6 | SEQ_FLAG) // NA_BGM_BOSS_ME
+#define NA_BGM_BOSS_SB          (SEQ_ID_BOSS_A6 | SEQ_FLAG) // NA_BGM_BOSS_ME ???
+#define NA_BGM_BOSS_VE          (SEQ_ID_BOSS_VE | SEQ_FLAG) // NA_BGM_BOSS_ME
+#define NA_BGM_BOSS_SY          (SEQ_ID_BOSS_SY | SEQ_FLAG) // NA_BGM_BOSS_ME
 #define NA_BGM_BOSS_FO          (SEQ_ID_UNK_26 | SEQ_FLAG)
 #define NA_BGM_BOSS_SO          (SEQ_ID_BOSS_SO | SEQ_FLAG)
 #define NA_BGM_BOSS_BO          (SEQ_ID_BOSS_BO | SEQ_FLAG)

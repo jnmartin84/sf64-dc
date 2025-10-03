@@ -804,7 +804,7 @@ s32 Bolse_8018D9CC(void) {
     }
 
     for (i = 0; i < 34; i++) {
-        j = (sp5C[i].v.ob[2] + 200) / 25;
+        j = (sp5C[i].v.ob[2] + 200) * 0.04f;// / 25;
         sp58[i].v.ob[0] = sp5C[i].v.ob[0] + spA8[j];
         sp58[i].v.ob[1] = sp5C[i].v.ob[1] + sp64[j];
     }
@@ -955,7 +955,7 @@ s32 Bolse_8018E3FC(BoBase* this) {
                 D_i4_801A0488[i].unk_04 = var_fs0;
                 D_i4_801A0488[i].unk_00 = 360.0f - temp;
                 D_i4_801A0488[i].unk_18 = 1;
-                D_i4_801A0488[i].unk_08 = (z / 400.0f);
+                D_i4_801A0488[i].unk_08 = z * 0.0025f;//(z / 400.0f);
 
                 Bolse_8018E05C(this, i);
 
@@ -1026,7 +1026,7 @@ void Bolse_BoBase_Draw(BoBase* this) {
                          MTXF_APPLY);
         Matrix_RotateY(gGfxMatrix, D_i4_801A0488[i].unk_04 * M_DTOR, MTXF_APPLY);
         Matrix_RotateX(gGfxMatrix, D_i4_801A0488[i].unk_00 * M_DTOR, MTXF_APPLY);
-        Matrix_RotateZ(gGfxMatrix, F_PI / 2, MTXF_APPLY);
+        Matrix_RotateZ(gGfxMatrix, F_PI_2, MTXF_APPLY);
         Matrix_Translate(gGfxMatrix, 1.0f, 1.0f, D_i4_801A0488[i].unk_08 * 200.0f, MTXF_APPLY);
         Matrix_Scale(gGfxMatrix, 1.0f, 1.0f, D_i4_801A0488[i].unk_08, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
@@ -2016,6 +2016,9 @@ s32 Bolse_BoBaseCore_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Ve
         case 16:
             if ((baseCore->swork[3 + limbIndex] % 2) != 0) {
                 RCP_SetupDL(&gMasterDisp, SETUPDL_41);
+         gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+            TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+            gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 255);
                 if (baseCore->swork[3 + limbIndex] > 1000) {
                     gDPSetPrimColor(gMasterDisp++, 0, 0, 64, 64, 255, 255);
                 } else {
@@ -2074,9 +2077,9 @@ void Bolse_BoBaseShield_Update(BoBaseShield* this) {
     Math_SmoothStepToF(&this->fwork[0], D_BO_801A03DC * 9.0f + 10.0f, 1.0f, 10.0f, 0.0f);
 
     //Lib_Texture_Scroll(aBoBaseShieldTex, 16, 16, 0);
-    bolse_ult = (bolse_ult + 4) & 0x3F;
+    bolse_ult = (bolse_ult - 4) & 0x3F;
     //Lib_Texture_Scroll(aBoBaseShieldTex, 16, 16, 0);
-    bolse_ult = (bolse_ult + 4) & 0x3F;
+    bolse_ult = (bolse_ult - 4) & 0x3F;
     bolse_lrt = (bolse_ult + 63) & 0xFFF;
     // pointer to the SetTileSize cmd
     Gfx *cmd = (Gfx *)segmented_to_virtual((void *)((Gfx*)(aBoBaseShieldDL + 2)));

@@ -106,13 +106,21 @@ void Obj54_8006AA3C(f32 xPos, f32 yPos, f32 zPos) {
         }
     }
 }
-
+extern Gfx aCoWaterfallDL[];
+uint32_t wf_ult=0,wf_lrt=127;
 void CoWaterfall_Update(CoWaterfall* this) {
     Vec3f sp24;
     Vec3f sp18;
 
-    Lib_Texture_Scroll(D_CO_60038F8, 32, 32, 1);
-    gfx_texture_cache_invalidate(D_CO_60038F8);
+//    Lib_Texture_Scroll(D_CO_60038F8, 32, 32, 1);
+//    gfx_texture_cache_invalidate(D_CO_60038F8);
+    wf_ult = (wf_ult + 4) & 0x7F;
+    wf_lrt = (wf_ult + 127) & 0xFFF;
+    Gfx* cmd1 = (Gfx*) segmented_to_virtual((void*) ((Gfx*) (aCoWaterfallDL + 26)));
+    uint32_t words_w0 = (G_SETTILESIZE << 24) | wf_ult;
+    uint32_t words_w1 = (cmd1->words.w1 & 0x0707F000) | wf_lrt;
+    cmd1->words.w0 = words_w0;
+    cmd1->words.w1 = words_w1;
     if ((gGameFrameCount % 4) == 0) {
         Matrix_RotateY(gCalcMatrix, this->obj.rot.y * M_DTOR, MTXF_NEW);
 
@@ -4007,10 +4015,10 @@ void ActorEvent_Draw(ActorEvent* this) {
 
                 case EVID_FIREBIRD:
                     if (gCurrentLevel == LEVEL_SOLAR) {
-                        gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK);
+//                        gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK);
                         Animation_GetFrameData(&aSoGoreAnim, this->animFrame, frameTable);
                         Animation_DrawSkeleton(1, aSoGoreSkel, frameTable, NULL, NULL, this, &gIdentityMatrix);
-                        gSPSetGeometryMode(gMasterDisp++, G_CULL_BACK);
+//                        gSPSetGeometryMode(gMasterDisp++, G_CULL_BACK);
                     } else {
                         Animation_GetFrameData(&aFirebirdAnim, this->animFrame, frameTable);
                         Animation_DrawSkeleton(1, aFirebirdSkel, frameTable, NULL, NULL, this, &gIdentityMatrix);
@@ -4086,7 +4094,7 @@ void ActorEvent_Draw(ActorEvent* this) {
                     break;
 
                 case EVID_A6_UMBRA_STATION:
-                    Matrix_RotateX(gGfxMatrix, F_PI / 2, MTXF_APPLY);
+                    Matrix_RotateX(gGfxMatrix, F_PI_2, MTXF_APPLY);
                     Matrix_SetGfxMtx(&gMasterDisp);
                     gSPDisplayList(gMasterDisp++, aA6UmbraStationDL);
                     break;

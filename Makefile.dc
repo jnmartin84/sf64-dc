@@ -337,12 +337,6 @@ DEP_FILES := $(O_FILES:.o=.d) \
 $(shell mkdir -p $(BUILD_DIR)/linker_scripts/$(VERSION)/$(REV) $(BUILD_DIR)/linker_scripts/$(VERSION)/$(REV)/auto $(foreach dir,$(SRC_DIRS) $(ASM_DIRS) $(BIN_DIRS),$(BUILD_DIR)/$(dir)))
 
 # directory flags
-build/src/libultra/gu/%.o:    OPTFLAGS := -Os
-build/src/libultra/io/%.o:    OPTFLAGS := -Os
-build/src/libultra/os/%.o:    OPTFLAGS := -Os
-#build/src/libultra/rmon/%.o:  OPTFLAGS := -Os
-#build/src/libultra/debug/%.o: OPTFLAGS := -Os
-#build/src/libultra/host/%.o:  OPTFLAGS := -Os
 
 build/src/assets/ast_7_ti_1/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
 build/src/assets/ast_7_ti_2/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
@@ -358,7 +352,6 @@ build/src/assets/ast_bg_planet/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reor
 build/src/assets/ast_bg_space/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
 build/src/assets/ast_blue_marine/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
 build/src/assets/ast_bolse/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss 
-# -fno-toplevel-reorder
 build/src/assets/ast_common/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
 build/src/assets/ast_corneria/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
 build/src/assets/ast_ending/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder -fno-zero-initialized-in-bss
@@ -397,18 +390,17 @@ build/src/assets/ast_zoness/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder
 
 # per-file flags
 
-build/src/libc_math64.o:  OPTFLAGS := -Os
+build/src/libc_math64.o:  OPTFLAGS := -O3
 build/src/audio/mixer.o: OPTFLAGS := -O3
 build/src/gfx/gfx_retro_dc.o: OPTFLAGS := -O3
 build/src/sys/sys_matrix.o: OPTFLAGS := -O3
 build/src/sys/sys_math.o: OPTFLAGS := -O3
 
 # cc & asm-processor
-build/src/libultra/gu/sqrtf.o:       OPTFLAGS := -Os
-build/src/libultra/gu/lookat.o:      OPTFLAGS := -Os
-build/src/libultra/gu/ortho.o:       OPTFLAGS := -Os
-build/src/libultra/gu/perspective.o: OPTFLAGS := -Os
-build/src/libultra/gu/mtxutil.o:     OPTFLAGS := -Os
+build/src/libultra/gu/lookat.o:      OPTFLAGS := -O3
+build/src/libultra/gu/ortho.o:       OPTFLAGS := -O3
+build/src/libultra/gu/perspective.o: OPTFLAGS := -O3
+build/src/libultra/gu/mtxutil.o:     OPTFLAGS := -O3
 
 all: uncompressed
 

@@ -142,16 +142,16 @@ void SectorZ_Missile_Update(ActorAllRange* this) {
 
     /* Leftover from a test or commented out code? */
     /* =========================================== */
-    x = gBosses[SZ_GREAT_FOX].obj.pos.x - this->obj.pos.x;
-    y = gBosses[SZ_GREAT_FOX].obj.pos.y - this->obj.pos.y; // Optimized out?
-    z = gBosses[SZ_GREAT_FOX].obj.pos.z - this->obj.pos.z;
-    SIN_DEG(gGameFrameCount);
-    if (x && z) {} //! FAKE
+//    x = gBosses[SZ_GREAT_FOX].obj.pos.x - this->obj.pos.x;
+//    y = gBosses[SZ_GREAT_FOX].obj.pos.y - this->obj.pos.y; // Optimized out?
+//    z = gBosses[SZ_GREAT_FOX].obj.pos.z - this->obj.pos.z;
+//    SIN_DEG(gGameFrameCount);
+//    if (x && z) {} //! FAKE
     /* =========================================== */
 
     if (this->aiType < 100) {
-        if (x && z) {} //! FAKE
-        z = fabsf(this->fwork[6] - this->obj.pos.z); //! FAKE
+//        if (x && z) {} //! FAKE
+//        z = fabsf(this->fwork[6] - this->obj.pos.z); //! FAKE
 
         // Escorts wooble movement
         xPitch = SIN_DEG((this->index * 45) + gGameFrameCount) * 5000.0f;
