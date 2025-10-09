@@ -14,16 +14,14 @@
 #include "PR/ultratypes.h"
 #include "PR/guint.h"
 #include <math.h>
-static inline float approx_recip_sign(float v) {
-	float _v = 1.0f / sqrtf(v * v);
-	return copysignf(_v, v);
-}
+#include <stdint.h>
+#include "sh4zam.h"
 void guPerspectiveF(float mf[4][4], u16* perspNorm, float fovy, float aspect, float near, float far, float scale) {
     float yscale;
     int row;
     int col;
-    f32 recip_aspect = approx_recip_sign(aspect);
-    f32 recip_nsubf = approx_recip_sign(near - far);
+    f32 recip_aspect = shz_fast_invf(aspect);
+    f32 recip_nsubf = shz_fast_invf(near - far);
 
     guMtxIdentF(mf);
     fovy *= 0.01745329f;// 3.1415926f / 180.0f;

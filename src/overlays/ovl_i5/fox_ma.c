@@ -11,10 +11,7 @@
 #include "assets/ast_enmy_planet.h"
 // #include "prevent_bss_reordering2.h"
 #include "sh4zam.h"
-static inline float approx_recip_sign(float v) {
-	float _v = 1.0f / sqrtf(v * v);
-	return copysignf(_v, v);
-}
+
 typedef struct {
     /* 0x00 */ f32 unk_00;
     /* 0x04 */ f32 unk_04;
@@ -407,7 +404,6 @@ void Macbeth_Texture_RotateZ(u8* destTex, u8* srcTex, f32 angle) {
     s32 i;
     s32 j;
     s32 xDest;
-    s32 xDest2;
     s32 yDest;
     Vec3f var_fs0;
     Vec4f dest;
@@ -426,30 +422,18 @@ void Macbeth_Texture_RotateZ(u8* destTex, u8* srcTex, f32 angle) {
         for (j = 0, var_fs0.x = 0.0f; j < 32; j+=2, var_fs0.x+=2) {
             src.y = var_fs0.y - 16.0f;
             src.x = var_fs0.x - 16.0f;
-            src.z = var_fs0.x - 15.0f;
 
-            Matrix_MultVec3f_NoLoad(/* gCalcMatrix,  */&src, &dest);
+            Matrix_MultVec3f_NoLoad(&src, &dest);
 
             xDest = (s32) (dest.x + 16.0f);
-            xDest2 = (s32) (dest.z + 15.0f);
             yDest = (s32) (dest.y + 16.0f);
 
             if ((yDest >= 0) && (yDest < 32)) {
                 if ((xDest >= 0) && (xDest < 32)) {
                     destTex[xDest + (yDest << 5)] = srcTex[(i << 5) + j];
                 }
-                if ((xDest2 >= 0) && (xDest2 < 32)) {
-                    destTex[xDest2 + (yDest << 5)] = srcTex[(i << 5) + (j+1)];
-                }
             }
-
-/*             if ((xDest >= 0) && (xDest < 32) && (yDest >= 0) && (yDest < 32)) {
-                destTex[xDest + (yDest << 5)] = srcTex[(i << 5) + j];
-            }
-            if ((xDest2 >= 0) && (xDest2 < 32) && (yDest >= 0) && (yDest < 32)) {
-                destTex[xDest + (yDest << 5)] = srcTex[(i << 5) + j];
-            }
- */        }
+        }
     }
     Matrix_Pop(&gCalcMatrix);
 #else
@@ -2180,7 +2164,7 @@ s32 Macbeth_801A0308(Actor* this, f32 arg1, f32 arg2, u8 arg3) {
             break;
     }
 
-//    f32 recip_2c_sub_3c = approx_recip_sign(sp2C - sp3C);
+//    f32 recip_2c_sub_3c = shz_fast_invf(sp2C - sp3C);
 
     sp24 = 1.0f - ((sp2C - arg1) / (sp2C - sp3C) );
 
@@ -2191,8 +2175,8 @@ s32 Macbeth_801A0308(Actor* this, f32 arg1, f32 arg2, u8 arg3) {
         }
 
         temp_fv0 = fabsf((sp2C - sp3C) *0.3333333f);
-//        f32 recip_neg_temp_fv0 = -approx_recip_sign(temp_fv0);
-  //      f32 recip_2c3cvf02 = approx_recip_sign((sp2C - (sp3C - (temp_fv0 * 2.0f))));
+//        f32 recip_neg_temp_fv0 = -shz_fast_invf(temp_fv0);
+  //      f32 recip_2c3cvf02 = shz_fast_invf((sp2C - (sp3C - (temp_fv0 * 2.0f))));
         if (sp24 < 0.3333333f) {
             if ((sp4C == OBJ_SCENERY_MA_TRAIN_TRACK_4) || (sp4C == OBJ_SCENERY_MA_TRAIN_TRACK_7)) {
                 this->fwork[19] = (((sp34 - sp44) * sp24) + sp44) -
@@ -3017,7 +3001,7 @@ s32 Macbeth_801A3300(Player* player, f32 arg1, f32 arg2) {
     }
 
     sp2C = 1.0f - ((sp30 - arg1) 
-    //* approx_recip_sign(sp30 - temp_ft4));
+    //* shz_fast_invf(sp30 - temp_ft4));
      / (sp30 - temp_ft4));
 
     if ((temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_4) || (temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_5) ||
@@ -3027,11 +3011,11 @@ s32 Macbeth_801A3300(Player* player, f32 arg1, f32 arg2) {
             if ((temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_4) || (temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_7)) {
                 D_MA_801BE250[9] =
                     (((sp38 - temp_fa0) * sp2C) + temp_fa0) -
-                    (52.160667f * (1.0f - (((temp_ft4 - temp_fv0_2) - arg1) /* * approx_recip_sign */ / ((temp_ft4 - temp_fv0_2) - temp_ft4))));
+                    (52.160667f * (1.0f - (((temp_ft4 - temp_fv0_2) - arg1) /* * shz_fast_invf */ / ((temp_ft4 - temp_fv0_2) - temp_ft4))));
             } else {
                 D_MA_801BE250[9] =
                     ((sp38 - temp_fa0) * sp2C) + temp_fa0 +
-                    (52.160667f * (1.0f - (((temp_ft4 - temp_fv0_2) - arg1) /* * approx_recip_sign */ / ((temp_ft4 - temp_fv0_2) - temp_ft4))));
+                    (52.160667f * (1.0f - (((temp_ft4 - temp_fv0_2) - arg1) /* * approx_reshz_fast_invfcip_sign */ / ((temp_ft4 - temp_fv0_2) - temp_ft4))));
             }
         } else if (sp2C < 0.666666f) {
             if ((temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_4) || (temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_7)) {
@@ -3042,11 +3026,11 @@ s32 Macbeth_801A3300(Player* player, f32 arg1, f32 arg2) {
         } else if ((temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_4) || (temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_7)) {
             D_MA_801BE250[9] =
                 (((sp38 - temp_fa0) * sp2C) + temp_fa0) -
-                (52.160667f * (1.0f - (1.0f - ((sp30 - arg1) /* * approx_recip_sign */ / (sp30 - (temp_ft4 - (temp_fv0_2 * 2)))))));
+                (52.160667f * (1.0f - (1.0f - ((sp30 - arg1) /* * shz_fast_invf */ / (sp30 - (temp_ft4 - (temp_fv0_2 * 2)))))));
         } else {
             D_MA_801BE250[9] =
                 ((sp38 - temp_fa0) * sp2C) + temp_fa0 +
-                (52.160667f * (1.0f - (1.0f - ((sp30 - arg1) /* * approx_recip_sign */ / (sp30 - (temp_ft4 - (temp_fv0_2 * 2)))))));
+                (52.160667f * (1.0f - (1.0f - ((sp30 - arg1) /* * shz_fast_invf */ / (sp30 - (temp_ft4 - (temp_fv0_2 * 2)))))));
         }
     } else {
         D_MA_801BE250[9] = ((sp38 - temp_fa0) * sp2C) + temp_fa0;
@@ -3121,7 +3105,7 @@ s32 Macbeth_801A3790(Player* player, f32 arg1, f32 arg2) {
         }
     }
 
-    sp2C = 1.0f - ((sp30 - arg1) /* * approx_recip_sign */ / (sp30 - temp_ft4));
+    sp2C = 1.0f - ((sp30 - arg1) /* * shz_fast_invf */ / (sp30 - temp_ft4));
 
     if ((temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_4) || (temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_5) ||
         (temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_7) || (temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_8)) {
@@ -3130,11 +3114,11 @@ s32 Macbeth_801A3790(Player* player, f32 arg1, f32 arg2) {
             if ((temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_4) || (temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_7)) {
                 D_MA_801BE250[19] =
                     (((sp38 - temp_fa0) * sp2C) + temp_fa0) -
-                    (52.160667f * (1.0f - (((temp_ft4 - temp_fv0_2) - arg1) /* * approx_recip_sign */ / ((temp_ft4 - temp_fv0_2) - temp_ft4))));
+                    (52.160667f * (1.0f - (((temp_ft4 - temp_fv0_2) - arg1) /* * shz_fast_invf */ / ((temp_ft4 - temp_fv0_2) - temp_ft4))));
             } else {
                 D_MA_801BE250[19] =
                     ((sp38 - temp_fa0) * sp2C) + temp_fa0 +
-                    (52.160667f * (1.0f - (((temp_ft4 - temp_fv0_2) - arg1) /* * approx_recip_sign */ / ((temp_ft4 - temp_fv0_2) - temp_ft4))));
+                    (52.160667f * (1.0f - (((temp_ft4 - temp_fv0_2) - arg1) /* * shz_fast_invf */ / ((temp_ft4 - temp_fv0_2) - temp_ft4))));
             }
         } else if (sp2C < 0.666666f) {
             if ((temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_4) || (temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_7)) {
@@ -3145,11 +3129,11 @@ s32 Macbeth_801A3790(Player* player, f32 arg1, f32 arg2) {
         } else if ((temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_4) || (temp_a0 == OBJ_SCENERY_MA_TRAIN_TRACK_7)) {
             D_MA_801BE250[19] =
                 (((sp38 - temp_fa0) * sp2C) + temp_fa0) -
-                (52.160667f * (1.0f - (1.0f - ((sp30 - arg1)/*  * approx_recip_sign */ / (sp30 - (temp_ft4 - (temp_fv0_2 * 2)))))));
+                (52.160667f * (1.0f - (1.0f - ((sp30 - arg1)/*  * shz_fast_invf */ / (sp30 - (temp_ft4 - (temp_fv0_2 * 2)))))));
         } else {
             D_MA_801BE250[19] =
                 ((sp38 - temp_fa0) * sp2C) + temp_fa0 +
-                (52.160667f * (1.0f - (1.0f - ((sp30 - arg1) /* * approx_recip_sign */ / (sp30 - (temp_ft4 - (temp_fv0_2 * 2)))))));
+                (52.160667f * (1.0f - (1.0f - ((sp30 - arg1) /* * shz_fast_invf */ / (sp30 - (temp_ft4 - (temp_fv0_2 * 2)))))));
         }
     } else {
         D_MA_801BE250[19] = ((sp38 - temp_fa0) * sp2C) + temp_fa0;
@@ -3198,7 +3182,7 @@ s32 Macbeth_801A3C20(f32 arg0) {
         return 0;
     }
 
-    temp_fv0_2 = 1.0f - ((sp2C - arg0) / /* * approx_recip_sign */(sp2C - sp38));
+    temp_fv0_2 = 1.0f - ((sp2C - arg0) / /* * shz_fast_invf */(sp2C - sp38));
 
     D_MA_801BE250[21] = (((sp34 - sp40) * temp_fv0_2) + sp40);
     D_MA_801BE250[22] = (((sp30 - sp3C) * temp_fv0_2) + sp3C);
@@ -3355,7 +3339,7 @@ void Macbeth_MaBoulder_Update(MaBoulder* this) {
                         }
 
                         this->fwork[0] // /= 1.2f + RAND_FLOAT(1.0f) / 2.0f;
-                        = this->fwork[0] * approx_recip_sign(1.2f + RAND_FLOAT(1.0f)*0.5f);
+                        = this->fwork[0] * shz_fast_invf(1.2f + RAND_FLOAT(1.0f)*0.5f);
                         this->work_046--;
                         this->vel.z *= 0.6666667f;// /= 1.5f;
                         if (this->work_046 == 0) {
@@ -3972,7 +3956,7 @@ void Macbeth_801A6984(MaMechbeth* this) {
     if (var_s4 == 0) {
         var_s4 = 1;
     }
-    f32 rec_var_s4 = approx_recip_sign((float)var_s4);
+    f32 rec_var_s4 = shz_fast_invf((float)var_s4);
     spA8 = (180.0f * rec_var_s4) + 1.0f;
     var_fs5 = this->obj.pos.x;
     spA0 = this->obj.pos.y;

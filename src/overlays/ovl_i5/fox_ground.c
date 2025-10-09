@@ -105,10 +105,6 @@ void Ground_801B4A54(UnkStruct_801C62E8* arg0) {
 }
 //#include <stdio.h>
 
-static inline float approx_recip_sign(float v) {
-	float _v = 1.0f / sqrtf(v * v);
-	return copysignf(_v, v);
-}
 void Ground_801B4AA8(s32* arg0, s32* arg1) {
     Actor actor = {0};
     UnkStruct_801C62E8* var_s2 = D_i5_801C62E8;
@@ -188,8 +184,8 @@ void Ground_801B4AA8(s32* arg0, s32* arg1) {
 
                 case 1:
                     {
-                        f32 recip_unk_18 = approx_recip_sign(unk_18);
-                        f32 recip_unk_10 = approx_recip_sign(unk_10);
+                        f32 recip_unk_18 = shz_fast_invf(unk_18);
+                        f32 recip_unk_10 = shz_fast_invf(unk_10);
                         for (j = 0; j < 16; j++, var_s1++) {
                             temp_fs0 = (j * 220.0f * D_i5_801BE740) - 1760.0f - unk_08;
                             //printf("\t\ttemp_fs0 %f unk_10 %f\n", temp_fs0, unk_10);
@@ -233,8 +229,8 @@ void Ground_801B4AA8(s32* arg0, s32* arg1) {
 
                 case 3:
                     {
-                        f32 recip_unk_18 = approx_recip_sign(var_s2->unk_18);
-                        f32 recip_unk_10 = approx_recip_sign(var_s2->unk_10);
+                        f32 recip_unk_18 = shz_fast_invf(var_s2->unk_18);
+                        f32 recip_unk_10 = shz_fast_invf(var_s2->unk_10);
 
                         for (j = 0; j < 16; j++, var_s1++) {
                             temp_fs0 =

@@ -758,7 +758,7 @@ sincosdeg(this->swork[GRANGA_SWK_23] * 12.0f, &cots, &cotc);
         sp20C = sCoGrangaWork[GRANGA_TARGET_Z] - this->obj.pos.z;
 
         sp1FC = Math_RadToDeg(Math_Atan2F(sp214, sp20C));
-        sp204 = shz_sqrtf_fsrra(SQ(sp214) + SQ(sp20C));
+        sp204 = sqrtf(SQ(sp214) + SQ(sp20C));
         sp200 = Math_RadToDeg(-Math_Atan2F(sp210, sp204));
 
         if ((sp200 > 50.0f) && (sp200 < 180.0f)) {
@@ -2962,7 +2962,7 @@ void Corneria_LevelStart(Player* player) {
     }
 
     sp2C = -Math_Atan2F(player->cam.eye.x - x, player->cam.eye.z - z);
-    sp30 = -Math_Atan2F(player->cam.eye.y - y, shz_sqrtf_fsrra(SQ(player->cam.eye.z - z) + SQ(player->cam.eye.x - x)));
+    sp30 = -Math_Atan2F(player->cam.eye.y - y, sqrtf(SQ(player->cam.eye.z - z) + SQ(player->cam.eye.x - x)));
 
     sp44 = Math_RadToDeg(sp2C) - D_ctx_80177A48[4];
     sp40 = Math_RadToDeg(sp30) - D_ctx_80177A48[5];
@@ -3540,7 +3540,7 @@ void Corneria_LevelComplete1(Player* player) {
             sp4C = player->cam.eye.z - sCoGrangaWork[64];
 
             D_ctx_80177A48[0] = Math_RadToDeg(Math_Atan2F(sp54, sp4C));
-            D_ctx_80177A48[1] = shz_sqrtf_fsrra(SQ(sp54) + SQ(sp4C));
+            D_ctx_80177A48[1] = sqrtf(SQ(sp54) + SQ(sp4C));
 
             player->csState++;
 

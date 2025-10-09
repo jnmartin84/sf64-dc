@@ -2839,11 +2839,12 @@ s32 Solar_SoVulkain_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec
 
     gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, D_i3_801C2740[1], D_i3_801C2740[0], D_i3_801C2740[0], 255);
 
-    if (this->fwork[SO_FWK_3] < 4800.0f) {
+    // you can't use multiple fog colors per frame on PowerVR. not possible.
+    /* if (this->fwork[SO_FWK_3] < 4800.0f) {
         RCP_SetupDL_30(64, 32, 32, gFogAlpha, gFogNear, gFogFar);
     } else {
         RCP_SetupDL_30(16, 16, 16, gFogAlpha, gFogNear, gFogFar);
-    }
+    } */
 
     switch (limbIndex) {
         case 11:

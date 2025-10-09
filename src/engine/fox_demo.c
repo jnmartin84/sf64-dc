@@ -2758,6 +2758,7 @@ void ActorCutscene_Draw(ActorCutscene* this) {
             Matrix_Scale(gGfxMatrix, 0.125f, 0.125f, 0.125f, MTXF_APPLY);
             Matrix_SetGfxMtx(&gMasterDisp);
             /* fallthrough */
+// these are the ships after the intro but while the "title card" is still up in the game view
         case ACTOR_CS_SY_SHIP_1:
             gSPDisplayList(gMasterDisp++, aSyShip1DL);
             ActorCutscene_SyShip_Setup(this, 4);

@@ -2,6 +2,7 @@
 
 #include "fox_colheaders.c"
 
+
 bool func_col2_800A36FC(Vec3f* objPos, Vec3f* colliderPos, CollisionHeader2* colHeader, Vec3f* hitDataOut);
 bool func_col2_800A3A74(Vec3f* point, Vec3f** tri, Vec3f* normOut);
 
@@ -57,17 +58,17 @@ bool func_col2_800A36FC(Vec3f* objPos, Vec3f* colliderPos, CollisionHeader2* col
         hitDataOut->y = func_col1_800988B4(&objRelPos, &triPlane);
 
         if (triPlane.normal.x != 0.0f) {
-            norm.x = -triPlane.dist / triPlane.normal.x;
+            norm.x = -triPlane.dist * shz_fast_invf(triPlane.normal.x);
         } else {
             norm.x = 0.0f;
         }
         if (triPlane.normal.y != 0.0f) {
-            norm.y = -triPlane.dist / triPlane.normal.y;
+            norm.y = -triPlane.dist * shz_fast_invf( triPlane.normal.y);
         } else {
             norm.y = 0.0f;
         }
         if (triPlane.normal.z != 0.0f) {
-            norm.z = -triPlane.dist / triPlane.normal.z;
+            norm.z = -triPlane.dist * shz_fast_invf(triPlane.normal.z);
         } else {
             norm.z = 0.0f;
         }
@@ -115,7 +116,7 @@ bool func_col2_800A3A74(Vec3f* point, Vec3f** tri, Vec3f* normOut) {
 
     ptx = point->x;
     ptz = point->z;
-//#define approx_recip(x) (1.0f / sqrtf((x)*(x)))
+
     temp1 = ((vtx2.z - vtx1.z) * (ptx - vtx2.x)) - ((vtx2.x - vtx1.x) * (ptz - vtx2.z));
     if (temp1 >= 0.0f) {
         if (((vtx3.x - vtx2.x) * (ptz - vtx3.z)) <= ((vtx3.z - vtx2.z) * (ptx - vtx3.x))) {

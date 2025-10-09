@@ -67,6 +67,7 @@ Matrix* gGfxMatrix;
 void n64_memcpy(void *dst, const void *src, size_t size);
 void  Matrix_Copy(Matrix* dst, Matrix* src) {
     n64_memcpy(dst->m, src->m, sizeof(float)*16);
+//    shz_matrix_4x4_copy(dst->m, src->m);
 #if 0
     s32 i;
     for (i = 0; i < 4; i++) {
@@ -425,11 +426,14 @@ void Matrix_RotateAxis(Matrix* mtx, f32 angle, f32 axisX, f32 axisY, f32 axisZ, 
     f32 sinA;
     f32 cosA;
 
-    norm = sqrtf((axisX * axisX) + (axisY * axisY) + (axisZ * axisZ));
-    if (norm != 0.0f) {
-        axisX /= norm;
-        axisY /= norm;
-        axisZ /= norm;
+    f32 tmpsum = (axisX * axisX) + (axisY * axisY) + (axisZ * axisZ);
+
+//    norm = sqrtf((axisX * axisX) + (axisY * axisY) + (axisZ * axisZ));
+    if (tmpsum != 0.0f) {
+        norm = shz_inv_sqrtf(tmpsum);
+        axisX *= norm;
+        axisY *= norm;
+        axisZ *= norm;
         sinA = sinf(angle);
         cosA = cosf(angle);
         xx = axisX * axisX;

@@ -14,12 +14,7 @@
 #include "assets/ast_A_ti.h"
 #include "assets/ast_landmaster.h"
 #include "assets/ast_enmy_planet.h"
-
-static inline float approx_recip_sign(float v) {
-	float _v = 1.0f / sqrtf(v * v);
-	return copysignf(_v, v);
-}
-
+#include "sh4zam.h"
 
 typedef struct {
     /* 0x00 */ PosRot unk_00;
@@ -582,7 +577,7 @@ void Titania_TiBoulder_Update(TiBoulder* this) {
     }
 
     temp_fv1 = this->scale * 314.0f;
-    f32 recip_temp_fv1 = 360.0f * approx_recip_sign(temp_fv1);
+    f32 recip_temp_fv1 = 360.0f * shz_fast_invf(temp_fv1);
 
     if (this->vel.x != 0.0f) {
         this->obj.rot.x += ((shz_sqrtf_fsrra(SQ(this->vel.x) + SQ(this->vel.z))*recip_temp_fv1)/*  * 360.0f) / temp_fv1 */) * SIGN_OF(this->vel.x);
@@ -2313,7 +2308,7 @@ s32 Titania_8018FC70(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* t
     f32 sp24;
 
     if (D_i5_801BBEF0[30] != 0) {
-        f32 recip_31thing = approx_recip_sign((f32) D_i5_801BBEF0[31]);
+        f32 recip_31thing = shz_fast_invf((f32) D_i5_801BBEF0[31]);
         sp24 = (D_i5_801BBEF0[30] * 0.06666667f/* / 15.0f */) * D_i5_801BBEF0[32];
         rot->z += SIN_DEG((D_i5_801BBEF0[30] * recip_31thing/* / (f32) D_i5_801BBEF0[31] */) * 360.0f) * sp24;
     }
@@ -2635,14 +2630,14 @@ s32 Titania_801903A0(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* t
     if (D_i5_801BBEF0[25] == 1) {
         sp20 = D_i5_801BBEF0[33] % 2U;
         if (D_i5_801BBEF0[33] != 0) {
-            f32 recip_35thing = approx_recip_sign((f32) D_i5_801BBEF0[35]);
+            f32 recip_35thing = shz_fast_invf((f32) D_i5_801BBEF0[35]);
             sp24 = (D_i5_801BBEF0[33] *0.06666667f/* / 15.0f */) * D_i5_801BBEF0[37];
             rot->z += SIN_DEG((D_i5_801BBEF0[33] * recip_35thing/* / (f32) D_i5_801BBEF0[35] */) * 360.0f) * sp24;
         }
     } else {
         sp20 = D_i5_801BBEF0[34] % 2U;
         if (D_i5_801BBEF0[34] != 0) {
-            f32 recip_36thing = approx_recip_sign((f32) D_i5_801BBEF0[36]);
+            f32 recip_36thing = shz_fast_invf((f32) D_i5_801BBEF0[36]);
             sp24 = (D_i5_801BBEF0[34]*0.06666667f /* / 15.0f */) * D_i5_801BBEF0[38];
             rot->z += SIN_DEG((D_i5_801BBEF0[34] *recip_36thing/* / (f32) D_i5_801BBEF0[36] */) * 360.0f) * sp24;
         }
@@ -2798,7 +2793,7 @@ s32 Titania_80190A08(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* t
                         if (D_i5_801BBEF4[2] != 0.0f) {
                             rot->z += D_i5_801BBEF4[2];
                             if (D_i5_801BBEF4[3] != 0.0f) {
-                                f32 recip_5thing = approx_recip_sign( D_i5_801BBEF4[5]);
+                                f32 recip_5thing = shz_fast_invf( D_i5_801BBEF4[5]);
                                 rot->z += sinf((D_i5_801BBEF4[3]*recip_5thing/*  / D_i5_801BBEF4[5] */) * 360.0f * M_DTOR) *
                                           D_i5_801BBEF4[3] * 0.16666667f /* / 6.0f */;
                             }
@@ -2839,7 +2834,7 @@ s32 Titania_80190A08(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* t
                 spA0 = (temp_v1 != -1) && (D_i5_801BD668[temp_v1] != 0);
 
                 if (spA0 != 0) {
-                    f32 recip_tempv1_thing = approx_recip_sign((f32)D_i5_801B7960[temp_v1][1]);
+                    f32 recip_tempv1_thing = shz_fast_invf((f32)D_i5_801B7960[temp_v1][1]);
                     spA8 = D_i5_801B7960[temp_v1][0];
                     sp9C = ((sinf(D_i5_801BD6B0[temp_v1] * M_DTOR) * D_i5_801BD668[temp_v1]) * recip_tempv1_thing/*  /
                             D_i5_801B7960[temp_v1][1] */) *
@@ -2997,7 +2992,7 @@ s32 Titania_80190A08(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* t
 
                 if ((limbIndex == 51) || (limbIndex == 66)) {
                     if (D_i5_801BBEF0[1] != 0) {
-                        f32 recip_thinger = approx_recip_sign((f32)D_i5_801BBEF0[1]);
+                        f32 recip_thinger = shz_fast_invf((f32)D_i5_801BBEF0[1]);
                         sp68 = 1.1f - (fabsf(sinf(((f32) D_i5_801BBEF0[0]*recip_thinger /* / D_i5_801BBEF0[1] */) * 360.0f * M_DTOR))) *
                                           D_i5_801BBEF4[0];
                         Matrix_Push(&gCalcMatrix);

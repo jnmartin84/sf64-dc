@@ -188,8 +188,6 @@ SPTask* AudioThread_CreateTask(void) {
     }
 }
 #endif
-void wav_pause(void);
-void wav_play(void);
 
 
 void AudioThread_ProcessGlobalCmd(AudioCmd* cmd) {
@@ -222,6 +220,7 @@ void AudioThread_ProcessGlobalCmd(AudioCmd* cmd) {
             for (i = 0; i < ARRAY_COUNT(gSeqPlayers); i++) {
 
                 SequencePlayer* seqplayer = &gSeqPlayers[i];
+                //wav_pause(i);
 
                 seqplayer->muted = 1;
                 seqplayer->recalculateVolume = 1;

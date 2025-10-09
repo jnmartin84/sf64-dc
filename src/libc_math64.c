@@ -5,8 +5,6 @@
 #define F_PI        3.1415926f   /* pi             */
 #endif
 
-#define approx_recip(x) (1.0f / sqrtf((x)*(x)))
-#define approx_signed_recip(x) (((x) < 0.0f) ? -(1.0f / sqrtf((x)*(x))) : (1.0f / sqrtf((x)*(x))))
 
 f32 Math_FAtanF(f32 x) {
     s32 sector;
@@ -17,10 +15,10 @@ f32 Math_FAtanF(f32 x) {
 
     if (x > 1.0f) {
         sector = 1;
-        x = approx_recip(x);//1.0f / x;
+        x = shz_fast_invf(x);//1.0f / x;
     } else if (x < -1.0f) {
         sector = -1;
-        x = -(approx_recip(x));//1.0f / x;
+        x = shz_fast_invf(x);//1.0f / x;
     } else {
         sector = 0;
     }
@@ -28,12 +26,12 @@ f32 Math_FAtanF(f32 x) {
     sq = SQ(x);
 
     for (z = i = 24; i != 0; i--) {
-        float recipdenom =  approx_signed_recip(2.0f * z + 1.0f + conv);
+        float recipdenom =  shz_fast_invf(2.0f * z + 1.0f + conv);
         conv = SQ(z) * sq * recipdenom; // / (2.0f * z + 1.0f + conv);
         z -= 1.0f;
     }
 
-    float recip1pconv = approx_signed_recip(1.0f + conv);
+    float recip1pconv = shz_fast_invf(1.0f + conv);
 
     if (sector > 0) {
         return F_PI_2 - (x * recip1pconv);/// (1.0f + conv));

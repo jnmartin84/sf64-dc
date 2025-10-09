@@ -331,7 +331,7 @@ void ActorDebris_Draw(ActorDebris* this) {
             if (gCurrentLevel != LEVEL_SOLAR) {
                 gSPDisplayList(gMasterDisp++, D_TI_801B769C[this->work_046]);
             } else {
-                if (gBosses[0].fwork[3] < 4800.0f) {
+                /* if (gBosses[0].fwork[3] < 4800.0f) {
                     RCP_SetupDL(&gMasterDisp, SETUPDL_30);
                     gDPSetFogColor(gMasterDisp++, 64, 32, 32, gFogAlpha);
                     gSPFogPosition(gMasterDisp++, gFogNear, gFogFar);
@@ -339,7 +339,7 @@ void ActorDebris_Draw(ActorDebris* this) {
                     RCP_SetupDL(&gMasterDisp, SETUPDL_30);
                     gDPSetFogColor(gMasterDisp++, 16, 16, 16, gFogAlpha);
                     gSPFogPosition(gMasterDisp++, gFogNear, gFogFar);
-                }
+                } */
                 Graphics_SetScaleMtx(this->scale);
                 gSPDisplayList(gMasterDisp++, sSoVulkainDebrisDLs[this->work_046]);
             }
@@ -1709,6 +1709,10 @@ void Object_DrawAll(s32 cullDirection) {
     Scenery360* scenery360;
     Item* item;
     Scenery* scenery;
+
+//    if (gCurrentLevel == LEVEL_SOLAR) {
+//        gFogRed = 64; gFogGreen = 32; gFogBlue = 32; ;//gFogAlpha
+//    }
 
     if ((gLevelMode == LEVELMODE_ALL_RANGE) && (gCurrentLevel != LEVEL_KATINA)) {
         RCP_SetupDL_29(gFogRed, gFogGreen, gFogBlue, gFogAlpha, gFogNear, gFogFar);

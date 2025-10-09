@@ -4298,7 +4298,7 @@ bool ActorTeamBoss_SetFlyingAngle(ActorTeamBoss* this) {
     z = this->fwork[6] - this->obj.pos.z;
 
     sp40 = Math_RadToDeg(Math_Atan2F(x, z));
-    sp44 = Math_RadToDeg(Math_Atan2F(y, sqrtf(SQ(x) + SQ(z))));
+    sp44 = Math_RadToDeg(Math_Atan2F(y, shz_sqrtf_fsrra(SQ(x) + SQ(z))));
 
     if (ActorTeamBoss_ObstacleCheck(this) && (this->iwork[4] == 0)) {
         sp44 += 40.0f;
@@ -5737,7 +5737,7 @@ void Aquas_CsLevelComplete(Player* player) {
             z = player->pos.z - dest.z;
 
             y1 = Math_RadToDeg(Math_Atan2F(x, z));
-            z = sqrtf(SQ(x) + SQ(z));
+            z = shz_sqrtf_fsrra(SQ(x) + SQ(z));
             x1 = Math_RadToDeg(-Math_Atan2F(y, z));
 
             if ((x1 + 40.0f) >= 360.0f) {

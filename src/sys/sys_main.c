@@ -31,11 +31,11 @@ char *fnpre;
 #include "src/dcaudio/audio_dc.h"
 volatile int inited = 0;
 extern struct AudioAPI audio_dc;
-s16 audio_buffer[2][SAMPLES_HIGH * 2 /* * 2 */ * 3] __attribute__((aligned(64)));
+s16 audio_buffer[2][SAMPLES_HIGH * 2 * 2 * 3] __attribute__((aligned(64)));
 static struct AudioAPI *audio_api = NULL;
 void AudioThread_CreateNextAudioBuffer(s16* samplesL, s16* samplesR, u32 num_samples);
 
-void *SPINNING_THREAD(UNUSED void *arg);
+void *AudioThread(UNUSED void *arg);
 
 static volatile uint64_t vblticker=0;
 
@@ -190,10 +190,12 @@ void* segmented_to_virtual(const void* addr) {
 
     unsigned int offset = (unsigned int) uip_addr & 0x00FFFFFF;
     u32 translated_addr = gSegments[segment] + offset;
-    if (translated_addr > 0x8cffffff) {
-        printf("serious problem seg2vir %08x -> %08x\n", uip_addr, translated_addr);
+#ifdef RANGECHECK
+    //    if (translated_addr > 0x8cffffff) {
+//        printf("serious problem seg2vir %08x -> %08x\n", uip_addr, translated_addr);
 //        exit(-1);
-    }
+//    }
+#endif
     return (void*)translated_addr;
 }
 
@@ -376,7 +378,7 @@ void Main_ThreadEntry(void* arg0) {
     main_attr5.stack_ptr = NULL;
     main_attr5.prio = 11;
     main_attr5.label = "SPINNING";
-    thd_create_ex(&main_attr5, &SPINNING_THREAD, arg0);
+    thd_create_ex(&main_attr5, &AudioThread, arg0);
 
     Controller_Init();
     Main_InitMesgQueues();
@@ -461,9 +463,11 @@ int main(int argc, char **argv) {
 #include "../mods/isviewer.c"
 #endif
 //533
+/* #define SAMPLES_HIGH 560
+#define SAMPLES_LOW 528 */
 extern void *cb_next_left(void);
 extern void *cb_next_right(void);
-void *SPINNING_THREAD(UNUSED void *arg) {
+void *AudioThread(UNUSED void *arg) {
     uint64_t last_vbltick = vblticker;
     
     while (1) {
@@ -474,9 +478,11 @@ void *SPINNING_THREAD(UNUSED void *arg) {
         last_vbltick = vblticker;
         __builtin_prefetch(audio_buffer[1]);
 
+        /* int samplecount = gSysFrameCount & 1 ? SAMPLES_HIGH : SAMPLES_LOW; */
+
         AudioThread_CreateNextAudioBuffer(//cb_next_left(), cb_next_right(), 448);//
-            audio_buffer[0], audio_buffer[1], 448);
-        audio_api->play((u8 *)audio_buffer[0], (u8*)audio_buffer[1], 1792);
+            audio_buffer[0], audio_buffer[1], /* samplecount */448);
+        audio_api->play((u8 *)audio_buffer[0], (u8*)audio_buffer[1], /* samplecount<<2 */1792);
     }
 
     return NULL;

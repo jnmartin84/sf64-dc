@@ -1308,6 +1308,9 @@ s32 Andross_AndBrain_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Ve
 
             if (((this->swork[3] % 2) != 0) && (this->fwork[21] >= 254.0f)) {
                 RCP_SetupDL(&gMasterDisp, SETUPDL_27);
+                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+                        gDPSetEnvColor(gMasterDisp++,0,0,0,255);
                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
             }
 
@@ -1338,10 +1341,16 @@ void Andross_AndBrain_Draw(AndBrain* this) {
                                &gIdentityMatrix);
         if (this->fwork[21] >= 254) {
             RCP_SetupDL(&gMasterDisp, SETUPDL_54);
-            gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 64, 64, 255);
+                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+                        gDPSetEnvColor(gMasterDisp++,0,0,0,255);
+                                    gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 64, 64, 255);
         } else {
             RCP_SetupDL(&gMasterDisp, SETUPDL_70);
-            gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 64, 64, (s32) this->fwork[21]);
+                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+                        gDPSetEnvColor(gMasterDisp++,0,0,0,255);
+                        gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 64, 64, (s32) this->fwork[21]);
         }
         gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK);
         Matrix_Translate(gGfxMatrix, 0.0f, -16.0f, 0.0f, MTXF_APPLY);
@@ -1688,7 +1697,10 @@ Gfx* sAndSuctionDLs[10] = {
 
 void Andross_AndSuction_Draw(EffectAndSuction* this) {
     if (this->state == 10) { // Smoke from an exploding bomb inside Andross
-        gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, this->alpha);
+                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+                        gDPSetEnvColor(gMasterDisp++,0,0,0,255);
+                                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, this->alpha);
         Matrix_Scale(gGfxMatrix, this->scale2, this->scale2, this->scale2, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
         gSPDisplayList(gMasterDisp++, D_BG_PLANET_2010A30);
@@ -1933,7 +1945,7 @@ void Andross_AndAndross_Explode(AndAndross* this, Vec3f* arg1) {
 }
 
 f32 sAndrossHandCrushSfxPos[] = { 0.0f, 0.0f, 0.0f };
-
+int andross_robot = 0;
 void Andross_AndAndross_Update(AndAndross* this) {
     s32 i;
     s32 frameCountMask;
@@ -1950,7 +1962,6 @@ void Andross_AndAndross_Update(AndAndross* this) {
     s16 limbCount;
     AndAndrossState state;
     s32 pad;
-
     gBossFrameCount++;
 
     state = (AndAndrossState) this->state;
@@ -2916,6 +2927,7 @@ void Andross_AndAndross_Update(AndAndross* this) {
                     this->timer_050 = 50;
                     this->fwork[9] = 0.0f;
                     AUDIO_PLAY_SFX(NA_SE_EN_ANDROSS_ROBOT, this->sfxSource, 4);
+                    andross_robot = 1;
                     AUDIO_PLAY_BGM(NA_BGM_BOSS_ANDROSS);
                     break;
             }
@@ -3196,20 +3208,26 @@ s32 Andross_AndAndross_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, 
                     *dList = NULL;
                 } else if ((this->swork[3] % 2) != 0) {
                     RCP_SetupDL(&gMasterDisp, SETUPDL_27);
-                    gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
+                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+                        gDPSetEnvColor(gMasterDisp++,0,0,0,255);                    gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
                 }
             } else if (this->swork[4] < 0) {
                 *dList = NULL;
             } else if ((this->swork[2] % 2) != 0) {
                 RCP_SetupDL(&gMasterDisp, SETUPDL_27);
-                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
+                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+                        gDPSetEnvColor(gMasterDisp++,0,0,0,255);                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
             }
         }
     } else if ((this->timer_05C % 2) == 0) {
         RCP_SetupDL(&gMasterDisp, SETUPDL_29);
     } else {
         RCP_SetupDL(&gMasterDisp, SETUPDL_27);
-        gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
+                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+                        gDPSetEnvColor(gMasterDisp++,0,0,0,255);        gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
     }
 
     switch (limbIndex) {
@@ -3228,7 +3246,9 @@ s32 Andross_AndAndross_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, 
 
             if ((this->swork[0] % 2) != 0) {
                 RCP_SetupDL(&gMasterDisp, SETUPDL_27);
-                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
+                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+                        gDPSetEnvColor(gMasterDisp++,0,0,0,255);                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
             }
 
             if (this->swork[11] != 0) {
@@ -3244,7 +3264,9 @@ s32 Andross_AndAndross_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, 
 
             if ((this->swork[1] % 2) != 0) {
                 RCP_SetupDL(&gMasterDisp, SETUPDL_27);
-                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
+                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+                        gDPSetEnvColor(gMasterDisp++,0,0,0,255);                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
             }
 
             if (this->swork[12] != 0) {
@@ -3344,7 +3366,9 @@ s32 Andross_AndAndross_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, 
                 Matrix_SetGfxMtx(&gMasterDisp);
                 gSPDisplayList(gMasterDisp++, *dList);
                 RCP_SetupDL(&gMasterDisp, SETUPDL_41);
-
+                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+                        gDPSetEnvColor(gMasterDisp++,0,0,0,255);
                 switch (gGameFrameCount % 4U) {
                     case 0:
                         gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
@@ -3389,7 +3413,9 @@ s32 Andross_AndAndross_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, 
                 Matrix_SetGfxMtx(&gMasterDisp);
                 gSPDisplayList(gMasterDisp++, *dList);
                 RCP_SetupDL(&gMasterDisp, SETUPDL_41);
-
+                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+                        gDPSetEnvColor(gMasterDisp++,0,0,0,255);
                 switch (gGameFrameCount % 4U) {
                     case 0:
                         gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
@@ -3546,8 +3572,10 @@ void Andross_AndAndross_Draw(AndAndross* this) {
             if (this->fwork[21] > 0.05f) {
                 Matrix_Push(&gGfxMatrix);
                 RCP_SetupDL(&gMasterDisp, SETUPDL_67);
+                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 192);
-                gDPSetEnvColor(gMasterDisp++, 255, 0, 128, 192);
+                gDPSetEnvColor(gMasterDisp++, 255-255, 255-0, 255-128, 192);
                 Matrix_Scale(gGfxMatrix, this->fwork[21] * 7.0f, this->fwork[21] * 7.0f, this->fwork[21] * 7.0f,
                              MTXF_APPLY);
                 if ((gGameFrameCount % 2) != 0) {
@@ -3564,8 +3592,14 @@ void Andross_AndAndross_Draw(AndAndross* this) {
             RCP_SetupDL(&gMasterDisp, SETUPDL_64);
 
             if ((gGameFrameCount % 2) != 0) {
-                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 128);
+                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+                        gDPSetEnvColor(gMasterDisp++,0,0,0,255);
+                      gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 128);
             } else {
+                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+                        gDPSetEnvColor(gMasterDisp++,0,0,0,255);
                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 30);
             }
 
@@ -3678,6 +3712,9 @@ void Andross_AndLaserEmitter_Draw(AndLaserEmitter* this) {
         Matrix_RotateX(gGfxMatrix, F_PI_2, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
         RCP_SetupDL(&gMasterDisp, SETUPDL_67);
+                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+//                        gDPSetEnvColor(gMasterDisp++,0,0,0,255);
         gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, alpha);
         gDPSetEnvColor(gMasterDisp++, 255, 128, 128, alpha);
         gSPDisplayList(gMasterDisp++, aOrbDL);

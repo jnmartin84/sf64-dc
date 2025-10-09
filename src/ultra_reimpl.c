@@ -209,11 +209,6 @@ static oneshot_timer_t* timer;
 
 static char full_fn[20];
 
-//extern void 
-//wav_pause(void);
-//extern void 
-//wav_play(void);
-
 char *get_vmu_fn(maple_device_t *vmudev, char *fn) {
 	if (fn)
 		sprintf(full_fn, "/vmu/%c%d/%s", 'a'+vmudev->port, vmudev->unit, fn);
@@ -225,18 +220,18 @@ char *get_vmu_fn(maple_device_t *vmudev, char *fn) {
 
 void eeprom_flush(UNUSED void* arg) {
     mutex_lock_scoped(&eeprom_lock);
-    //wav_pause();
+    
     if (eeprom_file != FILEHND_INVALID) {
         fs_close(eeprom_file);
         eeprom_file = FILEHND_INVALID;
     }
-    //wav_play();
+    
 }
 
 s32 osEepromProbe(UNUSED OSMesgQueue* mq) {
 #if 1
     maple_device_t* vmudev = NULL;
-    //wav_pause();
+    
 
     if (!eeprom_init) {
         mutex_init(&eeprom_lock, MUTEX_TYPE_NORMAL);
@@ -246,7 +241,7 @@ s32 osEepromProbe(UNUSED OSMesgQueue* mq) {
 
     vmudev = maple_enum_type(0, MAPLE_FUNC_MEMCARD);
     if (!vmudev) {
-        //wav_play();
+        
         return 0;
     }
     vid_border_color(255, 0, 255);
@@ -256,7 +251,7 @@ s32 osEepromProbe(UNUSED OSMesgQueue* mq) {
 
         if (FILEHND_INVALID == eeprom_file) {
             vid_border_color(0, 0, 0);
-            //wav_play();
+            
             return 1;
         }
 
@@ -282,7 +277,7 @@ s32 osEepromProbe(UNUSED OSMesgQueue* mq) {
             fs_close(eeprom_file);
             eeprom_file = FILEHND_INVALID;
             vid_border_color(0, 0, 0);
-            //wav_play();
+            
             return 0;
         }
 
@@ -296,7 +291,7 @@ s32 osEepromProbe(UNUSED OSMesgQueue* mq) {
 
         if (FILEHND_INVALID == eeprom_file) {
             vid_border_color(0, 0, 0);
-            //wav_play();
+            
             return EEPROM_TYPE_4K;
         }
 
@@ -304,7 +299,7 @@ s32 osEepromProbe(UNUSED OSMesgQueue* mq) {
     }
 
     vid_border_color(0, 0, 0);
-    //wav_play();
+    
     return EEPROM_TYPE_4K;
 #else
     return 0;
@@ -315,15 +310,15 @@ uint8_t* vmu_load_data(int channel, const char* name, uint8_t* outbuf, uint32_t*
 static int reopen_vmu_eeprom(void) {
 #if 1
     maple_device_t* vmudev = NULL;
-    //wav_pause();
+    
     vmudev = maple_enum_type(0, MAPLE_FUNC_MEMCARD);
     if (!vmudev) {
-        //wav_play();
+        
         return 1;
     }
 
     eeprom_file = fs_open(get_vmu_fn(vmudev, "sf64.rec"), O_RDWR | O_META);
-    //wav_play();
+    
     return (eeprom_file == FILEHND_INVALID);
 #else
     return 1;
@@ -338,7 +333,7 @@ s32 osEepromLongRead(UNUSED OSMesgQueue* mq, u8 address, u8* buffer,
             return 1;
         }
     }
-    //wav_pause();
+    
 
     vid_border_color(0, 255, 0);
 
@@ -350,7 +345,7 @@ s32 osEepromLongRead(UNUSED OSMesgQueue* mq, u8 address, u8* buffer,
             fs_close(eeprom_file);
             eeprom_file = FILEHND_INVALID;
             vid_border_color(0, 0, 0);
-            //wav_play();
+            
             return 1;
         }
 
@@ -359,17 +354,17 @@ s32 osEepromLongRead(UNUSED OSMesgQueue* mq, u8 address, u8* buffer,
         ssize_t rv = fs_read(eeprom_file, buffer, length);
         if (rv != length) {
             vid_border_color(0, 0, 0);
-            //wav_play();
+            
             return 1;
         }
 
         vid_border_color(0, 0, 0);
         oneshot_timer_reset(timer);
-        //wav_play();
+        
         return 0;
     } else {
         vid_border_color(0, 0, 0);
-        //wav_play();
+        
         return 1;
     }
 #else
@@ -389,7 +384,7 @@ s32 osEepromLongWrite(UNUSED OSMesgQueue* mq, u8 address, u8* buffer,
             return 1;
         }
     }
-    //wav_pause();
+    
     vid_border_color(0, 0, 255);
 
     if (FILEHND_INVALID != eeprom_file) {
@@ -399,7 +394,7 @@ s32 osEepromLongWrite(UNUSED OSMesgQueue* mq, u8 address, u8* buffer,
             vid_border_color(0, 0, 0);
             fs_close(eeprom_file);
             eeprom_file = FILEHND_INVALID;
-            //wav_play();
+            
             return 1;
         }
         // skip header
@@ -407,17 +402,17 @@ s32 osEepromLongWrite(UNUSED OSMesgQueue* mq, u8 address, u8* buffer,
         ssize_t rv = fs_write(eeprom_file, buffer, length);
         if (rv != length) {
             vid_border_color(0, 0, 0);
-            //wav_play();
+            
             return 1;
         }
 
         vid_border_color(0, 0, 0);
         oneshot_timer_reset(timer);
-        //wav_play();
+        
         return 0;
     } else {
         vid_border_color(0, 0, 0);
-        //wav_play();
+        
         return 1;
     }
 #else

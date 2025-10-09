@@ -329,9 +329,12 @@ static struct GfxRenderingAPI* gfx_rapi;
 
 static uint16_t __attribute__((aligned(32))) tlut[256];
 
+int total_tris = 0;
+int total_quads = 0;
 static  __attribute__((noinline)) void gfx_flush(void) {
 	if ((buf_vbo_len > 2) && ((buf_vbo_len % 3) == 0)) {
 		gfx_rapi->draw_triangles((void*) buf_vbo, buf_vbo_len, buf_vbo_num_tris);
+		total_tris += buf_vbo_num_tris;
 		buf_vbo_len = 0;
 		buf_num_vert = 0;
 		buf_vbo_num_tris = 0;
@@ -1392,14 +1395,6 @@ float my_acosf (float a)
     return r;
 }
 
-static inline float approx_recip_sign(float v) {
-	float _v = 1.0f / sqrtf(v * v);
-	return copysignf(_v, v);
-}
-
-static inline float approx_recip(float v) {
-	return 1.0f / sqrtf(v * v);
-}
 
 
 //GSTATE_MAP is 4
@@ -1419,7 +1414,7 @@ static void __attribute__((noinline)) gfx_sp_vertex_light(size_t n_vertices, siz
         z = out.z;
         w = out.w;
 
-		float recw = approx_recip_sign(w);
+		float recw = shz_fast_invf(w);
 		d->_x = x * recw;
         d->_y = y * recw;
 
@@ -1563,7 +1558,7 @@ static void __attribute__((noinline)) gfx_sp_vertex_no(size_t n_vertices, size_t
         y = out.y;
         z = out.z;
         w = out.w;
-		float recw = approx_recip_sign(w);
+		float recw = shz_fast_invf(w);
 		d->_x = x * recw;
         d->_y = y * recw;
 //        d->_z = z;
@@ -1671,7 +1666,7 @@ int last_was_special = 0;
 #endif
 
 //int last_cull = 0;
-
+int raw_tri = 0;
 static void  __attribute__((noinline)) gfx_sp_tri1(/* uint8_t need_cull, */ uint8_t vtx1_idx, uint8_t vtx2_idx, uint8_t vtx3_idx) {
 	MEM_BARRIER_PREF(clip_rej);
     struct LoadedVertex* v1 = &rsp.loaded_vertices[vtx3_idx];
@@ -1679,7 +1674,7 @@ static void  __attribute__((noinline)) gfx_sp_tri1(/* uint8_t need_cull, */ uint
     struct LoadedVertex* v2 = &rsp.loaded_vertices[vtx2_idx];
 	struct LoadedVertex* v3 = &rsp.loaded_vertices[vtx1_idx];
 	uint8_t l_clip_rej[3] = {clip_rej[vtx3_idx], clip_rej[vtx2_idx], clip_rej[vtx1_idx]};
-
+	raw_tri++;
     struct LoadedVertex* v_arr[3] = { v1, v2, v3 };
 //	if (need_cull) {
 	uint8_t c0 = l_clip_rej[0];
@@ -1900,8 +1895,8 @@ static void  __attribute__((noinline)) gfx_sp_tri1(/* uint8_t need_cull, */ uint
 
 			uint32_t tex_width = (rdp.texture_tile.lrs - rdp.texture_tile.uls + 4) >> 2;
             uint32_t tex_height = (rdp.texture_tile.lrt - rdp.texture_tile.ult + 4) >> 2;
-            recip_tex_width = approx_recip((float) tex_width);
-            recip_tex_height = approx_recip((float) tex_height);
+            recip_tex_width = shz_fast_invf((float) tex_width);
+            recip_tex_height = shz_fast_invf((float) tex_height);
         }
 
     if (use_fog) {
@@ -1959,10 +1954,15 @@ static void  __attribute__((noinline)) gfx_sp_tri1(/* uint8_t need_cull, */ uint
 		uint32_t cc_rgb = rdp.combine_mode & 0xFFF;
 		uint32_t cc_alpha = (rdp.combine_mode >> 12) & 0xFFF;
 
+		uint32_t light_r = 0;
+		uint32_t light_g = 0;
+		uint32_t light_b = 0;
+
  		if (lit) {
-			color_r = v_arr[i]->color.r;
-			color_g = v_arr[i]->color.g;
-			color_b = v_arr[i]->color.b;
+			light_r = v_arr[i]->color.r;
+			light_g = v_arr[i]->color.g;
+			light_b = v_arr[i]->color.b;
+			color_r = color_g = color_b = 
 			color_a = 255;
 			buf_vbo[buf_num_vert].color.packed = PACK_ARGB8888(color_r, color_g, color_b, color_a);
 		} 
@@ -1985,39 +1985,39 @@ static void  __attribute__((noinline)) gfx_sp_tri1(/* uint8_t need_cull, */ uint
             int i4 = comb->shader_input_mapping[0][1] == CC_ENV;
 
             if (i0 && i2) {
-				if (!lit) {
+//				if (!lit) {
 					color_r = 255 - rdp.env_color.r;
 					color_g = 255 - rdp.env_color.g;
 					color_b = 255 - rdp.env_color.b;
-				}
+//				}
 				color_a = rdp.prim_color.a;
 
 				if(!lit)
                 	buf_vbo[buf_num_vert].color.packed = PACK_ARGB8888(color_r, color_g, color_b, color_a);
             } else if (i3 && i4) {
-				if (!lit) {
+//				if (!lit) {
 					color_r = rdp.prim_color.r;
 					color_g = rdp.prim_color.g;
 					color_b = rdp.prim_color.b;
-				}
+//				}
                 color_a = rdp.prim_color.a;
 
-				if(!lit) {
+//				if(!lit) {
 					color_r *= ((rdp.env_color.r + 255));
 					color_g *= ((rdp.env_color.g + 255));
 					color_b *= ((rdp.env_color.b + 255));
-				}
+//				}
                 color_a *= rdp.env_color.a;
 
-				if (!lit) {
+//				if (!lit) {
 					color_r >>= 8;// /= 255;
 					color_g >>= 8;// /= 255;
 					color_b >>= 8;// /= 255;
-				}
+//				}
                 color_a >>= 8;// /= 255;
 
                 uint32_t max_c = 255;
-				if (!lit) {
+//				if (!lit) {
 					if (color_r > max_c)
 						max_c = color_r;
 					if (color_g > max_c)
@@ -2027,7 +2027,7 @@ static void  __attribute__((noinline)) gfx_sp_tri1(/* uint8_t need_cull, */ uint
 					if (color_a > max_c)
 						max_c = color_a;
 
-					float rmc = approx_recip((float)max_c);
+					float rmc = shz_fast_invf((float)max_c);
 
 					float rn, gn, bn, an;
 					rn = (float) color_r;
@@ -2045,7 +2045,7 @@ static void  __attribute__((noinline)) gfx_sp_tri1(/* uint8_t need_cull, */ uint
 					color_b = (uint32_t) bn;
 					color_a = (uint32_t) an;
 					buf_vbo[buf_num_vert].color.packed = PACK_ARGB8888(color_r, color_g, color_b, color_a);
-				}
+//				}
 			} else {
                 goto thenextthing;
             }
@@ -2055,29 +2055,29 @@ static void  __attribute__((noinline)) gfx_sp_tri1(/* uint8_t need_cull, */ uint
                 for (k = 0; k < 1 + (use_alpha ? 1 : 0); k++) {
                     switch (comb->shader_input_mapping[k][j]) {
 						case G_CCMUX_PRIMITIVE_ALPHA:
-							if (!lit)
+//							if (!lit)
 								buf_vbo[buf_num_vert].color.packed = PACK_ARGB8888(rdp.prim_color.a, rdp.prim_color.a, rdp.prim_color.a, k ? rdp.prim_color.a : 255);
 							break;
 						case G_CCMUX_ENV_ALPHA: 
-							if (!lit)
+//							if (!lit)
 								buf_vbo[buf_num_vert].color.packed = PACK_ARGB8888(rdp.env_color.a, rdp.env_color.a, rdp.env_color.a, k ? rdp.env_color.a : 255);
 							break;
                         case CC_PRIM:
-							if(lit)
-								color_a = k ? rdp.prim_color.a : 255;
-							else
+//							if(lit)
+//								color_a = k ? rdp.prim_color.a : 255;
+//							else
 								buf_vbo[buf_num_vert].color.packed = PACK_ARGB8888(rdp.prim_color.r, rdp.prim_color.g, rdp.prim_color.b, k ? rdp.prim_color.a : 255);
                             break;
                         case CC_SHADE:
-							if (lit)
-								color_a = k ? v_arr[i]->color.a : 255;
-							else
+//							if (lit)
+//								color_a = k ? v_arr[i]->color.a : 255;
+//							else
                         		buf_vbo[buf_num_vert].color.packed = PACK_ARGB8888(v_arr[i]->color.r, v_arr[i]->color.g, v_arr[i]->color.b, k ? v_arr[i]->color.a : 255);
                             break;
                         case CC_ENV:
-							if (lit)
-								color_a =  k ? rdp.env_color.a : 255;
-							else 
+//							if (lit)
+//								color_a =  k ? rdp.env_color.a : 255;
+//							else 
             	                buf_vbo[buf_num_vert].color.packed = PACK_ARGB8888(rdp.env_color.r, rdp.env_color.g, rdp.env_color.b, k ? rdp.env_color.a : 255);
                				break;
 #if 0
@@ -2106,9 +2106,13 @@ static void  __attribute__((noinline)) gfx_sp_tri1(/* uint8_t need_cull, */ uint
             }
         }
 
-		if(lit)
-			buf_vbo[buf_num_vert].color.packed = PACK_ARGB8888(color_r, color_g, color_b, color_a);
+		if(lit) {
+			color_r = (((255 + color_r)>>1) * light_r) >> 8;
+			color_g = (((255 + color_g)>>1) * light_g) >> 8;
+			color_b = (((255 + color_b)>>1) * light_b) >> 8;
 
+			buf_vbo[buf_num_vert].color.packed = PACK_ARGB8888(color_r, color_g, color_b, color_a);
+		}
 nextvert:
 		buf_num_vert++;
         buf_vbo_len += sizeof(dc_fast_t);
@@ -2127,13 +2131,13 @@ extern void gfx_opengl_draw_triangles_2d(void* buf_vbo, size_t buf_vbo_len, size
 int do_ext_fill = 0;
 
 void *memcpy32(void *restrict dst, const void *restrict src, size_t bytes);
-
+int last_was_starfield = 0;
 static void __attribute__((noinline)) gfx_sp_quad_2d(uint8_t vtx1_idx, uint8_t vtx2_idx, uint8_t vtx3_idx,
                                                      uint8_t vtx1_idx2, uint8_t vtx2_idx2, uint8_t vtx3_idx2) {
 
     dc_fast_t* v2d = &rsp.loaded_vertices_2D[0];
-
-	gfx_flush();
+	if (!last_was_starfield || !do_starfield)
+		gfx_flush();
 
     uint8_t depth_test = (rsp.geometry_mode & G_ZBUFFER) == G_ZBUFFER;
     if (depth_test != rendering_state.depth_test) {
@@ -2170,6 +2174,7 @@ static void __attribute__((noinline)) gfx_sp_quad_2d(uint8_t vtx1_idx, uint8_t v
     uint8_t use_alpha = (rdp.other_mode_l & (G_BL_A_MEM << 18)) == 0;
     uint8_t use_fog = (rdp.other_mode_l >> 30) == G_BL_CLR_FOG;
     if (rsp.use_fog != use_fog) {
+		gfx_flush();
         rsp.use_fog = use_fog;
     }
     uint8_t texture_edge = (rdp.other_mode_l & CVG_X_ALPHA) == CVG_X_ALPHA;
@@ -2233,8 +2238,8 @@ static void __attribute__((noinline)) gfx_sp_quad_2d(uint8_t vtx1_idx, uint8_t v
         if (!do_the_blur) {
             uint32_t tex_width = ((rdp.texture_tile.lrs - rdp.texture_tile.uls + 4) * 0.25f);
             uint32_t tex_height = ((rdp.texture_tile.lrt - rdp.texture_tile.ult + 4) * 0.25f);
-            recip_tex_width = approx_recip((float) tex_width);
-            recip_tex_height = approx_recip((float) tex_height);
+            recip_tex_width = shz_fast_invf((float) tex_width);
+            recip_tex_height = shz_fast_invf((float) tex_height);
             float offs = linear_filter ? 0.5f : 0.0f;
             float uls = (float) (rdp.texture_tile.ult * 0.25f) - offs;
             float ult = (float) (rdp.texture_tile.ult * 0.25f) - offs;
@@ -2324,7 +2329,7 @@ static void __attribute__((noinline)) gfx_sp_quad_2d(uint8_t vtx1_idx, uint8_t v
             if (an > max_c)
                 max_c = an;
 
-            float rmc = approx_recip(max_c) * 255.0f;
+            float rmc = shz_fast_invf(max_c) * 255.0f;
             rn *= rmc;
             gn *= rmc;
             bn *= rmc;
@@ -2368,7 +2373,14 @@ static void __attribute__((noinline)) gfx_sp_quad_2d(uint8_t vtx1_idx, uint8_t v
     v2d++->color.packed = rectcolor;
     v2d->color.packed = rectcolor;
 
+	if (do_starfield) {
+		last_was_starfield = 1;
+	} else {
+		last_was_starfield = 0;
+	}
+
     gfx_opengl_draw_triangles_2d((void*) rsp.loaded_vertices_2D, 4, use_texture);
+	total_quads+=1;
 }
 
 static void gfx_sp_geometry_mode(uint32_t clear, uint32_t set) {
@@ -2450,9 +2462,9 @@ static inline float exp_map_0_1000_f(float x) {
     const float t = x * 0.001f;                 // t in [0,1]
     const float num = expm1f(a * (t - 1.0f));    // argument in [-a, 0] (no overflow)
     const float den = expm1f(-a);                // finite (~ -1)
-    return 1000.0f * (1.0f - num * approx_recip_sign(den));
+    return 1000.0f * (1.0f - num * shz_fast_invf(den));
 }
-
+extern void gfx_opengl_change_fog(void);
 static void  gfx_sp_moveword(uint8_t index, UNUSED uint16_t offset, uint32_t data) {
 	switch (index) {
 //		case G_MW_PERSPNORM:
@@ -2469,7 +2481,7 @@ static void  gfx_sp_moveword(uint8_t index, UNUSED uint16_t offset, uint32_t dat
 		case G_MW_FOG:
 			fog_mul = rsp.fog_mul = (int16_t) (data >> 16);
 			fog_ofs = rsp.fog_offset = (int16_t) data;
-	        float recip_fog_mul = approx_recip(fog_mul);
+	        float recip_fog_mul = shz_fast_invf(fog_mul);
         	float n64_min = 500.0f * (1.0f - (float)fog_ofs * recip_fog_mul);
         	float n64_max = n64_min + 128000.0f * recip_fog_mul;
 			/* Convert N64 [0..1000] depth to your eye-space distances [zNear..zFar] */
@@ -2478,6 +2490,7 @@ static void  gfx_sp_moveword(uint8_t index, UNUSED uint16_t offset, uint32_t dat
 			gl_fog_end   = gProjectNear + scale * exp_map_0_1000_f(n64_max);
 			// would be a good place for a
 			// fog_dirty = 1;
+//			gfx_opengl_change_fog();
 			break;
 		default:
 			break;
@@ -3326,8 +3339,8 @@ static void  __attribute__((noinline)) gfx_sp_tri2(uint16_t vtx12_idx, uint16_t 
             rendering_state.textures[0]->cmt = cmt;
 			uint32_t tex_width = (rdp.texture_tile.lrs - rdp.texture_tile.uls + 4) >> 2;
             uint32_t tex_height = (rdp.texture_tile.lrt - rdp.texture_tile.ult + 4) >> 2;
-            recip_tex_width = approx_recip((float) tex_width);
-            recip_tex_height = approx_recip((float) tex_height);
+            recip_tex_width = shz_fast_invf((float) tex_width);
+            recip_tex_height = shz_fast_invf((float) tex_height);
         }
 
     if (use_fog) {
@@ -3462,7 +3475,7 @@ static void  __attribute__((noinline)) gfx_sp_tri2(uint16_t vtx12_idx, uint16_t 
 					if (color_a > max_c)
 						max_c = color_a;
 
-					float rmc = approx_recip((float)max_c);
+					float rmc = shz_fast_invf((float)max_c);
 
 					float rn, gn, bn, an;
 					rn = (float) color_r;
@@ -3554,7 +3567,8 @@ nextvert:
         gfx_flush();
     }
 }
-
+extern int use_gorgon_alpha;
+extern uint8_t gorgon_alpha;
 
 static void  __attribute__((noinline)) gfx_run_dl(Gfx* cmd) {
 	cmd = seg_addr((uintptr_t) cmd);
@@ -3586,7 +3600,10 @@ static void  __attribute__((noinline)) gfx_run_dl(Gfx* cmd) {
 				do_rectdepfix ^= 1;
 			} else if((cmd->words.w1) == 0x46554360) {
 				do_the_blur ^= 1;
-			}
+			}else if((cmd->words.w1 & 0xffffff00) == 0x46437700) {
+				use_gorgon_alpha ^= 1;
+				gorgon_alpha = cmd->words.w1 & 0x000000ff;
+			} 
 
 			++cmd;
 			continue;
@@ -3617,7 +3634,7 @@ static void  __attribute__((noinline)) gfx_run_dl(Gfx* cmd) {
 				break;
 
 			case G_VTX:
-				gfx_sp_vertex(C0(10, 6), C0(16, 8) >> 1, seg_addr(cmd->words.w1));
+				gfx_sp_vertex(C0(10, 6), C0(17, 7) /* C0(16, 8) >> 1 */, seg_addr(cmd->words.w1));
 				break;
 
 			case G_DL:
@@ -3864,7 +3881,10 @@ void gfx_run(Gfx* commands) {
 
 
 void gfx_end_frame(void) {
-//	printf("total %d lookup %d found %d miss rate %f\n", gfx_texture_cache.pool_pos, tc_lookup, tc_found, 1.0f - ((float)tc_found/(float)tc_lookup));
+
+//printf("raw tris %d culled tris %d total quads %d\n", raw_tri, total_tris, total_quads);
+raw_tri = total_tris = total_quads = 0;
+	//	printf("total %d lookup %d found %d miss rate %f\n", gfx_texture_cache.pool_pos, tc_lookup, tc_found, 1.0f - ((float)tc_found/(float)tc_lookup));
 	if (!dropped_frame) {
 		gfx_rapi->finish_render();
 		gfx_wapi->swap_buffers_end();

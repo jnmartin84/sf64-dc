@@ -936,14 +936,14 @@ void Ending_80191710(u32 arg0, AssetInfo* asset) {
 
     Matrix_SetGfxMtx(&gMasterDisp);
     if (asset->unk_00 == aAwCockpitGlassDL) {
-                gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 140);
+        gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 140);
 #if 1
         gDPSetEnvColor(gMasterDisp++, 0,0,0, 0xFF);
         gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
                         TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
 #endif
         //gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 140);
-        gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK);
+       gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK);
     } /* else if (asset->unk_00 == aEndBackdrop2DL) {
         Matrix_Translate(gGfxMatrix, 0,
                      0,
@@ -964,7 +964,9 @@ void Ending_80191C7C(u32 arg0, AssetInfo* asset) {
 
     gSPFogPosition(gMasterDisp++, asset->fogNear, asset->fogFar);
     gDPSetFogColor(gMasterDisp++, asset->fog.r, asset->fog.g, asset->fog.b, 0);
-    gDPSetEnvColor(gMasterDisp++, asset->env.r, asset->env.g, asset->env.b, asset->env.a);
+                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+    gDPSetEnvColor(gMasterDisp++, 255-asset->env.r, 255-asset->env.g, 255-asset->env.b, asset->env.a);
     gDPSetPrimColor(gMasterDisp++, 0, 0, asset->prim.r, asset->prim.g, asset->prim.b, asset->prim.a);
 
     Matrix_Translate(gGfxMatrix, asset->unk_18.x + (arg0 - asset->unk_0C) * asset->unk_3C.x,

@@ -5,30 +5,28 @@
 __BEGIN_DECLS
 
 #include <kos/fs.h>
-
-#define WAVE_FORMAT_YAMAHA_ADPCM          0x0020 /* Yamaha ADPCM (ffmpeg) */
-typedef struct {
-    uint32_t format;
-    uint32_t channels;
-    uint32_t sample_rate;
-    uint32_t sample_size;
-    uint32_t data_offset;
-    uint32_t data_length;
-} WavFileInfo;
+typedef enum {
+    /* 0 */ WAV_PLAYER_BGM,
+    /* 1 */ WAV_PLAYER_FANFARE,
+//    /* 2 */ WAV_PLAYER_SFX,
+//    /* 3 */ WAV_PLAYER_VOICE,
+/*2*/    /* 4 */ WAV_PLAYER_MAX,
+} WavPlayerId;
 
 typedef int wav_stream_hnd_t;
 
 int wav_init(void);
 void wav_shutdown(void);
-void wav_destroy(void);
+void wav_destroy(WavPlayerId playerId);
 
-wav_stream_hnd_t wav_create(const char *filename, float ratemul, int loop, size_t loops, size_t loope);
+wav_stream_hnd_t wav_create(WavPlayerId playerId, char *filename, int loop, int loopStart, int loopEnd);
 
-void wav_play(void);
-void wav_pause(void);
-void wav_stop(void);
-void wav_volume(int vol);
-int wav_is_playing(void);
+void wav_play(WavPlayerId playerId);
+void wav_pause(WavPlayerId playerId);
+void wav_stop(WavPlayerId playerId);
+void wav_volume(WavPlayerId playerId, int vol);
+int wav_is_paused(WavPlayerId playerId);
+int wav_is_playing(WavPlayerId playerId);
 
 __END_DECLS
 

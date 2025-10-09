@@ -990,7 +990,7 @@ void Option_MainMenu_Update(void) {
             break;
 
         case 11:
-            gBlurAlpha = 16;
+            gBlurAlpha = 128;//16;
             D_menu_801B9178 = 3;
             sOptionCardList[sMainMenuCursor].frame.xScale -= 0.01f;
             sOptionCardList[sMainMenuCursor].frame.yScale -= 0.01f;
@@ -1220,7 +1220,7 @@ void Option_Versus_Update(void) {
             break;
 
         case 11:
-            gBlurAlpha = 16;
+            gBlurAlpha = 128;//16;
             D_menu_801B9178 = 5;
             sOptionVSCardList[sVsMenuCursor].frame.xScale -= 0.01f;
             sOptionVSCardList[sVsMenuCursor].frame.yScale -= 0.01f;
@@ -1317,12 +1317,12 @@ void Option_Sound_Setup(void) {
     sDrawCursor = true;
     D_menu_801B91A0 = 0;
 
-    gOptionSoundMode = gSaveFile.save.data.soundMode;
+    gOptionSoundMode = SOUNDMODE_STEREO;//gSaveFile.save.data.soundMode;
     SEQCMD_SET_SOUND_MODE(sSoundMode[gOptionSoundMode]);
 
     gVolumeSettings[AUDIO_TYPE_MUSIC] = 99;//gSaveFile.save.data.musicVolume;
-    gVolumeSettings[AUDIO_TYPE_VOICE] = 99;//gSaveFile.save.data.voiceVolume;
-    gVolumeSettings[AUDIO_TYPE_SFX] = 99;//gSaveFile.save.data.sfxVolume;
+    gVolumeSettings[AUDIO_TYPE_VOICE] = 69;//gSaveFile.save.data.voiceVolume;
+    gVolumeSettings[AUDIO_TYPE_SFX] = 69;//gSaveFile.save.data.sfxVolume;
 
     if (gVolumeSettings[AUDIO_TYPE_MUSIC] > 99) {
         gVolumeSettings[AUDIO_TYPE_MUSIC] = 99;

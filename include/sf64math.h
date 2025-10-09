@@ -68,7 +68,7 @@ typedef struct {
 
 extern Mtx gIdentityMtx;       // 800C4620
 extern Matrix /* __attribute__((aligned(32))) */ gIdentityMatrix; // 800C4660
-
+//shz_cop
 extern Matrix* gGfxMatrix;
 extern Matrix sGfxMatrixStack[0x20];
 extern Matrix* gCalcMatrix;

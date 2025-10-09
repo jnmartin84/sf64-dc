@@ -66,6 +66,9 @@ extern LevelId gCurrentLevel;
 
 extern uint8_t gLevelType;
 
+extern int use_gorgon_alpha;
+extern uint8_t gorgon_alpha;
+
 #define s32 long int
 #define u16 unsigned short
 
@@ -217,14 +220,6 @@ extern int shader_debug_toggle;
 #include <kos.h>
 
 
-static inline float approx_recip_sign(float v) {
-	float _v = 1.0f / sqrtf(v * v);
-	return copysignf(_v, v);
-}
-
-static inline float approx_recip(float v) {
-	return 1.0f / sqrtf(v * v);
-}
 
 
 static inline float exp_map_0_1000_f(float x) {
@@ -235,7 +230,7 @@ static inline float exp_map_0_1000_f(float x) {
     const float t = x * 0.001f;                 // t in [0,1]
     const float num = expm1f(a * (t - 1.0f));    // argument in [-a, 0] (no overflow)
     const float den = expm1f(-a);                // finite (~ -1)
-    return 1000.0f * (1.0f - num * approx_recip_sign(den));
+    return 1000.0f * (1.0f - num * shz_fast_invf(den));
 }
 
 
@@ -249,13 +244,20 @@ static inline float exp_map_custom_f(float x) {
 
     const float t   = x * 0.001f;
     const float num = expm1f(a * (t - 1.0f));
-    return ymax * (1.0f - num * approx_recip_sign(den));
+    return ymax * (1.0f - num * shz_fast_invf(den));
 }
 
 float n64_min;
 float n64_max;
 float gl_fog_start;
 float gl_fog_end;
+
+/* void gfx_opengl_change_fog(void) {
+    glFogi(GL_FOG_MODE, GL_LINEAR);
+    glFogf(GL_FOG_START, (GLfloat)gl_fog_start * fog_scale);
+    glFogf(GL_FOG_END,   (GLfloat)  gl_fog_end * fog_scale);      
+
+} */
 
 static void gfx_opengl_apply_shader(struct ShaderProgram* prg) {
     // vertices are always there
@@ -289,11 +291,12 @@ static void gfx_opengl_apply_shader(struct ShaderProgram* prg) {
         float fog_scale;
         if (gCurrentLevel == LEVEL_ZONESS || gCurrentLevel == LEVEL_TITANIA || gCurrentLevel == LEVEL_SOLAR) 
             fog_scale = 0.4f;
+        else if (gCurrentLevel == LEVEL_SECTOR_Y)
+            fog_scale = 0.85f;
         else
             fog_scale = 0.6f;
 
         glEnable(GL_FOG);
-
         glFogi(GL_FOG_MODE, GL_LINEAR);
         glFogf(GL_FOG_START, (GLfloat)gl_fog_start * fog_scale);
         glFogf(GL_FOG_END,   (GLfloat)  gl_fog_end * fog_scale);      
@@ -341,9 +344,9 @@ static void gfx_opengl_load_shader(struct ShaderProgram* new_prg) {
     cur_shader = new_prg;
     if (cur_shader)
         cur_shader->enabled = 0;
-    if (cur_shader->texture_used[1]) {
-        printf("shader %08x uses texture[1]\n", cur_shader->shader_id);
-    }
+    //if (cur_shader->texture_used[1]) {
+        //printf("shader %08x uses texture[1]\n", cur_shader->shader_id);
+    //}
 }
 
 static struct ShaderProgram* gfx_opengl_create_and_load_new_shader(uint32_t shader_id) {
@@ -359,7 +362,7 @@ static struct ShaderProgram* gfx_opengl_create_and_load_new_shader(uint32_t shad
     prg->texture_used[1] = ccf.used_textures[1];
 
     if (ccf.used_textures[0] && ccf.used_textures[1]) {
-        printf("multitex\n");   
+        //printf("multitex\n");   
         prg->mix = SH_MT_TEXTURE_TEXTURE;
         if (ccf.do_single[1]) {
             prg->texture_ord[0] = 1;
@@ -742,8 +745,8 @@ static void zmode_decal_setup_pre(void) {
     glDepthMask(GL_TRUE);
 
     // Push the geometry slightly towards the camera
-//    glPushMatrix();
-//    glTranslatef(0.0f, 0.01f, 0.01f);
+    glPushMatrix();
+    glTranslatef(0.0f, 0.01f, 0.01f);
 }
 
 
@@ -933,8 +936,27 @@ static void gfx_opengl_draw_triangles(float buf_vbo[], UNUSED size_t buf_vbo_len
                 tris[i].vert.z += 0.03f;
         }
     }
+        if (gGameState == 8) {  // ending
+  //          glDisable(GL_DEPTH_TEST);
+    //        glDepthMask(GL_FALSE);
+            glDepthFunc(GL_ALWAYS);
+        //    glDisable(GL_BLEND);
+        }
+
+if (use_gorgon_alpha) {
+        dc_fast_t* tris = (dc_fast_t*) buf_vbo;
+        for (size_t i = 0; i < 3 * buf_vbo_num_tris; i++) {
+            tris[i].color.array.a = gorgon_alpha;
+        }
+    }
 
     glDrawArrays(GL_TRIANGLES, 0, 3 * buf_vbo_num_tris);
+        if (gGameState == 8) {  // ending
+  //          glDisable(GL_DEPTH_TEST);
+    //        glDepthMask(GL_FALSE);
+            glDepthFunc(GL_LESS);
+        //    glDisable(GL_BLEND);
+        }
 
     if (do_zfight) {
 
@@ -1026,7 +1048,8 @@ else {
             glBlendFunc(GL_SRC_ALPHA, GL_ONE);///* GL_ONE_MINUS_ */GL_SRC_ALPHA);
         }
         if (do_the_blur) {
-            glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+//            glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+//            glBlendFunc(GL_SRC_ALPHA, GL_);///* GL_ONE_MINUS_ */GL_SRC_ALPHA);
         }
     /*     if (do_xt_fill) {
             glDisable(GL_DEPTH_TEST);
@@ -1036,13 +1059,18 @@ else {
             glDisable(GL_FOG);
         } */
         if (gGameState == 8) {  // ending
-            glDisable(GL_DEPTH_TEST);
-            glDepthMask(GL_FALSE);
+  //          glDisable(GL_DEPTH_TEST);
+    //        glDepthMask(GL_FALSE);
             glDepthFunc(GL_ALWAYS);
-            glDisable(GL_BLEND);
+        //    glDisable(GL_BLEND);
         }
         glDrawArrays(GL_QUADS, 0, 4);
-
+ if (gGameState == 8) {  // ending
+  //          glDisable(GL_DEPTH_TEST);
+    //        glDepthMask(GL_FALSE);
+            glDepthFunc(GL_LESS);
+        //    glDisable(GL_BLEND);
+        }
         if (cur_shader->shader_id == 0x01200200)
             skybox_setup_post();
         if (cur_shader->shader_id == 0x01a00a00)

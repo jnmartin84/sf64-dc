@@ -1,10 +1,6 @@
 #include "n64sys.h"
 #include "sf64audio_provisional.h"
 
-static inline float approx_recip_sign(float v) {
-	float _v = 1.0f / sqrtf(v * v);
-	return copysignf(_v, v);
-}
 
 u8 sSamplesPerWavePeriod[] = { 64, 32, 16, 8 };
 
@@ -33,7 +29,7 @@ void Audio_InitNoteSub(Note* note, NoteAttributes* noteAttr) {
     pan = noteAttr->pan;
     reverb = noteAttr->reverb;
     stereo = noteAttr->stereo;
-    pan %= ARRAY_COUNTU(gHeadsetPanVolume);
+    pan &= 127; //%= ARRAY_COUNTU(gHeadsetPanVolume);
     if ((noteSub->bitField0.stereoHeadsetEffects) && (gAudioSoundMode == SOUNDMODE_HEADSET)) {
         var_a0 = pan >> 1;
         if (var_a0 >= ARRAY_COUNT(gHaasEffectDelaySizes)) {
@@ -431,7 +427,6 @@ s32 Audio_BuildSyntheticWave(Note* note, SequenceLayer* layer, s32 waveId) {
     note->noteSubEu.waveSampleAddr = &gWaveSamples[waveId - 128][harmonicIndex * 64];
     return harmonicIndex;
 }
-#define approx_recip(x) (1.0f / sqrtf((x)*(x)))
 
 void Audio_InitSyntheticWave(Note* note, SequenceLayer* layer) {
     s32 harmonicIndex;
@@ -442,7 +437,7 @@ void Audio_InitSyntheticWave(Note* note, SequenceLayer* layer) {
         waveId = layer->channel->instOrWave;
     }
     harmonicIndex = note->playbackState.harmonicIndex;
-    f32 recipSSPWP = approx_recip_sign((f32)sSamplesPerWavePeriod[harmonicIndex]);
+    f32 recipSSPWP = shz_fast_invf((f32)sSamplesPerWavePeriod[harmonicIndex]);
     note->synthesisState.samplePosInt = (s32)(
         (f32)(note->synthesisState.samplePosInt * sSamplesPerWavePeriod[Audio_BuildSyntheticWave(note, layer, waveId)]) * recipSSPWP);
         // / sSamplesPerWavePeriod[harmonicIndex];

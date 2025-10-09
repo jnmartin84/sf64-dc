@@ -153,7 +153,7 @@ void MeteoBall_Update(MeteoBall* this) {
     this->obj.rot.y = Math_RadToDeg(Math_Atan2F(gPlayer[0].cam.eye.x - this->obj.pos.x, gPlayer[0].cam.eye.z - sp2C));
     this->obj.rot.x = -Math_RadToDeg(
         Math_Atan2F(gPlayer[0].cam.eye.y - this->obj.pos.y,
-                    sqrtf(SQ(gPlayer[0].cam.eye.z - sp2C) + SQ(gPlayer[0].cam.eye.x - this->obj.pos.x))));
+                    shz_sqrtf_fsrra(SQ(gPlayer[0].cam.eye.z - sp2C) + SQ(gPlayer[0].cam.eye.x - this->obj.pos.x))));
 }
 
 void MeHopBot_Update(MeHopBot* this) {
@@ -2028,7 +2028,7 @@ void ActorEvent_ProcessActions(ActorEvent* this) {
                     sp5C = sprite->obj.pos.z - this->obj.pos.z;
                     sp54 = Math_Atan2F(sp64, sp5C);
                     sp54 = Math_RadToDeg(sp54);
-                    sp58 = -Math_Atan2F(sp60, sqrtf(SQ(sp64) + SQ(sp5C)));
+                    sp58 = -Math_Atan2F(sp60, shz_sqrtf_fsrra(SQ(sp64) + SQ(sp5C)));
                     sp58 = Math_RadToDeg(sp58);
                     Matrix_RotateY(gCalcMatrix, M_DTOR * sp54, MTXF_NEW);
                     Matrix_RotateX(gCalcMatrix, M_DTOR * sp58, MTXF_APPLY);
@@ -3161,7 +3161,7 @@ void ActorEvent_Update(ActorEvent* this) {
                 Matrix_MultVec3fNoTranslate(gCalcMatrix, &spB8, &spAC);
 
                 spE0 = Math_RadToDeg(Math_Atan2F(spAC.x, spAC.z));
-                spE4 = Math_RadToDeg(-Math_Atan2F(spAC.y, sqrtf(SQ(spAC.x) + SQ(spAC.z))));
+                spE4 = Math_RadToDeg(-Math_Atan2F(spAC.y, shz_sqrtf_fsrra(SQ(spAC.x) + SQ(spAC.z))));
                 spFC = 0;
 
                 if ((spE4 < 305.0f) && (spE4 >= 180.0f)) {
@@ -3236,7 +3236,7 @@ void ActorEvent_Update(ActorEvent* this) {
                     }
                 }
 
-                spE4 = Math_RadToDeg(-Math_Atan2F(spC8 - spEC, sqrtf(SQ(spCC - spF0) + SQ(spC4 - spE8))));
+                spE4 = Math_RadToDeg(-Math_Atan2F(spC8 - spEC, shz_sqrtf_fsrra(SQ(spCC - spF0) + SQ(spC4 - spE8))));
                 spEC = Math_SmoothStepToAngle(&this->orient.y, spE0, 0.2f, this->fwork[EVA_PURSUIT_TURN_RATE], 0.0001f);
 
                 Math_SmoothStepToAngle(&this->orient.x, spE4, 0.2f, this->fwork[EVA_PURSUIT_TURN_RATE], 0.0001f);
@@ -3279,7 +3279,7 @@ void ActorEvent_Update(ActorEvent* this) {
 
             spE4 =
                 Math_RadToDeg(-Math_Atan2F(gActors[this->iwork[EVA_TARGET_INDEX]].obj.pos.y + spD8 - spEC,
-                                           sqrtf(SQ(gActors[this->iwork[EVA_TARGET_INDEX]].obj.pos.x + spDC - spF0) +
+                                           shz_sqrtf_fsrra(SQ(gActors[this->iwork[EVA_TARGET_INDEX]].obj.pos.x + spDC - spF0) +
                                                  SQ(gActors[this->iwork[EVA_TARGET_INDEX]].obj.pos.z + spD4 - spE8))));
             spEC = Math_SmoothStepToAngle(&this->orient.y, spE0, 0.2f, this->fwork[EVA_PURSUIT_TURN_RATE], 0.0001f);
 

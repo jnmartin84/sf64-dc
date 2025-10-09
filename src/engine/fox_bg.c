@@ -129,7 +129,7 @@ void Background_DrawStarfield(void) {
     gDPSetCombineMode(gMasterDisp++, G_CC_SHADE, G_CC_SHADE);
     gDPSetRenderMode(gMasterDisp++, G_RM_OPA_SURF, G_RM_OPA_SURF2);
 
-    starCount = gStarCount;// / 2;
+    starCount = gStarCount / 2;
     if (starCount != 0) {
         if (gStarfieldX >= 1.5f * SCREEN_WIDTH) {
             gStarfieldX -= 1.5f * SCREEN_WIDTH;
@@ -151,28 +151,28 @@ void Background_DrawStarfield(void) {
         color = gStarFillColors;
 
         if (gGameState != GSTATE_PLAY) {
-            starCount = 1000;// / 2;
+            starCount = 500;//1000;// / 2;
         }
 
         zCos =cosf(gStarfieldRoll);
         zSin =sinf(gStarfieldRoll);
 
 //        for (i = 0; i < starCount; i++, yStar++, xStar++, color++) {
-        for (i = 0; i < starCount/2; i++, yStar+=2, xStar+=2, color+=2) {
+        for (i = 0; i < starCount; i++, yStar+=2, xStar+=2, color+=2) {
             bx = *xStar + xField;
             by = *yStar + yField;
-            if (bx >= 1.25f * SCREEN_WIDTH) {
-                bx -= 1.5f * SCREEN_WIDTH;
+            if (bx >= 400.0f) { //1.25f * SCREEN_WIDTH) {
+                bx -= 450.0f; //1.5f * SCREEN_WIDTH;
             }
-            bx -= SCREEN_WIDTH / 2.0f;
+            bx -= 160.0f; // SCREEN_WIDTH / 2.0f;
 
-            if (by >= 1.25f * SCREEN_HEIGHT) {
-                by -= 1.5f * SCREEN_HEIGHT;
+            if (by >= 300.0f) { //1.25f * SCREEN_HEIGHT) {
+                by -= 360.0f; //1.5f * SCREEN_HEIGHT;
             }
-            by -= SCREEN_HEIGHT / 2.0f;
+            by -= 120.0f; // SCREEN_HEIGHT / 2.0f;
 
-            vx = (zCos * bx) + (zSin * by) + SCREEN_WIDTH / 2.0f;
-            vy = (-zSin * bx) + (zCos * by) + SCREEN_HEIGHT / 2.0f;
+            vx = (zCos * bx) + (zSin * by) + 160.0f;// SCREEN_WIDTH / 2.0f;
+            vy = (-zSin * bx) + (zCos * by) + 120.0f;//SCREEN_HEIGHT / 2.0f;
             if ((vx >= 0) && (vx < SCREEN_WIDTH-1) && (vy > 0) && (vy < SCREEN_HEIGHT-1)) {
                 gDPPipeSync(gMasterDisp++);
                 gDPSetFillColor(gMasterDisp++, *color);
@@ -225,26 +225,27 @@ void Background_DrawPartialStarfield(s32 yMin, s32 yMax) {
     sp60 = gStarOffsetsX;
     sp5C = gStarOffsetsY;
     sp58 = gStarFillColors;
-    var_s2 = 500;///2;
+    var_s2 = 250;//500;
 
     cos = cosf(gStarfieldRoll);
     sin = sinf(gStarfieldRoll);
 
-    for (i = 0; i < var_s2/2; i++, sp5C+=2, sp60+=2, sp58+=2) {
+    for (i = 0; i < var_s2; i++, sp5C+=2, sp60+=2, sp58+=2) {
 //    for (i = 0; i < var_s2; i++, sp5C++, sp60++, sp58++) {
         bx = *sp60 + spf68;
         by = *sp5C + spf64;
-        if (bx >= SCREEN_WIDTH * 1.25f) {
-            bx -= 1.5f * SCREEN_WIDTH;
+        if (bx >= 400.0f) { //1.25f * SCREEN_WIDTH) {
+             bx -= 450.0f; //1.5f * SCREEN_WIDTH;
         }
-        bx -= SCREEN_WIDTH / 2.0f;
-        if (by >= SCREEN_HEIGHT * 1.25f) {
-            by -= 1.5f * SCREEN_HEIGHT;
-        }
-        by -= SCREEN_HEIGHT / 2.0f;
+        bx -= 160.0f; // SCREEN_WIDTH / 2.0f;
 
-        vx = (cos * bx) + (sin * by) + SCREEN_WIDTH / 2.0f;
-        vy = (-sin * bx) + (cos * by) + SCREEN_HEIGHT / 2.0f;
+        if (by >= 300.0f) { //1.25f * SCREEN_HEIGHT) {
+            by -= 360.0f; //1.5f * SCREEN_HEIGHT;
+        }
+        by -= 120.0f; // SCREEN_HEIGHT / 2.0f;
+
+        vx = (cos * bx) + (sin * by) + 160.0f; // SCREEN_WIDTH / 2.0f;
+        vy = (-sin * bx) + (cos * by) + 120.0f; // SCREEN_HEIGHT / 2.0f;
         if ((vx >= 0) && (vx < SCREEN_WIDTH-1) && (yMin < vy) && (vy < yMax-1)) {
             gDPPipeSync(gMasterDisp++);
             gDPSetFillColor(gMasterDisp++, *sp58);
@@ -418,6 +419,11 @@ void Background_DrawBackdrop(void) {
                             } else {
                                 sAndrossUnkBrightness = 255.0f;
                             }
+#if 1
+        gDPSetEnvColor(gMasterDisp++, 0,0,0, 0xFF);
+        gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+                        TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+#endif
 
                             gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, (s32) sAndrossUnkBrightness,
                                             (s32) sAndrossUnkBrightness, (s32) gAndrossUnkAlpha);
@@ -435,6 +441,11 @@ void Background_DrawBackdrop(void) {
                             gSPDisplayList(gMasterDisp++, aVe2AndBrainBackdropDL);
                         } else {
                             RCP_SetupDL(&gMasterDisp, SETUPDL_62);
+#if 1
+        gDPSetEnvColor(gMasterDisp++, 0,0,0, 0xFF);
+        gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+                        TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+#endif
                             if (gDrawBackdrop == 5) {
                                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 64);
                             } else {
@@ -451,6 +462,7 @@ void Background_DrawBackdrop(void) {
                             Matrix_Pop(&gGfxMatrix);
 
                             if (gDrawBackdrop != 5) {
+                            Matrix_Translate(gGfxMatrix, 0.0f, 0.0f, 10.0f, MTXF_APPLY);
                                 Matrix_Push(&gGfxMatrix);
                                 Matrix_Scale(gGfxMatrix, 10.0f, 10.0f, 1.0f, MTXF_APPLY);
                                 Matrix_RotateZ(gGfxMatrix, (gPlayer[0].camRoll + (gGameFrameCount * -1.3f)) * M_DTOR,

@@ -7,10 +7,10 @@
 #include "global.h"
 #include "assets/ast_area_6.h"
 
-void Area6_8018A1B0(Boss* this, s32 arg1);
-void Area6_8018A2C4(Boss* this);
-void Area6_8018A464(Boss* this, s32 arg1);
-void Area6_8018B9BC(Boss* this);
+void Area6_A6Gorgon_TentacleRespawnCheck(Boss* this, s32 arg1);
+void Area6_A6Gorgon_TentaclesApplyDamage(Boss* this);
+void Area6_A6Gorgon_TentacleUpdate(Boss* this, s32 arg1);
+void Area6_A6Gorgon_EnergyBallsApplyDamage(Boss* this);
 
 #define A6_HITBOX_COUNT ((s32) (bossA6)->info.hitbox[0])
 #define A6_HIT_0(bossA6) ((Hitbox*) ((bossA6)->info.hitbox + 1))
@@ -556,12 +556,12 @@ void Area6_A6Gorgon_Update(A6Gorgon* this) {
 
             if (((this->dmgPart == 4) || (this->dmgPart == 5) || (this->dmgPart == 6)) &&
                 (this->swork[A6_SWK_25] != 0)) {
-                Area6_8018B9BC(this);
+                Area6_A6Gorgon_EnergyBallsApplyDamage(this);
             }
         }
 
         if ((this->dmgPart == 1) || (this->dmgPart == 2) || (this->dmgPart == 3)) {
-            Area6_8018A2C4(this);
+            Area6_A6Gorgon_TentaclesApplyDamage(this);
         }
         if (this->dmgPart >= 7) {
             AUDIO_PLAY_SFX(NA_SE_EN_REFLECT, this->sfxSource, 4);
@@ -936,11 +936,11 @@ void Area6_A6Gorgon_Update(A6Gorgon* this) {
                     AUDIO_PLAY_SFX(NA_SE_EN_COVER_CLOSE, this->sfxSource, 4);
                     this->swork[A6_SWK_30 + 0] = this->swork[A6_SWK_30 + 1] = this->swork[A6_SWK_30 + 2] = 0;
                 } else if (this->swork[A6_SWK_30 + 0] == 0) {
-                    Area6_8018A1B0(this, 0);
+                    Area6_A6Gorgon_TentacleRespawnCheck(this, 0);
                 } else if (this->swork[A6_SWK_30 + 1] == 0) {
-                    Area6_8018A1B0(this, 1);
+                    Area6_A6Gorgon_TentacleRespawnCheck(this, 1);
                 } else if (this->swork[A6_SWK_30 + 2] == 0) {
-                    Area6_8018A1B0(this, 2);
+                    Area6_A6Gorgon_TentacleRespawnCheck(this, 2);
                 }
             }
             break;
@@ -1204,9 +1204,9 @@ void Area6_A6Gorgon_Update(A6Gorgon* this) {
             break;
     }
 
-    Area6_8018A464(this, 0);
-    Area6_8018A464(this, 1);
-    Area6_8018A464(this, 2);
+    Area6_A6Gorgon_TentacleUpdate(this, 0);
+    Area6_A6Gorgon_TentacleUpdate(this, 1);
+    Area6_A6Gorgon_TentacleUpdate(this, 2);
 
     for (i = 0; i < 5; i++) {
         if (!(gGameFrameCount % 4U)) {
@@ -1261,7 +1261,7 @@ void Area6_A6Gorgon_Update(A6Gorgon* this) {
     }
 }
 
-void Area6_8018A1B0(A6Gorgon* this, s32 arg1) {
+void Area6_A6Gorgon_TentacleRespawnCheck(A6Gorgon* this, s32 arg1) {
     switch (D_i3_801C2250[A6_BSS_2_0 + arg1]) {
         case 0:
             this->swork[A6_SWK_27 + arg1] = 12;
@@ -1293,7 +1293,7 @@ void Area6_8018A1B0(A6Gorgon* this, s32 arg1) {
     }
 }
 
-void Area6_8018A2C4(A6Gorgon* this) {
+void Area6_A6Gorgon_TentaclesApplyDamage(A6Gorgon* this) {
     s32 i;
     Vec3f effectPos;
 
@@ -1333,7 +1333,7 @@ void Area6_8018A2C4(A6Gorgon* this) {
     }
 }
 
-void Area6_8018A464(A6Gorgon* this, s32 arg1) {
+void Area6_A6Gorgon_TentacleUpdate(A6Gorgon* this, s32 arg1) {
     s32 i;
     s32 j;
     f32 var_fs0;
@@ -1695,7 +1695,7 @@ void Area6_8018A464(A6Gorgon* this, s32 arg1) {
     }
 }
 
-void Area6_8018B9BC(A6Gorgon* this) {
+void Area6_A6Gorgon_EnergyBallsApplyDamage(A6Gorgon* this) {
     s32 i;
     s32 j;
     Vec3f dest;
@@ -1755,21 +1755,42 @@ void Area6_8018B9BC(A6Gorgon* this) {
     }
 }
 
-void Area6_8018BCD4(Vec3f* arg0, f32 arg1, f32 arg2, Vec3f* arg3, s32 arg4, f32 arg5, s32 arg6, f32 arg7) {
+
+#define gSPGorgonAlpha(pkt,galpha)                                                      \
+    {                                                                                   \
+        Gfx* _g = (Gfx*) (pkt);                                                         \
+        _g->words.w0 = 0x424C4E44;                                                      \
+        _g->words.w1 = (0x46437700 | (galpha));                                         \
+    }
+
+
+void Area6_A6Gorgon_DrawTentacle(Vec3f* arg0, f32 arg1, f32 arg2, Vec3f* arg3, s32 arg4, f32 arg5, s32 arg6, f32 arg7) {
     s32 i;
     Vec3f sp90 = { 0.0f, 0.0f, 0.0f };
-
+int restore_gorgonalpha = 0;
     if (D_i3_801C22F0.unk_24 != 0.0f) {
         RCP_SetupDL(&gMasterDisp, SETUPDL_23);
+
         if (D_i3_801C22F0.unk_24 != 255.0f) {
+            gSPGorgonAlpha(gMasterDisp++,(u8)D_i3_801C22F0.unk_24);
+            restore_gorgonalpha = 1;
             RCP_SetupDL(&gMasterDisp, SETUPDL_71);
+            // white with alpha
             gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, (s32) D_i3_801C22F0.unk_24);
-        } else if (arg4 != 0) {
-            RCP_SetupDL(&gMasterDisp, SETUPDL_27);
-            if (arg7 < 18.0f) {
-                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 255, 255);
-            } else {
-                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 0, 255);
+        } else {
+//            gSPGorgonAlpha(gMasterDisp++,(u8)255);
+            if (arg4 != 0) {
+                //gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+                //      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+                //gDPSetEnvColor(gMasterDisp++,0,0,0,255);
+                RCP_SetupDL(&gMasterDisp, SETUPDL_27);
+                if (arg7 < 18.0f) {
+                    // purple
+                    gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 255, 255);
+                } else {
+                    // yellow
+                    gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 0, 255);
+                }
             }
         }
 
@@ -1810,10 +1831,12 @@ void Area6_8018BCD4(Vec3f* arg0, f32 arg1, f32 arg2, Vec3f* arg3, s32 arg4, f32 
             Matrix_Translate(gCalcMatrix, 0.0f, 0.0f, arg5, MTXF_APPLY);
         }
         Matrix_Pop(&gGfxMatrix);
+        if (restore_gorgonalpha)
+            gSPGorgonAlpha(gMasterDisp++,(u8)255);
     }
 }
 
-void Area6_8018C0D0(f32* arg0, f32 arg1, Vec3f* arg2, f32 arg3, s32 arg4) {
+void Area6_A6Gorgon_DrawEnergyBalls(f32* arg0, f32 arg1, Vec3f* arg2, f32 arg3, s32 arg4) {
     s32 i;
     Vec3f spB0 = { 0.0f, 0.0f, 0.0f };
     f32 spAC;
@@ -1849,13 +1872,16 @@ void Area6_8018C0D0(f32* arg0, f32 arg1, Vec3f* arg2, f32 arg3, s32 arg4) {
             Matrix_Mult(gGfxMatrix, gCalcMatrix, MTXF_APPLY);
             Matrix_SetGfxMtx(&gMasterDisp);
             RCP_SetupDL(&gMasterDisp, SETUPDL_49);
+            // ?
             gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, (s32) D_i3_801C22F0.r[arg4], (s32) D_i3_801C22F0.g[arg4],
                             (s32) D_i3_801C22F0.b[arg4], 255);
+            // red orbs
             gDPSetEnvColor(gMasterDisp++, 255, 0, 0, 255);
             gSPDisplayList(gMasterDisp++, aOrbDL);
             Matrix_MultVec3f(gCalcMatrix, &spB0, arg2);
         } else {
             RCP_SetupDL(&gMasterDisp, SETUPDL_47);
+            // a pale bright red
             gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 64, 64, 192);
             Matrix_Translate(gCalcMatrix, 0.0f, -60.0f, 0.0f, MTXF_APPLY);
             Matrix_Scale(gCalcMatrix, 2.0f, 3.0f, 1.0f, MTXF_APPLY);
@@ -1874,6 +1900,11 @@ void Area6_8018C0D0(f32* arg0, f32 arg1, Vec3f* arg2, f32 arg3, s32 arg4) {
     Matrix_Pop(&gGfxMatrix);
 }
 
+
+
+int use_gorgon_alpha = 0;
+uint8_t gorgon_alpha;
+
 void Area6_A6Gorgon_Draw(A6Gorgon* this) {
     Vec3f jointTable[30];
     Vec3f spC4;
@@ -1884,22 +1915,26 @@ void Area6_A6Gorgon_Draw(A6Gorgon* this) {
 
     if (this->state == 0) {
         RCP_SetupDL(&gMasterDisp, SETUPDL_49);
+//                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+  //                    TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+        // transparent white
                     gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
                       TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
         gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, (s32) D_i3_801C22F0.unk_24);
-        gDPSetEnvColor(gMasterDisp++, 0, 0, 255, 255); // 255 255 0 255
+        // yellow env color
+        gDPSetEnvColor(gMasterDisp++,  255-255, 255-255, 255-0, 255);
         Matrix_Scale(gGfxMatrix, 10.0f, 10.0f, 10.0f, MTXF_APPLY);
         Matrix_RotateZ(gGfxMatrix, this->fwork[A6_FWK_33] * M_DTOR, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
         gSPDisplayList(gMasterDisp++, aStarDL);
     } else if (D_i3_801C22F0.unk_24 != 0.0f) {
+        int restore_gorgon_alpha = 0;
         Animation_GetFrameData(&D_A6_6018994, 0, jointTable);
 
         if (D_i3_801C22F0.unk_24 != 255.0f) {
             RCP_SetupDL(&gMasterDisp, SETUPDL_71);
-                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-        gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 255);
+            gSPGorgonAlpha(gMasterDisp++, (u8)    D_i3_801C22F0.unk_24);
+            restore_gorgon_alpha = 1;
             gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, (s32) D_i3_801C22F0.unk_24);
             spAC.x = 0.0f;
 
@@ -1920,6 +1955,7 @@ void Area6_A6Gorgon_Draw(A6Gorgon* this) {
             Matrix_Scale(gGfxMatrix, this->fwork[A6_FWK_34], this->fwork[A6_FWK_35], 1.0f, MTXF_APPLY);
         } else {
             RCP_SetupDL(&gMasterDisp, SETUPDL_27);
+            // damage flashes, I think
             if (this->timer_05C & 1) {
                 // jnmartin84 ????
                     gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
@@ -1927,9 +1963,9 @@ void Area6_A6Gorgon_Draw(A6Gorgon* this) {
         gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 255);
                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
             } else {
-                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-        gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 255);
+//                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+  //                    TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+    //    gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 255);
                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, (s32) D_i3_801C22F0.unk_28[0], (s32) D_i3_801C22F0.unk_28[2],
                                 (s32) D_i3_801C22F0.unk_28[1], 255);
             }
@@ -1941,6 +1977,10 @@ void Area6_A6Gorgon_Draw(A6Gorgon* this) {
 
         Animation_DrawSkeleton(1, D_A6_6018BA0, jointTable, NULL, NULL, &this->index, &gIdentityMatrix);
 
+        if (restore_gorgon_alpha) {
+         gSPGorgonAlpha(gMasterDisp++, (u8)   255);
+restore_gorgon_alpha = 0;
+        }
         if (this->scale >= 1.0f) {
             for (i = 0; i < 3; i++) {
                 if ((this->swork[A6_SWK_33 + i] == 0) && (this->state != 3) && (D_i3_801C2250[A6_BSS_2_0 + i] == 0) &&
@@ -2001,29 +2041,29 @@ void Area6_A6Gorgon_Draw(A6Gorgon* this) {
                     }
                 }
             }
-            Area6_8018BCD4(D_i3_801BED70, 0.0f, this->fwork[A6_FWK_25], &this->vwork[A6_VWK_1],
+            Area6_A6Gorgon_DrawTentacle(D_i3_801BED70, 0.0f, this->fwork[A6_FWK_25], &this->vwork[A6_VWK_1],
                            this->swork[A6_SWK_0] & 1, this->fwork[A6_FWK_10] + this->fwork[A6_FWK_19],
                            this->swork[A6_SWK_27], this->fwork[A6_FWK_0]);
-            Area6_8018BCD4(D_i3_801BEEF0, -120.0f, this->fwork[A6_FWK_26], &this->vwork[A6_VWK_2],
+            Area6_A6Gorgon_DrawTentacle(D_i3_801BEEF0, -120.0f, this->fwork[A6_FWK_26], &this->vwork[A6_VWK_2],
                            this->swork[A6_SWK_1] & 1, this->fwork[A6_FWK_11] + this->fwork[A6_FWK_20],
                            this->swork[A6_SWK_28], this->fwork[A6_FWK_0]);
-            Area6_8018BCD4(D_i3_801BF070, 120.0f, this->fwork[A6_FWK_27], &this->vwork[A6_VWK_3],
+            Area6_A6Gorgon_DrawTentacle(D_i3_801BF070, 120.0f, this->fwork[A6_FWK_27], &this->vwork[A6_VWK_3],
                            this->swork[A6_SWK_2] & 1, this->fwork[A6_FWK_12] + this->fwork[A6_FWK_21],
                            this->swork[A6_SWK_29], this->fwork[A6_FWK_0]);
 
             if ((this->swork[A6_SWK_15] != 0) && (this->state >= 3) && (D_i3_801C22F0.unk_24 == 255.0f) &&
                 (D_i3_801C2250[A6_BSS_0] == 0)) {
-                Area6_8018C0D0(D_i3_801BF1F0, 0.0f, &this->vwork[A6_VWK_4], this->fwork[A6_FWK_0], 0);
+                Area6_A6Gorgon_DrawEnergyBalls(D_i3_801BF1F0, 0.0f, &this->vwork[A6_VWK_4], this->fwork[A6_FWK_0], 0);
             }
 
             if ((this->swork[A6_SWK_16] != 0) && (this->state >= 3) && (D_i3_801C22F0.unk_24 == 255.0f) &&
                 (D_i3_801C2250[A6_BSS_0] == 0)) {
-                Area6_8018C0D0(D_i3_801BF220, -120.0f, &this->vwork[A6_VWK_5], this->fwork[A6_FWK_0], 1);
+                Area6_A6Gorgon_DrawEnergyBalls(D_i3_801BF220, -120.0f, &this->vwork[A6_VWK_5], this->fwork[A6_FWK_0], 1);
             }
 
             if ((this->swork[A6_SWK_17] != 0) && (this->state >= 3) && (D_i3_801C22F0.unk_24 == 255.0f) &&
                 (D_i3_801C2250[A6_BSS_0] == 0)) {
-                Area6_8018C0D0(D_i3_801BF250, 120.0f, &this->vwork[A6_VWK_6], this->fwork[A6_FWK_0], 2);
+                Area6_A6Gorgon_DrawEnergyBalls(D_i3_801BF250, 120.0f, &this->vwork[A6_VWK_6], this->fwork[A6_FWK_0], 2);
             }
 
             if (this->swork[A6_SWK_25] != 0) {
@@ -2080,35 +2120,48 @@ void Area6_A6Gorgon_Draw(A6Gorgon* this) {
         Matrix_Scale(gGfxMatrix, 1.7f, 1.7f, 1.7f, MTXF_APPLY);
 
         if (this->timer_05C & 1) {
+ //           gSPGorgonAlpha(gMasterDisp++, (u8)   255);
             // jnmartin84 ????
                     gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
                       TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                      gDPSetEnvColor(gMasterDisp++, 0, 255, 255, 255);
+                      gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 255);
             gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
         } else {
-                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-        gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 255);
-            gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, (s32) D_i3_801C22F0.unk_24);
+//                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+  //                    TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+    //    gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 255);
+            gSPGorgonAlpha(gMasterDisp++, (u8)   D_i3_801C22F0.unk_24);
+restore_gorgon_alpha = 1;
+        gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, (s32) D_i3_801C22F0.unk_24);
         }
 
         Matrix_SetGfxMtx(&gMasterDisp);
 
         gSPDisplayList(gMasterDisp++, D_A6_601B2B0);
-
+        if (restore_gorgon_alpha) {
+        gSPGorgonAlpha(gMasterDisp++, (u8)255);
+            restore_gorgon_alpha = 0;
+        }
         Matrix_Pop(&gGfxMatrix);
         RCP_SetupDL(&gMasterDisp, SETUPDL_71);
+gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+                      gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 255);
         if (D_i3_801C22F0.unk_24 != 255.0f) {
+            gSPGorgonAlpha(gMasterDisp++, (u8)D_i3_801C22F0.unk_28[-1]);
             gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, this->swork[A6_SWK_22], this->swork[A6_SWK_23],
                             this->swork[A6_SWK_24], (s32) D_i3_801C22F0.unk_28[-1]);
         } else {
+            gSPGorgonAlpha(gMasterDisp++, (u8)this->fwork[A6_FWK_29]);
             gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, this->swork[A6_SWK_22], this->swork[A6_SWK_23],
                             this->swork[A6_SWK_24], (s32) this->fwork[A6_FWK_29]);
         }
         Matrix_Translate(gGfxMatrix, 0.0f, 0.0f, 74.0f, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
-        gSPDisplayList(gMasterDisp++, D_A6_6011910);
+#define aA6GorgonCoreShieldDL D_A6_6011910
+        gSPDisplayList(gMasterDisp++, aA6GorgonCoreShieldDL);
         Matrix_Translate(gGfxMatrix, 0.0f, 0.0f, 74.0f, MTXF_APPLY);
+        gSPGorgonAlpha(gMasterDisp++,(u8)255);
     }
 }
 

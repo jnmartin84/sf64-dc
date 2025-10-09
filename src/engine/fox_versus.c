@@ -1861,7 +1861,7 @@ void func_versus_800C2244(Actor* actor) {
 
         if (((gGameFrameCount + actor->index) % 8) == 0) {
             actor->fwork[19] = Math_RadToDeg((Math_Atan2F(x, z)));
-            z = sqrtf(SQ(x) + SQ(z));
+            z = shz_sqrtf_fsrra(SQ(x) + SQ(z));
             actor->fwork[20] = Math_RadToDeg((Math_Atan2F(y, z)));
         }
 

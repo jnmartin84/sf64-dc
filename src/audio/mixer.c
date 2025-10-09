@@ -49,6 +49,8 @@ void n64_memcpy(void* dst, const void* src, size_t size) {
                 goto n64copy2;
             case 3:
                 goto n64copy3;
+            default:
+                return;
         }
     }  else if ((!(((uintptr_t)sdst | (uintptr_t)ssrc) & 1))) {
         while (shorts_to_copy--) {
@@ -61,9 +63,11 @@ void n64_memcpy(void* dst, const void* src, size_t size) {
         if (sbytes_to_copy) {
             goto n64copy1;
         }
+
+        return;
     }
     else {
-        while (words_to_copy > 0) {
+        while (words_to_copy-- > 0) {
             uint8_t b1, b2, b3, b4;
             b1 = *bsrc++;
             b2 = *bsrc++;
@@ -76,8 +80,6 @@ void n64_memcpy(void* dst, const void* src, size_t size) {
             *bdst++ = b2;
             *bdst++ = b3;
             *bdst++ = b4;
-
-            words_to_copy--;
         }
 
         switch (bytes_to_copy) {
@@ -89,6 +91,8 @@ void n64_memcpy(void* dst, const void* src, size_t size) {
                 goto n64copy2;
             case 3:
                 goto n64copy3;
+            default:
+                return;
         }
     }
 
@@ -97,7 +101,7 @@ n64copy3:
 n64copy2:
     *bdst++ = *bsrc++;
 n64copy1:
-    *bdst++ = *bsrc++;
+    *bdst = *bsrc;
     return;
 }
 

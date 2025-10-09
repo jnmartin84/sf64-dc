@@ -12,7 +12,6 @@ void Wipe_Vertical(s32 frame) {
 
 void Wipe_Circular(s32 frame) {
     s32 angle;
-printf("circle wipe\n");
     RCP_SetupDL_12();
     Matrix_Push(&gGfxMatrix);
     Matrix_Translate(gGfxMatrix, 0.0f, 0.0f, -150.0f, MTXF_NEW);

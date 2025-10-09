@@ -1502,7 +1502,7 @@ s32 Player_CheckPolyCollision(Player* player, ObjectId objId, f32 x, f32 y, f32 
     src.y = player->hit3.y - sp84.y;
     src.z = player->hit3.z - sp84.z;
 
-   Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */&src, &sp6C);
+   Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */ &src, &sp6C);
     if (Play_CheckPolyCollision(objId, sp84.x, sp84.y, sp84.z, sp6C.x + sp84.x, sp6C.y + sp84.y, sp6C.z + sp84.z, &sp60,
                                 &sp54)) {
         return 3;
@@ -1628,6 +1628,7 @@ void Player_UpdateHitbox(Player* player) {
     if ((player->form == FORM_ARWING) || (player->form == FORM_BLUE_MARINE)) {
         Matrix_RotateY(gCalcMatrix, (player->yRot_114 + 180.0f) * M_DTOR, MTXF_APPLY);
         Matrix_RotateZ(gCalcMatrix, -(player->bankAngle * M_DTOR), MTXF_APPLY);
+        Matrix_LoadOnly(gCalcMatrix);
         sp3C.y = 0.0f;
         sp3C.z = 0.0f;
         if (player->arwing.leftWingState == WINGSTATE_INTACT) {
@@ -6980,7 +6981,7 @@ void Play_SpawnVsItem(ObjectId objId, Item* item) {
 void Play_SetupZPos360(f32* zPos) {
     *zPos += gPathProgress + 15000.0f;
 }
-extern void S_SetMusicVolume(int v);
+//extern void S_SetMusicVolume(int v);
 void Play_Main(void) {
     s32 i = 0;
     f32 fovYtarget = 0;
@@ -7046,7 +7047,7 @@ void Play_Main(void) {
         case PLAY_INIT:
             Play_Init();
             sMusicVolume = gVolumeSettings[AUDIO_TYPE_MUSIC];
-            S_SetMusicVolume(sMusicVolume * 100);
+            //S_SetMusicVolume(sMusicVolume * 100);
             sVoiceVolume = gVolumeSettings[AUDIO_TYPE_VOICE];
             sSfxVolume = gVolumeSettings[AUDIO_TYPE_SFX];
             gPlayState = PLAY_UPDATE;

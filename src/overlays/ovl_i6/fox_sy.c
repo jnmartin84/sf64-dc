@@ -878,7 +878,7 @@ void SectorY_8019A898(SyShogun* this) {
 
     this->swork[21] = 6;
 
-    if (((yAngle2 >= 30.0f) && (yAngle2 <= 330.0f)) || ((this->animFrame != 0)) && (this->animFrame != 27)) {
+    if (((yAngle2 >= 30.0f) && (yAngle2 <= 330.0f)) || (((this->animFrame != 0)) && (this->animFrame != 27))) {
         this->swork[21] = 5;
         Math_SmoothStepToAngle(&this->orient.y, yAngle1, 0.1f, 2.0f, 0.1f);
         this->fwork[0] = 1.0f;
@@ -1402,7 +1402,7 @@ void SectorY_SyShogun_Update(SyShogun* this) {
     f32 sp1DC;
     f32 sp1D8;
     f32 sp1D4;
-    s32 sp1D0;
+    s32 sp1D0 = 0;
     RadarMark* radarMark;
     Vec3f frameTable[30];
     Vec3f src;
@@ -2694,7 +2694,7 @@ void SectorY_LevelStart(Player* player) {
             gActors[5].obj.rot.z = 30.0f;
             gActors[6].obj.rot.z = 30.0f;
             gActors[7].obj.rot.z = 320.0f;
-            gEnvLightyRot = gLight2yRotTarget = D_ctx_80178524 = gLight1yRot = gLight1yRotTarget = 230.0f;
+            gEnvLightyRot = gLight2yRotTarget = 230.0f; /* = */ D_ctx_80178524 = gLight1yRot = gLight1yRotTarget = 230.0f;
             gActors[6].fwork[1] = 15.0f;
             /* fallthrough */
         case 1:

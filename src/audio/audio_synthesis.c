@@ -1275,7 +1275,6 @@ Acmd* AudioSynth_FinalResample(Acmd* aList, NoteSynthesisState* synthState, s32 
     }
     return aList;
 }
-#define approx_recip(x) (1.0f / sqrtf((x)*(x)))
 
 Acmd* AudioSynth_ProcessEnvelope(Acmd* aList, NoteSubEu* noteSub, NoteSynthesisState* synthState, s32 aiBufLen,
                                  u16 dmemSrc, s32 delaySide, s32 flags) {
@@ -1298,7 +1297,7 @@ Acmd* AudioSynth_ProcessEnvelope(Acmd* aList, NoteSubEu* noteSub, NoteSynthesisS
     panVolLeft <<= 4;
     panVolRight <<= 4;
 
-    f32 recipAiBufLenShr3 = approx_recip((f32)((aiBufLen >> 3)));
+    f32 recipAiBufLenShr3 = shz_fast_invf((f32)((aiBufLen >> 3)));
 
     if (panVolLeft != curVolLeft) {
         rampLeft = (s16)((f32)(panVolLeft - curVolLeft)   * recipAiBufLenShr3);

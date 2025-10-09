@@ -639,7 +639,10 @@ void Object_LoadLevelObjects(void) {
   //static ObjectInit aZoLevelObjects_Boss[] = { { 100.0f,    3000,     -30,       0, {  0,   0,   0}, OBJ_BOSS_ZO_SARUMARINE }};
     //gLevelObjects = aZoLevelObjects_Boss;
 //}
-
+if (gCurrentLevel == LEVEL_AREA_6) {
+  static ObjectInit aA6LevelObjects_Boss[] = { { /* 255100.0f,  -10000,       0,       0, {  0,   0,   0}, */100.0f,    3000,       0,       0, {  0, 180,   0}, OBJ_BOSS_A6_GORGON },};
+    gLevelObjects = aA6LevelObjects_Boss;
+}
 
     for (i = 0, objInit = &gLevelObjects[gObjectLoadIndex]; i < 10000; i++, gObjectLoadIndex++, objInit++) {
         if (objInit->id <= OBJ_INVALID) {
@@ -3051,7 +3054,7 @@ void TexturedLine_Update(TexturedLine* this) {
     this->xRot = -Math_Atan2F(dy, shz_sqrtf_fsrra(SQ(dx) + SQ(dz)));
 
     if (this->mode != 4) {
-        this->zScale = shz_sqrtf_fsrra(shz_mag_sqr4f(dx,dy,dz,0));//(dx) + SQ(dy) + SQ(dz));
+        this->zScale = shz_sqrtf_fsrra(SQ(dx) + SQ(dy) + SQ(dz));
     }
 
     if (gGameState == GSTATE_PLAY) {

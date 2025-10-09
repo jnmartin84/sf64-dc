@@ -989,7 +989,7 @@ void func_tank_80046704(Player* player) {
                 temp1 = scenery->obj.pos.x - player->pos.x;
                 temp2 = scenery->obj.pos.z - player->trueZpos;
 
-                if (sqrtf(SQ(temp1) + SQ(temp2)) < 2000.0f) {
+                if (shz_sqrtf_fsrra(SQ(temp1) + SQ(temp2)) < 2000.0f) {
                     func_tank_8004641C(player, scenery->obj.id, scenery->obj.pos.x, scenery->obj.pos.y,
                                        scenery->obj.pos.z, scenery->obj.rot.x, scenery->obj.rot.y, scenery->obj.rot.z);
                 }

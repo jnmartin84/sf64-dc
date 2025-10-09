@@ -180,11 +180,6 @@ void func_col1_800978C4(Vec3f* norm, s32 ax, s32 ay, s32 az, s32 bx, s32 by, s32
     norm->z = (xz_vars.__dx1 * xz_vars.__dy2) - (xz_vars.__dy1 * xz_vars.__dx2);
 }
 
-static inline float approx_recip_sign(float v) {
-	float _v = 1.0f / sqrtf(v * v);
-	return copysignf(_v, v);
-}
-//#define approx_recip_sign(v) (1.0f / sqrtf((v)*(v)))
 // Calculate the normal vector of an ordered triangle, given as vertices
 void func_col1_800979E8(Vtx_tn* tri) {
     s32 i;
@@ -409,19 +404,19 @@ void func_col1_80098860(PlaneF* plane, Vec3f* point, Vec3f* normal) {
 
 // y dist to closest point on plane
 s32 func_col1_800988B4(Vec3f* vec, PlaneF* plane) {
-    f32 recY = approx_recip_sign(plane->normal.y);
+    f32 recY = shz_fast_invf(plane->normal.y);
     return (-plane->normal.x * vec->x - plane->normal.z * vec->z - plane->dist) * recY; // / plane->normal.y;
 }
 
 // z dist to closest point on plane
 s32 func_col1_800988F8(Vec3f* vec, PlaneF* plane) {
-    f32 recZ = approx_recip_sign(plane->normal.z);
+    f32 recZ = shz_fast_invf(plane->normal.z);
     return (-plane->normal.x * vec->x - plane->normal.y * vec->y - plane->dist) * recZ; // / plane->normal.z;
 }
 
 // x dist to closest point on plane
 s32 func_col1_8009893C(Vec3f* vec, PlaneF* plane) {
-    f32 recX = approx_recip_sign(plane->normal.x);
+    f32 recX = shz_fast_invf(plane->normal.x);
     return (-plane->normal.y * vec->y - plane->normal.z * vec->z - plane->dist) * recX; // / plane->normal.x;
 }
 
@@ -692,10 +687,10 @@ bool func_80099254(Vec3f* objPos, Vec3f* colliderPos, Vec3f* objVel, CollisionHe
 
                 // check if the angle between the normal and velocity is > 90. That is, the object was moving toward the
                 // front of the polygon
-                f32 recipThing = approx_recip_sign((VEC3F_MAG(&polyPlane.normal) * speed));
+                f32 recipThing = shz_fast_invf((VEC3F_MAG(&polyPlane.normal) * speed));
                 if (/* Math_FAcosF */my_acosf(tempf * recipThing) > DEG_TO_RAD(90.0f)) {
                     // Calculate the time since the plane was crossed. Reusing the temp is required to match
-                    f32 reciptemp = approx_recip_sign(tempf);
+                    f32 reciptemp = shz_fast_invf(tempf);
                     tempf = (DOT_XYZ(&polyPlane.normal, &objRel) + polyPlane.dist) * reciptemp; // / tempf;
 
                     // find the point where the object crossed the plane of the polygon
@@ -709,15 +704,15 @@ bool func_80099254(Vec3f* objPos, Vec3f* colliderPos, Vec3f* objVel, CollisionHe
                         hitPosOut->y = colliderPos->y + hitPosRel.y;
                         hitPosOut->z = colliderPos->z + hitPosRel.z;
                         if (polyPlane.normal.x != 0.0) {
-                            f32 recipN = approx_recip_sign(polyPlane.normal.x);
+                            f32 recipN = shz_fast_invf(polyPlane.normal.x);
                             polyPlane.normal.x = -polyPlane.dist * recipN; // / polyPlane.normal.x;
                         }
                         if (polyPlane.normal.y != 0.0f) {
-                            f32 recipN = approx_recip_sign(polyPlane.normal.y);
+                            f32 recipN = shz_fast_invf(polyPlane.normal.y);
                             polyPlane.normal.y = -polyPlane.dist * recipN; //  / polyPlane.normal.y;
                         }
                         if (polyPlane.normal.z != 0.0f) {
-                            f32 recipN = approx_recip_sign(polyPlane.normal.z);
+                            f32 recipN = shz_fast_invf(polyPlane.normal.z);
                             polyPlane.normal.z = -polyPlane.dist * recipN; // / polyPlane.normal.z;
                         }
                         hitAnglesOut[0] = Math_Atan2F_XY(polyPlane.normal.y, polyPlane.normal.z);

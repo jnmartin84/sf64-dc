@@ -3982,12 +3982,6 @@ void __attribute__((noinline)) do_the_rest(ZoSpikeBall *this) {
     gSPDisplayList(gMasterDisp++, D_ZO_601BCC0);
 }
 
-#define approx_recip(v) (1.0f / sqrtf((v)*(v)))
-static inline float approx_recip_sign(float v) {
-	float _v = approx_recip(v);
-	return copysignf(_v, v);
-}
-
 void Zoness_ZoSpikeBall_Draw(ZoSpikeBall* this) {
     f32 temp_fa0;
     f32 temp_fa1;
@@ -4023,7 +4017,7 @@ void Zoness_ZoSpikeBall_Draw(ZoSpikeBall* this) {
         if (var_s4 < 0) {
             var_s4 = 0;
         }
-        f32 recip_var_s4 = approx_recip_sign(var_s4);
+        f32 recip_var_s4 = shz_fast_invf(var_s4);
         Matrix_Translate(gGfxMatrix, this->obj.pos.x, this->obj.pos.y, this->obj.pos.z + gPathProgress, MTXF_APPLY);
         Matrix_RotateY(gGfxMatrix, temp_fs4, MTXF_APPLY);
         Matrix_RotateX(gGfxMatrix, temp_fs0_2, MTXF_APPLY);

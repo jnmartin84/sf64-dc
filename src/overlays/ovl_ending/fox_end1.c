@@ -1668,7 +1668,7 @@ bool Ending_8018BCB0(void) {
             gActors[i].vel.y = dest.y;
             gActors[i].vel.z = dest.z;
 
-            if (0) {} // some sort of vec_set macro?
+//            if (0) {} // some sort of vec_set macro?
 
             gActors[i].obj.rot.x = -gActors[i].orient.x;
             gActors[i].obj.rot.y = gActors[i].orient.y + 180.0f;
