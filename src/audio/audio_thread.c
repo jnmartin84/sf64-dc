@@ -220,9 +220,9 @@ void AudioThread_ProcessGlobalCmd(AudioCmd* cmd) {
         case AUDIOCMD_OP_GLOBAL_MUTE:
             for (i = 0; i < ARRAY_COUNT(gSeqPlayers); i++) {
                 SequencePlayer* seqplayer = &gSeqPlayers[i];
-//                wav_pause(i);
-                if (i < 2)
-                    wav_volume(i, 0);
+                wav_pause(i);
+//                if (i < 2)
+//                    wav_volume(i, 0);
                 seqplayer->muted = 1;
                 seqplayer->recalculateVolume = 1;
             }
@@ -242,9 +242,9 @@ void AudioThread_ProcessGlobalCmd(AudioCmd* cmd) {
             }
             for (i = 0; i < ARRAY_COUNT(gSeqPlayers); i++) {
                 SequencePlayer* seqplayer = &gSeqPlayers[i];
-//                wav_play(i);
-                if (i < 2)
-                    wav_volume(i, 160);
+                wav_play(i);
+//                if (i < 2)
+  //                  wav_volume(i, 160);
                 seqplayer->muted = 0;
                 seqplayer->recalculateVolume = 1;
             }

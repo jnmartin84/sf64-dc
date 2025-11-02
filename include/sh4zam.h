@@ -112,17 +112,23 @@ typedef SHZ_ALIGNAS(8) union shz_matrix_4x4 {
     };
 } shz_matrix_4x4_t;
 
-#include <math.h>
+
 SHZ_FORCE_INLINE float shz_inv_sqrtf(float x) {
     asm volatile("fsrra %0" : "+f" (x));
     return x;
 }
-
+#include <math.h>
 SHZ_FORCE_INLINE float shz_sqrtf_fsrra(float x) {
-    if(__builtin_constant_p(x))
-        return sqrtf(x);
-    return (x == 0.0f) ? (0.0f) : (shz_inv_sqrtf(x) * x);
-}
+#if 1
+//    if (__builtin_constant_p(x))
+//        return sqrtf(x);
+    
+
+    return x == 0.0f ? 0.0f : shz_inv_sqrtf(x) * x;
+#else
+    return sqrtf(x);
+#endif
+    }
 
 
 SHZ_FORCE_INLINE float shz_mag_sqr4f(float x, float y, float z, float w) {
@@ -176,6 +182,7 @@ SHZ_FORCE_INLINE float shz_div_posf(float num, float denom) {
 
 //! Takes the inverse of \p p using a faster approximation than doing a full division.
 SHZ_FORCE_INLINE float shz_fast_invf(float x) {
+#if 1
     float inv;
 
     if (__builtin_constant_p(x))
@@ -187,6 +194,14 @@ SHZ_FORCE_INLINE float shz_fast_invf(float x) {
         inv = -inv;
 
     return inv;
+#else
+    return 1.0f / x;
+#endif
+}
+
+//! Divides \p num by \p denom using a very fast approximation
+SHZ_FORCE_INLINE float shz_divf(float num, float denom) {
+    return num * shz_fast_invf(denom);
 }
 
 SHZ_FORCE_INLINE shz_vec3_t shz_vec3_scale(shz_vec3_t vec, float factor) SHZ_NOEXCEPT {

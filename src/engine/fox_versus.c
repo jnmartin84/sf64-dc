@@ -555,7 +555,7 @@ s32 func_versus_800BEDDC(void) {
     s32 i;
     s32 var_s4 = 0;
 
-    if (!sUnlockLandmaster && !sUnlockOnFoot || (gVersusStage == VS_STAGE_SECTOR_Z)) {
+    if ((!sUnlockLandmaster && !sUnlockOnFoot) || (gVersusStage == VS_STAGE_SECTOR_Z)) {
         func_versus_800BED78();
         return 0;
     }
@@ -1246,10 +1246,10 @@ bool func_versus_800C0D10(void) {
 s32 func_versus_800C0E78(void) {
     s32 i;
     u8* D_800D4C80[] = {
-        "FOX",
-        "PEPPY",
-        "SLIPPY",
-        "FALCO",
+        (u8*)"FOX",
+        (u8*)"PEPPY",
+        (u8*)"SLIPPY",
+        (u8*)"FALCO",
     };
     f32 D_800D4C90[5] = {
         32.0f, 168.0f, 32.0f, 168.0f, 0.0f,
@@ -1262,7 +1262,7 @@ s32 func_versus_800C0E78(void) {
         if (gControllerPlugged[i] == true) {
             RCP_SetupDL(&gMasterDisp, SETUPDL_83);
             gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 0, 255);
-            Graphics_DisplaySmallText(D_800D4C90[i], D_800D4CA4[i], 1.0f, 1.0f, D_800D4C80[i]);
+            Graphics_DisplaySmallText(D_800D4C90[i], D_800D4CA4[i], 1.0f, 1.0f, (char*)D_800D4C80[i]);
 
             gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
             HUD_Number_Draw(D_800D4C90[i], D_800D4CA4[i] + 9.0f, D_80178838[i], 1.0f, 0, 999);
@@ -1411,6 +1411,9 @@ bool Versus_InitViewports(void) {
 /* return type needs to be s32 for Versus_Update to match */
 s32 Versus_ClearFrameCounter(void) {
     D_80178798 = 0;
+#if AVOID_UB
+    return 0;
+#endif
 }
 
 bool Versus_WaitFrames(s32 frame) {

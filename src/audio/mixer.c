@@ -554,12 +554,12 @@ void aClearBufferImpl(uint16_t addr, int nbytes) {
 void *memcpy32(void *restrict dst, const void *restrict src, size_t bytes);
 
 void aLoadBufferPointerImpl(const void *source_addr) {
-    rspa.loaded_buffer = source_addr;
+    rspa.loaded_buffer = (u16 *)source_addr;
 }
 
 
 void aLoadBufferImpl(const void* source_addr, uint16_t dest_addr, uint16_t nbytes) {
-    rspa.loaded_buffer = source_addr;
+    rspa.loaded_buffer = (u16 *)source_addr;
 }    
     
 void aSaveBufferImpl(uint16_t source_addr, int16_t* dest_addr, uint16_t nbytes) {

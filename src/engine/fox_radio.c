@@ -51,6 +51,10 @@ s32 func_radio_800BA7BC(u16* msg, s32 priority) {
         gRadioMsgPri = priority;
         return 2;
     }
+
+#if AVOID_UB
+    return -1;
+#endif
 }
 
 void Radio_PlayMessage(u16* msg, RadioCharacterId character) {
@@ -153,12 +157,12 @@ s32 sRadioUseRedBox;
 
 void func_radio_800BAAE8(void) {
     static f32 D_800D4A74 = -1.0f;
-    u16* radioPortraitTex;
+    u16* radioPortraitTex = NULL;
     s32 mirror;
     s32 i;
     f32 sp38;
     f32 temp_fa0;
-    s32 j;
+    s32 j = 0;
 
     sRadioUseRedBox = false;
 
@@ -461,8 +465,8 @@ void func_radio_800BAAE8(void) {
 void func_radio_800BB388(void) {
     static f32 D_800D4A78 = -1.0f;
     f32 temp_fa0;
-    u8* texture;
-    u16* palette;
+    u8* texture = NULL;
+    u16* palette = NULL;
     f32 sp30;
 
     if ((gGameState != GSTATE_MAP) && (gRadioTextBoxScaleY != 0.0f)) {

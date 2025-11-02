@@ -6,7 +6,7 @@
 
 #include "global.h"
 #include "assets/ast_bolse.h"
-#if 1
+#if 0
 #include "prevent_bss_reordering.h"
 
 extern s32 dummy200;
@@ -2225,8 +2225,8 @@ void Bolse_LoadLevelObjects(void) {
     Object_SetInfo(&boss->info, boss->obj.id);
 }
 
-void Bolse_DrawDynamicGround(void) {
-    Vec3f spDC;// = { 0.0f, 0.0f, 0.0f };
+void  __attribute__((optimize("Os"))) Bolse_DrawDynamicGround(void) {
+    Vec3f spDC = { 0.0f, 0.0f, 0.0f };
     Vec3f spD0;
     f32 rnd;
     f32 x;

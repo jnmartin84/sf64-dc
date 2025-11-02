@@ -65,7 +65,7 @@ u8 Load_SceneFiles(NewScene* scene, int snum) {
         // do nothing
     } else {
         changeScene = 1;
-//        if (scene[snum].id != sCurrentScene.id)
+        //if (scene[snum].id != sCurrentScene.id)
         nuke_everything();
         // still do nothing
     }
@@ -74,6 +74,12 @@ u8 Load_SceneFiles(NewScene* scene, int snum) {
     sCurrentScene.snum = snum;
 
     if(changeScene) {
+            /* if (scene[snum].id == 8) {
+                file_t file = fs_open("/cd/sf_data/titania_backdrop.tex", O_RDONLY);
+                fs_read(file, SEG_BUF[14], 16 + (64*32*2));
+                fs_close(file);
+            } */
+
         //printf("changing scene to snum %d\n", snum);
         for (segment=1; segment < 16; segment += 1) {
             Load_RomFile(scene[snum].segs[segment], segment);
@@ -217,9 +223,4 @@ u8 Load_SceneSetup(u8 sceneId, u8 sceneSetup) {
             break;
     }
     return changeScene;
-}
-
-void Load_InitDmaAndMsg(void) {
-//    Lib_DmaRead(SEGMENT_ROM_START(dma_table), SEGMENT_VRAM_START(dma_table), SEGMENT_ROM_SIZE(dma_table));
-//    Load_RomFile(SEGMENT_ROM_START(ast_radio), SEGMENT_VRAM_START(ast_radio), SEGMENT_ROM_SIZE(ast_radio));
 }

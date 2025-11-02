@@ -44,7 +44,7 @@ s32 Save_WriteEeprom(SaveFile* arg0) {
                 var_a2 = 1;
             }
         }
-        if ((var_a2 == 1) && Save_WriteBlock(i, &((char*) arg0)[EEPROM_BLOCK_SIZE * i])) {
+        if ((var_a2 == 1) && Save_WriteBlock(i, &((u8*) arg0)[EEPROM_BLOCK_SIZE * i])) {
             return -1;
         }
     }
@@ -59,7 +59,7 @@ s32 Save_ReadEeprom(SaveFile* arg0) {
         return -1;
     }
     for (i = 0; i < EEPROM_MAXBLOCKS; i++) {
-        if (Save_ReadBlock(i, &((char*) arg0)[EEPROM_BLOCK_SIZE * i]) != 0) {
+        if (Save_ReadBlock(i, &((u8*) arg0)[EEPROM_BLOCK_SIZE * i]) != 0) {
             return -1;
         }
     }

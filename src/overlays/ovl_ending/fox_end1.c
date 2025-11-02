@@ -72,6 +72,8 @@ const char str22[] = "xp= %f, yp= %f, zp= %f\n";
 const char str23[] = "xa= %f, ya= %f, za= %f\n";
 const char str24[] = "sz= %f\n";
 
+int force_screen_fill_colors = 0;
+
 void Ending_80187520(s32 arg0) {
     s32 i;
     s32 j;
@@ -79,7 +81,10 @@ void Ending_80187520(s32 arg0) {
     RCP_SetupDL(&gMasterDisp, SETUPDL_76);
     gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255);
 
+    force_screen_fill_colors = 1;
+    
     switch (arg0) {
+        // first 2d background
         case 0:
             for (j = 0, i = 0; i < 67; j += 316 * 4, i++) {
                 Lib_TextureRect_RGBA16(&gMasterDisp, gEndingAwardBack + j, 316, 4, 0.0f, 4 * i, 1.0f, 1.0f);
@@ -118,7 +123,7 @@ void Ending_801876A4(void) {
 void Ending_80187860(s32 arg0, s32 arg1) {
     Vec3f frameTable[50];
     s32 i;
-    s32 limbCount;
+    s32 limbCount = 0;
     Animation* sp70[4] = { &D_TITLE_60246F8, &aFalcoAnim, &aSlippyAnim, &aPeppyAnim };
     s32 pad;
 
@@ -292,8 +297,8 @@ void Ending_80187D3C(s32 arg0) {
 
 void Ending_80188030(s32 arg0) {
     s32 i;
-    f32 sp30;
-    f32 sp2C;
+    f32 sp30 = 0.0f;
+    f32 sp2C = 0.0f;
 
     switch (arg0) {
         case 0:
@@ -366,12 +371,18 @@ s32 Ending_GralPepper_Animate(void) {
     for (D_ending_80196F88 = 2, i = 0; i < D_ending_80196F88; i++) {
         D_ending_80196D08[i] = sp14[i];
     }
+#if AVOID_UB
+    // warning: control reaches end of non-void function [-Wreturn-type]
+    // return something
+    return i;
+#endif
 }
 
 void Ending_8018845C(void) {
-    s32 i;
+    s32 i = 1;
     u32 frame;
 
+#if 0
     for (i = 0; i < 2; i++) {
         //! FAKE:
         if ((i == D_ending_8019858C) || (D_ending_8019858C != 2)) {
@@ -380,6 +391,7 @@ void Ending_8018845C(void) {
             }
         }
     }
+#endif
 
     gHideRadio = true;
 

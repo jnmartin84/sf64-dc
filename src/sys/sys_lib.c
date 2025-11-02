@@ -107,22 +107,9 @@ void Lib_InitOrtho(Gfx** dList) {
     Matrix_Copy(gGfxMatrix, &gIdentityMatrix);
 }
 
-void Lib_DmaRead(void* src, void* dst, s32 size) {
-    osInvalICache(dst, size);
-    osInvalDCache(dst, size);
-    while (size > 0x100) {
-        osPiStartDma(&gDmaIOMsg, 0, 0, (uintptr_t) src, dst, 0x100, &gDmaMesgQueue);
-        size -= 0x100;
-        src = (void*) ((uintptr_t) src + 0x100);
-        dst = (void*) ((uintptr_t) dst + 0x100);
-        MQ_WAIT_FOR_MESG(&gDmaMesgQueue, NULL);
-    }
-    if (size != 0) {
-        osPiStartDma(&gDmaIOMsg, 0, 0, (uintptr_t) src, dst, size, &gDmaMesgQueue);
-        MQ_WAIT_FOR_MESG(&gDmaMesgQueue, NULL);
-    }
-}
+#undef bool
 #include <kos.h>
+
 float fill_r=0, fill_g=0, fill_b=0;
 
 void Lib_FillScreen(u8 setFill) {

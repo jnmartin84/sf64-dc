@@ -2,6 +2,10 @@
 #define GFX_SCREEN_CONFIG_H
 
 #define DESIRED_SCREEN_WIDTH 640
+//640
+// for FSAA
+//(640*2)
 #define DESIRED_SCREEN_HEIGHT 480
+//480
 
 #endif

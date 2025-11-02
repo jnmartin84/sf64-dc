@@ -9,6 +9,8 @@
 
 #define GFX_API_NAME "Dreamcast GLdc"
 #define SCR_WIDTH (640)
+// for fsaa
+// (640*2)
 #define SCR_HEIGHT (480)
 
 static int force_30fps = 1;
@@ -97,13 +99,16 @@ static uint8_t gfx_dc_start_frame(void) {
         skip_debounce--;
         return 1;
     }
-    uint32_t ActualFrameTime = 33;
-    if (gVIsPerFrame == 3)
-        ActualFrameTime = 50;
+    const float OneFrameTime = 16.666667f;
+    uint32_t ActualFrameTime = (uint32_t)(gVIsPerFrame * OneFrameTime);
+//    if (gVIsPerFrame == 3)
+//        ActualFrameTime = 50;
+//    else if (gVIsPerFrame == 4)
+//        ActualFrameTime = 66;
 
     // skip if frame took longer than 1 / 30 = 33.3 ms
     if (elapsed > ActualFrameTime) { //FRAME_TIME_MS) {
-        skip_debounce = 1; // skip a max of once every (1+1) frames
+        skip_debounce = 3; // skip a max of once every 4 (1+1) frames
         last_time = cur_time;
         return 0;
     }
@@ -114,16 +119,19 @@ static uint8_t gfx_dc_start_frame(void) {
 static void gfx_dc_swap_buffers_begin(void) {
 }
 
-
+//int last_elapsed = 0;
 
 static void gfx_dc_swap_buffers_end(void) {
     // Number of microseconds a frame should take (30 fps)
     const unsigned int cur_time = GetSystemTimeLow();
     const unsigned int elapsed = cur_time - last_time;
     last_time = cur_time;
-    uint32_t ActualFrameTime = 33;
-    if (gVIsPerFrame == 3)
-        ActualFrameTime = 50;
+    const float OneFrameTime = 16.666667f;
+    uint32_t ActualFrameTime = (uint32_t)(gVIsPerFrame * OneFrameTime);
+
+//    last_elapsed = elapsed;
+    /* Lets us yield to other threads*/
+    glKosSwapBuffers();
 
     if (force_30fps && elapsed < ActualFrameTime) { //FRAME_TIME_MS) {
 #ifdef DEBUG
@@ -132,9 +140,6 @@ static void gfx_dc_swap_buffers_end(void) {
         DelayThread(/* FRAME_TIME_MS */ActualFrameTime - elapsed);
         last_time += (/* FRAME_TIME_MS */ActualFrameTime - elapsed);
     }
-
-    /* Lets us yield to other threads*/
-    glKosSwapBuffers();
 }
 
 /* Idk what this is for? */

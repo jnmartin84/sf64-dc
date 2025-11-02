@@ -858,7 +858,11 @@ void Player_DamageWings(Player* player, s32 side, s32 damage) {
     }
 }
 
+#define I_DONT_WANT_TO_DIE 1
 void Player_ApplyDamage(Player* player, s32 direction, s32 damage) {
+#if I_DONT_WANT_TO_DIE
+    return;
+#endif
     Vec3f sp44;
     Vec3f sp38;
     f32 sp34 = 20.0f;
@@ -5809,7 +5813,7 @@ void Player_Update(Player* player) {
 
             if ((!gVersusMode || gVsMatchStart) && !player->somersault && (gInputPress->button & U_CBUTTONS) &&
                 ((player->form == FORM_ARWING) || (gVersusMode && (player->form == FORM_LANDMASTER)))) {
-                if (player->alternateView = 1 - player->alternateView) {
+                if ((player->alternateView = (1 - player->alternateView))) {
                     AUDIO_PLAY_SFX(NA_SE_VIEW_MOVE_IN, gDefaultSfxSource, 4);
                 } else {
                     AUDIO_PLAY_SFX(NA_SE_VIEW_MOVE_OUT, gDefaultSfxSource, 4);
@@ -6468,7 +6472,6 @@ void Camera_UpdateOnFoot360(Player* player, s32 arg1) {
         player->cam.eye.z = sp4C.z;
     }
 }
-#define F_PI        3.14159265f   /* pi             */
 
 void Camera_SetStarfieldPos(f32 xEye, f32 yEye, f32 zEye, f32 xAt, f32 yAt, f32 zAt) {
     f32 sp34;
@@ -6803,7 +6806,7 @@ void Play_UpdateLevel(void) {
         case LEVEL_SOLAR:
             Play_UpdateDynaFloor();
 
-            for (gPathTexScroll; gPathTexScroll >= 10.0f; gPathTexScroll -= 10.0f) {
+            for (/* gPathTexScroll */; gPathTexScroll >= 10.0f; gPathTexScroll -= 10.0f) {
                 //Lib_Texture_Scroll(aSoLavaTex, 32, 32, 1);
                 sol_ult = (sol_ult + 4) & 0x7F;
             }
@@ -6883,7 +6886,7 @@ void Play_UpdateLevel(void) {
         case LEVEL_ZONESS:
             Play_UpdateDynaFloor();
 
-            for (gPathTexScroll; gPathTexScroll >= 20.0f; gPathTexScroll -= 20.0f) {
+            for (/* gPathTexScroll */; gPathTexScroll >= 20.0f; gPathTexScroll -= 20.0f) {
                 Lib_Texture_Scroll(D_ZO_602C2CC, 32, 32, 1);
             }
             if (gPlayer[0].state == PLAYERSTATE_NEXT) {
@@ -7102,7 +7105,7 @@ void Play_Main(void) {
             if (!gVersusMode) {
                 if ((gControllerPress[gMainController].button & R_TRIG) && (gPlayer[0].form != FORM_BLUE_MARINE) &&
                     (gPlayer[0].state != PLAYERSTATE_STANDBY)) {
-                    if (gShowReticles[0] = 1 - gShowReticles[0]) {
+                    if ((gShowReticles[0] = (1 - gShowReticles[0]))) {
                         AUDIO_PLAY_SFX(NA_SE_MAP_WINDOW_OPEN, gDefaultSfxSource, 4);
                     } else {
                         AUDIO_PLAY_SFX(NA_SE_MAP_WINDOW_CLOSE, gDefaultSfxSource, 4);
@@ -7111,7 +7114,7 @@ void Play_Main(void) {
             } else {
                 for (i = 0; i < 4; i++) {
                     if ((gControllerPress[i].button & R_TRIG) && (gPlayer[i].form != FORM_ON_FOOT)) {
-                        if (gShowReticles[i] = 1 - gShowReticles[i]) {
+                        if ((gShowReticles[i] = (1 - gShowReticles[i]))) {
                             Object_PlayerSfx(gPlayer[i].sfxSource, NA_SE_MAP_WINDOW_OPEN, i);
                         } else {
                             Object_PlayerSfx(gPlayer[i].sfxSource, NA_SE_MAP_WINDOW_CLOSE, i);

@@ -77,7 +77,7 @@ void Player_UpdateTankCamOnRails(Player* player) {
         sp50 += player->unk_17C * 0.5f;
         sp4C += player->unk_17C * -5.0f;
 
-        if (0 || (gCurrentLevel == LEVEL_MACBETH) && (D_MA_801BA1E8 == 102)) {
+        if ((gCurrentLevel == LEVEL_MACBETH) && (D_MA_801BA1E8 == 102)) {
             sp50 = player->pos.y + 45.0f + (-player->rot.x * 5.0f);
             sp4C = player->pos.y + 200.0f + (player->rot.x * 10.0f);
             sp50 += player->unk_17C * 0.2f;
@@ -1338,8 +1338,6 @@ label_29:
         }
     }
     if (!sp2F) {
-        if (!D_MA_801BE250) {}
-
         func_tank_80046704(player);
     }
 }

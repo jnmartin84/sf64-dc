@@ -621,7 +621,7 @@ void Object_LoadLevelObjects(void) {
     }
 
     gLastPathChange = 0;
-
+#if 1
     // jnmartin84 - TITANIA BOSS
 //if (gCurrentLevel == LEVEL_CORNERIA) {
   //  static ObjectInit aCoLevelObjects_Boss[] =
@@ -629,22 +629,23 @@ void Object_LoadLevelObjects(void) {
 
   //  gLevelObjects = aCoLevelObjects_Boss;
 //}
-
-//if (gCurrentLevel == LEVEL_TITANIA) {
-  //  static ObjectInit aTiLevelObjects_Boss[] = { { 300.0f, -1000, 0, 0, { 0, 0, 0 }, OBJ_BOSS_TI_GORAS } };
-   // gLevelObjects = aTiLevelObjects_Boss;
-//}
-
+/* 
+if (gCurrentLevel == LEVEL_TITANIA) {
+    static ObjectInit aTiLevelObjects_Boss[] = { { 300.0f, -1000, 0, 0, { 0, 0, 0 }, OBJ_BOSS_TI_GORAS } };
+    gLevelObjects = aTiLevelObjects_Boss;
+}
+ */
 //if (gCurrentLevel == LEVEL_ZONESS) {
   //static ObjectInit aZoLevelObjects_Boss[] = { { 100.0f,    3000,     -30,       0, {  0,   0,   0}, OBJ_BOSS_ZO_SARUMARINE }};
     //gLevelObjects = aZoLevelObjects_Boss;
 //}
-#if 1
+#if 0
 // A6 boss
 if (gCurrentLevel == LEVEL_AREA_6) {
   static ObjectInit aA6LevelObjects_Boss[] = { { /* 255100.0f,  -10000,       0,       0, {  0,   0,   0}, */100.0f,    3000,       0,       0, {  0, 180,   0}, OBJ_BOSS_A6_GORGON },};
     gLevelObjects = aA6LevelObjects_Boss;
 }
+#endif
 #endif
     for (i = 0, objInit = &gLevelObjects[gObjectLoadIndex]; i < 10000; i++, gObjectLoadIndex++, objInit++) {
         if (objInit->id <= OBJ_INVALID) {

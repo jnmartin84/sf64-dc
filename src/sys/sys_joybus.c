@@ -152,17 +152,20 @@ void Controller_Init(void) {
         gControllerPlugged[i] = !!cont;//(sp1F >> i) & 1;
         if (cont)
             sControllerStatus[i].status = 1;
-        cont = maple_enum_type(i, MAPLE_FUNC_PURUPURU);
+
+        cont = NULL; //maple_enum_type(i, MAPLE_FUNC_PURUPURU);
 
         gControllerRumbleEnabled[i] = !!cont;//(sp1F >> i) & 1;
     }
 
+#if 0
     rumble_worker_attr.create_detached = 1;
 	rumble_worker_attr.stack_size = 4096;
 	rumble_worker_attr.stack_ptr = NULL;
 	rumble_worker_attr.prio = PRIO_DEFAULT;
 	rumble_worker_attr.label = "I_RumbleThread";
 	rumble_worker_thread = thd_worker_create_ex(&rumble_worker_attr, I_RumbleThread, NULL);
+#endif
 
 //    for (i = 0; i < 4; i++) {
 //        printf("controller enable? %d rumble enable? %d\n", gControllerPlugged[i], gControllerRumbleEnabled[i]);
@@ -359,7 +362,7 @@ void I_RumbleThread(void *param)
 }
 
 void Controller_Rumble(void) {
-#if 1
+#if 0
     s32 i;
 
     for (i = 0; i < 4; i++) {
@@ -387,4 +390,4 @@ void Controller_Rumble(void) {
         gControllerRumbleFlags[i] = 0;
     }
 #endif
-    }
+}

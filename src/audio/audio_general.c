@@ -659,7 +659,6 @@ void Audio_ResetSfxChannelState(void) {
 #include <stdlib.h>
 #include <kos/thread.h>
 
-static int ever_init_wav = 0;
 
 void S_SetMusicVolume(WavPlayerId playerId, int volume)
 {
@@ -689,11 +688,6 @@ void Audio_StartSequence(u8 seqPlayId, u8 seqId, u8 seqArgs, u16 fadeInTime) {
 #if 1
     played_wav = 0;
     if (seqPlayId == SEQ_PLAYER_BGM && ((seqId&0x7fff) >= 2 && (seqId&0x7fff) <= 65)) {
-        if (ever_init_wav == 0) {
-            ever_init_wav = 1;
-            wav_init();
-            //dbglog_set_level(DBG_INFO);
-        }
 
         if (!sStartSeqDisabled) {
             int looping = 1;
@@ -721,8 +715,8 @@ void Audio_StartSequence(u8 seqPlayId, u8 seqId, u8 seqArgs, u16 fadeInTime) {
             }
             // 17
             // 18
-            // 19
-            else if (playId == 20 || playId == 24 || playId == 25 || playId == 27 || playId == 32) {
+            // 19 
+            else if (playId == 20 || playId == 25 || playId == 27 || playId == 32) {
                 playId = 19;
             } else if (playId == 21 || playId == 22) {
                 playId = 18;
@@ -736,7 +730,7 @@ void Audio_StartSequence(u8 seqPlayId, u8 seqId, u8 seqArgs, u16 fadeInTime) {
             else if (playId == 29 || playId == 31) { // katina boss, sector z missiles
                 playId = 28;
             }
-            else if (playId == 30) { // aquas boss
+            else if (playId == 24 || playId == 30) { // aquas boss
                 playId = 23;
             }
             // 33
@@ -760,9 +754,9 @@ void Audio_StartSequence(u8 seqPlayId, u8 seqId, u8 seqArgs, u16 fadeInTime) {
             // 51
 
             if (playId == 34 || playId == 35 || playId == 37 || playId == 38 || 
-                playId == 39 || playId == 40 || playId == 41 || playId == 44 || 
-                playId == 45 || playId == 49 || playId == 50 || playId == 51 ||
-                playId == 62
+                playId == 39 || playId == 40 || playId == 41 || playId == 42 ||
+                playId == 44 || playId == 45 || playId == 49 || playId == 50 || 
+                playId == 51 || playId == 62
                 ) {
                 looping = 0;
             }
@@ -809,11 +803,11 @@ void Audio_StartSequence(u8 seqPlayId, u8 seqId, u8 seqArgs, u16 fadeInTime) {
 
 void Audio_StopSequence(u8 seqPlayId, u16 fadeOutTime) {
 #if 1
-    if (played_fanfare_wav && (seqPlayId == SEQ_PLAYER_FANFARE))
+    if (/* played_fanfare_wav &&  */(seqPlayId == SEQ_PLAYER_FANFARE))
     {
 		wav_destroy(WAV_PLAYER_FANFARE);
     }
-    else if (played_wav && (seqPlayId == SEQ_PLAYER_BGM))
+    else if (/* played_wav &&  */(seqPlayId == SEQ_PLAYER_BGM))
     {
 		wav_destroy(WAV_PLAYER_BGM);
     }
@@ -2736,12 +2730,12 @@ void Audio_PlayFanfare(u16 seqId, u8 bgmVolume, u8 bgmFadeoutTime, u8 bgmFadeinT
         wav_pause(WAV_PLAYER_BGM);
         played_fanfare_wav = 0;
         if ( ((seqId&0x7fff) >= 2 && (seqId&0x7fff) <= 65)) {
-            if (ever_init_wav == 0) {
+/*             if (ever_init_wav == 0) {
                 ever_init_wav = 1;
                 wav_init();
                 //dbglog_set_level(DBG_INFO);
             }
-            if (!sStartSeqDisabled) {
+ */            if (!sStartSeqDisabled) {
                 int looping = 0;
                 int playId = seqId&0x7fff;
                 sprintf(wavfn, "%s/music/%02d.adpcm", fnpre, playId);

@@ -3,7 +3,6 @@
 #include "fox_edata_info.c"
 
 f32* D_edata_800CF964[] = { NULL }; // Likely a scrapped array of scenery shadow boxes
-#define F_PI        3.14159265f   /* pi             */
 
 void Ve1Wall1_Draw(Ve1Wall1* this) {
     RCP_SetupDL_57(gFogRed, gFogGreen, gFogBlue, gFogAlpha, gFogNear, gFogFar);

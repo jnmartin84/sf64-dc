@@ -406,8 +406,8 @@ void Macbeth_Texture_RotateZ(u8* destTex, u8* srcTex, f32 angle) {
     s32 xDest;
     s32 yDest;
     Vec3f var_fs0;
-    Vec4f dest;
-    Vec4f src;
+    Vec3f dest;
+    Vec3f src;
 
     Matrix_Push(&gCalcMatrix);
 
@@ -2907,27 +2907,27 @@ void Macbeth_MaTrainStopBlock_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* this
     switch (limbIndex) {
         case 1:
             Matrix_MultVec3f(gCalcMatrix, &src, &D_i5_801BE6A0[0]);
-            Matrix_GetYPRAngles(gCalcMatrix, &D_i5_801BE6A0[6]);
+            Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &D_i5_801BE6A0[6]);
             break;
         case 2:
             Matrix_MultVec3f(gCalcMatrix, &src, &D_i5_801BE6A0[1]);
-            Matrix_GetYPRAngles(gCalcMatrix, &D_i5_801BE6A0[7]);
+            Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &D_i5_801BE6A0[7]);
             break;
         case 3:
             Matrix_MultVec3f(gCalcMatrix, &src, &D_i5_801BE6A0[2]);
-            Matrix_GetYPRAngles(gCalcMatrix, &D_i5_801BE6A0[8]);
+            Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &D_i5_801BE6A0[8]);
             break;
         case 4:
             Matrix_MultVec3f(gCalcMatrix, &src, &D_i5_801BE6A0[3]);
-            Matrix_GetYPRAngles(gCalcMatrix, &D_i5_801BE6A0[9]);
+            Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &D_i5_801BE6A0[9]);
             break;
         case 5:
             Matrix_MultVec3f(gCalcMatrix, &src, &D_i5_801BE6A0[4]);
-            Matrix_GetYPRAngles(gCalcMatrix, &D_i5_801BE6A0[10]);
+            Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &D_i5_801BE6A0[10]);
             break;
         case 11:
             Matrix_MultVec3f(gCalcMatrix, &src, &D_i5_801BE6A0[5]);
-            Matrix_GetYPRAngles(gCalcMatrix, &D_i5_801BE6A0[11]);
+            Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &D_i5_801BE6A0[11]);
             break;
 
         default:
@@ -5553,15 +5553,15 @@ void Macbeth_MaMechbeth_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* thisx) {
     switch (limbIndex) {
         case 14:
             Matrix_MultVec3f(gCalcMatrix, &sp2C, &this->vwork[0]);
-            Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[1]);
+            Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[1]);
             break;
         case 4:
             Matrix_MultVec3f(gCalcMatrix, &sp2C, &this->vwork[2]);
-            Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[3]);
+            Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[3]);
             break;
         case 7:
             Matrix_MultVec3f(gCalcMatrix, &sp2C, &this->vwork[4]);
-            Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[5]);
+            Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[5]);
             break;
     }
 }

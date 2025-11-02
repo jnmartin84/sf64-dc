@@ -336,6 +336,14 @@ void Main_InitMesgQueues(void) {
     osCreateMesgQueue(&gSaveMesgQueue, sSaveMsgBuff, ARRAY_COUNT(sSaveMsgBuff));
 }
 
+ int ever_init_wav = 0;
+#include <dc/sound/sound.h>
+#include <dc/sound/stream.h>
+#include "sndwav.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <kos/thread.h>
+
 
 void Main_ThreadEntry(void* arg0) {
     OSMesg osMesg;
@@ -349,7 +357,13 @@ void Main_ThreadEntry(void* arg0) {
     AudioLoad_LoadFiles();
     printf("\tdone.\n");
 
-    gVIsPerFrame = 0;
+        if (ever_init_wav == 0) {
+            ever_init_wav = 1;
+            wav_init();
+            //dbglog_set_level(DBG_INFO);
+        }
+
+        gVIsPerFrame = 0;
     gSysFrameCount = 0;
     gStartNMI = false;
     gStopTasks = false;
@@ -392,6 +406,33 @@ void Main_ThreadEntry(void* arg0) {
 //    profiler_init("/pc/sf64_gmon.out");
 //    profiler_start();
     Game_Initialize();
+
+//#define MEMTEST
+#if defined(MEMTEST)
+    for(int mi=0;mi<8*1048576;mi+=65536) {
+        void *test_m = malloc(mi);
+        if (test_m != NULL) {
+            free(test_m);
+            test_m = NULL;
+            continue;
+        } else {
+            int bi = mi - 65536;
+            for (; bi < 8 * 1048576; bi++) {
+                test_m = malloc(bi);
+                if (test_m != NULL) {
+                    free(test_m);
+                    test_m = NULL;
+                    continue;
+                } else {
+                    printf("free ram for malloc: %d\n", bi);
+                    goto run_game_loop;
+                }
+            }
+        }
+    }
+run_game_loop:
+#endif
+
     osSendMesg(&gSerialThreadMesgQueue, (OSMesg) SI_READ_CONTROLLER, OS_MESG_NOBLOCK);
     Graphics_InitializeTask(gSysFrameCount);
     {
@@ -468,11 +509,14 @@ int main(int argc, char **argv) {
 extern void *cb_next_left(void);
 extern void *cb_next_right(void);
 void *AudioThread(UNUSED void *arg) {
+    Matrix __attribute__((aligned(32))) tmpmtx;
     uint64_t last_vbltick = vblticker;
     
     while (1) {
         while (vblticker <= last_vbltick)
             genwait_wait((void*)&vblticker, NULL, 5, NULL);
+
+//        shz_xmtrx_store_4x4(&tmpmtx);
 
         __builtin_prefetch(audio_buffer[0]);
         last_vbltick = vblticker;
@@ -483,6 +527,8 @@ void *AudioThread(UNUSED void *arg) {
         AudioThread_CreateNextAudioBuffer(//cb_next_left(), cb_next_right(), 448);//
             audio_buffer[0], audio_buffer[1], /* samplecount */448);
         audio_api->play((u8 *)audio_buffer[0], (u8*)audio_buffer[1], /* samplecount<<2 */1792);
+
+//        shz_xmtrx_load_4x4(&tmpmtx);
     }
 
     return NULL;

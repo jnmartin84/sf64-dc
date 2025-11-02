@@ -1060,14 +1060,14 @@ void HUD_LevelClearStatusScreen_Draw(void) {
     f32 x2;
     f32 x3;
     f32 x4;
-    f32 x5;
+//    f32 x5;
     f32 x6;
     f32 y0;
     f32 y1;
     f32 y2;
     f32 y3;
     f32 y4;
-    f32 y5;
+//    f32 y5;
     f32 y6;
 
 //printf("gGameState when enteinrg %s is %d\n", __func__, gGameState);
@@ -1213,8 +1213,8 @@ void HUD_LevelClearStatusScreen_Draw(void) {
         x4 = x3 + 103.0f + 24.0f;
         y4 = y3 - 6.0f;
 
-        x5 = x4 + 60.0f;
-        y5 = y4 + 10.0f;
+//        x5 = x4 + 60.0f;
+//        y5 = y4 + 10.0f;
 
         x6 = x2 - 56.0f + 16.0f;
         y6 = y3 + 18.0f;
@@ -1419,7 +1419,7 @@ void HUD_LoseLifeExplosion_Draw(s32 animFrames) {
 void HUD_PauseScreen_Update(void) {
     s32 i;
     s32 j;
-    Player* player;
+//    Player* player;
     f32 x0;
     f32 y0;
     f32 x1;
@@ -1447,7 +1447,7 @@ void HUD_PauseScreen_Update(void) {
         gPauseEnabled = 0;
     }
 
-    player = &gPlayer[gPlayerNum];
+//    player = &gPlayer[gPlayerNum];
 
     if ((gPlayState == PLAY_PAUSE) && (gLevelStartStatusScreenTimer == 0) && !gVersusMode) {
         switch (sPauseScreenIwork[0]) {
@@ -5495,7 +5495,7 @@ void stub_80094D10(void) {
 }
 void stub_80094D18(void) {
 }
-
+//extern int last_elapsed;
 void HUD_Score_Draw(f32 x, f32 y) {
     u8* D_800D24DC[] = { aLargeText_0, aLargeText_1, aLargeText_2, aLargeText_3, aLargeText_4,
                          aLargeText_5, aLargeText_6, aLargeText_7, aLargeText_8, aLargeText_9 };
@@ -5518,6 +5518,9 @@ void HUD_Score_Draw(f32 x, f32 y) {
         temp3 = gHitCount;
         temp4 = gDisplayedHitCount;
     }
+
+//    temp3 = 1000 / last_elapsed;
+//    temp4 = temp3; //last_elapsed;
 
     boolTemp = 0;
     i = 1000;

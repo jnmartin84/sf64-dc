@@ -122,7 +122,8 @@ void Map_LevelSelect(void) {
     if (timer > 0) {
         timer--;
     }
-
+#define BYPASS_BRIEFING 1
+#if BYPASS_BRIEFING
     // Bypass briefing
     if ((timer == 0) && (startLevel == 1)) {
         if ((sMapState == 2) && (sMapSubState > 0)) {
@@ -146,6 +147,7 @@ void Map_LevelSelect(void) {
             // gSavedPathProgress = gPathProgress = zStart;
         }
     }
+#endif
 }
 
 

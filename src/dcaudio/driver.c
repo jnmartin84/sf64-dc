@@ -122,6 +122,7 @@ static size_t cb_read_data(int N, void *dst, size_t n) {
     return n;
 }
 
+#if 0
 // Calculates and returns the number of bytes currently in the ring buffer
 static size_t cb_get_used(int N) {
     // Atomically load both head and tail to get a consistent snapshot.
@@ -135,6 +136,7 @@ static size_t cb_get_used(int N) {
     // and effectively handle wrap-around due to the (head - tail) arithmetic.
     return head - tail;
 }
+#endif
 
 // --- KOS Stream Audio Callback (Consumer): Called by KOS when the AICA needs more data ---
 #define NUM_BUFFER_BLOCKS (2)

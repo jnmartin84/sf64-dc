@@ -6,7 +6,6 @@
 #include "assets/ast_sector_z.h"
 
 uint8_t gBackToMap = 0;
-#define F_PI        3.14159265f   /* pi             */
 
 Vec3f D_display_801613B0[4];
 Vec3f D_display_801613E0[4];
@@ -380,9 +379,9 @@ void Display_LandmasterThrusters(Player* player) {
 
     if (gVersusMode) {
         RCP_SetupDL_64();
-        gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 150);
+        gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255);//150);
     } else {
-        gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 192);
+        gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255);//192);
         gDPSetEnvColor(gMasterDisp++, 255, 0, 0, 192);
         RCP_SetupDL(&gMasterDisp, SETUPDL_67);
     }
@@ -809,7 +808,7 @@ void Display_PlayerShadow_Draw(Player* player) {
 
     switch (player->form) {
         case FORM_ARWING:
-        fake_label:
+//        fake_label:
             Matrix_Scale(gGfxMatrix, 1.5f * 1.67f, 1.5f, 1.5f * 1.67f, MTXF_APPLY);
             Matrix_Translate(gGfxMatrix, 0.0f, 0.0f, 30.0f, MTXF_APPLY);
             Matrix_SetGfxMtx(&gMasterDisp);
@@ -871,7 +870,7 @@ void Display_DrawEngineGlow(EngineGlowColor color) {
 
 void Display_LandmasterEngineGlow_Draw(Player* player) {
     RCP_SetupDL_64();
-    gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 100);
+    gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255);//100);
     Matrix_Push(&gGfxMatrix);
     Matrix_RotateZ(gGfxMatrix, player->bankAngle * M_DTOR, MTXF_APPLY);
 
@@ -1000,7 +999,7 @@ void Display_ArwingLaserCharge(Player* player) {
         }
 
         RCP_SetupDL(&gMasterDisp, SETUPDL_49);
-        gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 128);
+        gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255/* 128 */);
 
         if (gVersusMode) {
             switch (player->num) {
@@ -1057,7 +1056,7 @@ void Display_ArwingLaserCharge(Player* player) {
 
         switch (laserStrength) {
             case LASERS_SINGLE:
-                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 192, 255, 192, 128);
+                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 192, 255, 192, 255);//128);
                 gDPSetEnvColor(gMasterDisp++, 64, 255, 64, 128);
 
                 if (player->alternateView && (gLevelMode == LEVELMODE_ON_RAILS)) {
@@ -1080,10 +1079,10 @@ void Display_ArwingLaserCharge(Player* player) {
             case LASERS_TWIN:
             case LASERS_HYPER:
                 if (laserStrength == LASERS_TWIN) {
-                    gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 192, 255, 192, 128);
+                    gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 192, 255, 192, 255);//128);
                     gDPSetEnvColor(gMasterDisp++, 64, 255, 64, 128);
                 } else {
-                    gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 128, 255, 255, 160);
+                    gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 128, 255, 255, 255);//160);
                     gDPSetEnvColor(gMasterDisp++, 128, 128, 255, 160);
                 }
                 Matrix_LoadOnly(gCalcMatrix);
@@ -1130,7 +1129,7 @@ void Display_LandmasterLaserCharge(Player* player) {
         Matrix_Scale(gGfxMatrix, 10.0f, 10.0f, 10.0f, MTXF_APPLY);
 
         RCP_SetupDL(&gMasterDisp, SETUPDL_49);
-        gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 128);
+        gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255);//128);
 
         if (gVersusMode) {
             switch (player->num) {
@@ -1264,8 +1263,10 @@ void Display_ArwingWingTrail_Draw(Player* player) {
             sp50 = 0.0f;
         }
 
-        RCP_SetupDL_64();
-        gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 100);
+//        RCP_SetupDL_64();
+        RCP_SetupDL(&gMasterDisp, SETUPDL_67);
+        gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 64,64,64,255);//255, 255, 255, 255);//100);
+        gDPSetEnvColor(gMasterDisp++,0,0,0,100);
 
         if (player->arwing.leftWingState == WINGSTATE_INTACT) {
             Matrix_Push(&gGfxMatrix);
@@ -1438,7 +1439,7 @@ void Display_Player_Update(Player* player, s32 reflectY) {
             case 0:
                 if (!gVersusMode) {
                     if ((gCurrentLevel == LEVEL_FORTUNA) || (gCurrentLevel == LEVEL_TITANIA)) {
-                        RCP_SetupDL_29(gFogRed, gFogGreen, gFogBlue, gFogAlpha, gFogNear, 1005);
+                        RCP_SetupDL_29(gFogRed, gFogGreen, gFogBlue, gFogAlpha, gFogNear, gFogFar/* 1005 */);
                     } else {
                         RCP_SetupDL_29(gFogRed, gFogGreen, gFogBlue, gFogAlpha, gFogNear, gFogFar);
                     }
@@ -1951,7 +1952,7 @@ void Display_Update(void) {
     Display_DrawHelpAlert();
     sPlayersVisible[gPlayerNum] = false;
     Matrix_Pop(&gGfxMatrix);
-
+#if 1
     gLaserStrength[0] = 2;
     gLifeCount[0] = 9;
     gBombCount[0] = 9;
@@ -1971,4 +1972,5 @@ void Display_Update(void) {
         gBackToMap = 1;
     }
     }
+#endif
 }

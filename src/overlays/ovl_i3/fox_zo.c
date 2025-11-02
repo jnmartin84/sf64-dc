@@ -8,17 +8,6 @@
 #include "assets/ast_enmy_planet.h"
 #include "assets/ast_zoness.h"
 
-
-//#define SIN_DEG(angle) sinf((M_DTOR)*(angle))
-//#define COS_DEG(angle) cosf((M_DTOR)*(angle))
-
-static void sincosdeg(float arg, float *s, float *c) {
-    float darg = M_DTOR * arg;
-    *s = sinf(darg);
-    *c = cosf(darg);
-}
-
-
 #define TRAP_ENEMY_LASERS (1000)
 
 typedef struct {
@@ -541,47 +530,47 @@ void Zoness_ZoBird_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* thisx) {
         switch (limbIndex) {
             case 0:
                 Matrix_MultVec3f(gCalcMatrix, &src, &this->vwork[0]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[11]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[11]);
                 break;
             case 1:
                 Matrix_MultVec3f(gCalcMatrix, &src, &this->vwork[1]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[12]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[12]);
                 break;
             case 2:
                 Matrix_MultVec3f(gCalcMatrix, &src, &this->vwork[2]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[13]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[13]);
                 break;
             case 3:
                 Matrix_MultVec3f(gCalcMatrix, &src, &this->vwork[3]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[14]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[14]);
                 break;
             case 4:
                 Matrix_MultVec3f(gCalcMatrix, &src, &this->vwork[4]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[15]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */&this->vwork[15]);
                 break;
             case 5:
                 Matrix_MultVec3f(gCalcMatrix, &src, &this->vwork[5]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[16]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[16]);
                 break;
             case 6:
                 Matrix_MultVec3f(gCalcMatrix, &src, &this->vwork[6]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[17]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[17]);
                 break;
             case 7:
                 Matrix_MultVec3f(gCalcMatrix, &src, &this->vwork[7]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[18]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[18]);
                 break;
             case 8:
                 Matrix_MultVec3f(gCalcMatrix, &src, &this->vwork[8]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[19]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[19]);
                 break;
             case 9:
                 Matrix_MultVec3f(gCalcMatrix, &src, &this->vwork[9]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[20]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[20]);
                 break;
             case 10:
                 Matrix_MultVec3f(gCalcMatrix, &src, &this->vwork[10]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[21]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[21]);
                 break;
         }
     }
@@ -804,15 +793,15 @@ void Zoness_ZoFish_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* thisx) {
         switch (limbIndex) {
             case 0:
                 Matrix_MultVec3f(gCalcMatrix, &sp2C, this->vwork);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[3]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */&this->vwork[3]);
                 return;
             case 1:
                 Matrix_MultVec3f(gCalcMatrix, &sp2C, &this->vwork[1]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[4]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[4]);
                 return;
             case 2:
                 Matrix_MultVec3f(gCalcMatrix, &sp2C, &this->vwork[2]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[5]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[5]);
                 break;
         }
     }
@@ -1109,27 +1098,27 @@ void Zoness_ZoTroika_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* thisx) {
         switch (limbIndex) {
             case 1:
                 Matrix_MultVec3f(gCalcMatrix, &sp24, &this->vwork[0]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[6]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[6]);
                 break;
             case 2:
                 Matrix_MultVec3f(gCalcMatrix, &sp24, &this->vwork[1]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[7]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[7]);
                 break;
             case 3:
                 Matrix_MultVec3f(gCalcMatrix, &sp24, &this->vwork[2]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[8]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[8]);
                 break;
             case 4:
                 Matrix_MultVec3f(gCalcMatrix, &sp24, &this->vwork[3]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[9]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[9]);
                 break;
             case 8:
                 Matrix_MultVec3f(gCalcMatrix, &sp24, &this->vwork[4]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[10]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[10]);
                 break;
             case 9:
                 Matrix_MultVec3f(gCalcMatrix, &sp24, &this->vwork[5]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[11]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[11]);
                 break;
         }
     }
@@ -1285,23 +1274,23 @@ void Zoness_ZoShrimp_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* thisx) {
         switch (limbIndex) {
             case 1:
                 Matrix_MultVec3f(gCalcMatrix, &sp24, this->vwork);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[5]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[5]);
                 return;
             case 2:
                 Matrix_MultVec3f(gCalcMatrix, &sp24, &this->vwork[1]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[6]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[6]);
                 return;
             case 3:
                 Matrix_MultVec3f(gCalcMatrix, &sp24, &this->vwork[2]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[7]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */&this->vwork[7]);
                 return;
             case 4:
                 Matrix_MultVec3f(gCalcMatrix, &sp24, &this->vwork[3]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[8]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[8]);
                 return;
             case 5:
                 Matrix_MultVec3f(gCalcMatrix, &sp24, &this->vwork[4]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[9]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[9]);
                 break;
         }
     }
@@ -1402,39 +1391,39 @@ void Zoness_ZoObnema_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* thisx) {
         switch (limbIndex) {
             case 1:
                 Matrix_MultVec3f(gCalcMatrix, &sp24, &this->vwork[0]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[9]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[9]);
                 return;
             case 2:
                 Matrix_MultVec3f(gCalcMatrix, &sp24, &this->vwork[1]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[10]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[10]);
                 return;
             case 3:
                 Matrix_MultVec3f(gCalcMatrix, &sp24, &this->vwork[2]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[11]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[11]);
                 return;
             case 4:
                 Matrix_MultVec3f(gCalcMatrix, &sp24, &this->vwork[3]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[12]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[12]);
                 return;
             case 5:
                 Matrix_MultVec3f(gCalcMatrix, &sp24, &this->vwork[4]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[13]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[13]);
                 return;
             case 6:
                 Matrix_MultVec3f(gCalcMatrix, &sp24, &this->vwork[5]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[14]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[14]);
                 return;
             case 7:
                 Matrix_MultVec3f(gCalcMatrix, &sp24, &this->vwork[6]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[15]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[15]);
                 return;
             case 8:
                 Matrix_MultVec3f(gCalcMatrix, &sp24, &this->vwork[7]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[16]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[16]);
                 return;
             case 13:
                 Matrix_MultVec3f(gCalcMatrix, &sp24, &this->vwork[8]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[17]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[17]);
                 break;
         }
     }
@@ -3937,7 +3926,9 @@ void Zoness_ZoSpikeBall_Update(ZoSpikeBall* this) {
                 this->timer_0BC = 40;
                 sZoFwork[ZO_BSF_74] = sZoFwork[ZO_BSF_75] = 0.0f;
                 sZoSwork[ZO_BSS_19] = 1;
-                sZoSwork[ZO_BSS_20] = this->iwork[0] = sZoSwork[ZO_BSS_20] = 0;
+                // warning: operation on ‘sZoSwork[20]’ may be undefined [-Wsequence-point]
+                //sZoSwork[ZO_BSS_20] = this->iwork[0] = sZoSwork[ZO_BSS_20] = 0;
+                sZoSwork[ZO_BSS_20] = this->iwork[0] = 0;
             }
             break;
     }
@@ -3964,7 +3955,7 @@ void Zoness_ZoSpikeBall_Update(ZoSpikeBall* this) {
 
 
 void __attribute__((noinline)) do_the_rest(ZoSpikeBall *this) {
-        Matrix_Pop(&gGfxMatrix);
+    Matrix_Pop(&gGfxMatrix);
     Matrix_Push(&gGfxMatrix);
     Matrix_Translate(gGfxMatrix, this->obj.pos.x, this->obj.pos.y, this->obj.pos.z + gPathProgress, MTXF_APPLY);
     Matrix_RotateY(gGfxMatrix, this->obj.rot.y * M_DTOR, MTXF_APPLY);
@@ -4277,27 +4268,27 @@ void Zoness_ZoContainer_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* thisx) {
         switch (limbIndex) {
             case 1:
                 Matrix_MultVec3f(gCalcMatrix, &sp24, &this->vwork[0]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[6]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[6]);
                 break;
             case 2:
                 Matrix_MultVec3f(gCalcMatrix, &sp24, &this->vwork[1]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[7]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[7]);
                 break;
             case 3:
                 Matrix_MultVec3f(gCalcMatrix, &sp24, &this->vwork[2]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[8]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[8]);
                 break;
             case 4:
                 Matrix_MultVec3f(gCalcMatrix, &sp24, &this->vwork[3]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[9]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[9]);
                 break;
             case 5:
                 Matrix_MultVec3f(gCalcMatrix, &sp24, &this->vwork[4]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[10]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[10]);
                 break;
             case 6:
                 Matrix_MultVec3f(gCalcMatrix, &sp24, &this->vwork[5]);
-                Matrix_GetYPRAngles(gCalcMatrix, &this->vwork[11]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &this->vwork[11]);
                 break;
         }
     }

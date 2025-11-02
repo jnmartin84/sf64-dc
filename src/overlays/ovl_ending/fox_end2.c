@@ -33,12 +33,12 @@ void Ending_8018CE20(u32 arg0) {
 
                 if ((D_ending_80192E74[i].unk_11 == 0) || (gVenomHardClear == 1)) {
                     if (D_ending_80192E74[i].unk_10 == 1) {
-                        xPos = (SCREEN_WIDTH - Graphics_GetLargeTextWidth(D_ending_80192E74[i].unk_00)) / 2;
+                        xPos = (SCREEN_WIDTH - Graphics_GetLargeTextWidth((char *)D_ending_80192E74[i].unk_00)) / 2;
                         RCP_SetupDL(&gMasterDisp, SETUPDL_83);
                         gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
                         gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, alpha);
                         Graphics_DisplayLargeText(xPos, D_ending_80192E74[i].unk_0E, 1.0f, 1.0f,
-                                                  D_ending_80192E74[i].unk_00);
+                                                  (char *)D_ending_80192E74[i].unk_00);
 
                     } else if (D_ending_80192E74[i].unk_10 == 2) {
                         RCP_SetupDL(&gMasterDisp, SETUPDL_83);
@@ -57,12 +57,12 @@ void Ending_8018CE20(u32 arg0) {
                         Lib_TextureRect_IA8(&gMasterDisp, D_ending_80192E74[i].unk_00 + 192 * 5 * 5, 192, 5, 64.0f,
                                             130.0f, 1.0f, 1.0f);
                     } else {
-                        xPos = (320 - Graphics_GetSmallTextWidth(D_ending_80192E74[i].unk_00)) / 2;
+                        xPos = (320 - Graphics_GetSmallTextWidth((char *)D_ending_80192E74[i].unk_00)) / 2;
                         RCP_SetupDL(&gMasterDisp, SETUPDL_83);
                         gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
                         gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 155, 155, alpha);
                         Graphics_DisplaySmallText(xPos, D_ending_80192E74[i].unk_0E, 1.0f, 1.0f,
-                                                  D_ending_80192E74[i].unk_00);
+                                                  (char *)D_ending_80192E74[i].unk_00);
                     }
                 }
             }
@@ -80,7 +80,7 @@ void Ending_8018D28C(s32 arg0, AssetInfo* asset) {
     gStarfieldScrollX += asset->unk_18.x;
     gStarfieldScrollY += asset->unk_18.y;
 }
-
+extern int force_screen_fill_colors;
 void Ending_8018D2C8(u32 arg0, AssetInfo* asset) {
     u8 alpha = 255;
 
@@ -91,12 +91,14 @@ void Ending_8018D2C8(u32 arg0, AssetInfo* asset) {
     if ((asset->unk_0C + asset->unk_10 - asset->fogFar) < arg0) {
         alpha = (asset->unk_0C + asset->unk_10 - arg0 - 1) * 255 / asset->fogFar;
     }
-
-    gFillScreenRed = asset->prim.r;
+/* if (!force_screen_fill_colors) {
+ */    gFillScreenRed = asset->prim.r;
     gFillScreenGreen = asset->prim.g;
     gFillScreenBlue = asset->prim.b;
-
-    gFillScreenAlpha = gFillScreenAlphaTarget = alpha;
+/* } else {
+    gFillScreenRed = gFillScreenGreen = gFillScreenBlue = 0;
+}
+ */    gFillScreenAlpha = gFillScreenAlphaTarget = alpha;
     gFillScreenAlphaStep = 0;
 }
 
@@ -143,12 +145,15 @@ void Ending_8018D638(u32 arg0, AssetInfo* asset) {
     if ((asset->unk_0C + asset->fogFar) > arg0) {
         alpha = (asset->unk_0C + asset->fogFar - arg0) * 255 / asset->fogFar;
     }
+/* if (!force_screen_fill_colors) {
 
-    gFillScreenRed = asset->prim.r;
+ */    gFillScreenRed = asset->prim.r;
     gFillScreenGreen = asset->prim.g;
     gFillScreenBlue = asset->prim.b;
-
-    gFillScreenAlpha = gFillScreenAlphaTarget = alpha;
+/* } else {
+    gFillScreenRed = gFillScreenGreen = gFillScreenBlue = 0;
+}
+ */    gFillScreenAlpha = gFillScreenAlphaTarget = alpha;
     gFillScreenAlphaStep = 0;
 
     RCP_SetupDL(&gMasterDisp, SETUPDL_83);
@@ -676,6 +681,13 @@ void Ending_80190274(u32 arg0, AssetInfo* asset) {
 
     gSPDisplayList(gMasterDisp++, aEndCorneriaDL);
 }
+#define gSPFixDepthCut2(pkt)                                       \
+    {                                                                                   \
+        Gfx* _g = (Gfx*) (pkt);                                                         \
+                                                                                        \
+        _g->words.w0 = 0x424C4E44; \
+        _g->words.w1 = 0x46664369;                                           \
+    }
 
 void Ending_80190648(s32 arg0, AssetInfo* asset) {
     RCP_SetupDL(&gMasterDisp, asset->unk_08);
@@ -688,7 +700,9 @@ void Ending_80190648(s32 arg0, AssetInfo* asset) {
     Matrix_Scale(gGfxMatrix, asset->unk_30.x, asset->unk_30.y, asset->unk_30.z, MTXF_APPLY);
 
     Matrix_SetGfxMtx(&gMasterDisp);
+    gSPFixDepthCut2(gMasterDisp++);
     gSPDisplayList(gMasterDisp++, aEndVenomDL);
+    gSPFixDepthCut2(gMasterDisp++);
 }
 
 void Ending_80190778(u32 arg0, AssetInfo* asset) {
@@ -883,6 +897,15 @@ void Ending_80191294(u32 arg0, AssetInfo* asset) {
 void Ending_80191700(u32 arg0, AssetInfo* asset) {
 }
 
+#define gSPFixDepthCut(pkt)                                       \
+    {                                                                                   \
+        Gfx* _g = (Gfx*) (pkt);                                                         \
+                                                                                        \
+        _g->words.w0 = 0x424C4E44; \
+        _g->words.w1 = 0x46554369;                                           \
+    }
+
+
 void Ending_80191710(u32 arg0, AssetInfo* asset) {
     f32 temp;
 
@@ -944,13 +967,21 @@ void Ending_80191710(u32 arg0, AssetInfo* asset) {
 #endif
         //gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 140);
        gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK);
-    } /* else if (asset->unk_00 == aEndBackdrop2DL) {
-        Matrix_Translate(gGfxMatrix, 0,
+    }  else if (asset->unk_00 == aEndBackdrop2DL) {
+      /*   Matrix_Translate(gGfxMatrix, 0,
                      0,
                      -1000, MTXF_APPLY);
-    Matrix_SetGfxMtx(&gMasterDisp);
-    } */
+    Matrix_SetGfxMtx(&gMasterDisp); */
+    gSPFixDepthCut(gMasterDisp++);
+    } 
     gSPDisplayList(gMasterDisp++, asset->unk_00);
+    if (asset->unk_00 == aEndBackdrop2DL) {
+      /*   Matrix_Translate(gGfxMatrix, 0,
+                     0,
+                     -1000, MTXF_APPLY);
+    Matrix_SetGfxMtx(&gMasterDisp); */
+    gSPFixDepthCut(gMasterDisp++);
+    } 
 }
 
 void Ending_80191C58(u32 arg0, AssetInfo* asset) {
@@ -1031,7 +1062,7 @@ void Ending_80192290(u32 arg0, UnkEnd54* unkEnd54) {
 
 void Ending_8019237C(u32 arg0, UnkEnd54* unkEnd54) {
     s32 i;
-    s32 j;
+    s32 j = 0;
 
     for (i = 0; i < arg0 - unkEnd54->unk_00; i++) {
         if (i < unkEnd54->unk_04 * 1 / 4) {

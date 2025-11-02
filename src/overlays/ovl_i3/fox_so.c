@@ -980,7 +980,7 @@ void Solar_801A0D90(f32 xPos, f32 zPos, f32 zVel, s32 unkB8) {
 }
 
 void Solar_801A0DF8(f32 xPos, f32 zPos, f32 yRot, s32 index, f32 yPos) {
-    s32 actorIndex;
+    s32 actorIndex = 0;
 
     switch (index) {
         case 0:
@@ -2587,7 +2587,7 @@ void Solar_SoVulkain_Update(SoVulkain* this) {
     f32 sp1C8;
     f32 sp1C4;
     f32 sp1C0;
-    s32 sp1BC;
+    s32 sp1BC = 0;
     s32 sp1B8;
     Vec3f frameTable[30];
     Vec3f src;
@@ -2946,7 +2946,7 @@ void Solar_SoVulkain_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* thisx) {
                 this->fwork[SO_FWK_28] = sp28.x;
                 this->fwork[SO_FWK_29] = sp28.y;
                 this->fwork[SO_FWK_30] = sp28.z;
-                Matrix_GetYPRAngles(gCalcMatrix, (Vec3f*) &this->fwork[SO_FWK_41]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix,  */(Vec3f*) &this->fwork[SO_FWK_41]);
             }
             break;
 
@@ -2962,7 +2962,7 @@ void Solar_SoVulkain_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* thisx) {
                 this->fwork[SO_FWK_22] = sp28.x;
                 this->fwork[SO_FWK_23] = sp28.y;
                 this->fwork[SO_FWK_24] = sp28.z;
-                Matrix_GetYPRAngles(gCalcMatrix, (Vec3f*) &this->fwork[SO_FWK_47]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ (Vec3f*) &this->fwork[SO_FWK_47]);
             }
             break;
 
@@ -2972,7 +2972,7 @@ void Solar_SoVulkain_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* thisx) {
                 this->fwork[SO_FWK_10] = sp28.x;
                 this->fwork[SO_FWK_11] = sp28.y;
                 this->fwork[SO_FWK_12] = sp28.z;
-                Matrix_GetYPRAngles(gCalcMatrix, (Vec3f*) &this->fwork[SO_FWK_35]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ (Vec3f*) &this->fwork[SO_FWK_35]);
             } else {
                 if (gBosses[0].swork[SO_SWK_0] != 7) {
                     Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &sp64, &sp28);
@@ -2997,7 +2997,7 @@ void Solar_SoVulkain_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* thisx) {
                 this->fwork[SO_FWK_13] = sp28.x;
                 this->fwork[SO_FWK_14] = sp28.y;
                 this->fwork[SO_FWK_15] = sp28.z;
-                Matrix_GetYPRAngles(gCalcMatrix, (Vec3f*) &this->fwork[SO_FWK_38]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ (Vec3f*) &this->fwork[SO_FWK_38]);
             }
             if (this->swork[SO_SWK_3] < 0) {
                 Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &sp34, &sp28);
@@ -3019,7 +3019,7 @@ void Solar_SoVulkain_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* thisx) {
                 this->fwork[SO_FWK_19] = sp28.x;
                 this->fwork[SO_FWK_20] = sp28.y;
                 this->fwork[SO_FWK_21] = sp28.z;
-                Matrix_GetYPRAngles(gCalcMatrix, (Vec3f*) &this->fwork[SO_FWK_44]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ (Vec3f*) &this->fwork[SO_FWK_44]);
             }
             break;
 
@@ -3029,7 +3029,7 @@ void Solar_SoVulkain_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* thisx) {
                 this->fwork[SO_FWK_7] = sp28.x;
                 this->fwork[SO_FWK_8] = sp28.y;
                 this->fwork[SO_FWK_9] = sp28.z;
-                Matrix_GetYPRAngles(gCalcMatrix, (Vec3f*) &this->fwork[SO_FWK_32]);
+                Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ (Vec3f*) &this->fwork[SO_FWK_32]);
             } else {
                 if (gBosses[0].swork[SO_SWK_0] != 7) {
                     Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &sp58, &sp28);

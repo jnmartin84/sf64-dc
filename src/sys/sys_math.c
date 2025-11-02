@@ -24,15 +24,29 @@ void Rand_Init(void) {
 #define recip30323 0.00003298f
 
 f32 Rand_ZeroOne(void) {
-    if ((sRandSeed1 + sRandSeed2 + sRandSeed3) == 0){
-        Rand_Init();
-    }
-    
-    sRandSeed1 = (sRandSeed1 * 171) % 30269;
-    sRandSeed2 = (sRandSeed2 * 172) % 30307;
-    sRandSeed3 = (sRandSeed3 * 170) % 30323;
+//    if ((sRandSeed1 + sRandSeed2 + sRandSeed3) == 0){
+//        Rand_Init();
+//    }
+//    sRandSeed1 = (sRandSeed1 * 171) % 30269;
+//    sRandSeed2 = (sRandSeed2 * 172) % 30307;
+//    sRandSeed3 = (sRandSeed3 * 170) % 30323;
+    const float f30269 = 30269.0f;
+    const float f30307 = 30307.0f;
+    const float f30323 = 30323.0f;
 
-    return fabsf(Math_ModF(((float)sRandSeed1 * recip30269) + ((float)sRandSeed2 * recip30307) + ((float)sRandSeed3 * recip30323), 1.0f));
+    f32 sr1 = (float)sRandSeed1;
+    f32 sr2 = (float)sRandSeed2;
+    f32 sr3 = (float)sRandSeed3;
+
+    sr1 = Math_ModF((sr1 * 171.0f), f30269);
+    sr2 = Math_ModF((sr2 * 172.0f), f30307);
+    sr3 = Math_ModF((sr3 * 170.0f), f30323);
+
+    sRandSeed1 = (s32)sr1;
+    sRandSeed2 = (s32)sr2;
+    sRandSeed3 = (s32)sr3;
+
+    return fabsf(Math_ModF(shz_divf(sr1, f30269) + shz_divf(sr2, f30307) + shz_divf(sr3, f30323), 1.0f));
 }
 
 void Rand_SetSeed(s32 seed1, s32 seed2, s32 seed3) {
@@ -42,12 +56,31 @@ void Rand_SetSeed(s32 seed1, s32 seed2, s32 seed3) {
 }
 
 f32 Rand_ZeroOneSeeded(void) {
+#if 0
     sSeededRandSeed1 = (sSeededRandSeed1 * 171) % 30269;
     sSeededRandSeed2 = (sSeededRandSeed2 * 172) % 30307;
     sSeededRandSeed3 = (sSeededRandSeed3 * 170) % 30323;
 
     return fabsf(
         Math_ModF(((float)sSeededRandSeed1 * recip30269) + ((float)sSeededRandSeed2 * recip30307) + ((float)sSeededRandSeed3 * recip30323), 1.0f));
+#endif
+    const float f30269 = 30269.0f;
+    const float f30307 = 30307.0f;
+    const float f30323 = 30323.0f;
+
+    f32 sr1 = (float)sSeededRandSeed1;
+    f32 sr2 = (float)sSeededRandSeed2;
+    f32 sr3 = (float)sSeededRandSeed3;
+
+    sr1 = Math_ModF((sr1 * 171.0f), f30269);
+    sr2 = Math_ModF((sr2 * 172.0f), f30307);
+    sr3 = Math_ModF((sr3 * 170.0f), f30323);
+
+    sSeededRandSeed1 = (s32)sr1;
+    sSeededRandSeed2 = (s32)sr2;
+    sSeededRandSeed3 = (s32)sr3;
+
+    return fabsf(Math_ModF(shz_divf(sr1, f30269) + shz_divf(sr2, f30307) + shz_divf(sr3, f30323), 1.0f));
 }
 
 #define F_PI_2      1.57079633f   /* pi/2           */
@@ -62,11 +95,13 @@ f32 Rand_ZeroOneSeeded(void) {
 // copysignf has a branch but penalty-free
 f32 Math_Atan2F(f32 y, f32 x) {
 #if 1
-    if (y == 0.0f && x == 0.0f)
+    if (y == 0.0f && x == 0.0f) {
         return 0.0f;
+    }
 
-	float abs_y = fabsf(y) + 1e-10f;
+    float abs_y = fabsf(y);
 	float absy_plus_absx = abs_y + fabsf(x);
+    if (absy_plus_absx == 0) absy_plus_absx = 0.000001f;
 	float inv_absy_plus_absx = shz_fast_invf(absy_plus_absx);
 	float angle = F_PI_2 - copysignf(F_PI_4, x);
 	float r = (x - copysignf(abs_y, x)) * inv_absy_plus_absx;
@@ -100,18 +135,10 @@ f32 Math_Atan2F(f32 y, f32 x) {
 }
 
 f32 Math_Atan2F_XY(f32 x, f32 y) {
-    float recipy = shz_fast_invf(y);
-
+    return Math_Atan2F(x,y);
+#if 0
     if ((x == 0.0f) && (y == 0.0f)) {
         return 0.0f;
-    }
-
-    if (x == 0.0f) {
-        if (y < 0.0f) {
-            return -F_PI_2;
-        } else {
-            return F_PI_2;
-        }
     }
 
     if (y == 0.0f) {
@@ -122,15 +149,26 @@ f32 Math_Atan2F_XY(f32 x, f32 y) {
         }
     }
 
+    if (x == 0.0f) {
+        if (y < 0.0f) {
+            return -F_PI_2;
+        } else {
+            return F_PI_2;
+        }
+    }
+
+    float recipy = shz_fast_invf(y);
+
     if (x < 0.0f) {
         if (y < 0.0f) {
-            return -(F_PI - Math_FAtanF(fabsf(x * recipy /* / y */)));
+            return -(F_PI - Math_FAtanF(fabsf(x * recipy)));
         } else {
             return F_PI - Math_FAtanF(fabsf(x * recipy));
         }
     } else {
-        return Math_FAtanF(x *recipy);//// y);
+        return Math_FAtanF(x *recipy);
     }
+#endif
 }
 
 f32 Math_Atan2F_XYAlt(f32 x, f32 y) {

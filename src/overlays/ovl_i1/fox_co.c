@@ -1210,7 +1210,7 @@ void Corneria_CoGranga_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* data) {
         sCoGrangaWork[limbIndex + 22] = sp74.y;
         sCoGrangaWork[limbIndex + 28] = sp74.z;
 
-        Matrix_GetYPRAngles(gCalcMatrix, &sp74);
+        Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &sp74);
 
         sCoGrangaWork[limbIndex + 34] = sp74.x;
         sCoGrangaWork[limbIndex + 40] = sp74.y;

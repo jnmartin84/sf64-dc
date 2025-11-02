@@ -1884,7 +1884,21 @@ void Option_Data_Update(void) {
                         if (temp_fv0 == 0.0f) {
                             D_menu_801B91CC = 3;
 
-                            gSaveFile = *(SaveFile*) &gDefaultSave;
+#if 0
+                            src/overlays/ovl_menu/fox_option.c: In function ‘Option_Data_Update’:
+src/overlays/ovl_menu/fox_option.c:1887:41: warning: array subscript ‘struct SaveFile[0]’ is partly outside array bounds of ‘struct Save[1]’ [-Warray-bounds=]
+ 1887 |                             gSaveFile = *(SaveFile*) &gDefaultSave;
+      |                                         ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from include/n64sys.h:23,
+                 from include/global.h:4,
+                 from src/overlays/ovl_menu/fox_option.c:9:
+include/sf64save.h:79:13: note: object ‘gDefaultSave’ of size 256
+   79 | extern Save gDefaultSave;
+      |             ^~~~~~~~~~~~
+
+//                            gSaveFile = *(SaveFile*) &gDefaultSave;
+#endif
+                            memcpy(&gSaveFile, &gDefaultSave, sizeof(gDefaultSave));
 
                             Save_Write();
 
@@ -4305,7 +4319,9 @@ void Option_3DFont_Draw(s32 character, f32 x, f32 y, f32 z, f32 scale, f32 xAngl
     s32 i;
     s32 charIndex = -1;
 
-    for (i = 0; sCharMap[i] != NULL; i++) {
+    // src/overlays/ovl_menu/fox_option.c:4308:29: warning: comparison between pointer and integer
+    // 4308 |     for (i = 0; sCharMap[i] != NULL; i++) {
+    for (i = 0; sCharMap[i] != '\0'; i++) {
         if (character == sCharMap[i]) {
             charIndex = i;
             break;

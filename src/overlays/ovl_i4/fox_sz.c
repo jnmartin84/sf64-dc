@@ -1856,7 +1856,7 @@ void SectorZ_SzGreatFox_Update(SzGreatFox* this) {
 }
 
 void SectorZ_SzGreatFox_Draw(SzGreatFox* this) {
-    gSPFogPosition(gMasterDisp++, gFogNear, 1005);
+    gSPFogPosition(gMasterDisp++, gFogNear, gFogFar);//1005);
     Cutscene_DrawGreatFox();
 }
 

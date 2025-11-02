@@ -6,14 +6,6 @@
 #define MTXF_NEW 0
 #define MTXF_APPLY 1
 
-typedef struct Vec4f {
-    /* 0x0 */ f32 x;
-    /* 0x4 */ f32 y;
-    /* 0x8 */ f32 z;
-    /* 0x8 */ f32 w;
-} Vec4f; // size = 0x10
-
-
 typedef struct Vec3f {
     /* 0x0 */ f32 x;
     /* 0x4 */ f32 y;
@@ -125,9 +117,9 @@ void __attribute__((noinline))  Matrix_RotateAxis(Matrix* mtx, f32 angle, f32 ax
 // Converts the current Gfx matrix to a Mtx
 void __attribute__((noinline))  Matrix_ToMtx(Mtx* dest);
 
-void Matrix_LoadOnly(Matrix* mtx);
-void Matrix_MultVec3f_NoLoad(Vec3f* src, Vec3f* dest);
-void Matrix_MultVec3fNoTranslate_NoLoad(Vec3f* src, Vec3f* dest);
+void __attribute__((noinline))  Matrix_LoadOnly(Matrix* mtx);
+void __attribute__((noinline))  Matrix_MultVec3f_NoLoad(Vec3f* src, Vec3f* dest);
+void __attribute__((noinline))  Matrix_MultVec3fNoTranslate_NoLoad(Vec3f* src, Vec3f* dest);
 // Applies the transform matrix mtx to the vector src, putting the result in dest
 void __attribute__((noinline))  Matrix_MultVec3f(Matrix* mtx, Vec3f* src, Vec3f* dest);
 
@@ -138,10 +130,13 @@ void __attribute__((noinline))  Matrix_MultVec3fNoTranslate(Matrix* mtx, Vec3f* 
 // Expresses the rotational part of the transform mtx as Tait-Bryan angles, in the yaw-pitch-roll (intrinsic YXZ)
 // convention used in worldspace calculations
 void __attribute__((noinline))  Matrix_GetYPRAngles(Matrix* mtx, Vec3f* rot);
+void __attribute__((noinline))  Matrix_GetYPRAngles_NoLoad(Vec3f* rot);
 
+#if 0
 // Expresses the rotational part of the transform mtx as Tait-Bryan angles, in the extrinsic XYZ convention used in
 // modelspace calculations
 void  __attribute__((noinline)) Matrix_GetXYZAngles(Matrix* mtx, Vec3f* rot);
+#endif
 
 // Creates a look-at matrix from Eye, At, and Up in mtx (MTXF_NEW) or applies one to mtx (MTXF_APPLY).
 // A look-at matrix is a rotation-translation matrix that maps y to Up, z to (At - Eye), and translates to Eye

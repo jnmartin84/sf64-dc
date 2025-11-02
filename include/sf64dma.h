@@ -77,7 +77,6 @@
 #define NO_OVERLAY { NO_SEGMENT, NO_SEGMENT, NO_SEGMENT, NO_SEGMENT }
 
 u8 Load_SceneSetup(u8 sceneId, u8 sceneSetup);
-void Load_InitDmaAndMsg(void);
 
 typedef struct {
     /* 0x0 */ void* start;

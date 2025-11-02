@@ -601,7 +601,7 @@ void Katina_KaFrontlineBase_Update(KaFrontlineBase* this) {
 }
 
 void Katina_KaFrontlineBase_Draw(KaFrontlineBase* this) {
-    gSPFogPosition(gMasterDisp++, gFogNear, 1002);
+    gSPFogPosition(gMasterDisp++, gFogNear, gFogFar/* 1002 */);
     Matrix_Translate(gGfxMatrix, 0.0f, 20.0f, 0.0f, MTXF_APPLY);
     Matrix_SetGfxMtx(&gMasterDisp);
 
@@ -1659,11 +1659,11 @@ void Katina_KaSaucerer_Draw(KaSaucerer* this) {
     Vec3f jointTable[30];
 
     if (this->state != 0) {
-        if (this->state < 20) {
-            gSPFogPosition(gMasterDisp++, gFogNear, 1002);
-        } else {
-            gSPFogPosition(gMasterDisp++, gFogNear, 1006);
-        }
+//        if (this->state < 20) {
+            gSPFogPosition(gMasterDisp++, gFogNear, gFogFar/* 1002 */);
+  //      } else {
+    //        gSPFogPosition(gMasterDisp++, gFogNear, 1006);
+      //  }
 
         Matrix_RotateY(gGfxMatrix, this->fwork[BOSS_FWORK_13] * M_DTOR, MTXF_APPLY);
 
@@ -2671,7 +2671,7 @@ void Katina_EnemyDraw(ActorAllRange* this) {
     }
 
     if ((this->timer_0C6 % 2) == 0) {
-        gSPFogPosition(gMasterDisp++, gFogNear, 1005);
+        gSPFogPosition(gMasterDisp++, gFogNear, gFogFar);// 1005);
     }
 
     switch (this->animFrame) {

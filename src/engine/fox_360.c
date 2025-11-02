@@ -598,7 +598,9 @@ void ActorAllRange_ChooseNewTarget(ActorAllRange* this) {
         if ((enemy->obj.status == OBJ_ACTIVE) && (enemy->obj.id == OBJ_ACTOR_ALLRANGE) && (enemy->animFrame == 0) &&
             (enemy->aiIndex <= -1)) {
             alreadyTaken = false;
-            for (teamId = AI360_FALCO, team = &gActors[AI360_FALCO]; teamId <= AI360_PEPPY; teamId++, team++) {
+//src/engine/fox_360.c:601:77: warning: comparison between ‘TeamId’ and ‘enum AllRangeAi’ [-Wenum-compare]
+//  601 |             for (teamId = AI360_FALCO, team = &gActors[AI360_FALCO]; teamId <= AI360_PEPPY; teamId++, team++) {
+            for (teamId = AI360_FALCO, team = &gActors[AI360_FALCO]; (int)teamId <= (int)AI360_PEPPY; teamId++, team++) {
                 if ((teamId != this->index) && (enemyId == team->aiIndex)) {
                     alreadyTaken = true;
                 }
@@ -2347,7 +2349,6 @@ void ActorAllRange_DrawShield(ActorAllRange* this) {
         Matrix_Pop(&gGfxMatrix);
     }
 }
-#define F_PI        3.14159265f   /* pi             */
 
 void ActorAllRange_DrawBarrelRoll(ActorAllRange* this) {
     s32 alpha;
@@ -2415,7 +2416,7 @@ void ActorAllRange_Draw(ActorAllRange* this) {
 
         if ((this->timer_0C6 % 2) == 0) {
             RCP_SetupDL(&gMasterDisp, SETUPDL_29);
-            gSPFogPosition(gMasterDisp++, gFogNear, 1005);
+            gSPFogPosition(gMasterDisp++, gFogNear, gFogFar/* 1005 */);
         }
 
         switch (this->aiType) {

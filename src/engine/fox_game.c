@@ -70,7 +70,6 @@ void Game_Initialize(void) {
     gNextVsViewScale = gVsViewScale = 0.0f;
     gSceneId = SCENE_LOGO;
     gSceneSetup = 0;
-    Load_InitDmaAndMsg();
     gGameStandby = 1;
 }
 
@@ -161,6 +160,7 @@ s32 Game_ChangeScene(void) {
 void capture_framebuffer(int num);
 
 extern uint8_t scaled2[];
+extern int force_screen_fill_colors;
 
 void Game_InitMasterDL(Gfx** dList) {
 
@@ -188,8 +188,13 @@ void Game_InitMasterDL(Gfx** dList) {
         gDPSetPrimColor((*dList)++, 0x00, 0x00, RGBA16_RED(gBgColor) * 8, RGBA16_GRN(gBgColor) * 8,
                         RGBA16_BLU(gBgColor) * 8, gBlurAlpha);
     } else {
-        gDPSetFillColor((*dList)++, FILL_COLOR(gBgColor | 1));
-gSPFixDepthCut((*dList)++);
+        if (!force_screen_fill_colors){
+            gDPSetFillColor((*dList)++, FILL_COLOR(gBgColor | 1));}
+        else{
+            gDPSetFillColor((*dList)++, FILL_COLOR(0x0001));
+}
+
+            gSPFixDepthCut((*dList)++);
    gDPFillRectangle((*dList)++, SCREEN_MARGIN, SCREEN_MARGIN, SCREEN_WIDTH - SCREEN_MARGIN - 1,
                      (SCREEN_HEIGHT - SCREEN_MARGIN) - 1 );
 gSPFixDepthCut((*dList)++);

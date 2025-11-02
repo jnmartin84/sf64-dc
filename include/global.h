@@ -52,9 +52,11 @@ typedef enum OverlayCalls {
 #define F_PI        3.1415926f   /* pi             */
 #endif
 
-#define M_DTOR	0.01745329f
+#define M_DTOR (F_PI / 180.0f)
+//	0.01745329f
 //(F_PI / 180.0f)
-#define M_RTOD	57.29577951f
+#define M_RTOD	(180.0f / F_PI)
+//57.29577951f
 //(180.0f / F_PI)
 
 #endif // GLOBAL_H

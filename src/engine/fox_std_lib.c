@@ -156,7 +156,7 @@ void Animation_DrawLimb(s32 mode, Limb* limb, Limb** skeleton, Vec3f* jointTable
     Vec3f trans;// = { 0.0f, 0.0f, 0.0f };
     Vec3f rot;// = { 0.0f, 0.0f, 0.0f };
     Vec3f pos;// = { 0.0f, 0.0f, 0.0f };
-    Vec3f origin;// = { 0.0f, 0.0f, 0.0f };
+    Vec3f origin = { 0.0f, 0.0f, 0.0f };
 
     Matrix_Push(&gCalcMatrix);
 
@@ -369,6 +369,7 @@ void Animation_GetDListBoundingBox(Gfx* dList, s32 len, Vec3f* min, Vec3f* max) 
     Animation_FindBoundingBox(dList, len, min, max, &vtxFound, &vtxCount, &vtxList);
 }
 
+#if 0
 void Animation_GetSkeletonBoundingBox(Limb** skeletonSegment, Animation* animationSegment, s32 frame, Vec3f* min,
                                       Vec3f* max) {
     JointKey* key;
@@ -432,12 +433,52 @@ void Animation_GetSkeletonBoundingBox(Limb** skeletonSegment, Animation* animati
         }
     }
 }
+#endif
 
 f32 Math_SmoothStepToF(f32* value, f32 target, f32 scale, f32 maxStep, f32 minStep) {
     f32 val = *value;
     f32 step = target - val;
-    
+
+    if (step == 0.0f) {
+        return 0.0f;
+    }
+
+    step *= scale;
+    if ((step >= minStep) || (-minStep >= step)) {
+        if (step > maxStep) {
+            step = maxStep;
+        } else if (step < -maxStep) {
+            step = -maxStep;
+        }
+        val += step;
+    } else if (step < minStep) { // bug? should check sign, not size.
+        step = minStep;
+        val += step;
+        if (val > target) {
+            val = target;
+        }
+    } else if (step > -minStep) {
+        step = -minStep;
+        val += step;
+        if (val < target) {
+            val = target;
+        }
+    }
+    *value = val;
+
+    return step;
+}
+
+f32 Math_SmoothStepToAngle(f32* angle, f32 target, f32 scale, f32 maxStep, f32 minStep) {
+    f32 ang = *angle;
+    f32 step = target - ang;
+
     if (step != 0.0f) {
+        if (step > 180.0f) {
+            step -= 360.0f;
+        } else if (step < -180.0f) {
+            step += 360.0f;
+        }
         step *= scale;
         if ((step >= minStep) || (-minStep >= step)) {
             if (step > maxStep) {
@@ -445,53 +486,16 @@ f32 Math_SmoothStepToF(f32* value, f32 target, f32 scale, f32 maxStep, f32 minSt
             } else if (step < -maxStep) {
                 step = -maxStep;
             }
-            val += step;
+            ang += step;
         } else if (step < minStep) { // bug? should check sign, not size.
             step = minStep;
-            val += step;
-            if (val > target) {
-                val = target;
-            }
-        } else if (step > -minStep) {
-            step = -minStep;
-            val += step;
-            if (val < target) {
-                val = target;
-            }
-        }
-        *value = val;
-    }
-    *value = val;
-    return step;
-}
-
-f32 Math_SmoothStepToAngle(f32* angle, f32 target, f32 scale, f32 maxStep, f32 minStep) {
-    f32 ang = *angle;
-    f32 var_fv1 = target - ang;
-
-    if (var_fv1 != 0.0f) {
-        if (var_fv1 > 180.0f) {
-            var_fv1 -= 360.0f;
-        } else if (var_fv1 < -180.0f) {
-            var_fv1 += 360.0f;
-        }
-        var_fv1 *= scale;
-        if ((var_fv1 >= minStep) || (-minStep >= var_fv1)) {
-            if (var_fv1 > maxStep) {
-                var_fv1 = maxStep;
-            } else if (var_fv1 < -maxStep) {
-                var_fv1 = -maxStep;
-            }
-            ang += var_fv1;
-        } else if (var_fv1 < minStep) { // bug? should check sign, not size.
-            var_fv1 = minStep;
             ang += minStep;
             if (ang > target) {
                 ang = target;
             }
-        } else if (var_fv1 > -minStep) {
-            var_fv1 = -minStep;
-            ang += var_fv1;
+        } else if (step > -minStep) {
+            step = -minStep;
+            ang += step;
             if (ang < target) {
                 ang = target;
             }
@@ -503,7 +507,7 @@ f32 Math_SmoothStepToAngle(f32* angle, f32 target, f32 scale, f32 maxStep, f32 m
         ang += 360.0f;
     }
     *angle = ang;
-    return var_fv1;
+    return step;
 }
 
 void Math_SmoothStepToVec3fArray(Vec3f* src, Vec3f* dst, s32 mode, s32 count, f32 scale, f32 maxStep, f32 minStep) {
@@ -744,7 +748,7 @@ volatile int doing_glare = 0;
 
 void Graphics_FillRectangle(Gfx** gfxPtr, s32 ulx, s32 uly, s32 lrx, s32 lry, u8 r, u8 g, u8 b, u8 a) {
     if (a != 0) {
-        //gDPPipeSync((*gfxPtr)++);
+        gDPPipeSync((*gfxPtr)++);
         gDPSetPrimColor((*gfxPtr)++, 0x00, 0x00, r, g, b, a);
         gDPSetRenderMode((*gfxPtr)++,G_RM_AA_ZB_XLU_SURF, G_RM_AA_ZB_XLU_SURF2);
         if (!doing_glare) {
@@ -967,7 +971,7 @@ void Graphics_DisplayLargeText(s32 xPos, s32 yPos, f32 xScale, f32 yScale, char*
                 if ((text[0] == 'W') || (text[0] == 'X')) {
                     width = 32;
                 }
-                Lib_TextureRect_IA8(&gMasterDisp, sLargeCharTex[charIndex], width, 16, xPosCurrent, yPos, xScale,
+                Lib_TextureRect_IA8(&gMasterDisp, sLargeCharTex[charIndex], width, 15, xPosCurrent, yPos, xScale,
                                     yScale);
             }
             startPrint = 1;
@@ -1109,13 +1113,13 @@ void Graphics_DisplayLargeNumber(s32 xPos, s32 yPos, s32 number) {
     place = 1000000;
     for (place = 1000000; place != 1; place /= 10) {
         if ((number / place != 0) || (startNumber == 1)) {
-            Lib_TextureRect_IA8(&gMasterDisp, sLargeNumberTex[number / place], 16, 16, xPos, yPos, 1.0f, 1.0f);
+            Lib_TextureRect_IA8(&gMasterDisp, sLargeNumberTex[number / place], 16, 15, xPos, yPos, 1.0f, 1.0f);
             startNumber = 1;
             xPos += 13;
             number %= place;
         }
     }
-    Lib_TextureRect_IA8(&gMasterDisp, sLargeNumberTex[number / place], 16, 16, xPos, yPos, 1.0f, 1.0f);
+    Lib_TextureRect_IA8(&gMasterDisp, sLargeNumberTex[number / place], 16, 15, xPos, yPos, 1.0f, 1.0f);
 }
 
 void Graphics_DisplaySmallText(s32 xPos, s32 yPos, f32 xScale, f32 yScale, char* text) {
@@ -1135,7 +1139,6 @@ void Graphics_DisplaySmallText(s32 xPos, s32 yPos, f32 xScale, f32 yScale, char*
                     width = 16;
                 }
                 Lib_TextureRect_IA8(&gMasterDisp, sSmallCharTex[var_t0], width, 8, xPosCurrent, yPos, xScale, yScale);
-                if (1) {}
             }
             switch (text[0]) {
                 case '!':

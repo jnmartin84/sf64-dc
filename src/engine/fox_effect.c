@@ -375,10 +375,8 @@ void Effect_ElectricArc_Draw(EffectElectricArc* this) {
 }
 
 void Effect_PinkExplosion_Draw(EffectPinkExplosion* this) {
-//gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-  //                    TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                      gDPSetEnvColor(gMasterDisp++, 255,255,255, 255);//255);
-    gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, this->alpha);
+//    gDPSetEnvColor(gMasterDisp++, 255,255,255, 255);//255);
+    gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, this->alpha<<1);
     Graphics_SetScaleMtx(this->scale2);
     gSPDisplayList(gMasterDisp++, D_BG_SPACE_2006F50);
 }
@@ -568,13 +566,14 @@ void Effect_Sparkle_Update(EffectSparkle* this) {
 }
 
 void Effect_Sparkle_Draw(EffectSparkle* this) {
-    if (this->state != 0) {
-        RCP_SetupDL(&gMasterDisp, SETUPDL_67);
-    } else {
-        RCP_SetupDL(&gMasterDisp, SETUPDL_63);
-    }
+//    if (this->state != 0) {
+  //      RCP_SetupDL(&gMasterDisp, SETUPDL_67);
+    //} else {
+      //  RCP_SetupDL(&gMasterDisp, SETUPDL_63);
+    //}
+                    RCP_SetupDL_49();
 
-    gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 0, 255);
+    gDPSetPrimColor(gMasterDisp++, 0, 0, 250, 255, 200, 255);//255, 255, 0, 255);
     gDPSetEnvColor(gMasterDisp++, 255, 255, 255, 255);
     Graphics_SetScaleMtx(this->scale2 * this->scale1);
     gSPDisplayList(gMasterDisp++, aStarDL);
@@ -740,7 +739,7 @@ void Effect_Effect357_Draw(Effect357* this) {
     RCP_SetupDL(&gMasterDisp, SETUPDL_29);
 
     if (gCurrentLevel == LEVEL_KATINA) {
-        gSPFogPosition(gMasterDisp++, gFogNear, 1005);
+        gSPFogPosition(gMasterDisp++, gFogNear, gFogFar)/* 1005) */;
     }
 
     Graphics_SetScaleMtx(this->scale2);
@@ -3953,8 +3952,10 @@ void Effect_Effect395_Draw(Effect395* this) {
             break;
 
         case 1:
-            RCP_SetupDL(&gMasterDisp, SETUPDL_41);
-            gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
+            //RCP_SetupDL(&gMasterDisp, SETUPDL_41);
+            RCP_SetupDL_49();
+            gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);//255, 255, 0, 255);
+            gDPSetEnvColor(gMasterDisp++, 220, 225, 180, 255);
             Graphics_SetScaleMtx(this->scale2);
             gSPDisplayList(gMasterDisp++, aStarDL);
             break;

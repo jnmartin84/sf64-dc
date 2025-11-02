@@ -279,8 +279,8 @@ void Titania_TiDesertRover_Update(TiDesertRover* this) {
 
     Matrix_RotateY(gCalcMatrix, this->obj.rot.y * M_DTOR, MTXF_NEW);
     Matrix_Push(&gCalcMatrix);
-
-    if (((this->iwork[2] % 2) == 0) && ((this->obj.pos.z + gPathProgress) > -3800.0f)) {
+// % 2
+    if (((this->iwork[2] & 1) == 0) && ((this->obj.pos.z + gPathProgress) > -3800.0f)) {
         Matrix_RotateX(gCalcMatrix, this->obj.rot.x * M_DTOR, MTXF_APPLY);
         Matrix_RotateZ(gCalcMatrix, this->obj.rot.z * M_DTOR, MTXF_APPLY);
         Matrix_LoadOnly(gCalcMatrix);
@@ -577,12 +577,12 @@ void Titania_TiBoulder_Update(TiBoulder* this) {
     }
 
     temp_fv1 = this->scale * 314.0f;
-    f32 recip_temp_fv1 = 360.0f * shz_fast_invf(temp_fv1);
+    f32 recip_temp_fv1 = shz_fast_invf(temp_fv1);
 
     if (this->vel.x != 0.0f) {
-        this->obj.rot.x += ((shz_sqrtf_fsrra(SQ(this->vel.x) + SQ(this->vel.z))*recip_temp_fv1)/*  * 360.0f) / temp_fv1 */) * SIGN_OF(this->vel.x);
+        this->obj.rot.x += ((shz_sqrtf_fsrra(SQ(this->vel.x) + SQ(this->vel.z)) *recip_temp_fv1 * 360.0f) /* / temp_fv1)*/) * SIGN_OF(this->vel.x);
     } else {
-        this->obj.rot.x += ((shz_sqrtf_fsrra(SQ(this->vel.x) + SQ(this->vel.z))*recip_temp_fv1)/*  * 360.0f) / temp_fv1 */) * SIGN_OF(this->vel.z);
+        this->obj.rot.x += ((shz_sqrtf_fsrra(SQ(this->vel.x) + SQ(this->vel.z)) *recip_temp_fv1 * 360.0f) /* / temp_fv1)*/) * SIGN_OF(this->vel.z);
     }
 
     this->obj.rot.y = Math_RadToDeg(Math_Atan2F(this->vel.x, this->vel.z));
@@ -767,7 +767,7 @@ void Titania_8018B1B4(s32 limbIndex, Vec3f* rot, void* thisx) {
     for (i = 0; i < 10; i++, var_a2++) {
         if (limbIndex == D_i5_801B75D0[i]) {
             Matrix_MultVec3f(gCalcMatrix, &D_tank_800C9F2C, &var_a2->pos);
-            Matrix_GetYPRAngles(gCalcMatrix, &var_a2->rot);
+            Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix,  */&var_a2->rot);
             break;
         }
     }
@@ -890,7 +890,7 @@ void Titania_TiRasco_Dying(TiRasco* this) {
     Vec3f sp70;
 
     Matrix_RotateY(gCalcMatrix, this->obj.rot.y * M_DTOR, MTXF_NEW);
-Matrix_LoadOnly(gCalcMatrix);
+    Matrix_LoadOnly(gCalcMatrix);
     var_s1 = SEGMENTED_TO_VIRTUAL(D_i5_801BDA30);
 
     for (i = 0; i < 10; i++, var_s1++) {
@@ -1179,7 +1179,7 @@ void Titania_8018C3D8(s32 limbIndex, Vec3f* rot, void* thisx) {
     for (i = 0; i < 9U; i++, var_s0++) {
         if ((limbIndex == D_i5_801B7630[i][0]) && (var_s0->unk_18 & 2)) {
             Matrix_MultVec3f(gCalcMatrix, &D_tank_800C9F2C, &var_s0->unk_00.pos);
-            Matrix_GetYPRAngles(gCalcMatrix, &var_s0->unk_00.rot);
+            Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix,  */&var_s0->unk_00.rot);
             var_s0->unk_18 &= ~2;
             break;
         }
@@ -1278,11 +1278,6 @@ void Titania_8018C72C(TiDesertCrawler* this) {
 
 Vec3f D_i5_801B766C = { 0.0f, 0.0f, 15.0f };
 
-
-//static void sincos(float arg, float *s, float *c) {
-//    *s = sinf(arg);
-//    *c = cosf(arg);
-//}
 static float ts,tc;
 
 void Titania_TiDesertCrawler_Update(TiDesertCrawler* this) {
@@ -1631,7 +1626,7 @@ void Titania_TiDesertCrawler_Update(TiDesertCrawler* this) {
                         if ((actorPtr != NULL) && D_i5_801B7630[i][1] == 1) {
                             actorPtr->state = 47;
                             actorPtr->work_048 = i;
-                            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */&var_s1->unk_00.pos, &sp158);
+                            Matrix_MultVec3f_NoLoad(/* gCalcMatrix,  */&var_s1->unk_00.pos, &sp158);
                             actorPtr->obj.pos.x = this->obj.pos.x + sp158.x;
                             actorPtr->obj.pos.y = this->obj.pos.y + sp158.y;
                             actorPtr->obj.pos.z = this->obj.pos.z + sp158.z;
@@ -1639,7 +1634,6 @@ void Titania_TiDesertCrawler_Update(TiDesertCrawler* this) {
                             actorPtr->obj.rot.y = var_s1->unk_00.rot.y + this->obj.rot.y;
                             actorPtr->obj.rot.z = var_s1->unk_00.rot.z + this->obj.rot.z;
                             sp170 = Math_Atan2F(var_s1->unk_00.pos.z, var_s1->unk_00.pos.x);
-                            //sincos(sp170,&ts,&tc);
                             ts = sinf(sp170);
                             tc = cosf(sp170);
                             actorPtr->vel.x = ts * (7.0f + RAND_FLOAT(5.0f));
@@ -1670,7 +1664,7 @@ void Titania_TiDesertCrawler_Update(TiDesertCrawler* this) {
                             if (actorPtr != NULL) {
                                 actorPtr->state = 47;
                                 actorPtr->work_048 = 9;
-                                Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */&var_s1->unk_00.pos, &sp158);
+                                Matrix_MultVec3f_NoLoad(/*  gCalcMatrix,  */&var_s1->unk_00.pos, &sp158);
                                 actorPtr->obj.pos.x = this->obj.pos.x + sp158.x;
                                 actorPtr->obj.pos.y = this->obj.pos.y + sp158.y;
                                 actorPtr->obj.pos.z = this->obj.pos.z + sp158.z;
@@ -1678,9 +1672,8 @@ void Titania_TiDesertCrawler_Update(TiDesertCrawler* this) {
                                 actorPtr->obj.rot.y = var_s1->unk_00.rot.y + this->obj.rot.y;
                                 actorPtr->obj.rot.z = var_s1->unk_00.rot.z + this->obj.rot.z;
                                 sp170 = Math_Atan2F(var_s1->unk_00.pos.z, var_s1->unk_00.pos.x);
-                                                            //sincos(sp170,&ts,&tc);
-ts = sinf(sp170);
-tc = cosf(sp170);
+                                ts = sinf(sp170);
+                                tc = cosf(sp170);
                                 actorPtr->vel.x = ts * (7.0f + RAND_FLOAT(5.0f));
                                 actorPtr->vel.z = tc * (7.0f + RAND_FLOAT(5.0f));
                                 actorPtr->vel.y = 7.0f + RAND_FLOAT(10.0f);
@@ -1721,7 +1714,8 @@ tc = cosf(sp170);
 void Titania_TiDesertCrawler_Draw(TiDesertCrawler* this) {
     f32 sp34;
 
-    if ((this->iwork[6] % 2) != 0) {
+    // %2
+    if ((this->iwork[6] & 1) != 0) {
         RCP_SetupDL(&gMasterDisp, SETUPDL_31);
                 gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
                       TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
@@ -1910,7 +1904,7 @@ void Titania_TiDelphorHead_Update(TiDelphorHead* this) {
         sp90.y = 39.0f;
         sp90.z = 115.0f;
 
-        Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &sp90, &sp84);
+        Matrix_MultVec3f_NoLoad(/*  gCalcMatrix, */  &sp90, &sp84);
 
         this->fwork[0] = sp84.x;
         this->fwork[1] = sp84.y;
@@ -1920,7 +1914,7 @@ void Titania_TiDelphorHead_Update(TiDelphorHead* this) {
         sp90.y = 39.0f;
         sp90.z = 3115.0f;
 
-        Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &sp90, &sp84);
+        Matrix_MultVec3f_NoLoad(/* gCalcMatrix,  */ &sp90, &sp84);
 
         this->fwork[3] = sp84.x;
         this->fwork[4] = sp84.y;
@@ -2033,7 +2027,7 @@ void Titania_TiDelphorHead_Update(TiDelphorHead* this) {
 
 void Titania_TiDelphorHead_Draw(Actor* this) {
     gSPDisplayList(gMasterDisp++, D_TI1_7008930);
-    if ((this->timer_0C6 % 2) == 0) {
+    if ((this->timer_0C6 & 1) == 0) { // %2
         RCP_SetupDL(&gMasterDisp, SETUPDL_34);
         gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 220, 220, 220, 255);
     } else {
@@ -2127,7 +2121,7 @@ void Titania_8018F134(TiPillar* this) {
             sp7C.x = 0.0f;
             for (i = 0.0f; i <= 450.0f; i += 50.0f) {
                 sp7C.y = i;
-                Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix,  */&sp7C, &sp70);
+                Matrix_MultVec3fNoTranslate_NoLoad(/*  gCalcMatrix, */ &sp7C, &sp70);
                 Effect_Effect359_Spawn(this->obj.pos.x + sp70.x, this->obj.pos.y + sp70.y, this->obj.pos.z + sp70.z,
                                        10.0f, 255, 15, 0);
             }
@@ -2309,8 +2303,8 @@ s32 Titania_8018FC70(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* t
 
     if (D_i5_801BBEF0[30] != 0) {
         f32 recip_31thing = shz_fast_invf((f32) D_i5_801BBEF0[31]);
-        sp24 = (D_i5_801BBEF0[30] * 0.06666667f/* / 15.0f */) * D_i5_801BBEF0[32];
-        rot->z += SIN_DEG((D_i5_801BBEF0[30] * recip_31thing/* / (f32) D_i5_801BBEF0[31] */) * 360.0f) * sp24;
+        sp24 = (D_i5_801BBEF0[30] * 0.06666667f /* / 15.0f */) * D_i5_801BBEF0[32];
+        rot->z += SIN_DEG((D_i5_801BBEF0[30]  * recip_31thing /* / (f32) D_i5_801BBEF0[31] */) * 360.0f) * sp24;
     }
 
     switch (limbIndex) {
@@ -2340,7 +2334,7 @@ s32 Titania_8018FC70(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* t
         case 7:
             RCP_SetupDL(&gMasterDisp, SETUPDL_30);
 
-            if ((D_i5_801BBEF0[30] % 2) != 0) {
+            if ((D_i5_801BBEF0[30] & 1) != 0) { // % 2
                 // jnmartin84 ????
                 gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
                     TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
@@ -2361,7 +2355,7 @@ s32 Titania_8018FC70(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* t
         case 11:
             RCP_SetupDL(&gMasterDisp, SETUPDL_61);
 
-            if ((D_i5_801BBEF0[30] % 2) != 0) {
+            if ((D_i5_801BBEF0[30] & 1) != 0) { // % 2
                 // jnmartin84 ????
                 gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
                     TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
@@ -2575,7 +2569,7 @@ void Titania_8019002C(s32 limbIndex, Vec3f* rot, void* thisx) {
                 sp80.x = D_i5_801B8BBC[temp + j][0];
                 sp80.y = D_i5_801B8BBC[temp + j][1];
                 sp80.z = D_i5_801B8BBC[temp + j][2];
-                Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &sp80, &sp74);
+                Matrix_MultVec3f_NoLoad(/* gCalcMatrix,  */&sp80, &sp74);
                 var_s0[0] = sp74.z;
                 var_s0[1] = D_i5_801B8BBC[temp + j][3];
                 var_s0[2] = sp74.y;
@@ -2628,18 +2622,18 @@ s32 Titania_801903A0(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* t
     }
 
     if (D_i5_801BBEF0[25] == 1) {
-        sp20 = D_i5_801BBEF0[33] % 2U;
+        sp20 = D_i5_801BBEF0[33] & 1; //% 2U;
         if (D_i5_801BBEF0[33] != 0) {
             f32 recip_35thing = shz_fast_invf((f32) D_i5_801BBEF0[35]);
             sp24 = (D_i5_801BBEF0[33] *0.06666667f/* / 15.0f */) * D_i5_801BBEF0[37];
-            rot->z += SIN_DEG((D_i5_801BBEF0[33] * recip_35thing/* / (f32) D_i5_801BBEF0[35] */) * 360.0f) * sp24;
+            rot->z += SIN_DEG((D_i5_801BBEF0[33]  * recip_35thing /* / (f32) D_i5_801BBEF0[35] */) * 360.0f) * sp24;
         }
     } else {
-        sp20 = D_i5_801BBEF0[34] % 2U;
+        sp20 = D_i5_801BBEF0[34] & 1; // % 2U;
         if (D_i5_801BBEF0[34] != 0) {
             f32 recip_36thing = shz_fast_invf((f32) D_i5_801BBEF0[36]);
             sp24 = (D_i5_801BBEF0[34]*0.06666667f /* / 15.0f */) * D_i5_801BBEF0[38];
-            rot->z += SIN_DEG((D_i5_801BBEF0[34] *recip_36thing/* / (f32) D_i5_801BBEF0[36] */) * 360.0f) * sp24;
+            rot->z += SIN_DEG((D_i5_801BBEF0[34] *recip_36thing  /* / (f32) D_i5_801BBEF0[36] */) * 360.0f) * sp24;
         }
     }
 
@@ -2733,10 +2727,10 @@ void Titania_8019081C(s32 limbIndex, Vec3f* rot, void* thisx) {
     if (limbIndex == 1) {
         switch ((s32) D_i5_801BBEF0[25]) {
             case 0:
-                Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &D_i5_801B8D00, (Vec3f*) &D_i5_801BBEF4[68]);
+                Matrix_MultVec3f(gCalcMatrix, &D_i5_801B8D00, (Vec3f*) &D_i5_801BBEF4[68]);
                 break;
             case 1:
-                Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &D_i5_801B8D00, (Vec3f*) &D_i5_801BBEF4[71]);
+                Matrix_MultVec3f(gCalcMatrix, &D_i5_801B8D00, (Vec3f*) &D_i5_801BBEF4[71]);
                 break;
         }
     }
@@ -2790,12 +2784,13 @@ s32 Titania_80190A08(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* t
 
                     case 25:
                     case 26:
-                        if (D_i5_801BBEF4[2] != 0.0f) {
+
+                    if (D_i5_801BBEF4[2] != 0.0f) {
                             rot->z += D_i5_801BBEF4[2];
                             if (D_i5_801BBEF4[3] != 0.0f) {
                                 f32 recip_5thing = shz_fast_invf( D_i5_801BBEF4[5]);
-                                rot->z += sinf((D_i5_801BBEF4[3]*recip_5thing/*  / D_i5_801BBEF4[5] */) * 360.0f * M_DTOR) *
-                                          D_i5_801BBEF4[3] * 0.16666667f /* / 6.0f */;
+                                rot->z += sinf((D_i5_801BBEF4[3] *recip_5thing /*   / D_i5_801BBEF4[5] */) * 360.0f * M_DTOR) *
+                                          D_i5_801BBEF4[3]  * 0.16666667f /* / 6.0f */;
                             }
                         }
                         break;
@@ -2836,8 +2831,8 @@ s32 Titania_80190A08(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* t
                 if (spA0 != 0) {
                     f32 recip_tempv1_thing = shz_fast_invf((f32)D_i5_801B7960[temp_v1][1]);
                     spA8 = D_i5_801B7960[temp_v1][0];
-                    sp9C = ((sinf(D_i5_801BD6B0[temp_v1] * M_DTOR) * D_i5_801BD668[temp_v1]) * recip_tempv1_thing/*  /
-                            D_i5_801B7960[temp_v1][1] */) *
+                    sp9C = ((sinf(D_i5_801BD6B0[temp_v1] * M_DTOR) * D_i5_801BD668[temp_v1])  * recip_tempv1_thing 
+                    /*  / D_i5_801B7960[temp_v1][1] */) *
                            D_i5_801B7960[temp_v1][2];
                     switch (spA8) {
                         case 0:
@@ -2993,7 +2988,7 @@ s32 Titania_80190A08(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* t
                 if ((limbIndex == 51) || (limbIndex == 66)) {
                     if (D_i5_801BBEF0[1] != 0) {
                         f32 recip_thinger = shz_fast_invf((f32)D_i5_801BBEF0[1]);
-                        sp68 = 1.1f - (fabsf(sinf(((f32) D_i5_801BBEF0[0]*recip_thinger /* / D_i5_801BBEF0[1] */) * 360.0f * M_DTOR))) *
+                        sp68 = 1.1f - (fabsf(sinf(((f32) D_i5_801BBEF0[0] *recip_thinger /* / D_i5_801BBEF0[1]*/) * 360.0f * M_DTOR))) *
                                           D_i5_801BBEF4[0];
                         Matrix_Push(&gCalcMatrix);
                         Matrix_Scale(gCalcMatrix, sp68, sp68, sp68, MTXF_APPLY);
@@ -3057,7 +3052,7 @@ s32 Titania_80190A08(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* t
                 if (D_i5_801B7770[i][1] > 0) {
                     RCP_SetupDL(&gMasterDisp, SETUPDL_30);
                 } else {
-                    //gDPPipeSync(gMasterDisp++);
+                    gDPPipeSync(gMasterDisp++);
                 }
 
                 if (sp58 == 1) {
@@ -3098,7 +3093,7 @@ void Titania_80191AE8(s32 limbIndex, Vec3f* rot, void* thisx) {
     for (i = 0; i < ARRAY_COUNTU(D_i5_801B7770); i++, var_s0++) {
         if ((var_s0->unk_26 & 1) && (limbIndex == D_i5_801B7770[i][0])) {
             Matrix_MultVec3f(gCalcMatrix, &D_tank_800C9F2C, &var_s0->unk_00.pos);
-            Matrix_GetYPRAngles(gCalcMatrix, &var_s0->unk_00.rot);
+            Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ &var_s0->unk_00.rot);
             var_s0->unk_26 &= ~1;
             break;
         }
@@ -3121,7 +3116,7 @@ void Titania_80191AE8(s32 limbIndex, Vec3f* rot, void* thisx) {
                     spB4.x = var_s1[0];
                     spB4.y = var_s1[1];
                     spB4.z = var_s1[2];
-                    Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &spB4, &spA8);
+                    Matrix_MultVec3f_NoLoad(/* gCalcMatrix,  */&spB4, &spA8);
                     *var_s0_2++ = spA8.z;
                     *var_s0_2++ = var_s1[3];
                     *var_s0_2++ = spA8.y;
@@ -3148,7 +3143,7 @@ void Titania_80191AE8(s32 limbIndex, Vec3f* rot, void* thisx) {
 
     switch (limbIndex) {
         case 3:
-            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &D_i5_801B8D30, (Vec3f*) &this->fwork[17]);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix,  */&D_i5_801B8D30, (Vec3f*) &this->fwork[17]);
             break;
         case 10:
             Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &D_i5_801B8D00, (Vec3f*) &D_i5_801BBEF4[68]);
@@ -3157,11 +3152,11 @@ void Titania_80191AE8(s32 limbIndex, Vec3f* rot, void* thisx) {
             Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &D_i5_801B8D00, (Vec3f*) &D_i5_801BBEF4[71]);
             break;
         case 71:
-            Matrix_GetYPRAngles(gCalcMatrix, (Vec3f*) &this->fwork[20]);
+            Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ (Vec3f*) &this->fwork[20]);
             break;
         case 61:
-            Matrix_MultVec3f(gCalcMatrix, &D_i5_801B8D3C, (Vec3f*) &this->fwork[0x17]);
-            Matrix_GetYPRAngles(gCalcMatrix, (Vec3f*) &this->fwork[0x1A]);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */  &D_i5_801B8D3C, (Vec3f*) &this->fwork[0x17]);
+            Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */ (Vec3f*) &this->fwork[0x1A]);
             break;
 
         case 55:
@@ -3191,12 +3186,12 @@ void Titania_80191AE8(s32 limbIndex, Vec3f* rot, void* thisx) {
                 Matrix_MultVec3f(gCalcMatrix, &D_i5_801B8D3C, (Vec3f*) &this->fwork[29]);
                 break;
             }
-            Matrix_MultVec3f(gCalcMatrix, &D_i5_801B8D3C, (Vec3f*) &this->fwork[29]);
-            Matrix_GetYPRAngles(gCalcMatrix, (Vec3f*) &this->fwork[32]);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &D_i5_801B8D3C, (Vec3f*) &this->fwork[29]);
+            Matrix_GetYPRAngles_NoLoad(/* gCalcMatrix, */(Vec3f*) &this->fwork[32]);
             break;
 
         case 34:
-            Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &D_i5_801B8D24, (Vec3f*) &this->fwork[5]);
+            Matrix_MultVec3f_NoLoad(/* gCalcMatrix,  */&D_i5_801B8D24, (Vec3f*) &this->fwork[5]);
             break;
         case 37:
             Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &D_i5_801B8D24, (Vec3f*) &this->fwork[8]);
@@ -4299,7 +4294,7 @@ void Titania_80193DF0(TiGoras* this) {
                 if (actor != NULL) {
                     if (D_i5_801B8198[i].unk_0C == 0) {
                         pad2 = D_i5_801B8198[i].unk_00;
-                        Matrix_MultVec3f_NoLoad(/* gCalcMatrix,  */&D_i5_801BBF00[pad2].unk_00.pos, &spC8);
+                        Matrix_MultVec3f_NoLoad(/*  gCalcMatrix,   */&D_i5_801BBF00[pad2].unk_00.pos, &spC8);
 
                         sp9C =
                             fabsf(Math_SmoothStepToF(&actor->obj.pos.x, this->obj.pos.x + spC8.x, 1.0f, 40.0f, 0.01f));
@@ -5208,7 +5203,7 @@ void Titania_TiGoras_Update(Boss* boss) {
     if ((boss->state != 5) && ((boss->state != 4) || (boss->swork[31] <= 100)) && (D_i5_801BBEF0[8] == 0)) {
         Math_SmoothStepToF(&D_i5_801BBEF4[74], D_i5_801BBEF4[75], 0.5f, 0.04f, 0.01f);
         if (D_i5_801BBEF4[74] == D_i5_801BBEF4[74]) {
-            if ((boss->swork[38] % 2) != 0) {
+            if ((boss->swork[38] & 1) != 0) { // % 2
                 D_i5_801BBEF4[75] = 0.7f;
                 D_i5_801BBEF4[74] = D_i5_801BBEF4[75];
             } else {
@@ -5216,8 +5211,8 @@ void Titania_TiGoras_Update(Boss* boss) {
                 D_i5_801BBEF4[74] = D_i5_801BBEF4[75];
             }
         }
-
-        if ((D_i5_801BBEF0[49] >= 25) && (((D_i5_801BBEF0[49] - 25) % 2) == 0)) {
+// %2
+        if ((D_i5_801BBEF0[49] >= 25) && (((D_i5_801BBEF0[49] - 25) & 1) == 0)) {
             D_i5_801BBEF4[74] = RAND_FLOAT(0.4f) + 0.9f;
             D_i5_801BBEF4[75] = 0.6f;
         }
@@ -5534,7 +5529,7 @@ void Titania_TiGoras_Draw(TiGoras* boss) {
                 Matrix_Scale(gGfxMatrix, sp120, sp120, temp_fs2, MTXF_APPLY);
                 Matrix_SetGfxMtx(&gMasterDisp);
 
-                //gDPPipeSync(gMasterDisp++);
+                gDPPipeSync(gMasterDisp++);
 //                   gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
   //                    TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
 //  gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,

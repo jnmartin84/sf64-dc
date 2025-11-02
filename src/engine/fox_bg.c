@@ -146,9 +146,9 @@ void Background_DrawStarfield(void) {
         xField = gStarfieldX;
         yField = gStarfieldY;
 
-        xStar = gStarOffsetsX;
-        yStar = gStarOffsetsY;
-        color = gStarFillColors;
+        xStar = &gStarOffsetsX[1];
+        yStar = &gStarOffsetsY[1];
+        color = &gStarFillColors[0];
 
         if (gGameState != GSTATE_PLAY) {
             starCount = 1000;
@@ -222,16 +222,16 @@ void Background_DrawPartialStarfield(s32 yMin, s32 yMax) {
     spf68 = gStarfieldX;
     spf64 = gStarfieldY;
 
-    sp60 = gStarOffsetsX;
-    sp5C = gStarOffsetsY;
-    sp58 = gStarFillColors;
+    sp60 = &gStarOffsetsX[1];
+    sp5C = &gStarOffsetsY[1];
+    sp58 = &gStarFillColors[0];
     var_s2 = 500;
 
     cos = cosf(gStarfieldRoll);
     sin = sinf(gStarfieldRoll);
 
-//    for (i = 0; i < var_s2; i+=2, sp5C+=2, sp60+=2, sp58+=2) {
-    for (i = 0; i < var_s2; i++, sp5C++, sp60++, sp58++) {
+//    for (i = 0; i < var_s2; i++, sp5C++, sp60++, sp58++) {
+    for (i = 0; i < var_s2; i+=2, sp5C+=2, sp60+=2, sp58+=2) {
         bx = *sp60 + spf68;
         by = *sp5C + spf64;
         if (bx >= 1.25f * SCREEN_WIDTH) {
@@ -269,6 +269,14 @@ void func_bg_8003E1E0(void) {
                                                                                         \
         _g->words.w0 = 0x424C4E44; \
         _g->words.w1 = 0x46554369;                                           \
+    }
+
+#define gSPFixDepthCut2(pkt)                                       \
+    {                                                                                   \
+        Gfx* _g = (Gfx*) (pkt);                                                         \
+                                                                                        \
+        _g->words.w0 = 0x424C4E44; \
+        _g->words.w1 = 0x46664369;                                           \
     }
 
 
@@ -583,7 +591,8 @@ void Background_DrawBackdrop(void) {
             break;
 
         case LEVELTYPE_SPACE:        
-            if (gPlayer[0].state != PLAYERSTATE_ENTER_WARP_ZONE) {
+
+        if (gPlayer[0].state != PLAYERSTATE_ENTER_WARP_ZONE) {
                 Matrix_Push(&gGfxMatrix);
                 sp12C = Math_RadToDeg(gPlayer[0].camYaw);
                 sp130 = Math_RadToDeg(gPlayer[0].camPitch);
@@ -631,11 +640,13 @@ void Background_DrawBackdrop(void) {
                     switch (levelId) {
                         case LEVEL_WARP_ZONE:
                             if ((s32) gWarpZoneBgAlpha != 0) {
-//                                RCP_SetupDL_62();
-//      gDPSetEnvColor(gMasterDisp++, 0,0,0, 0xFF);
-  //  gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-    //                  TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, (s32) gWarpZoneBgAlpha);
+                                // RCP_SetupDL_62();
+                                gDPSetEnvColor(gMasterDisp++, 0,0,0, 0xFF);
+                                gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+                                                TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+                                s32 wzAlpha = (s32) gWarpZoneBgAlpha * 2;
+                                if (wzAlpha > 240) wzAlpha = 240;
+                                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, wzAlpha);
                                 Matrix_Translate(gGfxMatrix, (bgXpos - 120.0f)* 41.0f, -(bgYpos - 120.0f)* 41.0f, -290.0f* 41.0f, MTXF_APPLY);
                                 Matrix_Scale(gGfxMatrix, 1.7f* 41.0f, 1.7f* 41.0f, 1.0f, MTXF_APPLY);
                                 Matrix_Push(&gGfxMatrix);
@@ -644,7 +655,9 @@ void Background_DrawBackdrop(void) {
                                 Matrix_RotateZ(gGfxMatrix, gGameFrameCount * 10.0f * M_DTOR, MTXF_APPLY);
                                 Matrix_Scale(gGfxMatrix, 1.07f, 0.93f, 1.0f, MTXF_APPLY);
                                 Matrix_SetGfxMtx(&gMasterDisp);
+//                  gSPFixDepthCut2(gMasterDisp++);
                                 gSPDisplayList(gMasterDisp++, aWzBackdropDL);
+  //                gSPFixDepthCut2(gMasterDisp++);
                                 Matrix_Pop(&gGfxMatrix);
                             }
                             break;
@@ -655,13 +668,17 @@ void Background_DrawBackdrop(void) {
                                                  MTXF_APPLY);
                                 Matrix_Scale(gGfxMatrix, 0.5f* 41.0f, 0.5f* 41.0f, 1.0f, MTXF_APPLY);
                                 Matrix_SetGfxMtx(&gMasterDisp);
+    //              gSPFixDepthCut2(gMasterDisp++);
                                 gSPDisplayList(gMasterDisp++, aMeBackdropDL);
+      //            gSPFixDepthCut2(gMasterDisp++);
                             } else if (gPathProgress > 185668.0f) {
                                 Matrix_Translate(gGfxMatrix, (bgXpos - 120.0f)* 41.0f,( -(bgYpos - 120.0f) - 130.0f)* 41.0f, -290.0f* 41.0f,
                                                  MTXF_APPLY);
                                 Matrix_Scale(gGfxMatrix, 0.4f* 41.0f, 0.4f* 41.0f, 1.0f, MTXF_APPLY);
                                 Matrix_SetGfxMtx(&gMasterDisp);
+//                  gSPFixDepthCut2(gMasterDisp++);
                                 gSPDisplayList(gMasterDisp++, aMeBackdropDL);
+  //                gSPFixDepthCut2(gMasterDisp++);
                             }
                             break;
 
@@ -670,12 +687,14 @@ void Background_DrawBackdrop(void) {
                                 Matrix_Translate(gGfxMatrix, (bgXpos - 120.0f)* 41.0f, -(bgYpos - 120.0f)* 41.0f, -290.0f* 41.0f, MTXF_APPLY);
                                 Matrix_Scale(gGfxMatrix, 3.0f* 41.0f, 3.0f* 41.0f, 1.0f, MTXF_APPLY);
                                 Matrix_SetGfxMtx(&gMasterDisp);
-//                                RCP_SetupDL_62();
-//      gDPSetEnvColor(gMasterDisp++, 0,0,0, 0xFF);
-  //  gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-    //                  TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+                                // RCP_SetupDL_62();
+                                gDPSetEnvColor(gMasterDisp++, 0,0,0, 0xFF);
+                                gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+                                                TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
                                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 192);
+    //              gSPFixDepthCut2(gMasterDisp++);
                                 gSPDisplayList(gMasterDisp++, aSxBackdropDL);
+      //            gSPFixDepthCut2(gMasterDisp++);
                             }
                             break;
 
@@ -683,12 +702,11 @@ void Background_DrawBackdrop(void) {
                             Matrix_Translate(gGfxMatrix, (bgXpos - 120.0f)* 41.0f, -(bgYpos - 120.0f)* 41.0f, -290.0f* 41.0f, MTXF_APPLY);
                             Matrix_Scale(gGfxMatrix, 0.2f* 41.0f, 0.2f* 41.0f, 1.0f, MTXF_APPLY);
                             Matrix_SetGfxMtx(&gMasterDisp);
-//                            RCP_SetupDL_62();
-//      gDPSetEnvColor(gMasterDisp++, 0,0,0, 0xFF);
-  //  gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-    //                  TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+                            // RCP_SetupDL_62();
                             gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255);
+//                  gSPFixDepthCut2(gMasterDisp++);
                             gSPDisplayList(gMasterDisp++, aTrBackdropDL);
+  //                gSPFixDepthCut2(gMasterDisp++);
                             break;
 
                         case LEVEL_AREA_6:
@@ -706,7 +724,9 @@ void Background_DrawBackdrop(void) {
                             Matrix_Translate(gGfxMatrix, (bgXpos - 120.0f)* 41.0f, (-(bgYpos - 120.0f))* 41.0f, -290.0f* 41.0f, MTXF_APPLY);
                             Matrix_Scale(gGfxMatrix, bgScale * 0.75* 41.0f, bgScale * 0.75f* 41.0f, 1.0f, MTXF_APPLY);
                             Matrix_SetGfxMtx(&gMasterDisp);
+    //              gSPFixDepthCut2(gMasterDisp++);
                             gSPDisplayList(gMasterDisp++, aA6BackdropDL);
+      //            gSPFixDepthCut2(gMasterDisp++);
                             break;
 
                         case LEVEL_FORTUNA:
@@ -717,7 +737,9 @@ void Background_DrawBackdrop(void) {
                             Matrix_Translate(gGfxMatrix, (bgXpos - 120.0f)* 41.0f, -(bgYpos - 120.0f)* 41.0f, -290.0f* 41.0f, MTXF_APPLY);
                             Matrix_Scale(gGfxMatrix, bgScale* 41.0f, bgScale* 41.0f, bgScale, MTXF_APPLY);
                             Matrix_SetGfxMtx(&gMasterDisp);
+//                  gSPFixDepthCut2(gMasterDisp++);
                             gSPDisplayList(gMasterDisp++, aFoCorneriaDL);
+  //                gSPFixDepthCut2(gMasterDisp++);
                             break;
 
                         case LEVEL_BOLSE:
@@ -728,7 +750,9 @@ void Background_DrawBackdrop(void) {
                             Matrix_Translate(gGfxMatrix, (bgXpos - 120.0f)* 41.0f, -(bgYpos - 120.0f)* 41.0f, -290.0f* 41.0f, MTXF_APPLY);
                             Matrix_Scale(gGfxMatrix, bgScale* 41.0f, bgScale* 41.0f, bgScale, MTXF_APPLY);
                             Matrix_SetGfxMtx(&gMasterDisp);
+//                  gSPFixDepthCut2(gMasterDisp++);
                             gSPDisplayList(gMasterDisp++, aBoBackdropDL);
+  //                gSPFixDepthCut2(gMasterDisp++);
                             break;
 
                         case LEVEL_SECTOR_Z:
@@ -736,21 +760,26 @@ void Background_DrawBackdrop(void) {
                             Matrix_Scale(gGfxMatrix, 0.5f* 41.0f, 0.5f* 41.0f, 0.5f, MTXF_APPLY);
                             Matrix_RotateX(gGfxMatrix, F_PI_2, MTXF_APPLY);
                             Matrix_SetGfxMtx(&gMasterDisp);
+                  gSPFixDepthCut2(gMasterDisp++);
                             gSPDisplayList(gMasterDisp++, aSzBackgroundDL);
+                  gSPFixDepthCut2(gMasterDisp++);
                             break;
 
                         case LEVEL_SECTOR_Y:
                             Matrix_Translate(gGfxMatrix,( bgXpos - 120.0f)* 41.0f, -(bgYpos - 120.0f)* 41.0f, -290.0f * 41.0f, MTXF_APPLY);
                             Matrix_Scale(gGfxMatrix, 0.4f* 41.0f, 0.4f* 41.0f, 1.0f, MTXF_APPLY);
                             Matrix_SetGfxMtx(&gMasterDisp);
-                      //      RCP_SetupDL_62();
-      gDPSetEnvColor(gMasterDisp++, 0,0,0, 0xFF);
-    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+                            // RCP_SetupDL_62();
+                            gDPSetEnvColor(gMasterDisp++, 0,0,0, 0xFF);
+                            gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+                                            TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
                             gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 192);
+//                  gSPFixDepthCut2(gMasterDisp++);
                             gSPDisplayList(gMasterDisp++, aSyBackdropDL);
+  //                gSPFixDepthCut2(gMasterDisp++);
                             break;
                     }
+
                 }
                 Matrix_Pop(&gGfxMatrix);
             }

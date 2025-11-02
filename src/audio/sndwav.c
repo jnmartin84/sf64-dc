@@ -215,9 +215,12 @@ wav_stream_hnd_t wav_create(WavPlayerId playerId, char *filename, int loop, int 
 }
 
 void wav_play(WavPlayerId playerId) {
-	wav_stream_hnd_t hnd = handles[playerId];
-	if (hnd == SND_STREAM_INVALID)
-		return;
+	if(streams[playerId].shnd == SND_STREAM_INVALID)
+        return;
+
+//        wav_stream_hnd_t hnd = handles[playerId];
+//	if (hnd == SND_STREAM_INVALID)
+//		return;
 
 	if(streams[playerId].status == SNDDEC_STATUS_STREAMING)
        return;
@@ -226,9 +229,12 @@ void wav_play(WavPlayerId playerId) {
 }
 
 void wav_pause(WavPlayerId playerId) {
-	wav_stream_hnd_t hnd = handles[playerId];
-	if (hnd == SND_STREAM_INVALID)
-		return;
+	if(streams[playerId].shnd == SND_STREAM_INVALID)
+        return;
+
+//    wav_stream_hnd_t hnd = handles[playerId];
+//	if (hnd == SND_STREAM_INVALID)
+//		return;
 
 	if(streams[playerId].status == SNDDEC_STATUS_READY ||
        streams[playerId].status == SNDDEC_STATUS_PAUSING)
@@ -238,9 +244,11 @@ void wav_pause(WavPlayerId playerId) {
 }
 
 void wav_stop(WavPlayerId playerId) {
-	wav_stream_hnd_t hnd = handles[playerId];
-	if (hnd == SND_STREAM_INVALID)
-		return;
+	if(streams[playerId].shnd == SND_STREAM_INVALID)
+        return;
+//	wav_stream_hnd_t hnd = handles[playerId];
+//	if (hnd == SND_STREAM_INVALID)
+//		return;
 
 	if(streams[playerId].status == SNDDEC_STATUS_READY ||
        streams[playerId].status == SNDDEC_STATUS_STOPPING)
@@ -250,9 +258,12 @@ void wav_stop(WavPlayerId playerId) {
 }
 
 void wav_volume(WavPlayerId playerId, int vol) {
-	wav_stream_hnd_t hnd = handles[playerId];
-	if (hnd == SND_STREAM_INVALID)
-		return;
+	if(streams[playerId].shnd == SND_STREAM_INVALID)
+        return;
+
+    //	wav_stream_hnd_t hnd = handles[playerId];
+//	if (hnd == SND_STREAM_INVALID)
+//		return;
 
     if(vol > 255)
         vol = 255;
@@ -265,17 +276,22 @@ void wav_volume(WavPlayerId playerId, int vol) {
 }
 
 int wav_is_paused(WavPlayerId playerId) {
-	wav_stream_hnd_t hnd = handles[playerId];
-	if (hnd == SND_STREAM_INVALID)
-		return 0;
+//	wav_stream_hnd_t hnd = handles[playerId];
+//	if (hnd == SND_STREAM_INVALID)
+//		return 0;
+	if(streams[playerId].shnd == SND_STREAM_INVALID)
+        return 0;
 
 	return (streams[playerId].status == SNDDEC_STATUS_PAUSING);
 }
 
 int wav_is_playing(WavPlayerId playerId) {
-	wav_stream_hnd_t hnd = handles[playerId];
-	if (hnd == SND_STREAM_INVALID)
-		return 0;
+	if(streams[playerId].shnd == SND_STREAM_INVALID)
+        return 0;
+
+//    wav_stream_hnd_t hnd = handles[playerId];
+//	if (hnd == SND_STREAM_INVALID)
+//		return 0;
 
 	return (streams[playerId].status == SNDDEC_STATUS_STREAMING);
 }
@@ -369,7 +385,8 @@ static void *audio_cb(snd_stream_hnd_t shnd, int req, int* done) {
 			if (playerId == WAV_PLAYER_FANFARE) {
 				wav_play(WAV_PLAYER_BGM);
 			}
-            return NULL;
+            *done = read;
+            return streams[playerId].drv_buf;
         }
 
         *done = req;

@@ -9,14 +9,21 @@
 
 
 //#define M_DTOR	(M_PI / 180.0f)
-//#define M_RTOD	(180.0f / F_PI)
-#define M_RTOD 57.29577951f
+#define M_RTOD	(180.0f / F_PI)
 #if GBI_FLOATS
 Mtx gIdentityMtx = { {
+    /*{*/
         { 1.0f, 0.0f, 0.0f, 0.0f },
         { 0.0f, 1.0f, 0.0f, 0.0f },
         { 0.0f, 0.0f, 1.0f, 0.0f },
         { 0.0f, 0.0f, 0.0f, 1.0f },
+    /*} ,
+     {
+        { 0.0f, 0.0f, 0.0f, 0.0f },
+        { 0.0f, 0.0f, 0.0f, 0.0f },
+        { 0.0f, 0.0f, 0.0f, 0.0f },
+        { 0.0f, 0.0f, 0.0f, 0.0f },
+    }, */
 } };
 Mtx gIdentityMtx2 = { {
  { 0.0f, 0.0f, 0.0f, 0.0f },
@@ -44,16 +51,16 @@ Mtx gIdentityMtx = { {
 #endif
 
 
-Matrix gIdentityMatrix = { {
+Matrix /* __attribute__((aligned(32))) */ gIdentityMatrix = { {
     { 1.0f, 0.0f, 0.0f, 0.0f },
     { 0.0f, 1.0f, 0.0f, 0.0f },
     { 0.0f, 0.0f, 1.0f, 0.0f },
     { 0.0f, 0.0f, 0.0f, 1.0f },
 } };
 
-Matrix sCalcMatrixStack[0x20];
+Matrix sCalcMatrixStack[0x20];// = {0};
 Matrix* gCalcMatrix;
-Matrix sGfxMatrixStack[0x20];
+Matrix sGfxMatrixStack[0x20];// = {0};
 Matrix* gGfxMatrix;
 
 // Copies src Matrix into dst
@@ -75,15 +82,6 @@ void  Matrix_Pop(Matrix** mtxStack) {
 
 // Copies tf into mtx (MTXF_NEW) or applies it to mtx (MTXF_APPLY)
 void  Matrix_Mult(Matrix* mtx, Matrix* tf, u8 mode) {
-    f32 rx;
-    f32 ry;
-    f32 rz;
-    f32 rw;
-    s32 i0;
-    s32 i1;
-    s32 i2;
-    s32 i3;
-
     if (mode == MTXF_APPLY) {
         shz_xmtrx_load_apply_store_4x4(mtx, mtx, tf);
     } else {
@@ -93,17 +91,17 @@ void  Matrix_Mult(Matrix* mtx, Matrix* tf, u8 mode) {
 
 // Creates a translation matrix in mtx (MTXF_NEW) or applies one to mtx (MTXF_APPLY)
 void Matrix_Translate(Matrix* mtx, f32 x, f32 y, f32 z, u8 mode) {
-//    f32 rx;
-//    f32 ry;
+    f32 rx;
+    f32 ry;
     s32 i;
 
     if (mode == MTXF_APPLY) {
         for (i = 0; i < 4; i++) {
-//            rx = mtx->m[0][i];
-//            ry = mtx->m[1][i];
+            rx = mtx->m[0][i];
+            ry = mtx->m[1][i];
 
-            mtx->m[3][i] += fipr(mtx->m[0][i],mtx->m[1][i],mtx->m[2][i],0,x,y,z,0);
-            //(rx * x) + (ry * y) + (mtx->m[2][i] * z);
+            mtx->m[3][i] += //fipr(rx,ry,mtx->m[2][i],0,x,y,z,0);
+            (rx * x) + (ry * y) + (mtx->m[2][i] * z);
         }
     } else {
         mtx->m[3][0] = x;
@@ -342,11 +340,14 @@ void Matrix_LoadOnly(Matrix* mtx) {
     shz_xmtrx_load_4x4(mtx);
 }
 
-// Applies the linear part of the transformation matrix mtx to the vector src, ignoring any translation that mtx might
-// have. Puts the result in dest.
-void Matrix_MultVec3fNoTranslate(Matrix* mtx, Vec3f* src, Vec3f* dest) {
-    shz_xmtrx_load_4x4(mtx);
-    shz_vec4_t out = shz_xmtrx_trans_vec4((shz_vec4_t) { .x = src->x, .y = src->y, .z = src->z, .w = 0.0f });
+// Applies the transform matrix mtx to the vector src, putting the result in dest
+void Matrix_MultVec3f_NoLoad(Vec3f* src, Vec3f* dest) {
+//    float w = 1;
+//    dest->x = src->x;
+//    dest->y = src->y;
+//    dest->z = src->z;
+//    mat_trans_single3_nodivw(dest->x, dest->y, dest->z, w);
+    shz_vec4_t out = shz_xmtrx_trans_vec4((shz_vec4_t) { .x = src->x, .y = src->y, .z = src->z, .w = 1.0f });
     dest->x = out.x;
     dest->y = out.y;
     dest->z = out.z;
@@ -355,6 +356,11 @@ void Matrix_MultVec3fNoTranslate(Matrix* mtx, Vec3f* src, Vec3f* dest) {
 // Applies the transform matrix mtx to the vector src, putting the result in dest
 void Matrix_MultVec3f(Matrix* mtx, Vec3f* src, Vec3f* dest) {
     shz_xmtrx_load_4x4(mtx);
+//    float w = 1;
+//    dest->x = src->x;
+//    dest->y = src->y;
+//    dest->z = src->z;
+//    mat_trans_single3_nodivw(dest->x, dest->y, dest->z, w);
     shz_vec4_t out = shz_xmtrx_trans_vec4((shz_vec4_t) { .x = src->x, .y = src->y, .z = src->z, .w = 1.0f });
     dest->x = out.x;
     dest->y = out.y;
@@ -362,15 +368,28 @@ void Matrix_MultVec3f(Matrix* mtx, Vec3f* src, Vec3f* dest) {
 }
 
 void Matrix_MultVec3fNoTranslate_NoLoad(Vec3f* src, Vec3f* dest) {
+//    float w = 0;
+//    dest->x = src->x;
+//    dest->y = src->y;
+//    dest->z = src->z;
+//    mat_trans_single3_nodivw(dest->x, dest->y, dest->z, w);
     shz_vec4_t out = shz_xmtrx_trans_vec4((shz_vec4_t) { .x = src->x, .y = src->y, .z = src->z, .w = 0.0f });
     dest->x = out.x;
     dest->y = out.y;
     dest->z = out.z;
 }
 
-// Applies the transform matrix mtx to the vector src, putting the result in dest
-void Matrix_MultVec3f_NoLoad(Vec3f* src, Vec3f* dest) {
-    shz_vec4_t out = shz_xmtrx_trans_vec4((shz_vec4_t) { .x = src->x, .y = src->y, .z = src->z, .w = 1.0f });
+
+// Applies the linear part of the transformation matrix mtx to the vector src, ignoring any translation that mtx might
+// have. Puts the result in dest.
+void Matrix_MultVec3fNoTranslate(Matrix* mtx, Vec3f* src, Vec3f* dest) {
+    shz_xmtrx_load_4x4(mtx);
+//    float w = 0;
+//    dest->x = src->x;
+//    dest->y = src->y;
+//    dest->z = src->z;
+//    mat_trans_single3_nodivw(dest->x, dest->y, dest->z, w);
+    shz_vec4_t out = shz_xmtrx_trans_vec4((shz_vec4_t) { .x = src->x, .y = src->y, .z = src->z, .w = 0.0f });
     dest->x = out.x;
     dest->y = out.y;
     dest->z = out.z;
@@ -378,7 +397,7 @@ void Matrix_MultVec3f_NoLoad(Vec3f* src, Vec3f* dest) {
 
 // Expresses the rotational part of the transform mtx as Tait-Bryan angles, in the yaw-pitch-roll (intrinsic YXZ)
 // convention used in worldspace calculations
-void Matrix_GetYPRAngles(Matrix* mtx, Vec3f* rot) {
+void Matrix_GetYPRAngles_NoLoad(Vec3f* rot) {
     Matrix invYP;
     Vec3f origin = { 0.0f, 0.0f, 0.0f };
     Vec3f originP;
@@ -386,8 +405,6 @@ void Matrix_GetYPRAngles(Matrix* mtx, Vec3f* rot) {
     Vec3f zHatP;
     Vec3f xHat = { 1.0f, 0.0f, 0.0f };
     Vec3f xHatP;
-
-    Matrix_LoadOnly(mtx);
     Matrix_MultVec3fNoTranslate_NoLoad(&origin, &originP);
     Matrix_MultVec3fNoTranslate_NoLoad(&zHat, &zHatP);
     Matrix_MultVec3fNoTranslate_NoLoad(&xHat, &xHatP);
@@ -407,45 +424,46 @@ void Matrix_GetYPRAngles(Matrix* mtx, Vec3f* rot) {
     rot->z = Math_Atan2F(xHat.y, xHat.x) * M_RTOD;
 }
 
-// Expresses the rotational part of the transform mtx as Tait-Bryan angles, in the extrinsic XYZ convention used in
-// modelspace calculations
-void  Matrix_GetXYZAngles(Matrix* mtx, Vec3f* rot) {
-    Matrix invYZ;
+void Matrix_GetYPRAngles(Matrix* mtx, Vec3f* rot) {
+    Matrix invYP;
     Vec3f origin = { 0.0f, 0.0f, 0.0f };
     Vec3f originP;
+    Vec3f zHat = { 0.0f, 0.0f, 1.0f };
+    Vec3f zHatP;
     Vec3f xHat = { 1.0f, 0.0f, 0.0f };
     Vec3f xHatP;
-    Vec3f yHat = { 0.0f, 1.0f, 0.0f };
-    Vec3f yHatP;
-
     Matrix_LoadOnly(mtx);
-    Matrix_MultVec3fNoTranslate_NoLoad(&origin, &originP);
-    Matrix_MultVec3fNoTranslate_NoLoad(&xHat, &xHatP);
-    Matrix_MultVec3fNoTranslate_NoLoad(&yHat, &yHatP);
+    Matrix_MultVec3fNoTranslate_NoLoad(/* mtx,  */&origin, &originP);
+    Matrix_MultVec3fNoTranslate_NoLoad(/* mtx,  */&zHat, &zHatP);
+    Matrix_MultVec3fNoTranslate_NoLoad(/* mtx,  */&xHat, &xHatP);
+    zHatP.x -= originP.x;
+    zHatP.y -= originP.y;
+    zHatP.z -= originP.z;
     xHatP.x -= originP.x;
     xHatP.y -= originP.y;
     xHatP.z -= originP.z;
-    yHatP.x -= originP.x;
-    yHatP.y -= originP.y;
-    yHatP.z -= originP.z;
-    rot->z = Math_Atan2F(xHatP.y, xHatP.x);
-    rot->y = -Math_Atan2F(xHatP.z, shz_sqrtf_fsrra(SQ(xHatP.x) + SQ(xHatP.y)));
-    Matrix_RotateY(&invYZ, -rot->y, MTXF_NEW);
-    Matrix_RotateZ(&invYZ, -rot->z, MTXF_APPLY);
-    Matrix_MultVec3fNoTranslate(&invYZ, &yHatP, &yHat);
-    rot->x = Math_Atan2F(yHat.z, yHat.y) * M_RTOD;
+    rot->y = Math_Atan2F(zHatP.x, zHatP.z);
+    rot->x = -Math_Atan2F(zHatP.y, shz_sqrtf_fsrra(SQ(zHatP.x) + SQ(zHatP.z)));
+    Matrix_RotateX(&invYP, -rot->x, MTXF_NEW);
+    Matrix_RotateY(&invYP, -rot->y, MTXF_APPLY);
+    Matrix_MultVec3fNoTranslate(&invYP, &xHatP, &xHat);
+    rot->x *= M_RTOD;
     rot->y *= M_RTOD;
-    rot->z *= M_RTOD;
+    rot->z = Math_Atan2F(xHat.y, xHat.x) * M_RTOD;
 }
 
 // Creates a look-at matrix from Eye, At, and Up in mtx (MTXF_NEW) or applies one to mtx (MTXF_APPLY).
 // A look-at matrix is a rotation-translation matrix that maps y to Up, z to (At - Eye), and translates to Eye
 void  Matrix_LookAt(Matrix* mtx, f32 xEye, f32 yEye, f32 zEye, f32 xAt, f32 yAt, f32 zAt, f32 xUp, f32 yUp, f32 zUp,
                    u8 mode) {
-    Matrix lookAt;
-
-    guLookAtF(lookAt.m, xEye, yEye, zEye, xAt, yAt, zAt, xUp, yUp, zUp);
-    Matrix_Mult(mtx, &lookAt, mode);
+    if (mode == MTXF_NEW) {
+        guLookAtF(mtx, xEye, yEye, zEye, xAt, yAt, zAt, xUp, yUp, zUp);
+    } else {
+        Matrix lookAt;
+        guLookAtF(lookAt.m, xEye, yEye, zEye, xAt, yAt, zAt, xUp, yUp, zUp);
+//        Matrix_Mult(mtx, &lookAt, mode);
+        shz_xmtrx_load_apply_store_4x4(mtx, mtx, &lookAt);
+    }
 }
 
 // Converts the current Gfx matrix to a Mtx and sets it to the display list

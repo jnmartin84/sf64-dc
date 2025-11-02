@@ -17,6 +17,13 @@
 #include "assets/ast_font_3d.h"
 
 
+#define gSPPathPriority(pkt)                                       \
+    {                                                                                   \
+        Gfx* _g = (Gfx*) (pkt);                                                         \
+                                                                                        \
+        _g->words.w0 = 0x424C4E44; \
+        _g->words.w1 = 0x46004400;                                           \
+    }
 
 
 #define gSPZFight(pkt,zf)                                       \
@@ -1907,7 +1914,7 @@ void Map_Update(void) {
     }
     gGameFrameCount++;
 
-#if MODS_LEVEL_SELECT == true
+#if MODS_LEVEL_SELECT == 1
     Map_LevelSelect();
 #endif
 }
@@ -2223,7 +2230,7 @@ void Map_Prologue_Draw(void) {
                              1.68f);
 
     Background_DrawPartialStarfield(71, 118);
-    (205, 239);
+    Background_DrawPartialStarfield(205, 239);
 
     RCP_SetupDL(&gMasterDisp, SETUPDL_76);
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, sPrologueCurrentTexAlpha);
@@ -2553,7 +2560,7 @@ void Map_ZoomPlanet_Update(void) {
                 (sMapCamEyeZ == sZoomPlanetCamEye.z) && (sMapCamAtZ == sZoomPlanetCamAt.z)) {
 
                 D_menu_801CD964 = 1;
-                D_menu_801CD96C = true;
+                D_menu_801CD96C = 1;
                 // clang-format off
                 for (i = 0; i < 15; i++) {D_menu_801CD900[i] = 0;}
                 // clang-format on
@@ -2667,7 +2674,7 @@ bool Map_GralPepper_Talk(void) {
 }
 
 f32 Map_GetPlanetCamZDist(PlanetId planetId) {
-    f32 camZdist;
+    f32 camZdist = 0.0f;
 
     switch (planetId) {
         case PLANET_AREA_6:
@@ -4109,7 +4116,7 @@ void Map_LevelStart_AudioSpecSetup(LevelId level) {
 }
 
 bool Map_LevelPlayedStatus_Check(PlanetId planet) {
-    u32 planetSaveSlot;
+    u32 planetSaveSlot = 0;
     s32 played = true;
 
     switch (planet) {
@@ -4214,7 +4221,7 @@ void Map_CurrentLevel_Setup(void) {
 }
 
 PlanetId Map_GetPlanetId(LevelId level) {
-    PlanetId planet;
+    PlanetId planet = PLANET_CORNERIA;
 
     switch (level) {
         case LEVEL_CORNERIA:
@@ -4403,6 +4410,15 @@ void Map_Fade_Update(void) {
     }
 }
 
+#define gSPFixDepthCut2(pkt)                                       \
+    {                                                                                   \
+        Gfx* _g = (Gfx*) (pkt);                                                         \
+                                                                                        \
+        _g->words.w0 = 0x424C4E44; \
+        _g->words.w1 = 0x46664369;                                           \
+    }
+
+
 void Map_Planet_Draw(PlanetId planetId) {
     s32 mask;
     PlanetStatus planetStatus;
@@ -4411,7 +4427,12 @@ void Map_Planet_Draw(PlanetId planetId) {
         return;
     }
 
-    if ((planetId == sCurrentPlanetId) && (sMapState == MAP_ZOOM_PLANET) && (D_menu_801CD95C != 0)) {
+
+/* if(sMapState == MAP_ZOOM_PLANET) {
+    gSPFixDepthCut2(gMasterDisp++);
+}
+ */    if ((planetId == sCurrentPlanetId) && (sMapState == MAP_ZOOM_PLANET) && (D_menu_801CD95C != 0)) {
+        
         mask = 0x00000001;
     } else {
         mask = 0xFFFFFFFF;
@@ -4482,7 +4503,11 @@ void Map_Planet_Draw(PlanetId planetId) {
         }
     }
     Matrix_Pop(&gGfxMatrix);
+
+/* if(sMapState == MAP_ZOOM_PLANET) {
+    gSPFixDepthCut2(gMasterDisp++);
 }
+ */}
 
 s32 Map_CheckPlanetMedal(PlanetId planetId) {
     s32 ret;
@@ -4493,12 +4518,12 @@ s32 Map_CheckPlanetMedal(PlanetId planetId) {
     if (planetId == PLANET_VENOM) {
         if (gExpertMode) {
             medal = gSaveFile.save.data.planet[SAVE_SLOT_VENOM_2].expertMedal & 1;
-            clear = gSaveFile.save.data.planet[SAVE_SLOT_VENOM_1].expertClear & 1 |
-                    gSaveFile.save.data.planet[SAVE_SLOT_VENOM_2].expertClear & 1;
+            clear = (gSaveFile.save.data.planet[SAVE_SLOT_VENOM_1].expertClear & 1) |
+                    (gSaveFile.save.data.planet[SAVE_SLOT_VENOM_2].expertClear & 1);
         } else {
             medal = gSaveFile.save.data.planet[SAVE_SLOT_VENOM_2].normalMedal & 1;
-            clear = gSaveFile.save.data.planet[SAVE_SLOT_VENOM_1].normalClear & 1 |
-                    gSaveFile.save.data.planet[SAVE_SLOT_VENOM_2].normalClear & 1;
+            clear = (gSaveFile.save.data.planet[SAVE_SLOT_VENOM_1].normalClear & 1) |
+                    (gSaveFile.save.data.planet[SAVE_SLOT_VENOM_2].normalClear & 1);
         }
     } else {
         planetSaveSlot = planetId;
@@ -4652,11 +4677,11 @@ void Map_SolarRays_Draw(PlanetId planetId) {
     }
 
     RCP_SetupDL(&gMasterDisp, SETUPDL_67);
-//gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
-  //                         TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
+gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
+                           TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
 
-    gDPSetPrimColor(gMasterDisp++, 0, 0, 255-31, 255, 255, alpha);
-//    gDPSetEnvColor(gMasterDisp++, 31, 0, 0, 255);
+    gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, alpha);
+    gDPSetEnvColor(gMasterDisp++, 31, 0, 0, 255);
 
     Matrix_Push(&gGfxMatrix);
 
@@ -4874,8 +4899,8 @@ void Map_PlanetCleared_Draw(PlanetId planetId) {
 
     if (alpha != 0) {
         RCP_SetupDL(&gMasterDisp, SETUPDL_67);
-gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
-                           TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
+        gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
+            TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
 
         gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, alpha);
         gDPSetEnvColor(gMasterDisp++, 80, 80, 0, 255);
@@ -4952,6 +4977,7 @@ gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TE
                 RCP_SetupDL(&gMasterDisp, SETUPDL_67);
 gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
                            TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
+
 
                 gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, D_menu_801CD994);
                 gDPSetEnvColor(gMasterDisp++, 80, 80, 0, 255);
@@ -5042,6 +5068,8 @@ gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TE
 void Map_CorneriaExplosion_Draw(void) {
     if (D_menu_801CEB34 >= 0) {
         RCP_SetupDL(&gMasterDisp, SETUPDL_67);
+gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
+                           TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
 
         gDPSetEnvColor(gMasterDisp++, 255, 0, 0, 255); // was 0 alpha
 
@@ -5114,6 +5142,8 @@ void Map_PlanetExplosions_Draw(PlanetId planetId, PlanetExplosions explosionIdx)
     }
 
     RCP_SetupDL(&gMasterDisp, SETUPDL_67);
+gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
+                           TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
 
     gDPSetEnvColor(gMasterDisp++, 255, 0, 0, 255); // was 0 alpha
 
@@ -5399,8 +5429,8 @@ void Map_TitleCards_Draw(void) {
 
 void Map_801A9A8C(void) {
     s32 i;
-    s32 planetIdx;
-    u8* missionNoTex;
+    s32 planetIdx = 0;
+    u8* missionNoTex = NULL;
     static f32 sCardXpos[2] = { 91.0f, 207.0f };
     static f32 sCardYpos[2] = { 61.0f, 61.0f };
 
@@ -5538,10 +5568,16 @@ void Map_TotalHits_Draw(void) {
     Graphics_DisplaySmallText(143, 14, 1.0f, 1.0f, "TOP");
     Graphics_DisplaySmallNumber(167 - (HUD_CountDigits(D_menu_801CD83C) * 8), 24, D_menu_801CD83C);
 }
-
+#define gSPFixDepthCut(pkt)                                       \
+    {                                                                                   \
+        Gfx* _g = (Gfx*) (pkt);                                                         \
+                                                                                        \
+        _g->words.w0 = 0x424C4E44; \
+        _g->words.w1 = 0x46554369;                                           \
+    }
 void Map_801A9FD4(bool arg0) {
     s32 i;
-    s32 curMission;
+    s32 curMission = 0;
     f32 var_fs0, var_fs1;
     s32 pad[2];
     f32 temp = 16.0f;
@@ -5572,13 +5608,14 @@ void Map_801A9FD4(bool arg0) {
     Matrix_LookAt(gGfxMatrix, 0.0f, 0.0f, 100.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, MTXF_APPLY);
 
     Matrix_SetGfxMtx(&gMasterDisp);
-
+gSPPathPriority(gMasterDisp++);
     for (var_fs0 = 0.0f, var_fs1 = -41.5f, i = 0; i < curMission; i++, var_fs0 += 24.0f + temp, var_fs1 += 13.8f) {
         if (gMissionPlanet[i] != PLANET_NONE) {
             Map_PathInfo_Draw(i, 28.0f + var_fs0, 182.0f, gMissionPlanet[i]);
             Map_PathPlanet_Draw(i, var_fs1, -25.4f, gMissionPlanet[i]);
         }
     }
+gSPPathPriority(gMasterDisp++);
 
     Matrix_Pop(&gGfxMatrix);
 }
@@ -5593,6 +5630,7 @@ void Map_PathLineBox_Draw(s32 curMission) {
     f32 y = 182.0f;
     f32 x2 = 16.0f;
     PlanetId* ptr = &gMissionPlanet[0];
+            gSPFixDepthCut(gMasterDisp++);
 
     for (x = 0.0f, i = 0; i < 7; i++, x += 24.0f + x2, ptr++) {
         RCP_SetupDL(&gMasterDisp, SETUPDL_83);
@@ -5629,6 +5667,8 @@ void Map_PathLineBox_Draw(s32 curMission) {
         gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
         Lib_TextureRect_RGBA16(&gMasterDisp, aMapPathBoxTex, 24, 24, 28.0f + x, y, 1.0f, 1.0f);
     }
+                gSPFixDepthCut(gMasterDisp++);
+
 }
 
 void Map_PathInfo_Draw(s32 missionIdx, f32 x, f32 y, s32 idx) {
@@ -5636,7 +5676,7 @@ void Map_PathInfo_Draw(s32 missionIdx, f32 x, f32 y, s32 idx) {
     f32 x2;
     s32 pad;
     s32 mask;
-    s32 curMission;
+    s32 curMission = 0;
     static char* D_menu_801B6AD0[] = { "P", "S", "F" };
     static s32 D_menu_801B6ADC[] = { 255, 0, 30 };
     static s32 D_menu_801B6AE8[] = { 30, 179, 30 };
@@ -5675,6 +5715,7 @@ void Map_PathInfo_Draw(s32 missionIdx, f32 x, f32 y, s32 idx) {
 }
 
 void Map_PathPlanet_Draw(s32 missionIdx, f32 x, f32 y, PlanetId planetId) {
+
     s32 mask = 0xFFFFFFFF;
 
     if ((gGameState == GSTATE_MAP) && (planetId == sCurrentPlanetId)) {
@@ -6058,7 +6099,7 @@ void Map_BriefingRadio_Draw(s32 arg0) {
                     Lib_TextureRect_RGBA16(&gMasterDisp, D_MAP_6044820 + (92 * 4 * i), 92, 4, xPos, yPos + (i * 4.0f),
                                            1.0f, 1.0f);
                 }
-                Lib_TextureRect_RGBA16(&gMasterDisp, D_MAP_6044820 + (92 * 4 * 12), 92, 3, xPos, yPos + 48.0f, 1.0f,
+                Lib_TextureRect_RGBA16(&gMasterDisp, D_MAP_6044820 + (92 * 4 * 12), 92, 4/* 3 */, xPos, yPos + 48.0f, 1.0f,
                                        1.0f);
 
                 if (arg0 == 21) {
@@ -6171,8 +6212,8 @@ void Map_GralPepperFace_Draw(void) {
         Matrix_Pop(&gGfxMatrix);
 
         RCP_SetupDL(&gMasterDisp, SETUPDL_67);
-gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
-                           TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
+//gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
+  //                         TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
 
         gDPSetPrimColor(gMasterDisp++, 0, 0, 32, 32, 255, D_menu_801CEA98);
         gDPSetEnvColor(gMasterDisp++, 207, 207, 255, 255);
@@ -6625,7 +6666,8 @@ void Map_Idle_Update(void) {
 
     if (gControllerPress[gMainController].button & A_BUTTON) {
         if ((gLastGameState == GSTATE_PLAY) && (sPrevMissionStatus != MISSION_COMPLETE) && !D_menu_801CEFD0) {
-            Audio_PlayMapMenuSfx(1);
+//            Audio_PlayMapMenuSfx(1);
+            AUDIO_PLAY_SFX(NA_SE_MAP_WINDOW_OPEN, gDefaultSfxSource, 4);
             D_menu_801CEFC4 = 1;
             D_menu_801CEFD4 = 0;
             D_menu_801CEFDC = 0;

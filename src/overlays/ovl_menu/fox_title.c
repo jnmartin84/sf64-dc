@@ -449,7 +449,7 @@ void Title_RankingData_Draw(void) {
         Graphics_DisplaySmallNumber(105 - ((HUD_CountDigits(i + 1) - 1) * 8), yPos, i + 1);
 
         gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 0, 255);
-        Graphics_DisplaySmallText(150, yPos, 1.0f, 1.0f, &sRankNameEntry[i][0]);
+        Graphics_DisplaySmallText(150, yPos, 1.0f, 1.0f, (char *)&sRankNameEntry[i][0]);
 
         gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
         Graphics_DisplaySmallNumber(211 - ((HUD_CountDigits(gTotalHitsRanking[i]) - 1) * 8), yPos,
@@ -2406,8 +2406,10 @@ void Title_EngineGlowParticles_Draw(TitleTeam teamIdx) {
 
     RCP_SetupDL(&gMasterDisp, SETUPDL_49);
 
+                        gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+                                        TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
     gDPSetPrimColor(gMasterDisp++, 0, 0, 253, 253, 255, 255);
-    gDPSetEnvColor(gMasterDisp++, 251, 251, 255, 255);
+    gDPSetEnvColor(gMasterDisp++, 255-251, 255-251, 255-255, 255);
 
     for (i = 0; i < D_menu_801B8100; i++) {
         if (D_menu_801B7FC0[i] == 0.0f) {
@@ -2551,8 +2553,10 @@ void Title_CorneriaExplosions_Draw(void) {
     RCP_SetupDL(&gMasterDisp, SETUPDL_49);
 
     for (i = 0; i < sMaxExplosions; i++) {
+                        gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+                                        TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
         gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 200, 200, D_menu_801B7CC8[i]);
-        gDPSetEnvColor(gMasterDisp++, 255, 0, 0, D_menu_801B7CF0[i]);
+        gDPSetEnvColor(gMasterDisp++, 255-255, 255-0, 255-0, D_menu_801B7CF0[i]);
 
         scale = D_menu_801B7C48[i] / sTitleCorneria.scale;
 

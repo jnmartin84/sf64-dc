@@ -70,7 +70,8 @@ LD_SCRIPT := linker_scripts/$(VERSION)/$(REV)/$(TARGET).ld
 # are safe to be used can avoid using GLOBAL_ASM which doesn't work with gcc.
 ifeq ($(COMPILER),kos-cc)
   $(warning WARNING: GCC support is experimental. Use at your own risk.)
-  CFLAGS += -DCOMPILER_GCC -DNON_MATCHING=1 -Wno-int-conversion -fno-data-sections -DAVOID_UB=1 -MMD -MP -Wno-incompatible-pointer-types -Wno-missing-braces -Wno-unused-variable -Wno-switch -fno-toplevel-reorder -fno-common -DGBI_FLOATS
+  CFLAGS += -DCOMPILER_GCC -DNON_MATCHING=1 -Wno-int-conversion -falign-functions=32 -fno-data-sections -DAVOID_UB=1 -MMD -MP -Wno-incompatible-pointer-types -Wno-missing-braces -Wno-unused-variable -Wno-switch  -DGBI_FLOATS -fno-toplevel-reorder
+# -fno-common
 
 # -fno-lto 
 # 
@@ -244,7 +245,7 @@ MIO0			:= $(TOOLS)/mio0
 
 
 IINC := -Iinclude -Ibin/$(VERSION).$(REV) -I.
-IINC += -Ilib/ultralib/include -Ilib/ultralib/include/PR -Ilib/ultralib/include/ido
+IINC += -Ilib/ultralib/include -Ilib/ultralib/include/PR -Ilib/ultralib/include/ido -I./src/audio
 
 ifeq ($(KEEP_MDEBUG),0)
   RM_MDEBUG = $(OBJCOPY) --remove-section .mdebug $@
@@ -395,7 +396,7 @@ build/src/assets/ast_zoness/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder
 build/src/libc_math64.o:  OPTFLAGS := -O3
 build/src/audio/mixer.o: OPTFLAGS := -O3
 build/src/gfx/gfx_retro_dc.o: OPTFLAGS := -O3
-build/src/sys/sys_matrix.o: OPTFLAGS := -O3
+build/src/sys/sys_matrix.o: OPTFLAGS := -O2
 build/src/sys/sys_math.o: OPTFLAGS := -O3
 
 # cc & asm-processor
