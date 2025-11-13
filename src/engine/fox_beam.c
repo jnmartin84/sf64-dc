@@ -1241,16 +1241,6 @@ u8 D_800C9C00[4] = { 255, 255, 32, 32 };
 u8 D_800C9C04[4] = { 255, 32, 255, 32 };
 u8 D_800C9C08[4] = { 32, 32, 32, 255 };
 
-
-#define gSPFixDepthCut3(pkt)                                       \
-    {                                                                                   \
-        Gfx* _g = (Gfx*) (pkt);                                                         \
-                                                                                        \
-        _g->words.w0 = 0x424C4E44; \
-        _g->words.w1 = 0x47664369;                                           \
-    }
-
-
 #define gSPFillrectBlend(pkt)                                       \
     {                                                                                   \
         Gfx* _g = (Gfx*) (pkt);                                                         \
@@ -1264,7 +1254,7 @@ void PlayerShot_DrawShot(PlayerShot* shot) {
     s32 pad[4];
     f32 var_fv1;
     s32 isDrawn = false;
-gSPFixDepthCut3(gMasterDisp++);
+
     Matrix_Translate(gGfxMatrix, shot->obj.pos.x, shot->obj.pos.y, shot->obj.pos.z + gPathProgress, MTXF_APPLY);
     Matrix_MultVec3f(gGfxMatrix, &sp11C, &sShotViewPos);
 
@@ -1565,7 +1555,6 @@ gSPFixDepthCut3(gMasterDisp++);
                 break;
         }
     }
-gSPFixDepthCut3(gMasterDisp++);
 }
 
 void PlayerShot_Draw(PlayerShot* shot) {

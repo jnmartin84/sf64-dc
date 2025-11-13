@@ -157,13 +157,37 @@ s32 Game_ChangeScene(void) {
         _g->words.w1 = 0x46554369;                                           \
     }
 
+#define gSPTheBlur(pkt)                                       \
+    {                                                                                   \
+        Gfx* _g = (Gfx*) (pkt);                                                         \
+                                                                                        \
+        _g->words.w0 = 0x424C4E44; \
+        _g->words.w1 = 0x46554360;                                           \
+    }
 void capture_framebuffer(int num);
 
 extern uint8_t scaled2[];
 extern int force_screen_fill_colors;
 
-void Game_InitMasterDL(Gfx** dList) {
 
+Vtx ast_blur_vtx[] = {
+    {{{  6958,  5177,      -12600}, 0, {  644,     0}, {255, 255, 255, 255}}},
+    {{{ -6958,  5177,      -12600}, 0, {    0,     0}, {255, 255, 255, 255}}},
+    {{{ -6958, -5177,      -12600}, 0, {    0,   968}, {255, 255, 255, 255}}},
+    {{{  6958, -5177,      -12600}, 0, {  644,   968}, {255, 255, 255, 255}}},
+};
+
+
+Gfx aBlurBackdropDL[] = {
+    gsDPLoadTextureBlock(scaled2, G_IM_FMT_RGBA, G_IM_SIZ_16b, 32, 32, 0, G_TX_MIRROR | G_TX_WRAP, G_TX_MIRROR | G_TX_WRAP, 5, 5, G_TX_NOLOD, G_TX_NOLOD),
+    gsSPVertex(ast_blur_vtx, 4, 0),
+    gsSP2Triangles(1, 2, 3, 0, 1, 3, 0, 0),
+    gsSPEndDisplayList(),
+};
+
+
+void Game_InitMasterDL(Gfx** dList) {
+    static int last_frame_cap = 0;
 
     //printf("%s\n", __func__);
     gSPDisplayList((*dList)++, gRcpInitDL);
@@ -176,9 +200,27 @@ void Game_InitMasterDL(Gfx** dList) {
   //                   SCREEN_HEIGHT - SCREEN_MARGIN - 1);
     gDPSetColorImage((*dList)++, G_IM_FMT_RGBA, G_IM_SIZ_16b, SCREEN_WIDTH, gFrameBuffer);
 
+    // when we have captured a frame, but we arent doing blur anymore
+    // tell it not to do anything with it
+    if (last_frame_cap && gBlurAlpha == 255) {
+        last_frame_cap = 0;
+    }
+
+    // we would need to do blur now
     if (gBlurAlpha < 255) {
-//        if (gGameFrameCount & 1) {
+        // always capture a frame
         capture_framebuffer(0);//gGameFrameCount & 3);
+        // the last time we init'd, we did *not* have a current capture
+        if (!last_frame_cap) {
+            // set this flag to say that we captured
+            // and now skip drawing the texture overlay this time
+            last_frame_cap = 1;
+            goto skip_first;
+        }
+        // otherwise, we have "one in the chamber"
+        // we can do the full render with blur now
+
+//        if (gGameFrameCount & 1) {
         gfx_texture_cache_invalidate(scaled2);
 //        }
         //gDPPipeSync((*dList)++);
@@ -187,7 +229,33 @@ void Game_InitMasterDL(Gfx** dList) {
     //    gDPSetRenderMode((*dList)++, G_RM_XLU_SURF, G_RM_XLU_SURF2);
 //        gDPSetPrimColor((*dList)++, 0x00, 0x00,255,255,255, /* RGBA16_RED(gBgColor) * 8, RGBA16_GRN(gBgColor) * 8,
   //                      RGBA16_BLU(gBgColor) * 8 ,*/ gBlurAlpha);
-    } else {
+            RCP_SetupDL(&gMasterDisp, SETUPDL_76);
+//                        gDPSetEnvColor(gMasterDisp++, RGBA16_RED(gBgColor) * 8, RGBA16_GRN(gBgColor) * 8,
+  //                      RGBA16_BLU(gBgColor) * 8, 0xFF);
+    //                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
+      //                                  TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+            gDPSetPrimColor(gMasterDisp++, 0, 0, 255,255,255 , gBlurAlpha);
+            gSPTheBlur(gMasterDisp++);
+//            Lib_TextureRect_RGBA16(&gMasterDisp, (u16 *)scaled2, 64, 64, 0, 0, 5.0f, 1.875f);
+ //                               Matrix_Scale(gGfxMatrix, 1.27f, 0.70f, 1.0f, MTXF_APPLY);
+//                                Matrix_Translate(gGfxMatrix, 60.0f, -10.0f, 0.0f, MTXF_APPLY);//-12600.0f/* -290.0f *//* * 41.0f */, MTXF_APPLY);
+                              //  Matrix_Scale(gGfxMatrix, 42 ,30.75f,1,MTXF_APPLY);
+                                    ///* 1.07f*  */1.3f*41.0f, 0.7f*/* 0.93f* */ 41.0f, 1.0f, MTXF_APPLY);
+//                                Matrix_Push(&gGfxMatrix);
+//                                Matrix_RotateZ(gGfxMatrix, -(f32) gGameFrameCount * 10.0f * M_DTOR, MTXF_APPLY);
+//                                Matrix_Scale(gGfxMatrix, 1.07f, 0.93f, 1.0f, MTXF_APPLY);
+//                                Matrix_RotateZ(gGfxMatrix, gGameFrameCount * 10.0f * M_DTOR, MTXF_APPLY);
+//                                Matrix_Scale(gGfxMatrix, 1.07f, 0.93f, 1.0f, MTXF_APPLY);
+                                Matrix_SetGfxMtx(&gMasterDisp);
+//                  gSPFixDepthCut2(gMasterDisp++);
+                                gSPDisplayList(gMasterDisp++, aBlurBackdropDL);
+  //                gSPFixDepthCut2(gMasterDisp++);
+  //                              Matrix_Pop(&gGfxMatrix);
+
+gSPTheBlur(gMasterDisp++);
+
+} else {
+    skip_first:
         if (!force_screen_fill_colors){
             gDPSetFillColor((*dList)++, FILL_COLOR(gBgColor | 1));}
         else{
@@ -369,13 +437,6 @@ void Game_SetScene(void) {
 extern volatile int doing_glare;
 //extern uint16_t vram_s[];
 
-#define gSPTheBlur(pkt)                                       \
-    {                                                                                   \
-        Gfx* _g = (Gfx*) (pkt);                                                         \
-                                                                                        \
-        _g->words.w0 = 0x424C4E44; \
-        _g->words.w1 = 0x46554360;                                           \
-    }
 
 
 void Game_Update(void) {
@@ -420,6 +481,7 @@ void Game_Update(void) {
             case GSTATE_SHOW_LOGO:
                 RCP_SetupDL(&gMasterDisp, SETUPDL_76);
                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255);
+                gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
                 Lib_TextureRect_IA8(&gMasterDisp, &aNintendoLogoTex[ 128 * 16 * 0], 128, 16, 100.0f, 86.0f, 1.0f, 1.0f);
                 Lib_TextureRect_IA8(&gMasterDisp, &aNintendoLogoTex[128 * 16 * 1], 128, 16, 100.0f, 102.0f, 1.0f, 1.0f);
                 Lib_TextureRect_IA8(&gMasterDisp, &aNintendoLogoTex[128 * 16 * 2], 128, 16, 100.0f, 118.0f, 1.0f, 1.0f);
@@ -446,6 +508,7 @@ void Game_Update(void) {
             case GSTATE_LOGO_WAIT:
                 RCP_SetupDL(&gMasterDisp, SETUPDL_76);
                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255);
+        gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
                 Lib_TextureRect_IA8(&gMasterDisp, &aNintendoLogoTex[128 * 16 * 0], 128, 16, 100.0f, 86.0f, 1.0f, 1.0f);
                 Lib_TextureRect_IA8(&gMasterDisp, &aNintendoLogoTex[128 * 16 * 1], 128, 16, 100.0f, 102.0f, 1.0f, 1.0f);
                 Lib_TextureRect_IA8(&gMasterDisp, &aNintendoLogoTex[128 * 16 * 2], 128, 16, 100.0f, 118.0f, 1.0f, 1.0f);
@@ -662,7 +725,8 @@ void Game_Update(void) {
                                     gFillScreenGreen, gFillScreenBlue, gFillScreenAlpha);
         }
         Audio_dummy_80016A50();
-if(gBlurAlpha < 255) {
+#if 0
+        if(gBlurAlpha < 255) {
             RCP_SetupDL(&gMasterDisp, SETUPDL_76);
                         gDPSetEnvColor(gMasterDisp++, 0,0,0, 0xFF);
                         gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
@@ -672,7 +736,7 @@ if(gBlurAlpha < 255) {
             Lib_TextureRect_RGBA16(&gMasterDisp, (u16 *)scaled2, 64, 64, 0, 0, 5.0f, 1.875f);
             gSPTheBlur(gMasterDisp++);
         }
-
+#endif
 #if 0
 #if MODS_RAM_MOD == 1
         RamMod_Update();

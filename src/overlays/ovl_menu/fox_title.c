@@ -226,12 +226,11 @@ void Title_Main(void) {
             Title_UpdateEntry();
             break;
     }
-    //printf("framecount %d\n",gGameFrameCount);
+
     gGameFrameCount++;
 }
 
 void Title_UpdateEntry(void) {
-    //printf("%s\n", __func__);
     if (sTimer1 > 0) {
         sTimer1--;
     }
@@ -369,7 +368,6 @@ s32 Title_CheckControllers(void) {
 }
 
 void Title_Ranking_Update(void) {
-    //printf("%s\n", __func__);
     switch (sSceneState) {
         case 0:
             sTitleRankMaxRecords = 0;
@@ -414,10 +412,12 @@ void Title_Ranking_Draw(void) {
 
     // Ranking header
     RCP_SetupDL(&gMasterDisp, SETUPDL_83);
+    gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
 
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 0, 255);
     Graphics_DisplaySmallText(xPos, yPos, 1.0f, 1.0f, sSTARFOX_RANKING);
 
+    gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
     Lib_TextureRect_IA8(&gMasterDisp, aSmallText_6, 16, 8, 148.0f, yPos, 1.0f, 1.0f);
     Lib_TextureRect_IA8(&gMasterDisp, aSmallText_4, 16, 8, 164, yPos, 1.0f, 1.0f);
@@ -425,7 +425,7 @@ void Title_Ranking_Draw(void) {
     RCP_SetupDL(&gMasterDisp, SETUPDL_83);
 
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
-
+    gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
     // This Kanji texture was used to draw a white line.
     Lib_TextureRect_IA8(&gMasterDisp, &aTextKanjiCOMPLETE[288], 16, 2, 36, 32, 15.2f, 1.0f);
 
@@ -439,6 +439,7 @@ void Title_RankingData_Draw(void) {
     RCP_SetupDL(&gMasterDisp, SETUPDL_83);
 
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 0, 255);
+    gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
 
     Graphics_DisplaySmallText(94, 38, 1.0f, 1.0f, "RANK");
     Graphics_DisplaySmallText(146, 38, 1.0f, 1.0f, "NAME");
@@ -1343,7 +1344,6 @@ CameraPoint D_menu_801ADA94[50] = {
 
 void Title_CsTeamRunning_Update(void) {
     static s32 D_menu_801ADF44[] = { 63, 170, 268, 368 };
-    //printf("%s\n", __func__);
 
     switch (sSceneState) {
         case 0:
@@ -2583,8 +2583,9 @@ void Title_TeamRunning_Draw(TitleTeam teamIdx) {
                        gAmbientR, gAmbientG, gAmbientB);
 
     frame = sTitleTeam[teamIdx].frameCount % Animation_GetFrameCount(sTeamAnim[teamIdx].cutscene);
+    gFogRed = gFogGreen = gFogBlue = 0;
 
-    RCP_SetupDL_29(gFogRed, gFogGreen, gFogBlue, 255, 995, 1000);
+    RCP_SetupDL_29(0, 0, 0, 255, 995, 1000);
 
     Matrix_Push(&gGfxMatrix);
 
@@ -2819,8 +2820,9 @@ void Title_Passage_Draw(void) {
 
     sPassageWayZoffset += 70.0f;
     sPassageWayZoffset = Math_ModF(sPassageWayZoffset, 4101.6f);
+    gFogRed = gFogGreen = gFogBlue = 0;
 
-    RCP_SetupDL_29(gFogRed, gFogGreen, gFogBlue, 255, 995, 1000);
+    RCP_SetupDL_29(0, 0, 0, 255, 995, 1000);
 
     Matrix_Push(&gGfxMatrix);
 
@@ -2850,6 +2852,7 @@ void Title_StarfoxLogo_Draw(void) {
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
 
     for (i = 0; i < 30; i++) {
+        gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
         Lib_TextureRect_RGBA16(&gMasterDisp, aTitleStarfoxLogoTex + (236 * 2 * i), 236, 2, sTitleStarfoxLogoXpos,
                                sTitleStarfoxLogoYpos + (i * 2.0f), 1.0f, 1.0f);
     }
@@ -2897,6 +2900,7 @@ void Title_PressStart_Draw(void) {
             // No Controller background
             RCP_SetupDL(&gMasterDisp, SETUPDL_85);
             gDPSetPrimColor(gMasterDisp++, 0, 0, 60, 60, 255, 200);
+            gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
 
             Lib_TextureRect_CI8(&gMasterDisp, aNoControllerBgTex, aNoControllerBgTLUT, 32, 32, sNoControllerBgXpos,
                                 sNoControllerBgYpos, sNoControllerBgXscale, sNoControllerBgYscale);
@@ -2904,6 +2908,7 @@ void Title_PressStart_Draw(void) {
             // No Controller
             RCP_SetupDL(&gMasterDisp, SETUPDL_83);
             gDPSetPrimColor(gMasterDisp++, 0, 0, 255, (s32) sTitleTextPrimCol, (s32) sTitleTextPrimCol, 255);
+            gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
 
             for (i = 0; i < 6; i++) {
                 Lib_TextureRect_IA8(&gMasterDisp, aTitleNoControllerTex + (176 * 4 * i), 176, 4, D_menu_801AE474,
@@ -2913,6 +2918,7 @@ void Title_PressStart_Draw(void) {
             // Press Start
             RCP_SetupDL(&gMasterDisp, SETUPDL_83);
             gDPSetPrimColor(gMasterDisp++, 0, 0, 255, (s32) sTitleTextPrimCol, (s32) sTitleTextPrimCol, 255);
+            gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
 
             for (i = 0; i < 2; i++) {
                 Lib_TextureRect_IA8(&gMasterDisp, aTitlePressStartTex + (120 * 6 * i), 120, 6, 101.0f,
@@ -2928,6 +2934,7 @@ void Title_Copyright_Draw(void) {
 
     RCP_SetupDL(&gMasterDisp, SETUPDL_83);
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
+    gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
 
     for (i = 0; i < 2; i++) {
         Lib_TextureRect_IA8(&gMasterDisp, a1997NintendoTex + (120 * 6 * i), 120, 6, 102.0f, 209.0f + (i * 6.0f), 1.0f,
@@ -2950,6 +2957,7 @@ void Title_TeamName_Draw(void) {
     RCP_SetupDL(&gMasterDisp, SETUPDL_83);
 
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
+    gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
 
     switch (D_menu_801B8340) {
         case 0:
@@ -3132,13 +3140,23 @@ void Title_SunGlare2_Draw(void) {
     }
 }
 
+        extern u16 dclogo[];
 // Draws the Starfox and N64 logos
 void Title_Logos_Draw(void) {
     s32 i;
-
+    static int everlogod = 0;
+    if (!everlogod) {
+    for (int p=0;p<128*88;p++) {
+        uint16_t nextp = dclogo[p];
+        nextp = (nextp << 1) | ((nextp >> 15) & 1);
+        dclogo[p] = nextp;
+    }
+    everlogod = 1;
+    }
     switch (sTitleLogoState) {
         case TITLE_LOGO_STARFOX_IN:
             RCP_SetupDL(&gMasterDisp, SETUPDL_85);
+            gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
             gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, (s32) sStarfoxLogoAlpha);
             Lib_TextureRect_CI4(&gMasterDisp, aIntroStarfoxLogoTex, aIntroStarfoxLogoTLUT, 256, 13, 90.0f, 110.0f, 1.0f,
                                 1.0f);
@@ -3149,12 +3167,13 @@ void Title_Logos_Draw(void) {
         case TITLE_LOGO_NINTENDO_64:
             RCP_SetupDL(&gMasterDisp, SETUPDL_83);
             gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, (s32) sStarfoxLogoAlpha);
+            gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
 
             for (i = 0; i < 5; i++) {
-                Lib_TextureRect_RGBA16(&gMasterDisp, aTitleN64LogoTex + (128 * 16 * i), 128, 16, D_menu_801B9070,
+                Lib_TextureRect_RGBA16(&gMasterDisp, dclogo + 8 + (128 * 16 * i), 128, 16, D_menu_801B9070,
                                        D_menu_801B9074 + (16 * i * D_menu_801B907C), D_menu_801B9078, D_menu_801B907C);
             }
-            Lib_TextureRect_RGBA16(&gMasterDisp, aTitleN64LogoTex + (128 * 16 * 5), 128, 8, D_menu_801B9070,
+            Lib_TextureRect_RGBA16(&gMasterDisp, dclogo + 8+ (128 * 16 * 5), 128, 8, D_menu_801B9070,
                                    (80.0f * D_menu_801B907C) + D_menu_801B9074, D_menu_801B9078, D_menu_801B907C);
 
         case TITLE_LOGO_NONE:
@@ -3217,6 +3236,7 @@ void Title_TitleCard_Draw(void) {
         case TITLE_CARD_GREAT_FOX:
             RCP_SetupDL(&gMasterDisp, SETUPDL_83);
             gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
+            gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
             Lib_TextureRect_IA8(&gMasterDisp, aTitleGreatFoxCardTex, 144, 28, aTitleGreatFoxCardXpos,
                                 aTitleGreatFoxCardYpos, 1.0f, 1.0f);
             break;
@@ -3224,6 +3244,7 @@ void Title_TitleCard_Draw(void) {
         case TITLE_CARD_ARWING:
             RCP_SetupDL(&gMasterDisp, SETUPDL_83);
             gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
+            gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
 
             for (i = 0; i < 4; i++) {
                 Lib_TextureRect_IA8(&gMasterDisp, aTitleArwingCardTex + (112 * 6 * i), 112, 6, sTitleArwingCardXpos,
@@ -3236,8 +3257,6 @@ void Title_TitleCard_Draw(void) {
 
 // Redirect to either Title Screen or Option menu
 void Title_NextState_Check(void) {
-    //printf("%s\n", __func__);
-
     if (sCutsceneState == TITLE_SCREEN) {
         Title_NextState_OptionMenu();
     } else {
@@ -3246,7 +3265,6 @@ void Title_NextState_Check(void) {
 }
 
 void Title_NextState_TitleScreen(void) {
-    //printf("%s\n", __func__);
     switch (sLevelStartState) {
         case 0: // Wait for input
             if (gControllerPress[gMainController].button &
@@ -3375,7 +3393,6 @@ void Title_SetCamUp3(bool arg0, f32* arg1, f32* arg2, f32* arg3, f32* arg4, f32*
     f32* var_t0;
     f32* var_v0;
     f32* var_v1;
-//printf("%s\n",__func__);
 
     if (arg0) {
         var_v0 = arg4;

@@ -53,8 +53,8 @@ void Load_RomFile(char *fname, int snum) {
     } 
 }
 
-
-extern void nuke_everything();
+extern void memtest(void);
+extern void nuke_everything(void);
 u8 Load_SceneFiles(NewScene* scene, int snum) {
     u8 segment;
     u8 changeScene = 0;
@@ -67,6 +67,7 @@ u8 Load_SceneFiles(NewScene* scene, int snum) {
         changeScene = 1;
         //if (scene[snum].id != sCurrentScene.id)
         nuke_everything();
+//        memtest();
         // still do nothing
     }
 

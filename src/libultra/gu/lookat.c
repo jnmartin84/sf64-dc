@@ -8,38 +8,50 @@ void guLookAtF(float mf[4][4], float xEye, float yEye, float zEye, float xAt, fl
                float yUp, float zUp) {
     float len, xLook, yLook, zLook, xRight, yRight, zRight;
 
-    guMtxIdentF(mf);
+//    guMtxIdentF(mf);
 
     xLook = xAt - xEye;
     yLook = yAt - yEye;
     zLook = zAt - zEye;
 
     /* Negate because positive Z is behind us: */
-    len = -shz_vec3_magnitude_inv((shz_vec3_t){xLook,yLook,zLook});
+    //len = -shz_vec3_magnitude_inv((shz_vec3_t){xLook,yLook,zLook});
     //-1.0f / sqrtf(xLook * xLook + yLook * yLook + zLook * zLook);
-    xLook *= len;
-    yLook *= len;
-    zLook *= len;
+    //xLook *= len;
+    //yLook *= len;
+    //zLook *= len;
+    shz_vec3_t lookOut = shz_vec3_normalize((shz_vec3_t){xLook,yLook,zLook});
+    xLook = -lookOut.x;
+    yLook = -lookOut.y;
+    zLook = -lookOut.z;
 
     /* Right = Up x Look */
 
     xRight = yUp * zLook - zUp * yLook;
     yRight = zUp * xLook - xUp * zLook;
     zRight = xUp * yLook - yUp * xLook;
-    len = shz_vec3_magnitude_inv((shz_vec3_t){xRight,yRight,zRight});//1.0f / sqrtf(xRight * xRight + yRight * yRight + zRight * zRight);
-    xRight *= len;
-    yRight *= len;
-    zRight *= len;
+//    len = shz_vec3_magnitude_inv((shz_vec3_t){xRight,yRight,zRight});//1.0f / sqrtf(xRight * xRight + yRight * yRight + zRight * zRight);
+//    xRight *= len;
+//    yRight *= len;
+//    zRight *= len;
+    shz_vec3_t rightOut = shz_vec3_normalize((shz_vec3_t){xRight,yRight,zRight});
+    xRight = rightOut.x;
+    yRight = rightOut.y;
+    zRight = rightOut.z;
 
     /* Up = Look x Right */
 
     xUp = yLook * zRight - zLook * yRight;
     yUp = zLook * xRight - xLook * zRight;
     zUp = xLook * yRight - yLook * xRight;
-    len = shz_vec3_magnitude_inv((shz_vec3_t){xUp,yUp,zUp});//1.0f / sqrtf(xUp * xUp + yUp * yUp + zUp * zUp);
-    xUp *= len;
-    yUp *= len;
-    zUp *= len;
+//    len = shz_vec3_magnitude_inv((shz_vec3_t){xUp,yUp,zUp});//1.0f / sqrtf(xUp * xUp + yUp * yUp + zUp * zUp);
+//    xUp *= len;
+//    yUp *= len;
+//    zUp *= len;
+    shz_vec3_t upOut = shz_vec3_normalize((shz_vec3_t){xUp,yUp,zUp});
+    xUp = upOut.x;
+    yUp = upOut.y;
+    zUp = upOut.z;
 
     mf[0][0] = xRight;
     mf[1][0] = yRight;

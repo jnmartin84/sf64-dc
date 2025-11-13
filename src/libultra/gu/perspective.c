@@ -25,16 +25,19 @@ void guPerspectiveF(float mf[4][4], u16* perspNorm, float fovy, float aspect, fl
 
     guMtxIdentF(mf);
     fovy *= 0.01745329f;// 3.1415926f / 180.0f;
-    yscale = cosf(fovy * 0.5f) / sinf(fovy * 0.5f);
+    f32 recipsinf = shz_fast_invf(sinf(fovy * 0.5f));
+    yscale = cosf(fovy * 0.5f) * recipsinf;
     mf[0][0] = yscale * recip_aspect;
     mf[1][1] = yscale;
-    mf[2][2] = (near + far)  * recip_nsubf;
+    mf[2][2] = (near + far) * recip_nsubf;
     mf[2][3] = -1.0f;
-    mf[3][2] = 2.0f * near * far  * recip_nsubf;
+    mf[3][2] = 2.0f * near * far * recip_nsubf;
     mf[3][3] = 0.0f;
-    for (row = 0; row < 4; row++) {
-        for (col = 0; col < 4; col++) {
-            mf[row][col] *= scale;
+    if (scale != 1.0f) {
+        for (row = 0; row < 4; row++) {
+            for (col = 0; col < 4; col++) {
+                mf[row][col] *= scale;
+            }
         }
     }
 #if 0

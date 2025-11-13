@@ -879,7 +879,7 @@ void AudioLoad_LoadFiles(void) {
 {        char texfn[256];
         // load sound data
 {
-            sprintf(texfn, "%s/sf_data/audio_seq.bin", fnpre);
+            sprintf(texfn, "%s/sf_data/audseq.bin", fnpre);
             FILE* file = fopen(texfn, "rb");
             if (!file) {
                 perror("fopen");
@@ -913,7 +913,7 @@ void AudioLoad_LoadFiles(void) {
         }
 
         {
-            sprintf(texfn, "%s/sf_data/audio_bank.bin", fnpre);
+            sprintf(texfn, "%s/sf_data/audbank.bin", fnpre);
             FILE* file = fopen(texfn, "rb");
             if (!file) {
                 perror("fopen");
@@ -947,7 +947,7 @@ void AudioLoad_LoadFiles(void) {
         }
 
         {
-            sprintf(texfn, "%s/sf_data/audio_table.bin", fnpre);
+            sprintf(texfn, "%s/sf_data/audtable.bin", fnpre);
             FILE* file = fopen(texfn, "rb");
             if (!file) {
                 perror("fopen");

@@ -2229,6 +2229,7 @@ void Map_Prologue_Draw(void) {
 
     RCP_SetupDL(&gMasterDisp, SETUPDL_76);
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
+        gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
 
     // Vertical Fade Margins for prologue text
     Lib_TextureRect_IA8(&gMasterDisp, aMapPrologueTextFadeTex, 8, 16, 0.0f, sPrologueTextFadeTexUpperYpos, 40.0f,
@@ -2244,6 +2245,7 @@ void Map_Prologue_Draw(void) {
 
     // Current Prologue texture
     for (i = 0; i < 13; i++) {
+        gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
         Lib_TextureRect_RGBA16(&gMasterDisp, sPrologueTextures[sPrologueTexIdx] + (96 * 4 * i), 96, 4, 109.0f,
                                24.0f + (4.0f * i), 1.0f, 1.0f);
     }
@@ -2253,6 +2255,7 @@ void Map_Prologue_Draw(void) {
         gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, sPrologueNextTexAlpha);
 
         for (i = 0; i < 13; i++) {
+        gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
             Lib_TextureRect_RGBA16(&gMasterDisp, sPrologueTextures[sPrologueTexIdx + 1] + (96 * 4 * i), 96, 4, 109.0f,
                                    24.0f + (i * 4.0f), 1.0f, 1.0f);
         }
@@ -2434,6 +2437,7 @@ void Map_LylatCard_Draw(void) {
     RCP_SetupDL(&gMasterDisp, SETUPDL_83);
 
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, (s32) D_menu_801CEA9C);
+        gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
 
     for (i = 0; i < 4; i++) {
         Lib_TextureRect_IA8(&gMasterDisp, D_MAP_600D590 + (168 * 4 * i), 168, 4, 72.0f, 104.0f + (4.0f * i), 1.0f,
@@ -3884,6 +3888,7 @@ void Map_PathChange_DrawOptions(void) {
     RCP_SetupDL(&gMasterDisp, SETUPDL_76);
 
     gDPSetPrimColor(gMasterDisp++, 0, 0, 60, 60, 255, 170);
+//        gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
 
     Lib_TextureRect_IA8(&gMasterDisp, aMapOptionBgTex, 24, 17, x, y, 4.6f, sMapOptionBgTexScales[optionBgScaleIdx]);
 
@@ -3896,7 +3901,8 @@ void Map_PathChange_DrawOptions(void) {
     if (gGameFrameCount & mask) { // can't be != 0?
         RCP_SetupDL(&gMasterDisp, SETUPDL_83);
         gDPSetPrimColor(gMasterDisp++, 0, 0, r[colorIndex], g[colorIndex], b[colorIndex], 255);
-        Lib_TextureRect_IA8(&gMasterDisp, aMapProceedNextCourseTex, 96, 22, x + 11.0f, y + 3.0f, 1.0f, 1.0f);
+           gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
+     Lib_TextureRect_IA8(&gMasterDisp, aMapProceedNextCourseTex, 96, 22, x + 11.0f, y + 3.0f, 1.0f, 1.0f);
     }
     z = 24.0f;
     colorIndex++;
@@ -3910,6 +3916,7 @@ void Map_PathChange_DrawOptions(void) {
 
         if (gGameFrameCount & mask) { // can't be != 0?
             gDPSetPrimColor(gMasterDisp++, 0, 0, r[colorIndex], g[colorIndex], b[colorIndex], 255);
+        gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
             Lib_TextureRect_IA8(&gMasterDisp, aMapChangeCourseTex, 96, 10, x + 10.0f, y + z + 8.0f, 1.0f, 1.0f);
         }
         z += 18.0f;
@@ -3924,6 +3931,7 @@ void Map_PathChange_DrawOptions(void) {
 
     if ((gGameFrameCount & mask) != 0) {
         gDPSetPrimColor(gMasterDisp++, 0, 0, r[colorIndex], g[colorIndex], b[colorIndex], 255);
+        gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
         Lib_TextureRect_IA8(&gMasterDisp, texture, 96, 22, x + 9.0f, y + z + 5.0f, 1.0f, 1.0f);
     }
 }
@@ -4686,6 +4694,13 @@ gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TE
     Matrix_SetGfxMtx(&gMasterDisp);
 
     gSPDisplayList(gMasterDisp++, sMapPlanets[sPlanets[planetId].id]);
+    if ((sMapPlanets[sPlanets[planetId].id] == aMapSectorXDL) ||
+(sMapPlanets[sPlanets[planetId].id] == aMapSectorYDL)
+|| sMapPlanets[sPlanets[planetId].id] == aMapSectorZDL) {
+        Matrix_Translate(gGfxMatrix, 0.0f, 0.0f, 1.0f, MTXF_APPLY);
+        Matrix_SetGfxMtx(&gMasterDisp);
+        gSPDisplayList(gMasterDisp++, sMapPlanets[sPlanets[planetId].id]);
+    }
 
     Matrix_Pop(&gGfxMatrix);
 }
@@ -4776,10 +4791,15 @@ void Map_PlanetShadow_Draw(PlanetId planetId) {
     Matrix_RotateZ(gGfxMatrix, M_DTOR * sPlanets[planetId].orbit.tilt, MTXF_APPLY);
     Matrix_Scale(gGfxMatrix, 1.6f, 1.6f, 1.6f, MTXF_APPLY);
 
-    Matrix_SetGfxMtx(&gMasterDisp);
-    gSPZFight(gMasterDisp++, zflip);
+//    Matrix_SetGfxMtx(&gMasterDisp);
+        Matrix_Translate(gGfxMatrix, 0.0f, 0.0f, (zflip ? -1.0f : 1.0f), MTXF_APPLY);
+//    Matrix_Scale(gGfxMatrix, 1.01f, 1.01f, 1.0f, MTXF_APPLY);
+        Matrix_SetGfxMtx(&gMasterDisp);
+//    gSPZFight(gMasterDisp++, zflip);
+ //   gSPRadarMark(gMasterDisp++);
     gSPDisplayList(gMasterDisp++, D_MAP_605C230);
-    gSPZFight(gMasterDisp++, zflip);
+//    gSPZFight(gMasterDisp++, zflip);
+ //   gSPRadarMark(gMasterDisp++);
 
     Matrix_Pop(&gGfxMatrix);
 }
@@ -4824,8 +4844,9 @@ gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TE
     Matrix_Scale(gGfxMatrix, 3.0f, 3.0f, 3.0f, MTXF_APPLY);
 
     Matrix_SetGfxMtx(&gMasterDisp);
-
+//    gSPRadarMark(gMasterDisp++);
     gSPDisplayList(gMasterDisp++, aMapTitaniaRings2DL);
+//    gSPRadarMark(gMasterDisp++);
 
     Matrix_Pop(&gGfxMatrix);
 }
@@ -4853,9 +4874,12 @@ void Map_VenomCloud_Draw(f32* zAngle, f32 next, f32 scale, int which) {
     Matrix_RotateZ(gGfxMatrix, M_DTOR * (*zAngle), MTXF_APPLY);
     Matrix_Scale(gGfxMatrix, scale, scale, scale, MTXF_APPLY);
 
+
+            Matrix_Translate(gGfxMatrix, 0.0f, 0.0f, ((which == 2) ? -2.0f : 2.0f), MTXF_APPLY);
+
     Matrix_SetGfxMtx(&gMasterDisp);
 
-    gSPZFight(gMasterDisp++,which);
+//    gSPZFight(gMasterDisp++,which);
    //gSPDisplayList(gMasterDisp++, aMapVenomCloudDL);
 #if 1
 // @port This should be aMapVenomCloudDL but torch is stupid sometimes
@@ -4870,7 +4894,7 @@ void Map_VenomCloud_Draw(f32* zAngle, f32 next, f32 scale, int which) {
                         G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
     gSP2Triangles(gMasterDisp++, 5, 6, 7, 0, 5, 7, 4, 0);
 #endif
-    gSPZFight(gMasterDisp++,which);
+ //   gSPZFight(gMasterDisp++,which);
 
     Matrix_Pop(&gGfxMatrix);
 
@@ -5139,8 +5163,12 @@ gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TE
         Matrix_Scale(gGfxMatrix, sMapCorneriaExplosionScale, sMapCorneriaExplosionScale, sMapCorneriaExplosionScale,
                      MTXF_APPLY);
 
+        Matrix_Translate(gGfxMatrix, 0.0f, 0.0f, 2.0f, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
 
+        gSPDisplayList(gMasterDisp++, aMapPlanetExplosionDL);
+        Matrix_Translate(gGfxMatrix, 0.0f, 0.0f, 1.0f, MTXF_APPLY);
+        Matrix_SetGfxMtx(&gMasterDisp);
         gSPDisplayList(gMasterDisp++, aMapPlanetExplosionDL);
 
         Matrix_Pop(&gGfxMatrix);
@@ -5227,8 +5255,12 @@ gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TE
         Matrix_Scale(gGfxMatrix, D_menu_801CEC48[explosionIdx][i], D_menu_801CEC48[explosionIdx][i],
                      D_menu_801CEC48[explosionIdx][i], MTXF_APPLY);
 
+        Matrix_Translate(gGfxMatrix, 0.0f, 0.0f, 2.0f, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
 
+        gSPDisplayList(gMasterDisp++, aMapPlanetExplosionDL);
+        Matrix_Translate(gGfxMatrix, 0.0f, 0.0f, 1.0f, MTXF_APPLY);
+        Matrix_SetGfxMtx(&gMasterDisp);
         gSPDisplayList(gMasterDisp++, aMapPlanetExplosionDL);
 
         Matrix_Pop(&gGfxMatrix);
@@ -5438,6 +5470,7 @@ void Map_TitleCards_Draw(void) {
     RCP_SetupDL(&gMasterDisp, SETUPDL_83);
 
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, (s32) sMapPlanetCardAlpha);
+        gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
 
     for (i = 0; i < sPlanetNameCards[planetCardIdx].height; i++) {
         Lib_TextureRect_IA8(&gMasterDisp,
@@ -5538,6 +5571,7 @@ void Map_801A9A8C(void) {
         return;
     }
 #endif
+        gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
 
     Lib_TextureRect_IA8(&gMasterDisp, aTextMissionNo, 112, 19, sCardXpos[0], sCardYpos[0], 1.0f, 1.0f);
     Lib_TextureRect_IA8(&gMasterDisp, missionNoTex, 16, 15, sCardXpos[1], sCardYpos[1], 1.0f, 1.0f);
@@ -5692,9 +5726,11 @@ void Map_PathLineBox_Draw(s32 curMission) {
             } else {
                 gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
             }
+        gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
             Lib_TextureRect_RGBA16(&gMasterDisp, aMapWhiteSquareTex, 8, 8, 28.0f + x + 24.0f, y + 11.0f, 2.0f, 0.2f);
         }
         gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
+        gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
         Lib_TextureRect_RGBA16(&gMasterDisp, aMapPathBoxTex, 24, 24, 28.0f + x, y, 1.0f, 1.0f);
     }
 //                gSPFixDepthCut(gMasterDisp++);
@@ -6124,12 +6160,13 @@ void Map_BriefingRadio_Draw(s32 arg0) {
                 gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, sTeamStatusAlpha);
                 xPos = 205.0f;
                 yPos = 77.0f;
+        gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
 
                 for (i = 0; i < 12; i++) {
                     Lib_TextureRect_RGBA16(&gMasterDisp, D_MAP_6044820 + (92 * 4 * i), 92, 4, xPos, yPos + (i * 4.0f),
                                            1.0f, 1.0f);
                 }
-                Lib_TextureRect_RGBA16(&gMasterDisp, D_MAP_6044820 + (92 * 4 * 12), 92, 4/* 3 */, xPos, yPos + 48.0f, 1.0f,
+                Lib_TextureRect_RGBA16(&gMasterDisp, D_MAP_6044820 + (92 * 4 * 12), 92, 3, xPos, yPos + 48.0f, 1.0f,
                                        1.0f);
 
                 if (arg0 == 21) {
@@ -6163,6 +6200,7 @@ void Map_BriefingRadio_Draw(s32 arg0) {
 
                     RCP_SetupDL(&gMasterDisp, SETUPDL_76);
                     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, alpha[i]);
+        gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
                     Lib_TextureRect_RGBA16(&gMasterDisp, sRadioCharacterFaces[i], 28, 28, sTeamStatusPos[i], 131.0f,
                                            1.0f, 1.0f);
 
@@ -6249,8 +6287,8 @@ gSPRadarMark(gMasterDisp++);
 //gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
   //                         TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
 
-        gDPSetPrimColor(gMasterDisp++, 0, 0, 32, 32, 255, D_menu_801CEA98);
-        gDPSetEnvColor(gMasterDisp++, 207, 207, 255, 255);
+        gDPSetPrimColor(gMasterDisp++, 0, 0, 255,255,255/* 32, 32, 255 */, D_menu_801CEA98);
+        gDPSetEnvColor(gMasterDisp++, /* 207, 207, 255, */32,32,255, 255);
 
         Matrix_Push(&gGfxMatrix);
         {
@@ -6264,6 +6302,14 @@ gSPRadarMark(gMasterDisp++);
             Matrix_SetGfxMtx(&gMasterDisp);
 
             gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK);
+gSPRadarMark(gMasterDisp++);
+            gSPDisplayList(gMasterDisp++, aMapTvScreenGlowDL);
+gSPRadarMark(gMasterDisp++);
+
+        gDPSetPrimColor(gMasterDisp++, 0, 0, 32, 32, 255, D_menu_801CEA98);
+        gDPSetEnvColor(gMasterDisp++, 207, 207, 255, 255);
+
+
 gSPRadarMark(gMasterDisp++);
             gSPDisplayList(gMasterDisp++, aMapTvScreenGlowDL);
 gSPRadarMark(gMasterDisp++);
@@ -6855,6 +6901,7 @@ void Map_SetCamRot(f32 camAtX, f32 camAtY, f32 camAtZ, f32* camEyeX, f32* camEye
 
 void Map_RemainingLives_Draw(s32 xPos, s32 yPos, s32 number) {
     RCP_SetupDL(&gMasterDisp, SETUPDL_85);
+        gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
 
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
     Lib_TextureRect_CI4(&gMasterDisp, aMapArwingIconTex, aMapArwingIconTLUT, 16, 16, xPos, yPos, 1.0f, 1.0f);
@@ -6865,6 +6912,7 @@ void Map_RemainingLives_Draw(s32 xPos, s32 yPos, s32 number) {
     RCP_SetupDL(&gMasterDisp, SETUPDL_83);
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 0, 255);
 
+        gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
     if (number >= 10) {
         Graphics_DisplaySmallNumber(xPos + 33.0f - ((HUD_CountDigits(number) - 1) * 8) + 3, yPos + 8.0f, number);
     } else {

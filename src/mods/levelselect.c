@@ -131,7 +131,7 @@ void Map_LevelSelect(void) {
     if (timer > 0) {
         timer--;
     }
-#define BYPASS_BRIEFING 0
+#define BYPASS_BRIEFING 1
 #if BYPASS_BRIEFING
     // Bypass briefing
     if ((timer == 0) && (startLevel == 1)) {

@@ -458,7 +458,7 @@ void Cutscene_EnterWarpZone(Player* player) {
             }
             player->unk_190 = 2.0f;
             player->camDist -= 2.0f;
-            gBlurAlpha = 128;
+            gBlurAlpha = 128;//64;//224;//128;
             break;
 
         case 2:
@@ -1343,7 +1343,7 @@ void Cutscene_WarpZoneComplete(Player* player);
 void Cutscene_FortunaComplete(Player* player);
 void Cutscene_CoComplete2(Player* player);
 
-#define USE_CUTSCENE_RECORDINGS 0
+#define USE_CUTSCENE_RECORDINGS 1
 
 #if USE_CUTSCENE_RECORDINGS
 typedef struct Record {
@@ -3127,6 +3127,17 @@ void ActorCutscene_Draw(ActorCutscene* this) {
     }
 }
 
+#define gSPRadarMark(pkt)                                       \
+    {                                                                                   \
+        Gfx* _g = (Gfx*) (pkt);                                                         \
+                                                                                        \
+        _g->words.w0 = 0x424C4E44; \
+        _g->words.w1 = 0x12345678;               \
+    }
+
+int oldfognear;
+int oldfogfar;
+
 void Cutscene_DrawGreatFox(void) {
     Vec3f* greatFoxLightPos;
     s32 i;
@@ -3147,7 +3158,10 @@ void Cutscene_DrawGreatFox(void) {
     }
 
     if (gCurrentLevel == LEVEL_TITANIA) {
-        RCP_SetupDL_29(gFogRed, gFogGreen, gFogBlue, gFogAlpha, gFogNear, gFogFar/* 1005 */);
+//        gSPRadarMark(gMasterDisp++);
+//oldfognear = gFogNear;
+//oldfogfar = gFogFar;
+  RCP_SetupDL_29(gFogRed, gFogGreen, gFogBlue, gFogAlpha, gFogNear, gFogFar/* 1005 */);
     }
 
     if (gGreatFoxIntact) {
@@ -3219,4 +3233,10 @@ void Cutscene_DrawGreatFox(void) {
             gSPDisplayList(gMasterDisp++, dList);
         }
     }
+
+//    if (gCurrentLevel == LEVEL_TITANIA) {
+  //gFogNear = oldfognear;
+  //gFogFar = oldfogfar;
+       // gSPRadarMark(gMasterDisp++);
+    //}
 }

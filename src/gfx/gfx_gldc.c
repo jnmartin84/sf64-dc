@@ -23,6 +23,7 @@
 #include <GL/glu.h>
 #include <GL/glext.h>
 #include <GL/glkos.h>
+#define LOWRES 0
 
 #define FOR_WINDOWS 0
 
@@ -97,21 +98,30 @@ extern LevelId gCurrentLevel;
 
 extern uint8_t gLevelType;
 
-extern int use_gorgon_alpha;
 extern uint8_t gorgon_alpha;
 
-/* Used for rescaling textures into pow2 dims */
-extern uint8_t __attribute__((aligned(32))) scaled[128 * 128 * 2];
-extern uint16_t __attribute__((aligned(32))) scaled2[128 * 128]; // 64*64];
-
+extern int use_gorgon_alpha;
+extern int do_radar_depth;
 extern int do_the_blur;
+extern int do_reticle;
+extern int do_rectdepfix;
+extern int need_to_add;
+extern int do_fillrect_blend;
+extern int do_starfield;
+extern int do_the_blur;
+extern volatile int do_zfight;
+extern volatile int do_zflip;
+extern int do_menucard;
+extern int do_andross;
+extern int do_radar_mark;
+extern int do_space_bg;
+
+/* Used for rescaling textures into pow2 dims */
+extern uint16_t __attribute__((aligned(32))) scaled[128 * 128];
+extern uint16_t __attribute__((aligned(32))) scaled2[512 * 256];
 
 // prim color
 extern uint8_t pa;
-
-extern int do_reticle;
-
-extern int do_rectdepfix;
 
 extern void reset_texcache(void);
 extern float screen_2d_z;
@@ -125,23 +135,14 @@ extern void ext_gfx_dp_fill_rectangle(int32_t ulx, int32_t uly, int32_t lrx, int
 int ending_great_fox = 0;
 extern void gfx_opengl_2d_projection(void);
 extern void gfx_opengl_reset_projection(void);
-extern int do_starfield;
-extern int do_the_blur;
 int do_ending_bg = 0;
 
 static float depbump = 0.0f;
 extern int path_priority_draw;
 
 extern uint8_t add_r, add_g, add_b, add_a;
-extern int need_to_add;
-extern int do_fillrect_blend;
 extern int gGameState;
-extern volatile int do_zfight;
-extern volatile int do_zflip;
-extern int do_menucard;
-extern int do_andross;
-extern int do_radar_mark;
-extern int do_space_bg;
+
 
 // save original vertex colors for multi-pass tricks
 // this is more than enough for the circumstances where that code runs
@@ -169,8 +170,9 @@ int fog_dirty = 0;
 extern int shader_debug_toggle;
 
 #include <kos.h>
-
-static void resample_32bit(const uint16_t* in, int inwidth, int inheight, uint16_t* out, int outwidth, int outheight) {
+void n64_memcpy(void* dst, const void* src, size_t size);
+static void resample_tex(const uint16_t* in, int inwidth, int inheight, uint16_t* out, int outwidth, int outheight) {
+#if 0
     int i, j;
     __builtin_prefetch(in);
     float scale = (float) inheight / (float) outheight;
@@ -192,6 +194,16 @@ static void resample_32bit(const uint16_t* in, int inwidth, int inheight, uint16
             out32[j] = ((uint32_t) p2 << 16) | p1;
         }
         __builtin_prefetch(inrow + 32);
+    }
+#endif
+//    memset(out, 0, outwidth*outheight*2);
+    for (int y=0; y < inheight;y++) {
+        n64_memcpy(out + (y*outwidth), in + (y*inwidth), inwidth * 2);
+        uint16_t *ptr = out + (y*outwidth) + inwidth;
+        ptr[0] = 0;
+//        ptr[1] = 0;
+//        ptr[2] = 0;
+//        ptr[3] = 0;
     }
 }
 
@@ -238,6 +250,7 @@ static inline GLenum texenv_set_texture(UNUSED struct ShaderProgram* prg) {
 static inline GLenum texenv_set_texture_color(struct ShaderProgram* prg) {
     GLenum mode = GL_MODULATE;
 
+    // don't touch these
     switch (prg->shader_id) {
         case 0x0000038D: // ???
         case 0x00045A00: // ???
@@ -258,25 +271,21 @@ static inline GLenum texenv_set_texture_texture(UNUSED struct ShaderProgram* prg
     return GL_MODULATE;
 }
 
-float n64_min;
-float n64_max;
 float gl_fog_start;
 float gl_fog_end;
 
 void gfx_opengl_change_fog(void) {
-    float fog_scale;
-    if (/* (gGameState == 8) ||  */(gCurrentLevel == LEVEL_ZONESS))
+    float fog_scale = 0.5f;
+    if ((gCurrentLevel == LEVEL_ZONESS) || (gCurrentLevel == LEVEL_TITANIA))
         fog_scale = 0.3f;
-    else if ((gCurrentLevel == LEVEL_TITANIA) || (gCurrentLevel == LEVEL_SOLAR))
+    else if ((gCurrentLevel == LEVEL_SOLAR) || (gCurrentLevel == LEVEL_MACBETH))
         fog_scale = 0.4f;
-    else if (gCurrentLevel == LEVEL_SECTOR_Y)
-        fog_scale = 0.85f;
-    else
-        fog_scale = 0.6f;
-    glFogi(GL_FOG_MODE, GL_LINEAR);
+    else if ((gCurrentLevel == LEVEL_SECTOR_Y))
+        fog_scale = 0.9f;
 
-    glFogf(GL_FOG_START, (GLfloat) gl_fog_start * fog_scale);
-    glFogf(GL_FOG_END, (GLfloat) gl_fog_end * fog_scale);
+    glFogi(GL_FOG_MODE, GL_LINEAR);
+    glFogf(GL_FOG_START, (GLfloat)gl_fog_start * fog_scale * 0.9f);
+    glFogf(GL_FOG_END, (GLfloat)gl_fog_end * fog_scale);
 }
 
 static void gfx_opengl_apply_shader(struct ShaderProgram* prg) {
@@ -308,26 +317,26 @@ static void gfx_opengl_apply_shader(struct ShaderProgram* prg) {
     }
 
     if (prg->shader_id & SHADER_OPT_FOG) {
-        if (fog_dirty /* || (gGameState == 8) */) { // ending
-            gfx_opengl_change_fog();
-            fog_dirty = 0;
-        }
-
         glEnable(GL_FOG);
+//        if (fog_dirty) {
+            gfx_opengl_change_fog();
+//            fog_dirty = 0;
+//        }
     } else {
         glDisable(GL_FOG);
     }
 
     if (prg->shader_id & SHADER_OPT_TEXTURE_EDGE) {
         glEnable(GL_ALPHA_TEST);
-        glAlphaFunc(GL_GREATER, 0.125); // 1.0f/8.0f);
+        glAlphaFunc(GL_GREATER, 0.125);
         glDisable(GL_BLEND);
     } else {
         glDisable(GL_ALPHA_TEST);
     }
 
     // configure texenv
-    GLenum mode;
+    GLenum mode = texenv_set_color(prg);
+#if 0
     switch (prg->mix) {
         case SH_MT_TEXTURE:
             mode = texenv_set_texture(prg);
@@ -342,6 +351,7 @@ static void gfx_opengl_apply_shader(struct ShaderProgram* prg) {
             mode = texenv_set_color(prg);
             break;
     }
+#endif
 
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, mode);
 }
@@ -455,7 +465,6 @@ static uint32_t gfx_opengl_new_texture(void) {
     GLuint ret;
     glGenTextures(1, &ret);
     newest_texture = ret;
-    //    printf("new tex %d\n", ret);
     return (uint32_t) ret;
 }
 
@@ -464,7 +473,7 @@ void gfx_opengl_set_tile_addr(int tile, GLuint addr) {
 }
 
 static void gfx_opengl_select_texture(int tile, uint32_t texture_id) {
-    tmu_state[tile].tex = texture_id; // remember this for multitexturing later
+    tmu_state[tile].tex = texture_id;
     glBindTexture(GL_TEXTURE_2D, texture_id);
 }
 
@@ -473,58 +482,61 @@ static void gfx_opengl_select_texture(int tile, uint32_t texture_id) {
 static inline uint16_t rgb565_to_argb1555(uint16_t rgb565) {
     // Extract components from RGB565
     uint8_t r5 = (rgb565 >> 11) & 0x1F; // 5 bits red
-    uint8_t g6 = (rgb565 >> 5) & 0x3F;  // 6 bits green
+    uint8_t g5 = (rgb565 >> 6) & 0x1F;  // 5 bits green
     uint8_t b5 = rgb565 & 0x1F;         // 5 bits blue
 
     // Convert 6-bit green to 5-bit by shifting (losing LSB)
-    uint8_t g5 = (g6 >> 1) & 0x1F;
-
-    // Alpha = 1 (opaque)
-    uint8_t a1 = 1;
+//    uint8_t g5 = (g6 >> 1) & 0x1F;
 
     // Pack into RGBA5551
-    uint16_t rgba5551 = (a1 << 15) | (r5 << 10) | (g5 << 5) | b5;
+    // Alpha = 1 (opaque)
+    uint16_t rgba5551 = (1 << 15) | (r5 << 10) | (g5 << 5) | b5;
 
     return rgba5551;
 }
 
 void capture_framebuffer(int num) {
-    const uint16_t* in = vram_s; // + (num * 640 * 120);
-    int inwidth = 640;
-    int inheight = 480;      // 120;
-    uint16_t* out = scaled2; // + (num * 128 * 32);
-    int outwidth = 128;      // 64;//128;
-    int outheight = 64;     // 64;//32;
-    int i, j;
-    uint32_t* out32 = (uint32_t*) out;
-    int fracstep = (inwidth << 16) / outwidth;
-    int outwidth32 = outwidth >> 1; // two pixels per 32-bit write
-
-    for (i = 0; i < outheight; i++, out32 += outwidth32) {
-        const uint16_t* inrow = in + inwidth * (i * inheight / outheight);
-        int frac = fracstep >> 1;
-
-        for (j = 0; j < outwidth32; j++) {
-            uint16_t p1 = rgb565_to_argb1555(inrow[frac >> 16]);
-            frac += fracstep;
-            uint16_t p2 = rgb565_to_argb1555(inrow[frac >> 16]);
-            frac += fracstep;
-            out32[j] = ((uint32_t) p2 << 16) | p1;
+#if 1
+#if LOWRES
+for (int y=0;y<240;y+=4) {
+        for (int x=0;x<320;x+=4) {
+            uint16_t pix = ;
+            scaled2[((y>>2)*128) + (x>>2)] = vram_s[(y*320) + x];
         }
     }
+#else
+    for (int y=0;y<480;y+=4) {
+        for (int x=0;x<640;x+=4) {
+            scaled2[(y<<6) + (x>>2)] = vram_s[((y<<9) + (y<<7)) + x];
+        }
+    }
+#endif
+#endif
 }
 
-static void gfx_opengl_upload_texture(const uint8_t* rgba32_buf, int width, int height, unsigned int type) {
+static struct __attribute__((aligned(32))) {
+    float u_scale[1024];
+    float v_scale[1024];
+} tex_scaler;
+
+static void gfx_opengl_upload_texture(const uint16_t* rgba16_buf, int width, int height, unsigned int type) {
     GLint intFormat;
 
 #if LET_GLDC_TWIDDLE
     if (do_the_blur && type == GL_UNSIGNED_SHORT_1_5_5_5_REV) {
-        intFormat = GL_ARGB1555_KOS;
+        type = GL_UNSIGNED_SHORT_5_6_5;
+        intFormat = GL_RGB565_KOS;
     } else if (type == GL_UNSIGNED_SHORT_1_5_5_5_REV) {
         intFormat = GL_ARGB1555_TWID_KOS;
     } else {
         intFormat = GL_ARGB4444_TWID_KOS;
     }
+
+    if (do_the_blur) {
+        glTexImage2D(GL_TEXTURE_2D, 0, intFormat, /* 128 */256, /* 64 */128, 0, GL_RGB, type, scaled2);
+        return;
+    }
+
 #else
     if (type == GL_UNSIGNED_SHORT_1_5_5_5_REV) {
         intFormat = GL_ARGB1555_KOS;
@@ -533,32 +545,65 @@ static void gfx_opengl_upload_texture(const uint8_t* rgba32_buf, int width, int 
     }
 #endif
 
-    // we don't support non power of two textures, scale to next power of two if necessary
-    if ((!is_pot(width) || !is_pot(height)) || (width < 8) || (height < 8)) {
+    int is_wp2 = is_pot(width);
+    int is_hp2 = is_pot(height);
+    int is_wl8 = width < 8;
+    int is_hl8 = height < 8;
+
+    // we don't support non power of two textures, *PAD* to next power of two if necessary
+    if ((!is_wp2 || !is_hp2) || is_wl8 || is_hl8) {
         uint32_t final_w = width;
         uint32_t final_h = height;
 
-        if (final_w < 8)
+        if (is_wl8)
             final_w = 8;
-        else if (!is_pot(final_w)) {
+        else if (!is_wp2) {
             final_w = next_pot(final_w);
         }
 
-        if (final_h < 8)
+        if (is_hl8)
             final_h = 8;
-        else if (!is_pot(final_h)) {
+        else if (!is_hp2) {
             final_h = next_pot(final_h);
         }
 
-        resample_32bit((const uint16_t*) rgba32_buf, width, height, (uint16_t*) scaled, final_w, final_h);
+        int scale_index = tmu_state[0].tex;
+        tex_scaler.u_scale[scale_index] = (float)width / (float)final_w;
+        tex_scaler.v_scale[scale_index] = (float)height / (float)final_h;
 
-        rgba32_buf = (uint8_t*) scaled;
+        if (!(is_wp2 && (!is_wl8) && ((!is_hp2) || is_hl8))) {
+            // when the texture isnt pow2 or >= 8 pixels in either dimension
+            // it has to be padded in width and height
+            resample_tex((const uint16_t*) rgba16_buf, width, height, scaled, final_w, final_h);
+            rgba16_buf = (uint8_t*) scaled;
+        } else {
+            // but when the texture is pow2 in width
+            // and > 8 pixels tall, it only needs to be padded in height
+            // because of the way texture filtering works
+            // we need to clear a row at the bottom of the buffer
+            // but only a single row
+            memset(rgba16_buf + (height*width), 0, width*2);
+        }   
 
         width = final_w;
         height = final_h;
+    } else {
+        int scale_index = tmu_state[0].tex;
+        tex_scaler.u_scale[scale_index] = 1.0f;
+        tex_scaler.v_scale[scale_index] = 1.0f;
     }
 
-    glTexImage2D(GL_TEXTURE_2D, 0, intFormat, width, height, 0, GL_BGRA, type, rgba32_buf);
+    glTexImage2D(GL_TEXTURE_2D, 0, intFormat, width, height, 0, GL_BGRA, type, rgba16_buf);
+}
+
+float get_current_u_scale(void) {
+    int scale_index = tmu_state[0].tex;
+    return tex_scaler.u_scale[scale_index];
+}
+
+float get_current_v_scale(void) {
+    int scale_index = tmu_state[0].tex;
+    return tex_scaler.v_scale[scale_index];
 }
 
 static inline GLenum gfx_cm_to_opengl(uint32_t val) {
@@ -586,8 +631,8 @@ static void gfx_opengl_set_sampler_parameters(int tile, uint8_t linear_filter, u
     tmu_state[tile].wrap_t = wrap_t;
 
     // set state for the first texture right away
-    // if (!tile)
-    gfx_opengl_apply_tmu_state(tile);
+    if (!tile)
+        gfx_opengl_apply_tmu_state(tile);
 }
 
 static void gfx_opengl_set_depth_test(uint8_t depth_test) {
@@ -689,110 +734,8 @@ static void particle_blend_setup_post(void) {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-#if 0
-static void twinkling_star_setup_pre(void) {
-    // like the clouds over skybox
-    glEnable(GL_BLEND);
-    glEnable(GL_DEPTH_TEST);
-    glDepthMask(GL_TRUE);
-    glDepthFunc(GL_LEQUAL);
-    glPushMatrix();
-    glTranslatef(0.0f, 0.0f, -3500.0f);
-}
-
-static void twinkling_star_setup_post(void) {
-    glDepthMask(GL_TRUE);
-    glDepthFunc(GL_LESS);
-    glPopMatrix();
-}
-
-static void one_inv_setup_pre(void) {
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-}
-
-static void one_inv_setup_post(void) {
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-}
-#endif
-
-#if 0
-static void add_a_color_pre(void* vbo, size_t num_tris, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-    // when there is any fixed color to additively blend... it is time for:
-    // * advanced multi-pass sorcery *
-    dc_fast_t* tris = (dc_fast_t*) vbo;
-    // modulate texture
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-     
-    glEnable(GL_BLEND);
-    glDisable(GL_TEXTURE_2D);
-    glBlendFunc(GL_ONE, GL_ONE);
-    // render opaque black untextured polys first to reset bg alpha
-    
-    // store copy of original vertex colors
-    // AND
-    // set them to solid black with 255 alpha
-    // the actual color doesn't matter but the alpha does
-    for (size_t i = 0; i < 3 * num_tris; i++) {
-        backups[i] = tris[i].color.packed;
-        tris[i].color.array.r = 0;
-        tris[i].color.array.g = 0;
-        tris[i].color.array.b = 0;
-        tris[i].color.array.a = 255;
-    }
-    glDrawArrays(GL_TRIANGLES, 0, 3 * num_tris);
-    
-    glEnable(GL_TEXTURE_2D);
-    // generate a solid "inverse cutout" texture
-    // all opaque pixels become one solid color
-    // transparent stay transparent
-    glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDrawArrays(GL_TRIANGLES, 0, 3 * num_tris);
-    
-    // now that we've drawn the cutout version 
-    // set the vert colors to PRIM color  
-    for (size_t i = 0; i < 3 * num_tris; i++) {
-        tris[i].color.array.r = r;
-        tris[i].color.array.g = g;
-        tris[i].color.array.b = b;
-        tris[i].color.array.a = 255; // I'm not sure this is valid
-    }
-    // ensure depth test is on no matter what the RDP state said
-    glEnable(GL_DEPTH_TEST);
-    // and write to anything with equal depth
-    glDepthMask(GL_TRUE);
-    glDepthFunc(GL_EQUAL);
-    // TURN OFF TEXTURING, THIS IS KEY TO SECOND PASS
-    glDisable(GL_TEXTURE_2D);
-    // blend solid PRIM color triangles with the cutout-textured triangles
-    glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA);
-    // with blending, we now have a cutout-textured object colored with PRIM color
-    glDrawArrays(GL_TRIANGLES, 0, 3 * num_tris);
-
-    // restore the original vertex colors for final pass
-    for (size_t i = 0; i < 3 * num_tris; i++) {
-        tris[i].color.packed = backups[i];
-    }
-    // turn texture back on
-    glEnable(GL_TEXTURE_2D);
-    // ONE+ONE blend of colored cutout and original texture
-    glBlendFunc(GL_ONE, GL_ONE);
-    // upon exit, draws the original texture
-}
-
-static void add_a_color_post(void) {
-    // restore default blend and depth funcs
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDepthFunc(GL_LESS);
-}
-#endif
-extern int try_to_fix_glitch;
-
-void gfx_force_3d_2d(void);
-void gfx_undo_3d_2d(void);
-void  /* __attribute__((noinline))  */gfx_opengl_2d_projection(void);
-void  gfx_opengl_reset_projection(void);
+void gfx_opengl_2d_projection(void);
+void gfx_opengl_reset_projection(void);
 
 static void gfx_opengl_draw_triangles(float buf_vbo[], UNUSED size_t buf_vbo_len, size_t buf_vbo_num_tris) {
     cur_buf = (void*) buf_vbo;
@@ -805,7 +748,7 @@ static void gfx_opengl_draw_triangles(float buf_vbo[], UNUSED size_t buf_vbo_len
     else
         glDisable(GL_TEXTURE_2D);
 
-    if (do_rectdepfix) {
+    if (!do_andross && do_rectdepfix) {
         skybox_setup_pre();
     }
 
@@ -821,7 +764,7 @@ static void gfx_opengl_draw_triangles(float buf_vbo[], UNUSED size_t buf_vbo_len
     if (is_zmode_decal)
         zmode_decal_setup_pre();
 
-    if (do_andross || do_fillrect_blend) {
+    if (/* do_andross ||  */do_fillrect_blend) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_ONE, GL_ONE);
     }
@@ -830,93 +773,93 @@ static void gfx_opengl_draw_triangles(float buf_vbo[], UNUSED size_t buf_vbo_len
         dc_fast_t* tris = (dc_fast_t*) buf_vbo;
         for (size_t i = 0; i < 3 * buf_vbo_num_tris; i++) {
             if (do_zflip == 2)
-                tris[i].vert.z -= 0.03f;
+                tris[i].vert.z -= 1.0f;//0.03f;
             else if (do_zflip == 1)
-                tris[i].vert.z -= 0.03f;
+                tris[i].vert.z -= 1.0f;//0.03f;
             else
-                tris[i].vert.z += 0.03f;
+                tris[i].vert.z += 1.0f;//0.03f;
         }
     }
-#if 0
-    if (do_radar_mark || path_priority_draw) {
-//        if (do_radar_mark)
-//                glBlendFunc(GL_ONE, GL_ONE);
 
-        glDisable(GL_DEPTH_TEST);
-        glEnable(GL_BLEND);
-        glDepthFunc(GL_ALWAYS);
-
-        glPushMatrix();
-        glTranslatef(0, 0.0001f, 100.0f);
-    }
- #endif
     if (use_gorgon_alpha) {
         dc_fast_t* tris = (dc_fast_t*) buf_vbo;
         for (size_t i = 0; i < 3 * buf_vbo_num_tris; i++) {
             tris[i].color.array.a = gorgon_alpha;
         }
     }
+
     if (do_space_bg) {
         glDisable(GL_DEPTH_TEST);
         glDepthMask(GL_FALSE); // don’t write depth (so it won’t block later geometry)
         glDepthFunc(GL_LEQUAL);
         glDisable(GL_BLEND);
     }
-/* if(try_to_fix_glitch) {
-    glPushMatrix();
-    glTranslatef(0.0f, 0.01f, 0.01f);
-        glDepthFunc(GL_LEQUAL);
-}
- */
-    if (/* !use_gorgon_alpha &&  */cur_shader->shader_id == 0x01045551) {
+
+    if (cur_shader->shader_id == 0x01045551) {
         particle_blend_setup_pre();
         dc_fast_t* tris = (dc_fast_t*) buf_vbo;
         for (size_t i = 0; i < 3 * buf_vbo_num_tris; i++) {
             tris[i].color.array.a = pa;
         }
     }
-if(do_radar_mark) {
-gfx_opengl_2d_projection();
-}
-     glDrawArrays(GL_TRIANGLES, 0, 3 * buf_vbo_num_tris);
-if(do_radar_mark) {
-gfx_opengl_reset_projection();
-}
-    if (/* !use_gorgon_alpha &&  */cur_shader->shader_id == 0x01045551)
+
+    if(do_radar_mark) {
+        gfx_opengl_2d_projection();
+    }
+
+    if (do_the_blur) {
+        uint32_t olda;
+        uint32_t oldc;
+        dc_fast_t* tris = (dc_fast_t*) buf_vbo;
+#if 1
+//        oldc = tris[0].color.packed; 
+        olda = tris[0].color.array.a; 
+        for (size_t i = 0; i < 3 * buf_vbo_num_tris; i++) {
+            tris[i].color.packed = 0xffffffff;//pa;
+        } 
+        glDisable(GL_BLEND);
+        glDrawArrays(GL_TRIANGLES, 0, 3 * buf_vbo_num_tris);
+
+        glDisable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
+        for (size_t i = 0; i < 3 * buf_vbo_num_tris; i++) {
+            tris[i].color.packed = (olda) << 24;
+        }
+#endif
+       // glBlendFunc(/* GL_SRC_ALPHA, GL_ONE);// */GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA); 
+    }
+
+    glDrawArrays(GL_TRIANGLES, 0, 3 * buf_vbo_num_tris);
+
+    if (do_the_blur) {
+        glEnable(GL_TEXTURE_2D);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    }
+
+    if(do_radar_mark) {
+        gfx_opengl_reset_projection();
+    }
+
+    if (cur_shader->shader_id == 0x01045551)
         particle_blend_setup_post();
 
-     /* if(try_to_fix_glitch) {
-    glDepthFunc(GL_LESS);
-    glPopMatrix();
-}
- */
     if (do_space_bg) {
         glEnable(GL_DEPTH_TEST);
         glDepthMask(GL_TRUE); // don’t write depth (so it won’t block later geometry)
         glDepthFunc(GL_LESS);
         glEnable(GL_BLEND);
     }
-#if 0
-    if (do_radar_mark || path_priority_draw) {
-//        if (do_radar_mark)
-//                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        glPopMatrix();
-        glEnable(GL_DEPTH_TEST);
-        glDepthFunc(GL_LESS);
-    }
-#endif
     if (do_zfight) {
-
         glDepthFunc(GL_LESS);
     }
+
     if (do_andross || do_fillrect_blend) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
-
     
-    if (do_rectdepfix)
+    if (!do_andross && do_rectdepfix)
         skybox_setup_post();
 
     if (is_zmode_decal)
@@ -925,7 +868,7 @@ gfx_opengl_reset_projection();
     if (do_menucard || (cur_shader->shader_id == 0x01a00a00 && gLevelType == LEVELTYPE_SPACE))
         over_skybox_setup_post();
 }
-extern int do_radar_depth;
+extern void set_matrix_dirty(void);
 void gfx_opengl_draw_triangles_2d(void* buf_vbo, size_t buf_vbo_len, size_t buf_vbo_num_tris) {
     dc_fast_t* tris = buf_vbo;
 
@@ -946,92 +889,158 @@ void gfx_opengl_draw_triangles_2d(void* buf_vbo, size_t buf_vbo_len, size_t buf_
         glDisable(GL_TEXTURE_2D);
     }
 
-    /* if (do_radar_depth) {
-        glEnable(GL_DEPTH_TEST);
-        glDepthMask(GL_TRUE);
-        glDepthFunc(GL_ALWAYS);
-        glDisable(GL_BLEND);
-        glDisable(GL_FOG);
-
-        glDrawArrays(GL_QUADS, 0, 4);
-
-        glEnable(GL_DEPTH_TEST);
-        glDepthMask(GL_TRUE);
-        glDepthFunc(GL_LESS);
-        glEnable(GL_BLEND);
-        glEnable(GL_FOG);
-
-    } else */ if (do_rectdepfix) {
+    if (do_rectdepfix) {
         skybox_setup_pre();
         glDrawArrays(GL_QUADS, 0, 4);
         skybox_setup_post();
-    } else {
-        if (do_starfield) {
-            if (cur_shader->shader_id == 0x01200200)
-                skybox_setup_pre();
-            if (cur_shader->shader_id == 0x01a00a00)
-                over_skybox_setup_pre();
-
-            glDrawArrays(GL_QUADS, 0, 4);
-
-            if (cur_shader->shader_id == 0x01a00a00)
-                over_skybox_setup_post();
-            if (cur_shader->shader_id == 0x01200200)
-                skybox_setup_post();
-        } else {
-
-            if (gGameState == 8) { // ending
-                if (do_ending_bg) {
-                    skybox_setup_pre();
-                } else {
-                    glDisable(GL_DEPTH_TEST);
-                    glDepthMask(GL_FALSE);
-                    glDepthFunc(GL_ALWAYS);
-                    glEnable(GL_BLEND);
-                }
-            } else {
-                if (cur_shader->shader_id == 0x01200200)
-                    skybox_setup_pre();
-                if (cur_shader->shader_id == 0x01045045)
-                    glEnable(GL_BLEND);
-                if (cur_shader->shader_id == 0x01a00a00)
-                    over_skybox_setup_pre();
-                if (do_fillrect_blend) {
-                    glEnable(GL_BLEND);
-                    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-                }
-                if (do_the_blur) {
-                    glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
-                }
-
-                
-            }
-            if (path_priority_draw) {
-                glDepthFunc(GL_ALWAYS);
-            }
-            glDrawArrays(GL_QUADS, 0, 4);
-            if (path_priority_draw) {
-                glDepthFunc(GL_LESS);
-            }
-
-            if (gGameState == 8) { // ending
-                if (do_ending_bg) {
-                    skybox_setup_post();
-                } else {
-                    glEnable(GL_DEPTH_TEST);
-                    glDepthMask(GL_TRUE);
-                    glDepthFunc(GL_LESS);
-                }
-            }
-
-            if (cur_shader->shader_id == 0x01200200)
-                skybox_setup_post();
-            if (cur_shader->shader_id == 0x01a00a00)
-                over_skybox_setup_post();
-            if (do_fillrect_blend || do_the_blur)
-                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        }
+        goto end_tri2d;
     }
+
+    else if (do_starfield) {
+//        if (cur_shader->shader_id == 0x01200200)
+  //          skybox_setup_pre();
+  //      if (cur_shader->shader_id == 0x01a00a00)
+            over_skybox_setup_pre();
+    glDisable(GL_BLEND);
+
+        glDrawArrays(GL_QUADS, 0, 4);
+    glEnable(GL_BLEND);
+
+      //  if (cur_shader->shader_id == 0x01a00a00)
+            over_skybox_setup_post();
+        //if (cur_shader->shader_id == 0x01200200)
+    //        skybox_setup_post();
+
+        goto end_tri2d;
+    }
+
+    else if (gGameState == 8) { // ending
+        if (do_ending_bg) {
+            skybox_setup_pre();
+        } else {
+            glDisable(GL_DEPTH_TEST);
+            glDepthMask(GL_FALSE);
+            glDepthFunc(GL_ALWAYS);
+            glEnable(GL_BLEND);
+        }
+    } else {
+        if (cur_shader->shader_id == 0x01200200)
+            skybox_setup_pre();
+        if (cur_shader->shader_id == 0x01045045)
+            glEnable(GL_BLEND);
+        if (cur_shader->shader_id == 0x01a00a00)
+            over_skybox_setup_pre();
+        if (do_fillrect_blend) {
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+        }
+        if (do_the_blur) {
+//            set_matrix_dirty();
+  //          glMatrixMode(GL_PROJECTION);
+    //        glLoadIdentity();
+      //      glMatrixMode(GL_MODELVIEW);
+        //    glLoadIdentity();
+glPushMatrix();
+glTranslatef(0.0f, 0.0f, 100000.0f);
+//        for (size_t i = 0; i < 4; i++) {
+//?            tris[i].vert.z = 100000.0f;
+  //           tris[i].color.array.a = 127;//gorgon_alpha;
+           // tris[i].color.array.r = 0;//gorgon_alpha;
+            //tris[i].color.array.g = 0;//gorgon_alpha;
+            //tris[i].color.array.b = 0;//gorgon_alpha;
+    //    }
+            glEnable(GL_BLEND);
+//    glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
+
+#if 0
+        glDisable(GL_TEXTURE_2D);
+            glDisable(GL_BLEND);
+  //          glPushMatrix();
+//            // is positive *out* in ortho?
+    //        glTranslatef(0,0,+20000.0f);
+    glDisable(GL_DEPTH_TEST);
+    glDepthMask(GL_FALSE);
+        for (size_t i = 0; i < 4; i++) {
+            tris[i].vert.z = -15000.0f;
+            tris[i].color.array.r = 0;//gorgon_alpha;
+            tris[i].color.array.g = 0;//gorgon_alpha;
+            tris[i].color.array.b = 0;//gorgon_alpha;
+        }
+    glDrawArrays(GL_QUADS, 0, 4);
+uint32_t old_alpha = tris[0].color.array.a;
+        for (size_t i = 0; i < 4; i++) {
+            tris[i].vert.z = -14999.0f;//29975.0f;//-18975.0f;
+            tris[i].color.array.r = 255;//gorgon_alpha;
+            tris[i].color.array.g = 255;//gorgon_alpha;
+            tris[i].color.array.b = 255;//gorgon_alpha;
+            tris[i].color.array.a = 255;
+        }
+
+        glEnable(GL_TEXTURE_2D);
+            glEnable(GL_BLEND);
+    glBlendFunc(GL_ZERO, GL_ONE);// GL_ONE_MINUS_SRC_ALPHA); // GL_SRC_ALPHA);///*
+//    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);//GL_ZERO);//GL_ONE);//SRC_ALPHA, GL_ZERO);// GL_DST_ALPHA);// */, GL_ONE);//GL_ONE_MINUS_SRC_ALPHA);
+    glDepthMask(GL_TRUE);
+    glDepthFunc(GL_LEQUAL);
+#endif
+#if 0
+    glDrawArrays(GL_QUADS, 0, 4);
+            // is positive *out* in ortho?
+//            glTranslatef(0,0,-1000.0f);
+            //glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
+        glDisable(GL_TEXTURE_2D);
+         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
+        for (size_t i = 0; i < 4; i++) {
+            tris[i].vert.z = -14998.0f;//29975.0f;//-18975.0f;
+            tris[i].color.array.r = 0;//gorgon_alpha;
+            tris[i].color.array.g = 0;//gorgon_alpha;
+            tris[i].color.array.b = 0;//gorgon_alpha;
+            tris[i].color.array.a = old_alpha;
+        }
+
+
+#endif
+        }
+        if (path_priority_draw)
+            glDepthFunc(GL_ALWAYS);
+    }
+
+
+    glDrawArrays(GL_QUADS, 0, 4);
+
+    if (gGameState == 8) { // ending
+        if (do_ending_bg) {
+            skybox_setup_post();
+        } else {
+            glEnable(GL_DEPTH_TEST);
+            glDepthMask(GL_TRUE);
+            glDepthFunc(GL_LESS);
+        }
+    } else {
+        if (path_priority_draw)
+            glDepthFunc(GL_LESS);
+        if (cur_shader->shader_id == 0x01200200)
+            skybox_setup_post();
+        if (cur_shader->shader_id == 0x01a00a00)
+            over_skybox_setup_post();
+            if (do_the_blur) {
+                        glEnable(GL_TEXTURE_2D);
+//            glMatrixMode(GL_PROJECTION);
+  //          glPopMatrix();
+    //        glMatrixMode(GL_MODELVIEW);
+            glPopMatrix();
+
+                glEnable(GL_BLEND);
+    glDepthMask(GL_TRUE);
+    glDepthFunc(GL_LEQUAL);
+//                glPopMatrix();
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            }
+        if (do_fillrect_blend) {//} || do_the_blur) {
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        }
+        }
+end_tri2d:
     gfx_opengl_reset_projection();
 }
 
@@ -1083,9 +1092,17 @@ static void gfx_opengl_init(void) {
 
 #ifdef __DREAMCAST__
     if (vid_check_cable() != CT_VGA) {
+#if LOWRES
+        vid_set_mode(DM_320x240_NTSC, PM_RGB565);
+#else
         vid_set_mode(DM_640x480_NTSC_IL, PM_RGB565);
+#endif
     } else {
+#if LOWRES
+        vid_set_mode(DM_320x240_VGA, PM_RGB565);
+#else
         vid_set_mode(DM_640x480_VGA, PM_RGB565);
+#endif
     }
 #endif
 
@@ -1093,9 +1110,17 @@ static void gfx_opengl_init(void) {
 
 #ifdef __DREAMCAST__
     if (vid_check_cable() != CT_VGA) {
+#if LOWRES
+        vid_set_mode(DM_320x240_NTSC, PM_RGB565);
+#else
         vid_set_mode(DM_640x480_NTSC_IL, PM_RGB565);
+#endif
     } else {
+#if LOWRES
+        vid_set_mode(DM_320x240_VGA, PM_RGB565);
+#else
         vid_set_mode(DM_640x480_VGA, PM_RGB565);
+#endif
     }
 #endif
 
@@ -1127,13 +1152,17 @@ static void gfx_opengl_init(void) {
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     glEnableClientState(GL_COLOR_ARRAY);
 
+#if LOWRES
+    glViewport(0, 0, 320, 240);
+#else
     glViewport(0, 0, 640, 480);
+#endif
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    static float fog[4] = { 1.f, 1.f, 1.f, 0.5f };
+    static float fog[4] = { 0.f, 0.f, 0.f, 1.0f };
 
     glFogi(GL_FOG_MODE, GL_LINEAR);
     glFogf(GL_FOG_START, 0.f);

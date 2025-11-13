@@ -702,24 +702,24 @@ void Audio_StartSequence(u8 seqPlayId, u8 seqId, u8 seqArgs, u16 fadeInTime) {
             // 8
             // 9
             // 10
-            if (playId == 11) {
-                playId = 9;
+            if (playId == SEQ_ID_SOLAR) {
+                playId = SEQ_ID_SECTOR_Y;
             }
             // 12
             // 13
             // 14
-            else if (playId == 15) {
-                playId = 10;
-            } else if (playId == 16) {
-                playId = 4;
+            else if (playId == SEQ_ID_SECTOR_Z) {
+                playId = SEQ_ID_FORTUNA;
+            } else if (playId == SEQ_ID_MACBETH) {
+                playId = SEQ_ID_TITANIA;
             }
             // 17
             // 18
             // 19 
-            else if (playId == 20 || playId == 25 || playId == 27 || playId == 32) {
-                playId = 19;
-            } else if (playId == 21 || playId == 22) {
-                playId = 18;
+            else if (playId == SEQ_ID_BOSS_TI || playId == SEQ_ID_BOSS_SY || playId == SEQ_ID_BOSS_SO || playId == SEQ_ID_BOSS_MA) {
+                playId = SEQ_ID_BOSS_ME;
+            } else if (playId == SEQ_ID_BOSS_SX || playId == SEQ_ID_BOSS_ZO) {
+                playId = SEQ_ID_BOSS_CO_1;
             }
             // 23
             // ..
@@ -727,11 +727,11 @@ void Audio_StartSequence(u8 seqPlayId, u8 seqId, u8 seqArgs, u16 fadeInTime) {
             // ..
             // ..
             // 28
-            else if (playId == 29 || playId == 31) { // katina boss, sector z missiles
-                playId = 28;
+            else if (playId == SEQ_ID_BOSS_KA || playId == SEQ_ID_BOSS_SZ) { // katina boss, sector z missiles
+                playId = SEQ_ID_BOSS_BO;
             }
-            else if (playId == 24 || playId == 30) { // aquas boss
-                playId = 23;
+            else if (playId == SEQ_ID_BOSS_VE || playId == SEQ_ID_BOSS_AQ) { // aquas boss
+                playId = SEQ_ID_BOSS_A6;
             }
             // 33
             // 34
@@ -753,22 +753,22 @@ void Audio_StartSequence(u8 seqPlayId, u8 seqId, u8 seqArgs, u16 fadeInTime) {
             // 50
             // 51
 
-            if (playId == 34 || playId == 35 || playId == 37 || playId == 38 || 
-                playId == 39 || playId == 40 || playId == 41 || playId == 42 ||
-                playId == 44 || playId == 45 || playId == 49 || playId == 50 || 
-                playId == 51 || playId == 62
+            if (playId == SEQ_ID_TITLE || playId == SEQ_ID_OPENING || playId == SEQ_ID_CO_INTRO || playId == SEQ_ID_GOOD_END || 
+                playId == SEQ_ID_DEATH || playId == SEQ_ID_GAME_OVER || playId == SEQ_ID_UNK_41 || playId == SEQ_ID_STAFF_ROLL ||
+                playId == SEQ_ID_INTRO_S || playId == SEQ_ID_INTRO_M || playId == SEQ_ID_BAD_END || playId == SEQ_ID_ME_INTRO || 
+                playId == SEQ_ID_INTRO_51 || playId == SEQ_ID_TO_ANDROSS
                 ) {
                 looping = 0;
             }
 
             if (sx_distort) {
-                sprintf(wavfn, "%s/music/21_2.adpcm", fnpre);
+                sprintf(wavfn, "%s/music/21_2.adp", fnpre);
                 sx_distort = 0;
             } else if (andross_robot) {
-                sprintf(wavfn, "%s/music/33_2.adpcm", fnpre);
+                sprintf(wavfn, "%s/music/33_2.adp", fnpre);
                 andross_robot = 0;
             } else {
-                sprintf(wavfn, "%s/music/%02d.adpcm", fnpre, playId);
+                sprintf(wavfn, "%s/music/%02d.adp", fnpre, playId);
             }
 
             wav_destroy(WAV_PLAYER_BGM);
@@ -2738,7 +2738,7 @@ void Audio_PlayFanfare(u16 seqId, u8 bgmVolume, u8 bgmFadeoutTime, u8 bgmFadeinT
  */            if (!sStartSeqDisabled) {
                 int looping = 0;
                 int playId = seqId&0x7fff;
-                sprintf(wavfn, "%s/music/%02d.adpcm", fnpre, playId);
+                sprintf(wavfn, "%s/music/%02d.adp", fnpre, playId);
 //                if (WAV_PLAYER_FANFARE != SND_STREAM_INVALID) {
                     wav_destroy(WAV_PLAYER_FANFARE);
 //                    WAV_PLAYER_FANFARE = SND_STREAM_INVALID;

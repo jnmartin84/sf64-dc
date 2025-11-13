@@ -78,7 +78,7 @@ void Andross_EvAndrossGate_Update(ActorEvent* this) {
             break;
     }
 
-    index = this->animFrame / 18.0f;
+    index = this->animFrame * 0.05555556f; // / 18.0f;
     this->info.hitbox = SEGMENTED_TO_VIRTUAL(sAndrossGateHitbox[index]);
     this->obj.rot.z = gAndrossPassageZRot;
 }
@@ -111,10 +111,10 @@ void Andross_Backdrop_RotEffect(void) {
     backdropTex2 = SEGMENTED_TO_VIRTUAL(&aAndBackdrop1Tex2);
 
     for (i = 0; i < 32 * 32; i += 32) {
-        rotOffset = 4.0f * sinf((s32) (((i / 32) + (gGameFrameCount / 2)) % 32U) * (2 * F_PI / 32));
+        rotOffset = 4.0f * sinf((s32) (((i / 32) + (gGameFrameCount / 2)) & 31U/* % 32U */) * 0.19634954f /* (2 * F_PI / 32) */);
 
         for (j = 0; j < 32; j++) {
-            backdropTex1[i + ((rotOffset + j) % 32U)] = backdropTex2[i + j];
+            backdropTex1[i + ((rotOffset + j) & 31U/* % 32U */)] = backdropTex2[i + j];
         }
     }
 
@@ -301,7 +301,7 @@ void Andross_James_Update(ActorTeamArwing* this) {
         this->counter_04E++;
     }
 
-    if ((gGameFrameCount % 32) == 0) {
+    if ((gGameFrameCount & 31 /* % 32 */) == 0) {
         this->iwork[11] = 1;
         this->fwork[1] = 47.0f;
         if ((fabsf(this->obj.pos.x - gPlayer[0].pos.x) < 1000.0f) &&
@@ -643,7 +643,7 @@ void Andross_80189214(void) {
     player->cam.eye.x = player->pos.x * player->unk_148;
     gObjectLoadIndex = 0;
     // FAKE
-    if (1) {}
+//    if (1) {}
     player->cam.at.x = 0.0f;
     player->cam.at.y = 0.0f;
     player->yRot_114 = 0.0f;
@@ -915,7 +915,7 @@ void Andross_AndBrain_Update(AndBrain* this) {
 
                 Math_SmoothStepToF(&D_ctx_801779A8[gMainController], 40.0f, 1.0f, 3.0f, 0.0f);
 
-                if (((gGameFrameCount % 32) == 0) && (gPlayer[0].state == PLAYERSTATE_ACTIVE)) {
+                if (((gGameFrameCount & 31 /* % 32 */) == 0) && (gPlayer[0].state == PLAYERSTATE_ACTIVE)) {
                     Player_ApplyDamage(&gPlayer[0], 3, 10);
                 }
             }
@@ -1017,7 +1017,7 @@ void Andross_AndBrain_Update(AndBrain* this) {
 
             Effect_FireSmoke1_SpawnMoving(this->obj.pos.x + sp64.x, this->obj.pos.y + sp64.y, this->obj.pos.z + sp64.z,
                                           0.0f, 0.0f, 0.0f, RAND_FLOAT(5.0f) + 7.0f);
-            if ((gGameFrameCount % 2) == 0) {
+            if ((gGameFrameCount & 1/* % 2 */) == 0) {
                 Effect_ElectricArc_Spawn(RAND_FLOAT_CENTERED(600.0f) + this->obj.pos.x,
                                          RAND_FLOAT(100.0f) + (this->obj.pos.y + 100.0f), this->obj.pos.z, 0.0f, 0.0f,
                                          0.0f, RAND_FLOAT(0.3f) + 0.5f, 0);
@@ -1310,7 +1310,7 @@ s32 Andross_AndBrain_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Ve
 
             Matrix_SetGfxMtx(&gMasterDisp);
 
-            if (((this->swork[3] % 2) != 0) && (this->fwork[21] >= 254.0f)) {
+            if (((this->swork[3] & 1/* % 2 */) /* != 0 */) && (this->fwork[21] >= 254.0f)) {
                 RCP_SetupDL(&gMasterDisp, SETUPDL_27);
                     gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
                       TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
@@ -1356,7 +1356,7 @@ void Andross_AndBrain_Draw(AndBrain* this) {
                         gDPSetEnvColor(gMasterDisp++,0,0,0,255);
                         gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 64, 64, (s32) this->fwork[21]);
         }
-        gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK);
+        //gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK);
         Matrix_Translate(gGfxMatrix, 0.0f, -16.0f, 0.0f, MTXF_APPLY);
         Matrix_Scale(gGfxMatrix, 0.3f, 0.6f, 0.3f, MTXF_APPLY);
 
@@ -2021,7 +2021,7 @@ void Andross_AndAndross_Update(AndAndross* this) {
     this->fwork[14] = this->fwork[15] = 0.0f;
 
     if (this->state >= 2) {
-        gBlurAlpha = 128;
+        gBlurAlpha = 104;//128;
     }
 
     for (i = 0; i < 4; i++) {
@@ -3925,29 +3925,6 @@ f32 sAndAmbientR;
 f32 sAndAmbientG;
 f32 sAndAmbientB;
 
-#if 1
-static const float __attribute__((aligned(32))) explode_sin_tbl[9] = {
-    0.642787610f,  // 40°
-    0.984807753f,  // 80°
-    0.866025404f,  // 120°
-    0.342020143f,  // 160°
-   -0.342020143f,  // 200°
-   -0.866025404f,  // 240°
-   -0.984807753f,  // 280°
-   -0.642787610f   // 320°
-};
-
-static const float __attribute__((aligned(32))) explode_cos_tbl[9] = {
-    0.766044443f,  // 40°
-    0.173648178f,  // 80°
-   -0.500000000f,  // 120°
-   -0.939692621f,  // 160°
-   -0.939692621f,  // 200°
-   -0.500000000f,  // 240°
-    0.173648178f,  // 280°
-    0.766044443f   // 320°
-};
-#endif
 void Andross_LevelComplete(Player* player) {
     s32 i;
     s32 sp90;
@@ -4208,7 +4185,8 @@ void Andross_LevelComplete(Player* player) {
                 gActors[10].orient.z = 180.0f;
                 gDrawBackdrop = 0;
                 gFogFar = 1030;
-                if (gFogFar <= gFogNear) gFogFar = gFogNear + 4;
+
+                if (gFogFar <= gFogNear) gFogFar = gFogNear + 16;
                 sAndLightR = gLight1R;
                 sAndLightG = gLight1G;
                 sAndLightB = gLight1B;
@@ -4260,35 +4238,13 @@ void Andross_LevelComplete(Player* player) {
                                               boss->obj.pos.z + RAND_FLOAT_CENTERED(350.0f), RAND_FLOAT_CENTERED(10.0f),
                                               60.0f, RAND_FLOAT_CENTERED(10.0f), RAND_FLOAT(5.5f) + 15.5f);
             }
-#if 1
-//            __builtin_prefetch(explode_sin_tbl);
-            sp80 = RAND_FLOAT(40.0f);
-//            f32 s_sp80 = sinf(sp80);
-//            __builtin_prefetch(explode_cos_tbl);
-//            f32 c_sp80 = cosf(sp80);
-#endif
-            for (i = 0; i < 36; i += 4) {
-        #if 0
-                // sin(a+b) = sin(a)cos(b) + cos(a)sin(b)
-                // cos(a+b) = cos(a)cos(b) - sin(a)sin(b)
-                if (i == 0) {
-                    sp8C = s_sp80 * D_ctx_80177A48[2];
-                    sp84 = c_sp80 * D_ctx_80177A48[2];
-                } else {
-                    f32 est = explode_sin_tbl[(i>>2)-1];
-                    f32 ect = explode_cos_tbl[(i>>2)-1];
-                    sp8C = ((est * c_sp80) + (ect * s_sp80)) * D_ctx_80177A48[2];
-                    sp84 = ((ect * c_sp80) - (est * s_sp80)) * D_ctx_80177A48[2];
-                }
 
-//                if (i == 0) {
-//                    sp8C = 0.0f;
-//                    sp84 = 
-//                }
-#else
-                sp8C = sinf((i * 10.0f * M_DTOR) + sp80) * D_ctx_80177A48[2];
-                sp84 = cosf((i * 10.0f * M_DTOR) + sp80) * D_ctx_80177A48[2];
-#endif
+            sp80 = RAND_FLOAT(40.0f);
+#define M_10DTOR 0.17453293f
+            for (i = 0; i < 36; i += 4) {
+                sp8C = sinf((i * M_10DTOR) + sp80) * D_ctx_80177A48[2];
+                sp84 = cosf((i * M_10DTOR) + sp80) * D_ctx_80177A48[2];
+
                 Effect_FireSmoke1_SpawnMoving(sp8C, 300.0f, sp84, 0.0f, 0.0f, 0.0f, RAND_FLOAT(5.5f) + 15.5f);
             }
 

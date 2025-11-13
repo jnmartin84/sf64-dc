@@ -9,7 +9,6 @@
 #include "gfx/gfx_opengl.h"
 #include "gfx/gfx_dc.h"
 #include <stdlib.h>
-
 #include "../dcprofiler.h"
 
 //#define SAMPLES_HIGH 533
@@ -343,7 +342,6 @@ void Main_InitMesgQueues(void) {
 #include <stdio.h>
 #include <stdlib.h>
 #include <kos/thread.h>
-
 
 void Main_ThreadEntry(void* arg0) {
     OSMesg osMesg;

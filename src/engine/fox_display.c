@@ -734,6 +734,15 @@ void Display_Arwing(Player* player, s32 reflectY) {
         _g->words.w1 = 0x46554350;                                           \
     }
 // Arwing only
+
+#define gSPRadarMark(pkt)                                       \
+    {                                                                                   \
+        Gfx* _g = (Gfx*) (pkt);                                                         \
+                                                                                        \
+        _g->words.w0 = 0x424C4E44; \
+        _g->words.w1 = 0x12345678;               \
+    }
+    
 void Display_Reticle(Player* player) {
     Vec3f* translate;
     s32 i;
@@ -767,7 +776,10 @@ void Display_Reticle(Player* player) {
             }
             Matrix_Scale(gGfxMatrix, 4.0f, 4.0f, 4.0f, MTXF_APPLY);
             Matrix_SetGfxMtx(&gMasterDisp);
+        gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
+        gSPRadarMark(gMasterDisp++);
             gSPDisplayList(gMasterDisp++, D_1024F60);
+        gSPRadarMark(gMasterDisp++);
             Matrix_Pop(&gGfxMatrix);
         }
     }
@@ -1439,11 +1451,11 @@ void Display_Player_Update(Player* player, s32 reflectY) {
         switch (player->dmgEffect) {
             case 0:
                 if (!gVersusMode) {
-                    if ((gCurrentLevel == LEVEL_FORTUNA) || (gCurrentLevel == LEVEL_TITANIA)) {
-                        RCP_SetupDL_29(gFogRed, gFogGreen, gFogBlue, gFogAlpha, gFogNear, gFogFar/* 1005 */);
-                    } else {
+//                    if ((gCurrentLevel == LEVEL_FORTUNA) || (gCurrentLevel == LEVEL_TITANIA)) {
+//                        RCP_SetupDL_29(gFogRed, gFogGreen, gFogBlue, gFogAlpha, gFogNear, 1005);
+//                    } else {
                         RCP_SetupDL_29(gFogRed, gFogGreen, gFogBlue, gFogAlpha, gFogNear, gFogFar);
-                    }
+//                    }
                 } else if (gVersusStage == VS_STAGE_SECTOR_Z) {
                     RCP_SetupDL_29(128, 128, 255, 255, gFogNear, gFogFar);
                 } else {
@@ -1616,7 +1628,10 @@ void Display_LockOnIndicator(void) {
                 RCP_SetupDL(&gMasterDisp, SETUPDL_67);
                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
                 gDPSetEnvColor(gMasterDisp++, 255, 0, 0, 255);
+                gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
+        gSPRadarMark(gMasterDisp++);
                 gSPDisplayList(gMasterDisp++, D_1024F60);
+        gSPRadarMark(gMasterDisp++);
                 Matrix_Pop(&gGfxMatrix);
             }
         }

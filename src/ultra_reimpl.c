@@ -244,18 +244,18 @@ s32 osEepromProbe(UNUSED OSMesgQueue* mq) {
         
         return 0;
     }
-    vid_border_color(255, 0, 255);
+    //vid_border_color(255, 0, 255);
     eeprom_file = fs_open(get_vmu_fn(vmudev, "sf64.rec"), O_RDONLY | O_META);
     if (FILEHND_INVALID == eeprom_file) {
         eeprom_file = fs_open(get_vmu_fn(vmudev, "sf64.rec"), O_RDWR | O_CREAT | O_META);
 
         if (FILEHND_INVALID == eeprom_file) {
-            vid_border_color(0, 0, 0);
+            //vid_border_color(0, 0, 0);
             
             return 1;
         }
 
-        vid_border_color(255, 255, 0);
+        //vid_border_color(255, 255, 0);
         vmu_pkg_t pkg;
         memset(eeprom_block, 0, 512);
         memset(&pkg, 0, sizeof(vmu_pkg_t));
@@ -276,7 +276,7 @@ s32 osEepromProbe(UNUSED OSMesgQueue* mq) {
         if (!pkg_out || pkg_size <= 0) {
             fs_close(eeprom_file);
             eeprom_file = FILEHND_INVALID;
-            vid_border_color(0, 0, 0);
+            //vid_border_color(0, 0, 0);
             
             return 0;
         }
@@ -290,7 +290,7 @@ s32 osEepromProbe(UNUSED OSMesgQueue* mq) {
         eeprom_file = fs_open(get_vmu_fn(vmudev, "sf64.rec"), O_RDWR | O_META);
 
         if (FILEHND_INVALID == eeprom_file) {
-            vid_border_color(0, 0, 0);
+            //vid_border_color(0, 0, 0);
             
             return EEPROM_TYPE_4K;
         }
@@ -298,7 +298,7 @@ s32 osEepromProbe(UNUSED OSMesgQueue* mq) {
         oneshot_timer_reset(timer);
     }
 
-    vid_border_color(0, 0, 0);
+    //vid_border_color(0, 0, 0);
     
     return EEPROM_TYPE_4K;
 #else
@@ -313,7 +313,6 @@ static int reopen_vmu_eeprom(void) {
     
     vmudev = maple_enum_type(0, MAPLE_FUNC_MEMCARD);
     if (!vmudev) {
-        
         return 1;
     }
 
@@ -333,9 +332,8 @@ s32 osEepromLongRead(UNUSED OSMesgQueue* mq, u8 address, u8* buffer,
             return 1;
         }
     }
-    
 
-    vid_border_color(0, 255, 0);
+    //vid_border_color(0, 255, 0);
 
     if (FILEHND_INVALID != eeprom_file) {
         mutex_lock_scoped(&eeprom_lock);
@@ -344,7 +342,7 @@ s32 osEepromLongRead(UNUSED OSMesgQueue* mq, u8 address, u8* buffer,
         if (size != (512 * 3)) {
             fs_close(eeprom_file);
             eeprom_file = FILEHND_INVALID;
-            vid_border_color(0, 0, 0);
+            //vid_border_color(0, 0, 0);
             
             return 1;
         }
@@ -353,17 +351,17 @@ s32 osEepromLongRead(UNUSED OSMesgQueue* mq, u8 address, u8* buffer,
         fs_seek(eeprom_file, (512 * 2) + (address * 8), SEEK_SET);
         ssize_t rv = fs_read(eeprom_file, buffer, length);
         if (rv != length) {
-            vid_border_color(0, 0, 0);
+            //vid_border_color(0, 0, 0);
             
             return 1;
         }
 
-        vid_border_color(0, 0, 0);
+        //vid_border_color(0, 0, 0);
         oneshot_timer_reset(timer);
         
         return 0;
     } else {
-        vid_border_color(0, 0, 0);
+        //vid_border_color(0, 0, 0);
         
         return 1;
     }
@@ -385,13 +383,13 @@ s32 osEepromLongWrite(UNUSED OSMesgQueue* mq, u8 address, u8* buffer,
         }
     }
     
-    vid_border_color(0, 0, 255);
+    //vid_border_color(0, 0, 255);
 
     if (FILEHND_INVALID != eeprom_file) {
         mutex_lock_scoped(&eeprom_lock);
         ssize_t size = fs_total(eeprom_file);
         if (size != (512 * 3)) {
-            vid_border_color(0, 0, 0);
+            //vid_border_color(0, 0, 0);
             fs_close(eeprom_file);
             eeprom_file = FILEHND_INVALID;
             
@@ -401,17 +399,17 @@ s32 osEepromLongWrite(UNUSED OSMesgQueue* mq, u8 address, u8* buffer,
         fs_seek(eeprom_file, (512 * 2) + (address * 8), SEEK_SET);
         ssize_t rv = fs_write(eeprom_file, buffer, length);
         if (rv != length) {
-            vid_border_color(0, 0, 0);
+            //vid_border_color(0, 0, 0);
             
             return 1;
         }
 
-        vid_border_color(0, 0, 0);
+        //vid_border_color(0, 0, 0);
         oneshot_timer_reset(timer);
         
         return 0;
     } else {
-        vid_border_color(0, 0, 0);
+        //vid_border_color(0, 0, 0);
         
         return 1;
     }

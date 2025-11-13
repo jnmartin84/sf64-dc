@@ -1915,7 +1915,7 @@ void Area6_A6Gorgon_Draw(A6Gorgon* this) {
     s32 j;
 
     if (this->state == 0) {
-        RCP_SetupDL(&gMasterDisp, SETUPDL_47);//49);
+//        RCP_SetupDL(&gMasterDisp, SETUPDL_47);//49);
 //                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
   //                  TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
         // transparent white
@@ -1923,11 +1923,17 @@ void Area6_A6Gorgon_Draw(A6Gorgon* this) {
                   //    TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
   //      gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, (s32) D_i3_801C22F0.unk_24);
         // yellow env color
-//        gDPSetEnvColor(gMasterDisp++,  255, 255, 0, 255);
+        RCP_SetupDL(&gMasterDisp, SETUPDL_67);
+gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
+                           TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
+        gDPSetEnvColor(gMasterDisp++,  255, 255, 0, 255);
     gDPSetPrimColor(gMasterDisp++, 0, 0, /* 255, 255, 255, */255, 255, 255, (s32) D_i3_801C22F0.unk_24);//255, 255, 0, 255);
     //gDPSetEnvColor(gMasterDisp++, 0,0,0, 255);
       Matrix_Scale(gGfxMatrix, 10.0f, 10.0f, 10.0f, MTXF_APPLY);
         Matrix_RotateZ(gGfxMatrix, this->fwork[A6_FWK_33] * M_DTOR, MTXF_APPLY);
+        Matrix_SetGfxMtx(&gMasterDisp);
+        gSPDisplayList(gMasterDisp++, aStarDL);
+        Matrix_Translate(gGfxMatrix, 0.0f, 0.0f, 2.0f, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
         gSPDisplayList(gMasterDisp++, aStarDL);
     } else if (D_i3_801C22F0.unk_24 != 0.0f) {

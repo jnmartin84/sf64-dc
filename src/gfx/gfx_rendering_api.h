@@ -16,7 +16,7 @@ struct GfxRenderingAPI {
     void (*shader_get_info)(struct ShaderProgram *prg, uint8_t *num_inputs, uint8_t used_textures[2]);
     uint32_t (*new_texture)(void);
     void (*select_texture)(int tile, uint32_t texture_id);
-    void (*upload_texture)(const uint8_t *rgba32_buf, int width, int height, unsigned int type);
+    void (*upload_texture)(const uint16_t *rgba16_buf, int width, int height, unsigned int type);
     void (*set_sampler_parameters)(int sampler, uint8_t linear_filter, uint32_t cms, uint32_t cmt);
     void (*set_depth_test)(uint8_t depth_test);
     void (*set_depth_mask)(uint8_t z_upd);

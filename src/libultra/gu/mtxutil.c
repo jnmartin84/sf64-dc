@@ -62,6 +62,7 @@ void guMtxF2L(float mf[4][4], Mtx* m) {
 #endif
 
 void guMtxIdentF(float mf[4][4]) {
+#if 0
     int r, c;
     for (r = 0; r < 4; r++) {
         for (c = 0; c < 4; c++) {
@@ -72,6 +73,9 @@ void guMtxIdentF(float mf[4][4]) {
             }
         }
     }
+#endif
+    memset(mf, 0, 64);
+    mf[0][0] = mf[1][1] = mf[2][2] = mf[3][3] = 1.0f;
 }
 
 void guMtxIdent(Mtx* m) {

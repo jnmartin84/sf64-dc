@@ -90,6 +90,12 @@ int wav_init(void) {
         streams[i].vol = 0;
         streams[i].status = SNDDEC_STATUS_NULL;
         streams[i].callback = NULL;
+        streams[i].drv_buf = memalign(32, 32768);
+
+        if(streams[i].drv_buf == NULL) {
+    	    printf("couldn't memalign drv_buf\n");
+            exit(-1);
+        }
     }
 
     audio_thread = thd_create(0, sndwav_thread, NULL);
@@ -114,9 +120,10 @@ void wav_shutdown(void) {
     }
 }
 
-void wav_destroy(WavPlayerId playerId/* wav_stream_hnd_t hnd */) {
-	if(streams[playerId].shnd == SND_STREAM_INVALID)
+void wav_destroy(WavPlayerId playerId) {
+	if(streams[playerId].shnd == SND_STREAM_INVALID) {
         return;
+    }
 
     mutex_lock(&stream_mutex);
 
@@ -126,14 +133,9 @@ void wav_destroy(WavPlayerId playerId/* wav_stream_hnd_t hnd */) {
     streams[playerId].vol = 0;
     streams[playerId].callback = NULL;
 
-    if(streams[playerId].wave_file != FILEHND_INVALID)
+    if(streams[playerId].wave_file != FILEHND_INVALID) {
         fs_close(streams[playerId].wave_file);
-
-    if(streams[playerId].drv_buf) {
-        free(streams[playerId].drv_buf);
-        streams[playerId].drv_buf = NULL;
     }
-	handles[playerId] = SND_STREAM_INVALID;
 
 	mutex_unlock(&stream_mutex);
 }
@@ -143,7 +145,7 @@ wav_stream_hnd_t wav_create(WavPlayerId playerId, char *filename, int loop, int 
     WavFileInfo info;
     wav_stream_hnd_t index;
 
-	index = handles[playerId];
+	index = streams[playerId].shnd;
 	if (index != SND_STREAM_INVALID) {
 		wav_destroy(playerId);
 	}
@@ -173,16 +175,6 @@ wav_stream_hnd_t wav_create(WavPlayerId playerId, char *filename, int loop, int 
 
     wav_get_info_adpcm(file, &info);
     //wav_get_info_file(file, &info);
-    streams[playerId].drv_buf = memalign(32, 32768);
-
-    if(streams[playerId].drv_buf == NULL) {
-		while(1) 
-	        printf("couldn't memalign drv_buf\n");
-        exit(-1);
-        fs_close(file);
-        snd_stream_destroy(index);
-        return SND_STREAM_INVALID;
-    }
 
 	handles[playerId] = index;
     streams[playerId].shnd = index;

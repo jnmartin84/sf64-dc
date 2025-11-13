@@ -1660,17 +1660,17 @@ void Katina_KaSaucerer_Draw(KaSaucerer* this) {
 
     if (this->state != 0) {
 //        if (this->state < 20) {
- //           gSPFogPosition(gMasterDisp++, gFogNear, gFogFar/* 1002 */);
-  //      } else {
-            gSPFogPosition(gMasterDisp++, gFogNear, 1006);
-      //  }
+//            gSPFogPosition(gMasterDisp++, gFogNear, 1002);
+//        } else {
+            gSPFogPosition(gMasterDisp++, gFogNear, gFogFar);//1006);
+//        }
 
         Matrix_RotateY(gGfxMatrix, this->fwork[BOSS_FWORK_13] * M_DTOR, MTXF_APPLY);
 
         Animation_GetFrameData(&D_KA_60105D8, 0, jointTable);
         Animation_DrawSkeleton(1, D_KA_6010744, jointTable, Katina_BossOverrideLimbDraw, NULL, this, &gIdentityMatrix);
 
-        //gSPFogPosition(gMasterDisp++, gFogNear, gFogFar);
+        gSPFogPosition(gMasterDisp++, gFogNear, gFogFar);
 
         if (this->fwork[BOSS_LASER_LIGHT_SCALE] > 0.0f) {
             RCP_SetupDL(&gMasterDisp, SETUPDL_67);
@@ -2671,7 +2671,7 @@ void Katina_EnemyDraw(ActorAllRange* this) {
     }
 
     if ((this->timer_0C6 % 2) == 0) {
-        gSPFogPosition(gMasterDisp++, gFogNear, 1006);//gFogFar);// 1005);
+        gSPFogPosition(gMasterDisp++, gFogNear, 1006);//gFogFar);//1005);
     }
 
     switch (this->animFrame) {

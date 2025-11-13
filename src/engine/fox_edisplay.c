@@ -753,7 +753,8 @@ void Object_SetShadowDL(ObjectId objId, s32 index) {
                     Matrix_Translate(gGfxMatrix, 0.0f, 0.0f, 30.0f, MTXF_APPLY);
                     Matrix_SetGfxMtx(&gMasterDisp);
                     gSPSetGeometryMode(gMasterDisp++, G_CULL_BACK);
-                    gSPDisplayList(gMasterDisp++, aArwingShadowDL);
+//                    gSPDisplayList(gMasterDisp++, aArwingShadowDL);
+                    gSPDisplayList(gMasterDisp++, aOrbDL);
                     break;
             }
             break;

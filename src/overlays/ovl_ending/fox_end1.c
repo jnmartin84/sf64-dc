@@ -82,7 +82,8 @@ void Ending_80187520(s32 arg0) {
     gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255);
 
     force_screen_fill_colors = 1;
-    
+            gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
+
     switch (arg0) {
         // first 2d background
         case 0:
@@ -440,6 +441,7 @@ void Ending_IncomingMsg_Draw(void) {
 
     RCP_SetupDL(&gMasterDisp, SETUPDL_78);
     gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255);
+        gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
 
     switch ((D_ending_80196F90 % 8) / 2) {
         case 3:

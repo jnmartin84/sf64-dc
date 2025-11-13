@@ -84,7 +84,13 @@ Gfx* sLargeBonusDLs[4][2] = {
 Gfx* sSmallBonusDLs[10] = {
     D_1015810, D_1016410, D_10162A0, D_1016130, D_1015FC0, D_1015E50, D_10156A0, D_1015CE0, D_1015B70, D_1015320,
 };
-
+#define gSPRadarMark(pkt)                                       \
+    {                                                                                   \
+        Gfx* _g = (Gfx*) (pkt);                                                         \
+                                                                                        \
+        _g->words.w0 = 0x424C4E44; \
+        _g->words.w1 = 0x12345678;               \
+    }
 void BonusText_Draw(BonusText* bonus) {
     s32 dlIndex;
     Vec3f sp60 = { 0.0f, 0.0f, 0.0f };
@@ -103,7 +109,8 @@ void BonusText_Draw(BonusText* bonus) {
                 Matrix_Scale(gGfxMatrix, sp50, sp50, 1.0f, MTXF_APPLY);
                 Matrix_Translate(gGfxMatrix, 0.0f, bonus->rise, 0.0f, MTXF_APPLY);
                 Matrix_SetGfxMtx(&gMasterDisp);
-
+                gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
+                gSPRadarMark(gMasterDisp++);
                 if (bonus->hits <= 10) {
                     gSPDisplayList(gMasterDisp++, D_1015980);
                     gSPDisplayList(gMasterDisp++, sSmallBonusDLs[bonus->hits - 1]);
@@ -131,6 +138,7 @@ void BonusText_Draw(BonusText* bonus) {
                     gSPDisplayList(gMasterDisp++, sLargeBonusDLs[dlIndex][0]);
                     gSPDisplayList(gMasterDisp++, sLargeBonusDLs[dlIndex][1]);
                 }
+                gSPRadarMark(gMasterDisp++);
             } else {
                 bonus->hits = BONUS_TEXT_FREE;
             }
@@ -2130,9 +2138,9 @@ void Effect_FireSmoke_Draw(EffectFireSmoke* this) {
         return;
     }
 
-    gDPSetCombineLERP(gMasterDisp++, 1, 0, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, 0,
-                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0); 
-                      gDPSetEnvColor(gMasterDisp++,0,0,0,255);
+//    gDPSetCombineLERP(gMasterDisp++, 1, 0, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, 0,
+  //                    TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0); 
+    //                  gDPSetEnvColor(gMasterDisp++,0,0,0,255);
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 100, this->alpha);
 
     if (this->unk_4C == 0) {

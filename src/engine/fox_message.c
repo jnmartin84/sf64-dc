@@ -77,6 +77,7 @@ void Message_DisplayChar(Gfx** gfxPtr, u16 msgChar, s32 xpos, s32 ypos) {
     // ''
     // no lod
     // ;;
+        gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
     gDPLoadTextureBlock_4b((*gfxPtr)++, gTextCharTextures[msgChar >> 2], G_IM_FMT_CI, 16, 13, msgChar % 4U,
                            G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD,
                            G_TX_NOLOD);

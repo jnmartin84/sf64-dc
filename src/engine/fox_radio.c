@@ -430,6 +430,41 @@ void func_radio_800BAAE8(void) {
         RCP_SetupDL_76();
         gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255);
         gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
+
+        if (mirror) {
+/*             for (i = 0, j = 0; i < 2; i++, j += 44 * 20) {
+                Lib_TextureRect_RGBA16_MirX(&gMasterDisp, &radioPortraitTex[j], 44, 20, gRadioPortraitPosX,
+                                            gRadioPortraitPosY + 20.0f + sp38 + (i * 20.0f * gRadioPortraitScaleY),
+                                            1.0f, gRadioPortraitScaleY);
+            }
+ */
+            Lib_TextureRect_RGBA16_MirX(&gMasterDisp, &radioPortraitTex[0], 44, 20, gRadioPortraitPosX,
+                                            gRadioPortraitPosY + 20.0f + sp38,
+                                            1.0f, gRadioPortraitScaleY);
+            Lib_TextureRect_RGBA16_MirX(&gMasterDisp, &radioPortraitTex[44 * 20], 44, 20, gRadioPortraitPosX,
+                                            gRadioPortraitPosY + 20.0f + sp38 + (20.0f * gRadioPortraitScaleY),
+                                            1.0f, gRadioPortraitScaleY);
+            Lib_TextureRect_RGBA16_MirX(&gMasterDisp, &radioPortraitTex[44 * 20 * 2], 44, 4, gRadioPortraitPosX,
+                                        gRadioPortraitPosY + 20.0f + sp38 + (40.0f * gRadioPortraitScaleY), 1.0f,
+                                        gRadioPortraitScaleY);
+        } else {
+/*             for (i = 0, j = 0; i < 2; i++, j += 44 * 20) {
+                Lib_TextureRect_RGBA16(&gMasterDisp, &radioPortraitTex[j], 44, 20, gRadioPortraitPosX,
+                                       gRadioPortraitPosY + 20.0f + sp38 + (i * 20.0f * gRadioPortraitScaleY), 1.0f,
+                                       gRadioPortraitScaleY);
+            } */
+            Lib_TextureRect_RGBA16(&gMasterDisp, &radioPortraitTex[0], 44, 20, gRadioPortraitPosX,
+                                            gRadioPortraitPosY + 20.0f + sp38,
+                                            1.0f, gRadioPortraitScaleY);
+            Lib_TextureRect_RGBA16(&gMasterDisp, &radioPortraitTex[44 * 20], 44, 20, gRadioPortraitPosX,
+                                            gRadioPortraitPosY + 20.0f + sp38 + (20.0f * gRadioPortraitScaleY),
+                                            1.0f, gRadioPortraitScaleY);
+            Lib_TextureRect_RGBA16(&gMasterDisp, &radioPortraitTex[44 * 20 * 2], 44, 4, gRadioPortraitPosX,
+                                   gRadioPortraitPosY + 20.0f + sp38 + (40.0f * gRadioPortraitScaleY), 1.0f,
+                                   gRadioPortraitScaleY);
+        }
+
+#if 0
         if (mirror) {
 #if 0
             for (i = 0, j = 0; i < 2; i++, j += 44 * 20) {
@@ -441,11 +476,11 @@ void func_radio_800BAAE8(void) {
                                         gRadioPortraitPosY + 20.0f + sp38 + (40.0f * gRadioPortraitScaleY), 1.0f,
                                         gRadioPortraitScaleY);
 #endif
-            Lib_TextureRect_RGBA16_MirX(&gMasterDisp, &radioPortraitTex[j], 44, 45, gRadioPortraitPosX,
+            Lib_TextureRect_RGBA16_MirX(&gMasterDisp, &radioPortraitTex[j], 44, 44, gRadioPortraitPosX,
                                        gRadioPortraitPosY + 20.0f + sp38, 1.0f,
                                        gRadioPortraitScaleY);
         } else {
-            Lib_TextureRect_RGBA16(&gMasterDisp, &radioPortraitTex[j], 44, 45, gRadioPortraitPosX,
+            Lib_TextureRect_RGBA16(&gMasterDisp, &radioPortraitTex[j], 44, 44, gRadioPortraitPosX,
                                        gRadioPortraitPosY + 20.0f + sp38, 1.0f,
                                        gRadioPortraitScaleY);
 #if 0
@@ -458,7 +493,8 @@ void func_radio_800BAAE8(void) {
                                    gRadioPortraitPosY + 20.0f + sp38 + (40.0f * gRadioPortraitScaleY), 1.0f,
                                    gRadioPortraitScaleY);
 #endif
-            }
+        }
+#endif
     }
 }
 
@@ -494,6 +530,7 @@ void func_radio_800BB388(void) {
                 palette = aMsgWindowBgTLUT;
                 break;
         }
+        gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
 
         if (sRadioUseRedBox == true) {
             gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 25, 25, 170);
