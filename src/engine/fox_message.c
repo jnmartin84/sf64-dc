@@ -53,31 +53,7 @@ s32 Message_GetCharCount(u16* msgPtr) {
 extern void gfx_texture_cache_invalidate(void *addr);
 
 void Message_DisplayChar(Gfx** gfxPtr, u16 msgChar, s32 xpos, s32 ypos) {
-#if 0
-    if(msgChar >= MSGCHAR_A && msgChar <= MSGCHAR_Z) {
-        printf("%c", (msgChar-MSGCHAR_A)+'A');
-    }
-    if(msgChar >= MSGCHAR_a && msgChar <= MSGCHAR_z) {
-        printf("%c", (msgChar-MSGCHAR_a)+'a');
-    }
-    if(msgChar >= MSGCHAR_0 && msgChar <= MSGCHAR_9) {
-        printf("%c", (msgChar-MSGCHAR_0)+'0');
-    }
-#endif
-
-//    gfx_texture_cache_invalidate(gTextCharTextures[msgChar >> 2]);
-    // the texture - gTextCharTextures[msgChar >> 2] 
-    // color indexed
-    // 16 wide
-    // 13 tall
-    // using palette msgChar % 4
-    // no mirror but wrapping
-    // ''
-    // no mask
-    // ''
-    // no lod
-    // ;;
-        gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
+    gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
     gDPLoadTextureBlock_4b((*gfxPtr)++, gTextCharTextures[msgChar >> 2], G_IM_FMT_CI, 16, 13, msgChar % 4U,
                            G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD,
                            G_TX_NOLOD);
@@ -111,7 +87,7 @@ bool Message_DisplayText(Gfx** gfxPtr, u16* msgPtr, s32 xPos, s32 yPos, s32 len)
             case MSGCHAR_CUP:
             case MSGCHAR_CRT:
             case MSGCHAR_CDN:
-                gDPSetPrimColor((*gfxPtr)++, 0x00, 0x00, 255, 255, 0, 255);
+                gDPSetPrimColor((*gfxPtr)++, 0x00, 0x00, 0x7f, 0x7f, 0x7f, 255);
                 Message_DisplayChar(gfxPtr, msgPtr[i], xChar, yChar);
                 xChar += 14;
                 print = 1;

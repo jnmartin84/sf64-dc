@@ -240,7 +240,50 @@ void HUD_RadarWindowFrame_Draw(f32 xPos, f32 yPos, f32 xScale, f32 yScale) {
     Lib_TextureRect_CI4(&gMasterDisp, aRadarFrameTex, aRadarFrameTLUT, 48, 44, xPos, yPos, xScale, yScale);
 }
 
+
+static inline uint16_t rgba5551_to_gray_clamped(uint16_t c) {
+    // Extract 5-bit components
+    int r = (c >> 11) & 0x1F;
+//    int g = (c >> 6)  & 0x1F;
+  //  int b = (c >> 1)  & 0x1F;
+    int a =  c        & 0x01;
+
+    // Convert to 0–255 range for grayscale calculation
+//    int r8 = (r * 255) / 31;
+//    int g8 = (g * 255) / 31;
+//    int b8 = (b * 255) / 31;
+
+    // Standard luminance formula
+//    int gray = r8;//(r8 * 299 + g8 * 587 + b8 * 114) / 1000;
+
+    // Convert grayscale back to 5-bit 0–31
+    int g5 = r;//(gray >> 2) & 0x1f;//(gray * 31 /* + 127 */) / 255;  // rounded
+    
+    
+    g5 = g5 >> 1;
+    // Repack into RGBA5551
+    return (uint16_t)((g5 << 11) | (g5 << 6) | (g5 << 1) | a);
+}
+
+void convert_palette_rgba5551_to_gray(void) {
+u16 *tluts[] = {   aIncomingMsgButtonTLUT,
+    aIncomingMsgSignal1TLUT,
+aIncomingMsgSignal2TLUT,
+aIncomingMsgSignal3TLUT};
+for(int j=0;j<4;j++) {
+    uint16_t *pal = segmented_to_virtual(tluts[j]);
+    for (int i = 0; i < 16; i++) {
+        pal[i] = rgba5551_to_gray_clamped(pal[i]);
+    }
+}
+}
+
 void HUD_IncomingMsgButton_Draw(f32 xPos, f32 yPos) {
+    static int buttoned = 0;
+    if (!buttoned) {
+        convert_palette_rgba5551_to_gray();
+        buttoned = 1;
+    }
         gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
     Lib_TextureRect_CI4(&gMasterDisp, aIncomingMsgButtonTex, aIncomingMsgButtonTLUT, 16, 26, xPos, yPos, 1.0f, 1.0f);
 }
@@ -2410,7 +2453,7 @@ void HUD_RadioCharacterName_Draw(void) {
 
             case RCID_PIGMA:
             case RCID_PIGMA_2:
-                Graphics_DisplaySmallText(73, 173, 1.0f, 1.0f, "LIGMA");
+                Graphics_DisplaySmallText(73, 173, 1.0f, 1.0f, "PIGMA");
                 break;
 
             case RCID_ANDREW:

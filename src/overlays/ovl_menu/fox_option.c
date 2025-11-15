@@ -2963,16 +2963,35 @@ void Option_VS_HandicapSet_Draw(s32 PlayerIdx) {
                         sVsHandicapFrameXpos[PlayerIdx] + D_menu_801AF19C[PlayerIdx],
                         sVsHandicapFrameYpos[PlayerIdx] + D_menu_801AF1AC, D_menu_801AF1B0, D_menu_801AF1B0);
 }
+extern u16 vs_dc_console[];
+u16 unpad_dc_console[144*42];
 
 void Option_VS_N64Console_Draw(void) {
+    static int consoled = 0;
     s32 i;
+
+    if (!consoled) {
+        for (int p=0;p<256*64;p++) {
+            uint16_t nextp = vs_dc_console[p];
+            nextp = (nextp << 1) | ((nextp >> 15) & 1);
+            vs_dc_console[p] = nextp;
+        }
+
+        for (int y=0;y<42;y++) {
+            for (int x=0;x<144;x++) {
+                unpad_dc_console[(y * 144) + x] = vs_dc_console[8 + (y * 256) + x];
+            }
+        }
+
+        consoled = 1;
+    }
 
     RCP_SetupDL_76();
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
         gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
 
     for (i = 0; i < 3; i++) {
-        Lib_TextureRect_RGBA16(&gMasterDisp, aVsN64ConsoleTex + (144 * 14 * i), 144, 14, 87.0f, 84 + (i * 14.0f), 1.0f,
+        Lib_TextureRect_RGBA16(&gMasterDisp, unpad_dc_console + (144 * 14 * i), 144, 14, 87.0f, 84 + (i * 14.0f), 1.0f,
                                1.0f);
     }
 }

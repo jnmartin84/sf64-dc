@@ -1,10 +1,10 @@
 #### 0. Setup Dreamcast tooling
 
-sh4-elf toolchain, KOS, kos-ports/libGL all need built and installed.
+sh4-elf toolchain (gcc 14.2 is tested), KOS v2.2.1, kos-ports/libGL all need built and installed.
 
 For the `environ.sh` , modify the "optimization level" section like this
 
-`export KOS_CFLAGS="${KOS_CFLAGS} -Os -fipa-pta -fno-PIC -fno-PIE"`
+`export KOS_CFLAGS="${KOS_CFLAGS} -O3 -flto=auto -ffat-lto-objects"`
 
 then
 
@@ -49,7 +49,7 @@ brew install coreutils make pkg-config tehzz/n64-dev/mips64-elf-binutils
 #### 2. go into the repo
 
 ```bash
-cd sf64
+cd sf64-dc
 ```
 
 #### 3. Install python dependencies
@@ -94,7 +94,7 @@ Run `./generate_sf_data.sh` to make segmented ELF files for link-time symbol res
 
 Lastly, run `./link.sh` to create an output ELF file.
 
-There's also a target for generating a CDI:
+There's also a target for generating a CDI, requiring `mkdcdisc` to be installed and on your path:
 `make -f Makefile.dc cdi`
 
 Good luck.

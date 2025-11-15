@@ -730,7 +730,7 @@ void Audio_StartSequence(u8 seqPlayId, u8 seqId, u8 seqArgs, u16 fadeInTime) {
             else if (playId == SEQ_ID_BOSS_KA || playId == SEQ_ID_BOSS_SZ) { // katina boss, sector z missiles
                 playId = SEQ_ID_BOSS_BO;
             }
-            else if (playId == SEQ_ID_BOSS_VE || playId == SEQ_ID_BOSS_AQ) { // aquas boss
+            else if (playId == SEQ_ID_BOSS_VE || playId == SEQ_ID_BOSS_AQ || playId == SEQ_ID_BOSS_CO_2) { // aquas boss
                 playId = SEQ_ID_BOSS_A6;
             }
             // 33

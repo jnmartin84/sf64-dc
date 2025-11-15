@@ -1968,7 +1968,7 @@ void Display_Update(void) {
     Display_DrawHelpAlert();
     sPlayersVisible[gPlayerNum] = false;
     Matrix_Pop(&gGfxMatrix);
-#if 0
+#if 1
     gLaserStrength[0] = 2;
     gLifeCount[0] = 9;
     gBombCount[0] = 9;

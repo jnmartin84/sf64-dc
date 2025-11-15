@@ -551,12 +551,9 @@ void aClearBufferImpl(uint16_t addr, int nbytes) {
     memset(BUF_U8(addr&~3), 0, ROUND_UP_16(nbytes));
 }   
 
-void *memcpy32(void *restrict dst, const void *restrict src, size_t bytes);
-
 void aLoadBufferPointerImpl(const void *source_addr) {
     rspa.loaded_buffer = (u16 *)source_addr;
 }
-
 
 void aLoadBufferImpl(const void* source_addr, uint16_t dest_addr, uint16_t nbytes) {
     rspa.loaded_buffer = (u16 *)source_addr;
@@ -564,11 +561,7 @@ void aLoadBufferImpl(const void* source_addr, uint16_t dest_addr, uint16_t nbyte
     
 void aSaveBufferImpl(uint16_t source_addr, int16_t* dest_addr, uint16_t nbytes) {
     size_t rnb = ROUND_DOWN_16(nbytes);
-//    if (((((uintptr_t)dest_addr) & 31)|rnb) == 0) {
-//        memcpy32((void *)((uintptr_t)dest_addr), (const void *)BUF_S16(source_addr & ~3), rnb);
-//    } else {
-        n64_memcpy((void *)((uintptr_t)dest_addr&~3), (const void *)BUF_S16(source_addr & ~3), rnb);
-//    }
+    n64_memcpy((void *)((uintptr_t)dest_addr&~3), (const void *)BUF_S16(source_addr & ~3), rnb);
 }
 
 void aLoadADPCMImpl(int num_entries_times_16, const int16_t* book_source_addr) {

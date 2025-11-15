@@ -1734,7 +1734,7 @@ extern void gfx_opengl_draw_triangles_2d(void* buf_vbo, size_t buf_vbo_len, size
 
 int do_ext_fill = 0;
 extern int do_ending_bg;
-void *memcpy32(void *restrict dst, const void *restrict src, size_t bytes);
+
 int last_was_starfield = 0;
 static void __attribute__((noinline)) gfx_sp_quad_2d(uint8_t vtx1_idx, uint8_t vtx2_idx, uint8_t vtx3_idx,
                                                      uint8_t vtx1_idx2, uint8_t vtx2_idx2, uint8_t vtx3_idx2) {
@@ -2190,7 +2190,16 @@ static void __attribute__((noinline)) DO_LOAD_TLUT(void) {
 
 	int high_index = rdp.palette_dirty;
 
-	if (segmented_to_virtual(rdp.palette) == segmented_to_virtual(gTextCharPalettes)) {
+	if (segmented_to_virtual(rdp.palette) == segmented_to_virtual(gTextCharPalettes[0])) {
+		font = 1;
+	}
+	if (segmented_to_virtual(rdp.palette) == segmented_to_virtual(gTextCharPalettes[1])) {
+		font = 1;
+	}
+	if (segmented_to_virtual(rdp.palette) == segmented_to_virtual(gTextCharPalettes[2])) {
+		font = 1;
+	}
+	if (segmented_to_virtual(rdp.palette) == segmented_to_virtual(gTextCharPalettes[3])) {
 		font = 1;
 	}
 
