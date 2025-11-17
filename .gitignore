@@ -31,3 +31,11 @@ debug/
 m2cfiles/
 TempComp.bin.mio0
 torch.hash.yml
+bin/
+initted.touch
+music/
+sf_data/
+*.cdi
+*.iso
+*.zip
+sf64.elf
