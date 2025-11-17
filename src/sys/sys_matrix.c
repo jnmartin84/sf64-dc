@@ -94,7 +94,7 @@ void Matrix_Translate(Matrix* mtx, f32 x, f32 y, f32 z, u8 mode) {
     f32 rx;
     f32 ry;
     s32 i;
-
+#if 0
     if (mode == MTXF_APPLY) {
         for (i = 0; i < 4; i++) {
             rx = mtx->m[0][i];
@@ -111,6 +111,16 @@ void Matrix_Translate(Matrix* mtx, f32 x, f32 y, f32 z, u8 mode) {
             mtx->m[2][1] = mtx->m[2][3] = 0.0f;
         mtx->m[0][0] = mtx->m[1][1] = mtx->m[2][2] = mtx->m[3][3] = 1.0f;
     }
+#else
+    if (mode == MTXF_APPLY) {
+        shz_xmtrx_load_4x4(mtx->m);
+        shz_xmtrx_translate(x, y, z);
+    } 
+    else {
+        shz_xmtrx_init_translation(x, y, z);
+    }
+    shz_xmtrx_store_4x4(mtx->m);
+#endif
 }
 
 // Creates a scale matrix in mtx (MTXF_NEW) or applies one to mtx (MTXF_APPLY)
@@ -118,7 +128,7 @@ void Matrix_Scale(Matrix* mtx, f32 xScale, f32 yScale, f32 zScale, u8 mode) {
     f32 rx;
     f32 ry;
     s32 i;
-
+#if 0
     if (mode == MTXF_APPLY) {
         for (i = 0; i < 4; i++) {
             rx = mtx->m[0][i];
@@ -136,18 +146,31 @@ void Matrix_Scale(Matrix* mtx, f32 xScale, f32 yScale, f32 zScale, u8 mode) {
             mtx->m[2][1] = mtx->m[2][3] = mtx->m[3][0] = mtx->m[3][1] = mtx->m[3][2] = 0.0f;
         mtx->m[3][3] = 1.0f;
     }
+#else
+    if (mode == MTXF_APPLY) {
+        shz_xmtrx_load_4x4(mtx->m);
+        shz_xmtrx_scale(xScale, yScale, zScale);
+    } 
+    else {
+        shz_xmtrx_init_scale(xScale, yScale, zScale);
+    }
+    shz_xmtrx_store_4x4(mtx->m);
+#endif
 }
 
 // Creates rotation matrix about the X axis in mtx (MTXF_NEW) or applies one to mtx (MTXF_APPLY)
 void Matrix_RotateX(Matrix* mtx, f32 angle, u8 mode) {
+
     f32 cs;
     f32 sn;
     f32 ry;
     f32 rz;
     s32 i;
 
+#if 0
     sn = sinf(angle);
     cs = cosf(angle);
+
     if (mode == MTXF_APPLY) {
         for (i = 0; i < 4; i++) {
             ry = mtx->m[1][i];
@@ -164,6 +187,29 @@ void Matrix_RotateX(Matrix* mtx, f32 angle, u8 mode) {
         mtx->m[0][1] = mtx->m[0][2] = mtx->m[0][3] = mtx->m[1][0] = mtx->m[1][3] = mtx->m[2][0] = mtx->m[2][3] =
             mtx->m[3][0] = mtx->m[3][1] = mtx->m[3][2] = 0.0f;
     }
+#else
+    if (mode == MTXF_APPLY) {
+#if 1
+        sn = sinf(angle);
+        cs = cosf(angle);
+        for (i = 0; i < 4; i++) {
+            ry = mtx->m[1][i];
+            rz = mtx->m[2][i];
+
+            mtx->m[1][i] = (ry * cs) + (rz * sn);
+            mtx->m[2][i] = (rz * cs) - (ry * sn);
+        }
+#else
+        shz_xmtrx_load_4x4(mtx->m);
+        shz_xmtrx_apply_rotation_x(angle);
+        shz_xmtrx_store_4x4(mtx->m);
+#endif
+    } else {
+        shz_xmtrx_init_rotation_x(angle);
+        shz_xmtrx_store_4x4(mtx->m);
+    }
+
+#endif
 }
 
 // Creates rotation matrix about the Y axis in mtx (MTXF_NEW) or applies one to mtx (MTXF_APPLY)
@@ -173,7 +219,7 @@ void Matrix_RotateY(Matrix* mtx, f32 angle, u8 mode) {
     f32 rx;
     f32 rz;
     s32 i;
-
+#if 0
     sn = sinf(angle);
     cs = cosf(angle);
     if (mode == MTXF_APPLY) {
@@ -192,6 +238,28 @@ void Matrix_RotateY(Matrix* mtx, f32 angle, u8 mode) {
         mtx->m[0][1] = mtx->m[0][3] = mtx->m[1][0] = mtx->m[1][2] = mtx->m[1][3] = mtx->m[2][1] = mtx->m[2][3] =
             mtx->m[3][0] = mtx->m[3][1] = mtx->m[3][2] = 0.0f;
     }
+#else
+    if (mode == MTXF_APPLY) {
+#if 1
+        sn = sinf(angle);
+        cs = cosf(angle);
+        for (i = 0; i < 4; i++) {
+            rx = mtx->m[0][i];
+            rz = mtx->m[2][i];
+
+            mtx->m[0][i] = (rx * cs) - (rz * sn);
+            mtx->m[2][i] = (rx * sn) + (rz * cs);
+        }
+#else
+        shz_xmtrx_load_4x4(mtx->m);
+        shz_xmtrx_apply_rotation_y(angle);
+        shz_xmtrx_store_4x4(mtx->m);
+#endif
+    } else {
+        shz_xmtrx_init_rotation_y(angle);
+        shz_xmtrx_store_4x4(mtx->m);
+    }
+#endif
 }
 
 // Creates rotation matrix about the Z axis in mtx (MTXF_NEW) or applies one to mtx (MTXF_APPLY)
@@ -201,7 +269,7 @@ void Matrix_RotateZ(Matrix* mtx, f32 angle, u8 mode) {
     f32 rx;
     f32 ry;
     s32 i;
-
+#if 0
     sn = sinf(angle);
     cs = cosf(angle);
     if (mode == MTXF_APPLY) {
@@ -220,11 +288,34 @@ void Matrix_RotateZ(Matrix* mtx, f32 angle, u8 mode) {
         mtx->m[0][2] = mtx->m[0][3] = mtx->m[1][2] = mtx->m[1][3] = mtx->m[2][0] = mtx->m[2][1] = mtx->m[2][3] =
             mtx->m[3][0] = mtx->m[3][1] = mtx->m[3][2] = 0.0f;
     }
+#else
+    if (mode == MTXF_APPLY) {
+#if 1
+        sn = sinf(angle);
+        cs = cosf(angle);
+        for (i = 0; i < 4; i++) {
+            rx = mtx->m[0][i];
+            ry = mtx->m[1][i];
+
+            mtx->m[0][i] = (rx * cs) + (ry * sn);
+            mtx->m[1][i] = (ry * cs) - (rx * sn);
+        }
+#else
+        shz_xmtrx_load_4x4(mtx->m);
+        shz_xmtrx_apply_rotation_x(angle);
+        shz_xmtrx_store_4x4(mtx->m);
+#endif
+    } else {
+        shz_xmtrx_init_rotation_z(angle);
+        shz_xmtrx_store_4x4(mtx->m);
+    }
+#endif
 }
 
 // Creates rotation matrix about a given vector axis in mtx (MTXF_NEW) or applies one to mtx (MTXF_APPLY).
 // The vector specifying the axis does not need to be a unit vector.
 void Matrix_RotateAxis(Matrix* mtx, f32 angle, f32 axisX, f32 axisY, f32 axisZ, u8 mode) {
+ #if 0
     f32 rx;
     f32 ry;
     f32 rz;
@@ -327,6 +418,16 @@ void Matrix_RotateAxis(Matrix* mtx, f32 angle, f32 axisX, f32 axisY, f32 axisZ, 
             mtx->m[3][3] = 1.0f;
         }
     }
+#else
+    if (mode == MTXF_APPLY) {
+        shz_xmtrx_load_4x4(mtx->m);
+    } else {
+        shz_xmtrx_init_identity();
+    }
+
+    shz_xmtrx_apply_rotation_axis(angle, axisX, axisY, axisZ);
+    shz_xmtrx_store_4x4(mtx->m);
+#endif
 }
 
 // Converts the current Gfx matrix to a Mtx
@@ -416,8 +517,13 @@ void Matrix_GetYPRAngles_NoLoad(Vec3f* rot) {
     xHatP.z -= originP.z;
     rot->y = Math_Atan2F(zHatP.x, zHatP.z);
     rot->x = -Math_Atan2F(zHatP.y, shz_sqrtf_fsrra(SQ(zHatP.x) + SQ(zHatP.z)));
+#if 0
     Matrix_RotateX(&invYP, -rot->x, MTXF_NEW);
     Matrix_RotateY(&invYP, -rot->y, MTXF_APPLY);
+#else
+    shz_xmtrx_init_rotation_x(-rot->x);
+    shz_xmtrx_apply_rotation_y(-rot->y);
+#endif
     Matrix_MultVec3fNoTranslate(&invYP, &xHatP, &xHat);
     rot->x *= M_RTOD;
     rot->y *= M_RTOD;
@@ -444,8 +550,13 @@ void Matrix_GetYPRAngles(Matrix* mtx, Vec3f* rot) {
     xHatP.z -= originP.z;
     rot->y = Math_Atan2F(zHatP.x, zHatP.z);
     rot->x = -Math_Atan2F(zHatP.y, shz_sqrtf_fsrra(SQ(zHatP.x) + SQ(zHatP.z)));
+#if 0
     Matrix_RotateX(&invYP, -rot->x, MTXF_NEW);
     Matrix_RotateY(&invYP, -rot->y, MTXF_APPLY);
+#else
+    shz_xmtrx_init_rotation_x(-rot->x);
+    shz_xmtrx_apply_rotation_y(-rot->y);
+#endif
     Matrix_MultVec3fNoTranslate(&invYP, &xHatP, &xHat);
     rot->x *= M_RTOD;
     rot->y *= M_RTOD;
@@ -456,6 +567,7 @@ void Matrix_GetYPRAngles(Matrix* mtx, Vec3f* rot) {
 // A look-at matrix is a rotation-translation matrix that maps y to Up, z to (At - Eye), and translates to Eye
 void  Matrix_LookAt(Matrix* mtx, f32 xEye, f32 yEye, f32 zEye, f32 xAt, f32 yAt, f32 zAt, f32 xUp, f32 yUp, f32 zUp,
                    u8 mode) {
+#if 1
     if (mode == MTXF_NEW) {
         guLookAtF(mtx, xEye, yEye, zEye, xAt, yAt, zAt, xUp, yUp, zUp);
     } else {
@@ -464,6 +576,16 @@ void  Matrix_LookAt(Matrix* mtx, f32 xEye, f32 yEye, f32 zEye, f32 xAt, f32 yAt,
 //        Matrix_Mult(mtx, &lookAt, mode);
         shz_xmtrx_load_apply_store_4x4(mtx, mtx, &lookAt);
     }
+#else
+    if(mode == MTXF_NEW) {
+        shz_xmtrx_init_identity();
+    } else {
+        shz_xmtrx_load_4x4(mtx->m);
+    }
+
+    shz_xmtrx_apply_lookat((float[]) { xEye, yEye, zEye }, (float[]) { xAt, yAt, zAt }, (float[]) { xUp, yUp, zUp });
+    shz_xmtrx_store_4x4(mtx->m);
+#endif
 }
 
 // Converts the current Gfx matrix to a Mtx and sets it to the display list

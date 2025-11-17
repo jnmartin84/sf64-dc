@@ -54,8 +54,8 @@ f32 __vtx3_z;
     f32 ry = (f32)(b.x * c.y);
     f32 rz = (f32)(c.x * a.y);
 
-    f32 dotPQ = shz_dot8f(px,py,pz,0,(f32)b.z,(f32)c.z,(f32)c.x,0);
-    f32 dotRS = shz_dot8f(rx,ry,rz,0,(f32)c.z,(f32)a.z,(f32)b.z,0);
+    f32 dotPQ = shz_dot6f(px,py,pz,(f32)b.z,(f32)c.z,(f32)c.x);
+    f32 dotRS = shz_dot6f(rx,ry,rz,(f32)c.z,(f32)a.z,(f32)b.z);
 
     return (dotPQ - dotRS);
 

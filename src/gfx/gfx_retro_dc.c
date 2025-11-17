@@ -1073,8 +1073,8 @@ static void __attribute__((noinline)) gfx_sp_vertex_light(uint8_t n_vertices, ui
 
 		float intensity[2] = {0.0f, 0.0f};
 
-		intensity[0] = light0_scale * shz_dot8f(vn->n[0], vn->n[1], vn->n[2], 0, rsp.current_lights_coeffs[0][0],
-                                             rsp.current_lights_coeffs[0][1], rsp.current_lights_coeffs[0][2], 0);
+		intensity[0] = light0_scale * shz_dot6f(vn->n[0], vn->n[1], vn->n[2], rsp.current_lights_coeffs[0][0],
+                                             rsp.current_lights_coeffs[0][1], rsp.current_lights_coeffs[0][2]);
 		MEM_BARRIER();
 
 		float recw = shz_fast_invf(w);
@@ -1087,8 +1087,8 @@ static void __attribute__((noinline)) gfx_sp_vertex_light(uint8_t n_vertices, ui
         d->_y = y * recw;
 
 		if (rsp.current_lights[4].col[0] || rsp.current_lights[4].col[1] || rsp.current_lights[4].col[2]) {
-			intensity[1] = light4_scale * shz_dot8f(vn->n[0], vn->n[1], vn->n[2], 0, rsp.current_lights_coeffs[4][0],
-												rsp.current_lights_coeffs[4][1], rsp.current_lights_coeffs[4][2], 0);
+			intensity[1] = light4_scale * shz_dot6f(vn->n[0], vn->n[1], vn->n[2], rsp.current_lights_coeffs[4][0],
+												rsp.current_lights_coeffs[4][1], rsp.current_lights_coeffs[4][2]);
 			MEM_BARRIER();
 
 			if (intensity[0] > 0.0f) {
@@ -1135,13 +1135,12 @@ static void __attribute__((noinline)) gfx_sp_vertex_light(uint8_t n_vertices, ui
                 register float fr8  asm ("fr8")  = vn->n[0];
                 register float fr9  asm ("fr9")  = vn->n[1];
                 register float fr10 asm ("fr10") = vn->n[2];
-                register float fr11 asm ("fr11") = 0;
  
-                doty = recip127 * shz_dot8f(fr8, fr9, fr10, fr11, rsp.current_lookat_coeffs[0][0],
-                                            rsp.current_lookat_coeffs[0][1], rsp.current_lookat_coeffs[0][2], 0);
+                doty = recip127 * shz_dot6f(fr8, fr9, fr10, rsp.current_lookat_coeffs[0][0],
+                                            rsp.current_lookat_coeffs[0][1], rsp.current_lookat_coeffs[0][2]);
 
-                dotx = recip127 * shz_dot8f(fr8, fr9, fr10, fr11, rsp.current_lookat_coeffs[1][0],
-                                            rsp.current_lookat_coeffs[1][1], rsp.current_lookat_coeffs[1][2], 0);
+                dotx = recip127 * shz_dot6f(fr8, fr9, fr10, rsp.current_lookat_coeffs[1][0],
+                                            rsp.current_lookat_coeffs[1][1], rsp.current_lookat_coeffs[1][2]);
             }
 
  			if (dotx < -1.0f)
