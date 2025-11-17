@@ -526,7 +526,7 @@ $(CDI_CDR): $(ELF)
 	mkdcdisc -a jnmartin84 -n StarFox64 -r 20251117 -f sf64.ico -d music -d sf_data -e $(ELF) -o $(CDI_CDR)
 
 $(DSISO): $(BIN)
-	mkisofs -G ip.bin -V "STARFOX64" -r -J -l -graft-points -o $(DSISO) music/ sf_data/ 1ST_READ.BIN=sf64.bin sf64.ico
+	mkisofs -G ip.bin -V "STARFOX64" -r -J -l -graft-points -o $(DSISO) music=music sf_data=sf_data 1ST_READ.BIN=sf64.bin sf64.ico
 
 $(FILES_ZIP): $(ELF) $(BIN)
 	zip -r $(FILES_ZIP) music sf_data sf64.elf sf64.bin sf64.ico
