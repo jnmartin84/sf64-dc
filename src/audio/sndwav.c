@@ -151,17 +151,17 @@ wav_stream_hnd_t wav_create(WavPlayerId playerId, char *filename, int loop, int 
 	if (index != SND_STREAM_INVALID) {
 		wav_destroy(playerId);
 	}
-    mutex_lock(&stream_mutex);
+//    mutex_lock(&stream_mutex);
 	index = SND_STREAM_INVALID;
 
 	if(filename == NULL) {
-    	mutex_unlock(&stream_mutex);
+//    	mutex_unlock(&stream_mutex);
         return SND_STREAM_INVALID;
     }
 
     file = fs_open(filename, O_RDONLY);
     if(file == FILEHND_INVALID) {
-    	mutex_unlock(&stream_mutex);
+//    	mutex_unlock(&stream_mutex);
 		printf("couldn't open file %s\n", filename);
         exit(-1);
         return SND_STREAM_INVALID;
@@ -170,7 +170,7 @@ wav_stream_hnd_t wav_create(WavPlayerId playerId, char *filename, int loop, int 
     index = snd_stream_alloc(audio_cb, 32768);
 
     if(index == SND_STREAM_INVALID) {
-    	mutex_unlock(&stream_mutex);
+//    	mutex_unlock(&stream_mutex);
 	    printf("couldn't alloc stream %d\n", 32768);
         exit(-1);
         fs_close(file);
@@ -208,7 +208,7 @@ wav_stream_hnd_t wav_create(WavPlayerId playerId, char *filename, int loop, int 
     streams[playerId].status = SNDDEC_STATUS_READY;
     strncpy(streams[playerId].filename, filename, 63);
 
-    mutex_unlock(&stream_mutex);
+//    mutex_unlock(&stream_mutex);
 	return index;
 }
 
@@ -219,9 +219,9 @@ void wav_play(WavPlayerId playerId) {
 	if(streams[playerId].status == SNDDEC_STATUS_STREAMING)
        return;
 
-    mutex_lock(&stream_mutex);
+//    mutex_lock(&stream_mutex);
     streams[playerId].status = SNDDEC_STATUS_RESUMING;
-	mutex_unlock(&stream_mutex);
+//	mutex_unlock(&stream_mutex);
 }
 
 void wav_pause(WavPlayerId playerId) {
@@ -232,9 +232,9 @@ void wav_pause(WavPlayerId playerId) {
        streams[playerId].status == SNDDEC_STATUS_PAUSING)
        return;
 
-    mutex_lock(&stream_mutex);
+//    mutex_lock(&stream_mutex);
     streams[playerId].status = SNDDEC_STATUS_PAUSING;
-    mutex_unlock(&stream_mutex);
+//    mutex_unlock(&stream_mutex);
 }
 
 void wav_stop(WavPlayerId playerId) {
@@ -245,9 +245,9 @@ void wav_stop(WavPlayerId playerId) {
        streams[playerId].status == SNDDEC_STATUS_STOPPING)
        return;
 
-    mutex_lock(&stream_mutex);   
+//    mutex_lock(&stream_mutex);   
     streams[playerId].status = SNDDEC_STATUS_STOPPING;
-	mutex_unlock(&stream_mutex);
+//	mutex_unlock(&stream_mutex);
 }
 
 void wav_volume(WavPlayerId playerId, int vol) {
@@ -260,11 +260,10 @@ void wav_volume(WavPlayerId playerId, int vol) {
     if(vol < 0)
         vol = 0;
 
-    mutex_lock(&stream_mutex);
+//    mutex_lock(&stream_mutex);
     streams[playerId].vol = vol;
     snd_stream_volume(streams[playerId].shnd, streams[playerId].vol);
-	mutex_unlock(&stream_mutex);
-
+//	mutex_unlock(&stream_mutex);
 }
 
 int wav_is_paused(WavPlayerId playerId) {
@@ -323,6 +322,25 @@ static void *sndwav_thread(void *param) {
     return NULL;
 }
 
+typedef enum {
+    /*   0 */ GSTATE_NONE,
+    /*   1 */ GSTATE_INIT,
+    /*   2 */ GSTATE_TITLE,
+    /*   3 */ GSTATE_MENU,
+    /*   4 */ GSTATE_MAP,
+    /*   5 */ GSTATE_GAME_OVER,
+    /*   6 */ GSTATE_VS_INIT,
+    /*   7 */ GSTATE_PLAY,
+    /*   8 */ GSTATE_ENDING,
+    /* 100 */ GSTATE_BOOT = 100,
+    /* 101 */ GSTATE_BOOT_WAIT,
+    /* 102 */ GSTATE_SHOW_LOGO,
+    /* 103 */ GSTATE_CHECK_SAVE,
+    /* 104 */ GSTATE_LOGO_WAIT,
+    /* 105 */ GSTATE_START,
+} GameState;
+extern GameState gGameState;
+
 #include <errno.h>
 static void *audio_cb(snd_stream_hnd_t shnd, int req, int* done) {
 	WavPlayerId playerId = SND_STREAM_INVALID;
@@ -352,7 +370,12 @@ static void *audio_cb(snd_stream_hnd_t shnd, int req, int* done) {
                 streams[playerId].status = SNDDEC_STATUS_READY;
                 return NULL;
             }
+            int short_read = 0;
             while (actually_read < actual) {
+                if (!short_read) {
+                    printf("actual short read\n");
+                    short_read++;
+                }
                 ssize_t next_read_actual = fs_read(streams[playerId].wave_file, streams[playerId].drv_buf + actually_read, actual - actually_read);
                 if (-1 == next_read_actual) {
                     printf("actual continue: fs_read failed for player id %d playing %s (%s)\n", playerId, streams[playerId].filename, strerror(errno));
@@ -385,7 +408,12 @@ static void *audio_cb(snd_stream_hnd_t shnd, int req, int* done) {
                 streams[playerId].status = SNDDEC_STATUS_READY;
                 return NULL;
             }
+            short_read = 0;
             while (actually_read < over) {
+                if (!short_read) {
+                    printf("actual short read\n");
+                    short_read++;
+                }
                 ssize_t next_read_actual = fs_read(streams[playerId].wave_file, streams[playerId].drv_buf + actual + actually_read, over - actually_read);
                 if (-1 == next_read_actual) {
                     printf("over continue: fs_read failed for player id %d playing %s (%s)\n", playerId, streams[playerId].filename, strerror(errno));
@@ -411,7 +439,12 @@ static void *audio_cb(snd_stream_hnd_t shnd, int req, int* done) {
                 streams[playerId].status = SNDDEC_STATUS_READY;
                 return NULL;
             }
+            int short_read = 0;
             while (actually_read < req) {
+                if (!short_read) {
+                    printf("else short read\n");
+                    short_read++;
+                }
                 ssize_t next_read_actual = fs_read(streams[playerId].wave_file, streams[playerId].drv_buf + actually_read, req - actually_read);
                 if (-1 == next_read_actual) {
                     printf("else continue: fs_read failed for player id %d playing %s (%s)\n", playerId, streams[playerId].filename, strerror(errno));
@@ -450,11 +483,13 @@ static void *audio_cb(snd_stream_hnd_t shnd, int req, int* done) {
                 streams[playerId].status = SNDDEC_STATUS_READY;
                 return NULL;
             }
+            snd_stream_volume(streams[playerId].shnd, 0);
             snd_stream_stop(streams[playerId].shnd);
             streams[playerId].stream_pos = streams[playerId].data_offset;
             streams[playerId].status = SNDDEC_STATUS_READY;
-			if (playerId == WAV_PLAYER_FANFARE /* && streams[WAV_PLAYER_BGM].status  */) {
-				wav_play(WAV_PLAYER_BGM);
+            streams[playerId].vol = 0;
+			if (playerId == WAV_PLAYER_FANFARE && (gGameState != GSTATE_ENDING)) {
+                wav_play(WAV_PLAYER_BGM);
 			}
             *done = actually_read;
             return streams[playerId].drv_buf;
