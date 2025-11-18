@@ -9,7 +9,8 @@ MAKEFLAGS += --no-builtin-rules --no-print-directory
 find-command = $(shell which $(1) 2>/dev/null)
 
 #### Defaults ####
-
+# Enable JP Audio Voice
+AUDIO_VOICE_JP ?= 0
 # Enable testing mode
 TESTING_MODE ?= 0
 # If COMPARE is 1, check the output md5sum after building
@@ -65,6 +66,10 @@ CFLAGS += -DCOMPILER_GCC -DNON_MATCHING=1 -Wno-int-conversion -falign-functions=
 
 ifeq ($(TESTING_MODE),1)
   CFLAGS += -DTESTING_MODE
+endif
+
+ifeq ($(AUDIO_VOICE_JP),1)
+  CFLAGS += -DAUDIO_VOICE_JP
 endif
 
 NON_MATCHING := 1
@@ -541,9 +546,15 @@ sf-data: initted.touch
 	rm dclogo.tex
 	rm console.tex
 	# audio bank / sequence data
+ifeq ($(AUDIO_VOICE_JP),1)
+	cp bin/jp/rev0/audio_bank.bin $(SF_DATA_PATH)/audbank.bin
+	cp bin/jp/rev0/audio_seq.bin $(SF_DATA_PATH)/audseq.bin
+	cp bin/jp/rev0/audio_table.bin $(SF_DATA_PATH)/audtable.bin
+else
 	cp bin/us/rev1/audio_bank.bin $(SF_DATA_PATH)/audbank.bin
 	cp bin/us/rev1/audio_seq.bin $(SF_DATA_PATH)/audseq.bin
 	cp bin/us/rev1/audio_table.bin $(SF_DATA_PATH)/audtable.bin
+endif
 	# asset segments
 	sh-elf-ld -EL -t -e 0 -Ttext=05000000 build/src/assets/ast_text/ast_text.o -o build/src/assets/ast_text/ast_text.elf
 	sh-elf-objcopy -O binary --only-section=.data --only-section=.bss build/src/assets/ast_text/ast_text.elf $(SF_DATA_PATH)/text.bin
