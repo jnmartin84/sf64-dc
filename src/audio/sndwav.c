@@ -402,7 +402,27 @@ static void *audio_cb(snd_stream_hnd_t shnd, int req, int* done) {
             streams[playerId].stream_pos = streams[playerId].loop_start + over;
         } else {
             //printf("read %d into %08x from %d\n", req, streams[hnd].drv_buf, streams[hnd].wave_file);
-            fs_read(streams[playerId].wave_file, streams[playerId].drv_buf, req);
+            ssize_t actually_read = fs_read(streams[playerId].wave_file, streams[playerId].drv_buf, req);
+            if (-1 == actually_read) {
+                printf("over begin: fs_read failed for player id %d playing %s (%s)\n", playerId, streams[playerId].filename, strerror(errno));
+                printf("this player will be stopped\n");
+                snd_stream_stop(streams[playerId].shnd);
+                *done = 0;
+                streams[playerId].status = SNDDEC_STATUS_READY;
+                return NULL;
+            }
+            while (actually_read < req) {
+                ssize_t next_read_actual = fs_read(streams[playerId].wave_file, streams[playerId].drv_buf + actually_read, req - actually_read);
+                if (-1 == next_read_actual) {
+                    printf("over continue: fs_read failed for player id %d playing %s (%s)\n", playerId, streams[playerId].filename, strerror(errno));
+                    printf("this player will be stopped\n");
+                    snd_stream_stop(streams[playerId].shnd);
+                    *done = 0;
+                    streams[playerId].status = SNDDEC_STATUS_READY;
+                    return NULL;
+                }
+                actually_read += next_read_actual;
+            }            
             streams[playerId].stream_pos += req;
         }
 
