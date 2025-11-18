@@ -1,6 +1,8 @@
 #ifndef SH4ZAM_H
 #define SH4ZAM_H
 
+#include <math.h>
+
 #define SHZ_NOEXCEPT
 #define SHZ_ALIGNAS(n)          __attribute__((aligned(n)))
 #define SHZ_INLINE              inline static
@@ -10,6 +12,7 @@
 
 #define SHZ_FSCA_RAD_FACTOR     10430.37835f
 
+#define SHZ_F_PI                3.1415926f
 #define TRIG_ARG_SCALE 0.00009587f
 #define SHZ_ANGLE(a) (((float)((uint16_t)a)) * TRIG_ARG_SCALE)
 
@@ -22,54 +25,70 @@ typedef struct shz_sincos {
     float cos; 
 } shz_sincos_t;
 
+/*! 2D Vector type
+ *
+ *  Structure for holding coordinates of a 2-dimensional vector.
+ *
+ * \sa shz_vec3_t, shz_vec4_t
+ */
 typedef struct shz_vec2 {
     union {
+        float e[2];  //!< <X, Y> coordinates as an array
         struct {
-            float x; 
-            float y; 
+            float x; //!< X coordinate
+            float y; //!< Y coordinate
         };
-        float e[2]; 
     };
 } shz_vec2_t;
 
+/*! 3D Vector type
+ *
+ *  Structure for holding coordinates of a 3-dimensional vector.
+ *
+ * \sa shz_vec2_t, shz_vec4_t
+ */
 typedef struct shz_vec3 {
     union {
+        float e[3];              //!< <X, Y, Z> coordinates as an array
         struct {
             union {
                 struct {
-                    float x; 
-                    float y; 
+                    float x;     //!< X coordinate
+                    float y;     //!< Y coordinate
                 };
-                shz_vec2_t vec2;
+                shz_vec2_t xy;   //!< Inner 2D vector containing <X, Y> coords
             };
-            float z;  
+            float z;             //!< Z coordinate
         };
-        float e[3];   
     };
 } shz_vec3_t;
 
+/*! 4D Vector type
+ *
+ *  Structure for holding coordinates of a 4-dimensional vector.
+ *
+ *  \sa shz_vec2_t, shz_vec3_t
+ */
 typedef struct shz_vec4 {
     union {
+        float e[4];                 //!< <X, Y, Z, W> coordinates as an array.
         struct {
             union {
                 struct {
-                    union {
-                        struct {
-                            float x; 
-                            float y;  
-                        };
-                        shz_vec2_t vec2; 
-                    };
-                    float z;             
+                    float x;        //!< X coordinate
+                    float y;        //!< Y coordinate
+                    float z;        //!< Z coordinate
                 };
-                shz_vec3_t vec3;         
+                shz_vec3_t xyz;     //!< <X, Y, Z> coordinates as a 3D vector
             };
-            float w; 
+            float w;                //!< W coordinate
         };
-        float e[4];     
+        struct {
+            shz_vec2_t xy;          //!< <X, Y> coordinates as a 2D vector
+            shz_vec2_t zw;          //!< <Z, W> coordinates as a 2D vector
+        };
     };
 } shz_vec4_t;
-
 
 typedef SHZ_ALIGNAS(8) union shz_matrix_2x2 {
     float       elem[4];
@@ -112,11 +131,25 @@ typedef SHZ_ALIGNAS(8) union shz_matrix_4x4 {
     };
 } shz_matrix_4x4_t;
 
+SHZ_FORCE_INLINE float shz_fmaf(float a, float b, float c) SHZ_NOEXCEPT {
+    return a * b + c;
+}
 
-SHZ_FORCE_INLINE float shz_inv_sqrtf(float x) {
+SHZ_FORCE_INLINE float shz_copysignf(float x, float y) SHZ_NOEXCEPT {
+    x = fabsf(x);
+    return (y < 0.0f)? -x : x;
+}
+
+
+SHZ_FORCE_INLINE float shz_inv_sqrtf(float x) SHZ_NOEXCEPT {
     asm volatile("fsrra %0" : "+f" (x));
     return x;
 }
+
+SHZ_FORCE_INLINE float shz_invf_fsrra(float x) SHZ_NOEXCEPT {
+    return shz_inv_sqrtf(x * x);
+}
+
 #include <math.h>
 SHZ_FORCE_INLINE float shz_sqrtf_fsrra(float x) {
 #if 1
@@ -130,6 +163,20 @@ SHZ_FORCE_INLINE float shz_sqrtf_fsrra(float x) {
 #endif
     }
 
+
+SHZ_FORCE_INLINE float shz_mag_sqr3f(float x, float y, float z) SHZ_NOEXCEPT {
+    register float rx asm("fr8")  = x;
+    register float ry asm("fr9")  = y;
+    register float rz asm("fr10") = z;
+    register float rw asm("fr11") = 0.0f;
+
+
+    asm("fipr fv8, fv8"
+        : "+f" (rw)
+        : "f" (rx), "f" (ry), "f" (rz));
+
+    return rw;
+}
 
 SHZ_FORCE_INLINE float shz_mag_sqr4f(float x, float y, float z, float w) {
     register float rx asm("fr8") = x;
@@ -223,8 +270,53 @@ SHZ_FORCE_INLINE float shz_divf(float num, float denom) {
     return num * shz_fast_invf(denom);
 }
 
+SHZ_FORCE_INLINE float shz_atanf_unit(float x) SHZ_NOEXCEPT {
+    const float n1 = 0.97239411f;
+    const float n2 = -0.19194795f;
+
+    return shz_fmaf(n2, x * x, n1) * x;
+}
+
+SHZ_INLINE float shz_atanf_q1(float x) SHZ_NOEXCEPT {
+    return (SHZ_F_PI * 0.5f) - shz_atanf_unit(shz_invf_fsrra(x));
+}
+
+SHZ_INLINE float shz_atanf(float x) SHZ_NOEXCEPT {
+    if(x > 1.0f)
+	    return shz_atanf_q1(x);
+    else if(x < -1.0f)
+        return -shz_atanf_q1(x);
+    else
+        return shz_atanf_unit(x);
+}
+
+SHZ_INLINE float shz_asinf(float x) SHZ_NOEXCEPT {
+    return shz_atanf(x * shz_inv_sqrtf(1.0f - (x * x)));
+}
+
+SHZ_INLINE float shz_acosf(float x) SHZ_NOEXCEPT {
+    return (SHZ_F_PI * 0.5f) - shz_asinf(x);
+}
+
 SHZ_FORCE_INLINE shz_vec3_t shz_vec3_scale(shz_vec3_t vec, float factor) SHZ_NOEXCEPT {
     return (shz_vec3_t) { vec.x * factor, vec.y * factor, vec.z * factor };
+}
+
+
+SHZ_FORCE_INLINE shz_vec2_t shz_vec2_init(float x, float y) SHZ_NOEXCEPT {
+    return (shz_vec2_t){ .x = x, .y = y };
+}
+
+SHZ_FORCE_INLINE shz_vec3_t shz_vec3_init(float x, float y, float z) SHZ_NOEXCEPT {
+    return (shz_vec3_t){ .x = x, .y = y, .z = z };
+}
+
+SHZ_FORCE_INLINE shz_vec4_t shz_vec4_init(float x, float y, float z, float w) SHZ_NOEXCEPT {
+    return (shz_vec4_t){ .x = x, .y = y, .z = z, .w = w };
+}
+
+SHZ_FORCE_INLINE shz_vec2_t shz_vec2_fill(float v) SHZ_NOEXCEPT {
+    return shz_vec2_init(v, v);
 }
 
 SHZ_FORCE_INLINE float shz_vec3_magnitude_sqr(shz_vec3_t vec) SHZ_NOEXCEPT {
@@ -237,6 +329,27 @@ SHZ_FORCE_INLINE float shz_vec3_magnitude_inv(shz_vec3_t vec) SHZ_NOEXCEPT {
 
 SHZ_FORCE_INLINE shz_vec3_t shz_vec3_normalize(shz_vec3_t vec) SHZ_NOEXCEPT {
     return shz_vec3_scale(vec, shz_vec3_magnitude_inv(vec));
+}
+
+//! Dereferences the given pointer to a sequence of 2 floats as a shz_vec2_t.
+#   define shz_vec2_deref(ptr) (*((shz_vec2_t*)(ptr)))
+
+//! Dereferences the given pointer to a sequence of 3 floats as a shz_vec3_t.
+#   define shz_vec3_deref(ptr) (*((shz_vec3_t*)(ptr)))
+
+//! Dereferences the given pointer to a sequence of 4 floats as a shz_vec4_t.
+#   define shz_vec4_deref(ptr) (*((shz_vec4_t*)(ptr)))
+
+SHZ_FORCE_INLINE shz_vec3_t shz_vec2_vec3(shz_vec2_t vec, float z) SHZ_NOEXCEPT {
+    return (shz_vec3_t){ .xy = vec, .z = z };
+}
+
+SHZ_FORCE_INLINE shz_vec4_t shz_vec2_vec4(shz_vec2_t vec, float z, float w) SHZ_NOEXCEPT {
+    return (shz_vec4_t){ .x = vec.x, .y = vec.y, .z = z, .w = w };
+}
+
+SHZ_FORCE_INLINE shz_vec4_t shz_vec3_vec4(shz_vec3_t vec, float w) SHZ_NOEXCEPT {
+    return (shz_vec4_t){ .xyz = vec, .w = w };
 }
 
 SHZ_FORCE_INLINE shz_vec4_t shz_xmtrx_trans_vec4(shz_vec4_t vec) {
@@ -252,11 +365,11 @@ SHZ_FORCE_INLINE shz_vec4_t shz_xmtrx_trans_vec4(shz_vec4_t vec) {
 }
 
 SHZ_FORCE_INLINE shz_vec3_t shz_xmtrx_trans_vec3(shz_vec3_t vec) {
-    return shz_xmtrx_trans_vec4((shz_vec4_t) { .vec3 = vec }).vec3;
+    return shz_xmtrx_trans_vec4((shz_vec4_t) { .xyz = vec }).xyz;
 }
 
 SHZ_FORCE_INLINE shz_vec2_t shz_xmtrx_trans_vec2(shz_vec2_t vec) {
-    return shz_xmtrx_trans_vec3((shz_vec3_t) { .vec2 = vec }).vec2;
+    return shz_xmtrx_trans_vec3((shz_vec3_t) { .xy = vec }).xy;
 }
 
 SHZ_FORCE_INLINE shz_sincos_t shz_sincosu16(uint16_t radians16) {
@@ -1179,6 +1292,46 @@ SHZ_INLINE void shz_xmtrx_init_rotation_x(float x) {
     : "fpul");
 }
 
+SHZ_INLINE void shz_xmtrx_rotate_x(float x) {
+    float register x_ asm("fr4") = x * SHZ_FSCA_RAD_FACTOR;
+    asm volatile(R"(
+        ftrc    fr4, fpul
+        fsca    fpul, dr0
+
+        fldi0   fr4
+        fmov    fr1, fr5
+        fmov    fr0, fr6
+        fldi0   fr7
+        fldi0   fr8
+        ftrv    xmtrx, fv4
+
+        fmov    fr0, fr9
+        fneg    fr9
+        fmov    fr1, fr10
+        fldi0   fr11
+        fldi0   fr12
+        ftrv    xmtrx, fv8
+        
+        fldi0   fr13
+        fldi0   fr14
+        fldi1   fr15
+        fldi1   fr0
+        ftrv    xmtrx, fv12
+
+        fldi0   fr1
+        fldi0   fr2
+        fldi0   fr3
+        ftrv    xmtrx, fv0
+
+        frchg
+    )"
+    : "+f" (x_) 
+    :
+    : "fr0", "fr1", "fr2", "fr3", "fr5", "fr6", "fr7",
+      "fr8", "fr9", "fr10", "fr11", "fr12", "fr13", "fr14", "fr15", 
+      "fpul");
+}
+
 SHZ_INLINE void shz_xmtrx_init_rotation_y(float y) {
     y *= SHZ_FSCA_RAD_FACTOR;
     asm volatile(R"(
@@ -1209,6 +1362,46 @@ SHZ_INLINE void shz_xmtrx_init_rotation_y(float y) {
     : "fpul");
 }
 
+SHZ_INLINE void shz_xmtrx_rotate_y(float y) {
+    float register y_ asm ("fr4") = y * SHZ_FSCA_RAD_FACTOR;
+    asm volatile(R"(
+        ftrc    %0, fpul
+        fsca	fpul, dr0
+
+        fldi0	fr4
+        fldi1	fr5
+        fldi0	fr6
+        fldi0	fr7
+        fmov    fr0, fr8
+        ftrv    xmtrx, fv4
+
+        fldi0	fr9
+        fmov	fr1, fr10
+        fldi0	fr11
+        fldi0	fr12
+        ftrv    xmtrx, fv8
+
+        fldi0	fr13
+        fldi0	fr14
+        fldi1	fr15
+        fmov    fr0, fr2
+        ftrv    xmtrx, fv12
+
+        fneg    fr2
+        fldi0	fr3
+        fmov    fr1, fr0
+        fldi0   fr1
+        ftrv    xmtrx, fv0
+
+        frchg
+    )"
+    : "+f" (y_) 
+    :
+    : "fr0", "fr1", "fr2", "fr3", "fr5", "fr6", "fr7",
+      "fr8", "fr9", "fr10", "fr11", "fr12", "fr13", "fr14", "fr15", 
+      "fpul");
+}
+
 SHZ_INLINE void shz_xmtrx_init_rotation_z(float z) {
     z *= SHZ_FSCA_RAD_FACTOR;
     asm volatile(R"(
@@ -1234,6 +1427,44 @@ SHZ_INLINE void shz_xmtrx_init_rotation_z(float z) {
     :
     : "f" (z)
     : "fpul");
+}
+
+SHZ_INLINE void shz_xmtrx_rotate_z(float z) {
+    float register z_ asm("fr4") = z * SHZ_FSCA_RAD_FACTOR;
+    asm volatile(R"(
+        ftrc    %0, fpul
+        fsca    fpul, dr4
+
+        fmov    fr5, fr0
+        fmov    fr4, fr1
+        fldi0	fr2
+        fldi0	fr3
+        ftrv    xmtrx, fv0
+
+        fneg    fr4
+        fldi0   fr6
+        fldi0   fr7
+        ftrv    xmtrx, fv4
+
+        fldi0   fr8
+        fldi0   fr9
+        fldi1   fr10
+        fldi0   fr11
+        ftrv    xmtrx, fv8
+
+        fldi0   fr12
+        fldi0   fr13
+        fldi0   fr14
+        fldi1   fr15
+        ftrv    xmtrx, fv12
+
+        frchg
+    )"
+    : "+f" (z_) 
+    :
+    : "fr0", "fr1", "fr2", "fr3", "fr5", "fr6", "fr7",
+      "fr8", "fr9", "fr10", "fr11", "fr12", "fr13", "fr14", "fr15", 
+      "fpul");
 }
 
 SHZ_INLINE void shz_xmtrx_apply_rotation_x(float x) {
@@ -1327,10 +1558,10 @@ SHZ_INLINE void shz_xmtrx_apply_rotation_z(float z) {
 
 
 SHZ_INLINE void shz_xmtrx_apply_rotation_axis(float angle, float x, float y, float z) {
-    register float xx asm("fr4") = x;
-    register float yy asm("fr5") = y;
-    register float zz asm("fr6") = z;
-    register float aa asm("fr7") = angle * SHZ_FSCA_RAD_FACTOR;
+    register float x_ asm("fr4") = x;
+    register float y_ asm("fr5") = y;
+    register float z_ asm("fr6") = z;
+    register float a_ asm("fr7") = angle * SHZ_FSCA_RAD_FACTOR;
 	
     asm volatile(R"(
         ftrc	fr7, fpul
@@ -1388,18 +1619,85 @@ SHZ_INLINE void shz_xmtrx_apply_rotation_axis(float angle, float x, float y, flo
         fldi0	fr3
         ftrv	xmtrx, fv0
 
-        fschg
-        fmov	dr10, xd10
-        fmov	dr8, xd8
-        fmov	dr6, xd6
-        fmov	dr4, xd4
-        fmov	dr2, xd2
-        fmov	dr0, xd0
-        fschg
+        frchg
     )"
+    : "+f"(x_), "+f"(y_), "+f"(z_), "+f"(a_)
     :
-    : "f"(xx), "f"(yy), "f"(zz), "f"(aa)
-    : "fpul", "fr0", "fr1", "fr2", "fr3", "fr8", "fr9", "fr10", "fr11");
+    : "fr0", "fr1", "fr2", "fr3", "fr8", "fr9", "fr10", "fr11",
+      "fr12", "fr13", "fr14", "fr15", "fpul");
+}
+
+
+SHZ_INLINE void shz_xmtrx_init_rotation_axis(float angle, float x, float y, float z) {
+    register float x_ asm("fr4") = x;
+    register float y_ asm("fr5") = y;
+    register float z_ asm("fr6") = z;
+    register float a_ asm("fr7") = angle * SHZ_FSCA_RAD_FACTOR;
+	
+    asm volatile(R"(
+        ftrc	fr7, fpul
+        fsca	fpul, dr2
+        fldi1	fr0
+        fsub	fr3, fr0	/* 1-cos */
+
+        fldi0	fr7
+        fipr	fv4, fv4
+        fsrra	fr7
+        fmul	fr7, fr4
+        fmul	fr7, fr5
+        fmul	fr7, fr6
+
+        fmov	fr4, fr1
+        fmul	fr2, fr1	/* xsin */
+        fmov	fr5, fr7
+        fmul	fr2, fr7	/* ysin */
+        fmul	fr6, fr2	/* zsin */
+
+        fmov	fr4, fr8
+        fmul	fr0, fr8
+        fmov	fr5, fr9
+        fmul	fr8, fr9	/* xy(1-cos) */
+        fmul	fr6, fr8	/* xz(1-cos) */
+        fmov	fr6, fr10
+        fmul	fr0, fr6
+        fmul	fr6, fr10
+        fadd	fr3, fr10	/* zz(1-cos)+cos */
+        fmul	fr5, fr6	/* yz(1-cos) */
+        fmul	fr5, fr5
+        fmul	fr0, fr5
+        fadd	fr3, fr5	/* yy(1-cos)+cos */
+        fmul	fr4, fr0
+        fmul	fr4, fr0
+        fadd	fr3, fr0	/* xx(1-cos)+cos */
+
+        fmov	fr8, fr3	/* xz(1-cos) */
+        fmov	fr9, fr4	/* xy(1-cos) */
+        fadd	fr7, fr8
+        fmov	fr6, fr9
+        fsub	fr1, fr9
+        fldi0	fr11
+
+        fadd	fr1, fr6
+        fmov	fr4, fr1
+        fsub	fr2, fr4
+        fsub	fr7, fr3
+        fldi0	fr7
+
+        fadd	fr2, fr1
+        fmov	fr3, fr2
+        fldi0	fr3
+
+        fldi0   fr12
+        fldi0   fr13
+        fldi0   fr14
+        fldi1   fr15
+
+        frchg
+    )"
+    : "+f"(x_), "+f"(y_), "+f"(z_), "+f"(a_)
+    :
+    : "fr0", "fr1", "fr2", "fr3", "fr8", "fr9", "fr10", "fr11",
+      "fr12", "fr13", "fr14", "fr15", "fpul");
 }
 
 

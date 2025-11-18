@@ -160,13 +160,11 @@ void Matrix_Scale(Matrix* mtx, f32 xScale, f32 yScale, f32 zScale, u8 mode) {
 
 // Creates rotation matrix about the X axis in mtx (MTXF_NEW) or applies one to mtx (MTXF_APPLY)
 void Matrix_RotateX(Matrix* mtx, f32 angle, u8 mode) {
-
     f32 cs;
     f32 sn;
     f32 ry;
     f32 rz;
     s32 i;
-
 #if 0
     sn = sinf(angle);
     cs = cosf(angle);
@@ -189,26 +187,13 @@ void Matrix_RotateX(Matrix* mtx, f32 angle, u8 mode) {
     }
 #else
     if (mode == MTXF_APPLY) {
-#if 1
-        sn = sinf(angle);
-        cs = cosf(angle);
-        for (i = 0; i < 4; i++) {
-            ry = mtx->m[1][i];
-            rz = mtx->m[2][i];
-
-            mtx->m[1][i] = (ry * cs) + (rz * sn);
-            mtx->m[2][i] = (rz * cs) - (ry * sn);
-        }
-#else
         shz_xmtrx_load_4x4(mtx->m);
-        shz_xmtrx_apply_rotation_x(angle);
-        shz_xmtrx_store_4x4(mtx->m);
-#endif
+        shz_xmtrx_rotate_x(angle);
+
     } else {
         shz_xmtrx_init_rotation_x(angle);
-        shz_xmtrx_store_4x4(mtx->m);
     }
-
+    shz_xmtrx_store_4x4(mtx->m);
 #endif
 }
 
@@ -240,25 +225,12 @@ void Matrix_RotateY(Matrix* mtx, f32 angle, u8 mode) {
     }
 #else
     if (mode == MTXF_APPLY) {
-#if 1
-        sn = sinf(angle);
-        cs = cosf(angle);
-        for (i = 0; i < 4; i++) {
-            rx = mtx->m[0][i];
-            rz = mtx->m[2][i];
-
-            mtx->m[0][i] = (rx * cs) - (rz * sn);
-            mtx->m[2][i] = (rx * sn) + (rz * cs);
-        }
-#else
         shz_xmtrx_load_4x4(mtx->m);
-        shz_xmtrx_apply_rotation_y(angle);
-        shz_xmtrx_store_4x4(mtx->m);
-#endif
+        shz_xmtrx_rotate_y(angle);
     } else {
         shz_xmtrx_init_rotation_y(angle);
-        shz_xmtrx_store_4x4(mtx->m);
     }
+    shz_xmtrx_store_4x4(mtx->m);
 #endif
 }
 
@@ -290,32 +262,19 @@ void Matrix_RotateZ(Matrix* mtx, f32 angle, u8 mode) {
     }
 #else
     if (mode == MTXF_APPLY) {
-#if 1
-        sn = sinf(angle);
-        cs = cosf(angle);
-        for (i = 0; i < 4; i++) {
-            rx = mtx->m[0][i];
-            ry = mtx->m[1][i];
-
-            mtx->m[0][i] = (rx * cs) + (ry * sn);
-            mtx->m[1][i] = (ry * cs) - (rx * sn);
-        }
-#else
         shz_xmtrx_load_4x4(mtx->m);
-        shz_xmtrx_apply_rotation_x(angle);
-        shz_xmtrx_store_4x4(mtx->m);
-#endif
+        shz_xmtrx_rotate_z(angle);
     } else {
         shz_xmtrx_init_rotation_z(angle);
-        shz_xmtrx_store_4x4(mtx->m);
     }
+    shz_xmtrx_store_4x4(mtx->m);
 #endif
 }
 
 // Creates rotation matrix about a given vector axis in mtx (MTXF_NEW) or applies one to mtx (MTXF_APPLY).
 // The vector specifying the axis does not need to be a unit vector.
 void Matrix_RotateAxis(Matrix* mtx, f32 angle, f32 axisX, f32 axisY, f32 axisZ, u8 mode) {
- #if 0
+#if 0
     f32 rx;
     f32 ry;
     f32 rz;
@@ -338,7 +297,7 @@ void Matrix_RotateAxis(Matrix* mtx, f32 angle, f32 axisX, f32 axisY, f32 axisZ, 
     f32 sinA;
     f32 cosA;
 
-    f32 tmpsum = (axisX * axisX) + (axisY * axisY) + (axisZ * axisZ);
+    f32 tmpsum = shz_mag_sqr3f(axisX, axisY, axisZ);
 
 //    norm = sqrtf((axisX * axisX) + (axisY * axisY) + (axisZ * axisZ));
     if (tmpsum != 0.0f) {
@@ -421,11 +380,10 @@ void Matrix_RotateAxis(Matrix* mtx, f32 angle, f32 axisX, f32 axisY, f32 axisZ, 
 #else
     if (mode == MTXF_APPLY) {
         shz_xmtrx_load_4x4(mtx->m);
+        shz_xmtrx_apply_rotation_axis(angle, axisX, axisY, axisZ);
     } else {
-        shz_xmtrx_init_identity();
+        shz_xmtrx_init_rotation_axis(angle, axisX, axisY, axisZ);
     }
-
-    shz_xmtrx_apply_rotation_axis(angle, axisX, axisY, axisZ);
     shz_xmtrx_store_4x4(mtx->m);
 #endif
 }
@@ -520,11 +478,12 @@ void Matrix_GetYPRAngles_NoLoad(Vec3f* rot) {
 #if 0
     Matrix_RotateX(&invYP, -rot->x, MTXF_NEW);
     Matrix_RotateY(&invYP, -rot->y, MTXF_APPLY);
+    Matrix_MultVec3fNoTranslate(&invYP, &xHatP, &xHat);
 #else
     shz_xmtrx_init_rotation_x(-rot->x);
     shz_xmtrx_apply_rotation_y(-rot->y);
+    Matrix_MultVec3fNoTranslate_NoLoad(&xHatP, &xHat);
 #endif
-    Matrix_MultVec3fNoTranslate(&invYP, &xHatP, &xHat);
     rot->x *= M_RTOD;
     rot->y *= M_RTOD;
     rot->z = Math_Atan2F(xHat.y, xHat.x) * M_RTOD;
@@ -553,11 +512,12 @@ void Matrix_GetYPRAngles(Matrix* mtx, Vec3f* rot) {
 #if 0
     Matrix_RotateX(&invYP, -rot->x, MTXF_NEW);
     Matrix_RotateY(&invYP, -rot->y, MTXF_APPLY);
-#else
+    Matrix_MultVec3fNoTranslate(&invYP, &xHatP, &xHat);
+    #else
     shz_xmtrx_init_rotation_x(-rot->x);
     shz_xmtrx_apply_rotation_y(-rot->y);
+    Matrix_MultVec3fNoTranslate_NoLoad(&xHatP, &xHat);
 #endif
-    Matrix_MultVec3fNoTranslate(&invYP, &xHatP, &xHat);
     rot->x *= M_RTOD;
     rot->y *= M_RTOD;
     rot->z = Math_Atan2F(xHat.y, xHat.x) * M_RTOD;
@@ -583,7 +543,15 @@ void  Matrix_LookAt(Matrix* mtx, f32 xEye, f32 yEye, f32 zEye, f32 xAt, f32 yAt,
         shz_xmtrx_load_4x4(mtx->m);
     }
 
-    shz_xmtrx_apply_lookat((float[]) { xEye, yEye, zEye }, (float[]) { xAt, yAt, zAt }, (float[]) { xUp, yUp, zUp });
+    float eye[] = { xEye, yEye, zEye };
+    float at[] = { xAt, yAt, zAt };
+    float up[] = { xUp, yUp, zUp };
+
+    shz_vec3_deref(eye) = shz_vec3_normalize(shz_vec3_deref(eye));
+    shz_vec3_deref(at) = shz_vec3_normalize(shz_vec3_deref(at));
+    shz_vec3_deref(up) = shz_vec3_normalize(shz_vec3_deref(up));
+
+    shz_xmtrx_apply_lookat(eye, at, up);
     shz_xmtrx_store_4x4(mtx->m);
 #endif
 }

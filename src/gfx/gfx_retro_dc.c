@@ -986,8 +986,9 @@ static void  __attribute__((noinline)) gfx_sp_pop_matrix(void/* UNUSED uint32_t 
 
 float my_acosf (float a)
 {
+#if 0
     float r, s, t;
-    s = copysignf(2.0f, -a);
+    s = shz_copysignf(2.0f, -a);
     t = fmac(s, a, 2.0f);
     s = shz_sqrtf_fsrra(t);
     r =             4.25032340e-7f;
@@ -1004,6 +1005,9 @@ float my_acosf (float a)
 //    t = fmac(1.866378903f, 1.683255553f, -r);
     r = (a < 0.0f) ? (F_PI - r) : r;
     return r;
+#else
+    return shz_acosf(a);
+#endif
 }
 
 //GSTATE_MAP is 4

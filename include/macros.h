@@ -41,7 +41,7 @@ extern void* segmented_to_virtual(const void* addr);
 
 //(((v1Ptr)->x * (v2Ptr)->x) + ((v1Ptr)->y * (v2Ptr)->y) + ((v1Ptr)->z * (v2Ptr)->z))
 
-#define VEC3F_MAG(vecPtr) shz_sqrtf_fsrra(DOT_XYZ(vecPtr, vecPtr))
+#define VEC3F_MAG(vecPtr) shz_sqrtf_fsrra(shz_mag_sqr3f((f32)((vecPtr)->x), (f32)((vecPtr)->y), (f32)((vecPtr)->z)))
 
 //sqrtf(DOT_XYZ(vecPtr, vecPtr))
 

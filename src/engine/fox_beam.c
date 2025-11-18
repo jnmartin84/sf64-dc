@@ -4,6 +4,8 @@
 #include "assets/ast_great_fox.h"
 #include "assets/ast_versus.h"
 
+#include <float.h>
+
 Vec3f sShotViewPos;
 
 void PlayerShot_TorpedoTrail_Setup(EffectTorpedoTrail* effect, f32 xPos, f32 yPos, f32 zPos) {
@@ -285,6 +287,7 @@ s32 PlayerShot_CheckObjectHitbox(PlayerShot* shot, f32* hitboxData, Object* obj)
                     shotPy = shot->obj.pos.y;
                     shotPz = shot->obj.pos.z;
                 } else {
+#if 0
                     Matrix_RotateZ(gCalcMatrix, -boxRotZ * M_DTOR, MTXF_NEW);
                     Matrix_RotateX(gCalcMatrix, -boxRotX * M_DTOR, MTXF_APPLY);
                     Matrix_RotateY(gCalcMatrix, -boxRotY * M_DTOR, MTXF_APPLY);
@@ -298,6 +301,21 @@ s32 PlayerShot_CheckObjectHitbox(PlayerShot* shot, f32* hitboxData, Object* obj)
                     shotPx = obj->pos.x + spA0.x;
                     shotPy = obj->pos.y + spA0.y;
                     shotPz = obj->pos.z + spA0.z;
+#else
+                    shz_xmtrx_init_rotation_z(-boxRotZ * M_DTOR);
+                    shz_xmtrx_apply_rotation_x(-boxRotX * M_DTOR);
+                    shz_xmtrx_apply_rotation_y(-boxRotY * M_DTOR);
+                    shz_xmtrx_apply_rotation_z(-obj->rot.z * M_DTOR);
+                    shz_xmtrx_apply_rotation_x(-obj->rot.x * M_DTOR);
+                    shz_xmtrx_apply_rotation_y(-obj->rot.y * M_DTOR);
+                    shz_vec3_t in = shz_vec3_init(shot->obj.pos.x - obj->pos.x,
+                                                  shot->obj.pos.y - obj->pos.y,
+                                                  shot->obj.pos.z - obj->pos.z);
+                    shz_vec3_t out = shz_xmtrx_trans_vec3(in);
+                    shotPx = obj->pos.x + out.x;
+                    shotPy = obj->pos.y + out.y;
+                    shotPz = obj->pos.z + out.z;
+#endif
                 }
                 hitbox = (Hitbox*) hitboxData;
                 if ((fabsf(hitbox->z.offset + obj->pos.z - shotPz) < (hitbox->z.size + 50.0f)) &&
@@ -1933,16 +1951,18 @@ void PlayerShot_ApplyExplosionDamage(PlayerShot* shot, s32 damage) {
     Scenery* scenery;
     Effect* effect;
     Player* player;
-    f32 radius = shot->scale * 60.0f;
+    f32 radius = shz_inverse_posf(shot->scale * 60.0f);
 
     scenery = &gScenery[0];
+    __builtin_prefetch(scenery);
     for (i = 0; i < ARRAY_COUNT(gScenery); i++, scenery++) {
         if ((scenery->obj.status == OBJ_ACTIVE) && (scenery->obj.id == OBJ_SCENERY_CO_DOORS)) {
             dx = scenery->obj.pos.x - shot->obj.pos.x;
             dy = scenery->obj.pos.y - shot->obj.pos.y;
             dz = scenery->obj.pos.z - shot->obj.pos.z;
-            if (shz_sqrtf_fsrra(shz_mag_sqr4f(dx,dy,dz,0)) 
-                /* SQ(dx) + SQ(dy) + SQ(dz) */ < radius) {
+            __builtin_prefetch(scenery + 1);
+            float mag = shz_mag_sqr3f(dx,dy,dz) + FLT_EPSILON;
+            if (1.0f/sqrtf(mag) > radius) {
                 scenery->dmgType = DMG_EXPLOSION;
             }
             scenery->dmgPart = 0;
@@ -1950,6 +1970,7 @@ void PlayerShot_ApplyExplosionDamage(PlayerShot* shot, s32 damage) {
     }
 
     sprite = &gSprites[0];
+    __builtin_prefetch(sprite);
     for (i = 0; i < ARRAY_COUNT(gSprites); i++, sprite++) {
         if ((sprite->obj.status == OBJ_ACTIVE) &&
             ((sprite->obj.id == OBJ_SPRITE_FO_POLE) || (sprite->obj.id == OBJ_SPRITE_TI_CACTUS) ||
@@ -1957,7 +1978,9 @@ void PlayerShot_ApplyExplosionDamage(PlayerShot* shot, s32 damage) {
             dx = sprite->obj.pos.x - shot->obj.pos.x;
             dy = sprite->obj.pos.y - shot->obj.pos.y;
             dz = sprite->obj.pos.z - shot->obj.pos.z;
-            if (shz_sqrtf_fsrra(shz_mag_sqr4f(dx,dy,dz,0)) < radius) {
+            __builtin_prefetch(sprite + 1);
+            float mag = shz_mag_sqr3f(dx,dy,dz) + FLT_EPSILON;
+            if (1.0f/sqrtf(mag) > radius) {
                 //SQ(dx) + SQ(dy) + SQ(dz)) < radius) {
                 sprite->destroy = true;
             }
@@ -1965,6 +1988,7 @@ void PlayerShot_ApplyExplosionDamage(PlayerShot* shot, s32 damage) {
     }
 
     actor = &gActors[0];
+    __builtin_prefetch(actor);
     for (i = 0; i < ARRAY_COUNT(gActors); i++, actor++) {
         if ((actor->obj.status == OBJ_ACTIVE) && (actor->timer_0C2 == 0) &&
             !((gCurrentLevel == LEVEL_MACBETH) && (OBJ_ACTOR_MA_LOCOMOTIVE <= actor->obj.id) &&
@@ -1982,7 +2006,9 @@ void PlayerShot_ApplyExplosionDamage(PlayerShot* shot, s32 damage) {
             actor->hitPos.y = shot->obj.pos.y;
             actor->hitPos.z = shot->obj.pos.z;
 
-            if (shz_sqrtf_fsrra(/* SQ(dx) + SQ(dy) + SQ(dz) */shz_mag_sqr4f(dx,dy,dz,0)) < radius) {
+            __builtin_prefetch(actor + 1);
+            float mag = shz_mag_sqr3f(dx,dy,dz) + FLT_EPSILON;
+            if (1.0f/sqrtf(mag) > radius) {
                 if ((actor->obj.id == OBJ_ACTOR_CO_RADAR) || (actor->obj.id == OBJ_ACTOR_ME_LASER_CANNON_1) ||
                     (actor->obj.id == OBJ_ACTOR_MISSILE_SEEK_TEAM) || (actor->obj.id == OBJ_ACTOR_ME_HOPBOT) ||
                     (actor->obj.id == OBJ_ACTOR_ME_METEO_BALL) || (actor->obj.id == OBJ_ACTOR_ME_LASER_CANNON_2) ||
@@ -2032,12 +2058,15 @@ void PlayerShot_ApplyExplosionDamage(PlayerShot* shot, s32 damage) {
     }
 
     effect = &gEffects[0];
+    __builtin_prefetch(effect);
     for (i = 0; i < ARRAY_COUNT(gEffects); i++, effect++) {
         if (effect->obj.status == OBJ_ACTIVE) {
             dx = effect->obj.pos.x - shot->obj.pos.x;
             dy = effect->obj.pos.y - shot->obj.pos.y;
             dz = effect->obj.pos.z - shot->obj.pos.z;
-            if (shz_sqrtf_fsrra(/* SQ(dx) + SQ(dy) + SQ(dz) */shz_mag_sqr4f(dx,dy,dz,0)) < radius) {
+            __builtin_prefetch(effect + 1);
+            float mag = shz_mag_sqr3f(dx,dy,dz) + FLT_EPSILON;
+            if (1.0f/sqrtf(mag) > radius) {
                 if (effect->info.unk_16 == 0) {
                     Object_Kill(&effect->obj, effect->sfxSource);
                 }
@@ -2061,12 +2090,15 @@ void PlayerShot_ApplyExplosionDamage(PlayerShot* shot, s32 damage) {
 
     if (gVersusMode) {
         player = gPlayer;
+        __builtin_prefetch(player);
         for (i = 0; i < gCamCount; i++, player++) {
             if ((i != shot->sourceId) && (player->state == PLAYERSTATE_ACTIVE) && (player->hitTimer == 0)) {
                 dx = player->pos.x - shot->obj.pos.x;
                 dy = player->pos.y - shot->obj.pos.y;
                 dz = player->trueZpos - shot->obj.pos.z;
-                if (shz_sqrtf_fsrra(/* SQ(dx) + SQ(dy) + SQ(dz) */shz_mag_sqr4f(dx,dy,dz,0)) < radius) {
+                __builtin_prefetch(player + 1);
+                float mag = shz_mag_sqr3f(dx,dy,dz) + FLT_EPSILON;
+                if (1.0f/sqrtf(mag) > radius) {
                     player->attacker = shot->sourceId + 1;
                     switch (player->form) {
                         case FORM_ARWING:

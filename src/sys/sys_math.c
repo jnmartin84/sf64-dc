@@ -102,10 +102,10 @@ f32 Math_Atan2F(f32 y, f32 x) {
     float abs_y = fabsf(y);
 	float absy_plus_absx = abs_y + fabsf(x);
 	float inv_absy_plus_absx = shz_fast_invf(absy_plus_absx);
-	float angle = F_PI_2 - copysignf(F_PI_4, x);
-	float r = (x - copysignf(abs_y, x)) * inv_absy_plus_absx;
+	float angle = F_PI_2 - shz_copysignf(F_PI_4, x);
+	float r = (x - shz_copysignf(abs_y, x)) * inv_absy_plus_absx;
 	angle += (0.1963f * r * r - 0.9817f) * r;
-	return copysignf(angle, y);
+	return shz_copysignf(angle, y);
 #else
     if ((y == 0.0f) && (x == 0.0f)) {
         return 0.0f;

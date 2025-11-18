@@ -56,22 +56,30 @@ void guLookAtF(float mf[4][4], float xEye, float yEye, float zEye, float xAt, fl
     mf[0][0] = xRight;
     mf[1][0] = yRight;
     mf[2][0] = zRight;
-    mf[3][0] = -(xEye * xRight + yEye * yRight + zEye * zRight);
+
 
     mf[0][1] = xUp;
     mf[1][1] = yUp;
     mf[2][1] = zUp;
-    mf[3][1] = -(xEye * xUp + yEye * yUp + zEye * zUp);
 
     mf[0][2] = xLook;
     mf[1][2] = yLook;
     mf[2][2] = zLook;
-    mf[3][2] = -(xEye * xLook + yEye * yLook + zEye * zLook);
 
     mf[0][3] = 0.0f;
     mf[1][3] = 0.0f;
     mf[2][3] = 0.0f;
     mf[3][3] = 1.0f;
+
+   {
+        register float rx1 asm("fr8")  = xEye;
+        register float ry1 asm("fr9")  = yEye;
+        register float rz1 asm("fr10") = zEye;
+        //mf[3][0] = -(xEye * xRight + yEye * yRight + zEye * zRight);
+        mf[3][0] = -shz_dot6f(rx1, ry1, rz1, xRight, yRight, zRight);
+        mf[3][1] = -shz_dot6f(rx1, ry1, rz1, xUp, yUp, zUp);
+        mf[3][2] = -shz_dot6f(rx1, ry1, rz1, xLook, yLook, zLook);
+   }
 }
 
 #ifndef GBI_FLOATS

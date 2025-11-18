@@ -401,6 +401,8 @@ build/src/audio/mixer.o: OPTFLAGS := -O3
 build/src/gfx/gfx_retro_dc.o: OPTFLAGS := -O3
 build/src/sys/sys_matrix.o: OPTFLAGS := -O2
 build/src/sys/sys_math.o: OPTFLAGS := -O3
+build/src/engine/fox_beam.c: OPTFLAGS := -O3
+build/src/engine/fox_col1.c: OPTFLAGS := -O3
 
 # cc & asm-processor
 build/src/libultra/gu/lookat.o:      OPTFLAGS := -O3
