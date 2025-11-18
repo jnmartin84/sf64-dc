@@ -16,6 +16,8 @@ LOWRES ?= 0
 TESTING_MODE ?= 0
 # Enable 32khz sample rate
 USE_32KHZ ?= 0
+# Enable JP Audio Voice
+AUDIO_VOICE_JP ?= 0
 # If COMPARE is 1, check the output md5sum after building
 COMPARE ?= 0
 # If NON_MATCHING is 1, define the NON_MATCHING C flag when building
@@ -83,6 +85,10 @@ endif
 
 ifeq ($(USE_32KHZ),1)
   CFLAGS += -DUSE_32KHZ
+endif
+
+ifeq ($(AUDIO_VOICE_JP),1)
+  CFLAGS += -DAUDIO_VOICE_JP
 endif
 
 NON_MATCHING := 1
@@ -588,9 +594,15 @@ sf-data: initted.touch
 	@rm dclogo.tex
 	@rm console.tex
 	$(call print2,Copying audio bank/sequence data...)
+ifeq ($(AUDIO_VOICE_JP),1)
+	cp bin/jp/rev0/audio_bank.bin $(SF_DATA_PATH)/audbank.bin
+	cp bin/jp/rev0/audio_seq.bin $(SF_DATA_PATH)/audseq.bin
+	cp bin/jp/rev0/audio_table.bin $(SF_DATA_PATH)/audtable.bin
+else
 	@cp bin/$(VERSION)/$(REV)/audio_bank.bin $(SF_DATA_PATH)/audbank.bin
 	@cp bin/$(VERSION)/$(REV)/audio_seq.bin $(SF_DATA_PATH)/audseq.bin
 	@cp bin/$(VERSION)/$(REV)/audio_table.bin $(SF_DATA_PATH)/audtable.bin
+endif
 	$(call print2,Generating asset segments...)
 	@sh-elf-ld -EL -t -e 0 -Ttext=05000000 build/src/assets/ast_text/ast_text.o -o build/src/assets/ast_text/ast_text.elf
 	@sh-elf-objcopy -O binary --only-section=.data --only-section=.bss build/src/assets/ast_text/ast_text.elf $(SF_DATA_PATH)/text.bin
