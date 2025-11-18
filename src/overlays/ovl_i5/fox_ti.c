@@ -1634,8 +1634,9 @@ void Titania_TiDesertCrawler_Update(TiDesertCrawler* this) {
                             actorPtr->obj.rot.y = var_s1->unk_00.rot.y + this->obj.rot.y;
                             actorPtr->obj.rot.z = var_s1->unk_00.rot.z + this->obj.rot.z;
                             sp170 = Math_Atan2F(var_s1->unk_00.pos.z, var_s1->unk_00.pos.x);
-                            ts = sinf(sp170);
-                            tc = cosf(sp170);
+                            shz_sincos_t sincos = shz_sincosf(sp170);
+                            ts = sincos.sin;
+                            tc = sincos.cos;
                             actorPtr->vel.x = ts * (7.0f + RAND_FLOAT(5.0f));
                             actorPtr->vel.y = 7.0f + RAND_FLOAT(10.0f);
                             actorPtr->vel.z = tc * (7.0f + RAND_FLOAT(5.0f));
@@ -1672,8 +1673,9 @@ void Titania_TiDesertCrawler_Update(TiDesertCrawler* this) {
                                 actorPtr->obj.rot.y = var_s1->unk_00.rot.y + this->obj.rot.y;
                                 actorPtr->obj.rot.z = var_s1->unk_00.rot.z + this->obj.rot.z;
                                 sp170 = Math_Atan2F(var_s1->unk_00.pos.z, var_s1->unk_00.pos.x);
-                                ts = sinf(sp170);
-                                tc = cosf(sp170);
+                                shz_sincos_t sincos = shz_sincosf(sp170);
+                                ts = sincos.sin;
+                                tc = sincos.cos;
                                 actorPtr->vel.x = ts * (7.0f + RAND_FLOAT(5.0f));
                                 actorPtr->vel.z = tc * (7.0f + RAND_FLOAT(5.0f));
                                 actorPtr->vel.y = 7.0f + RAND_FLOAT(10.0f);

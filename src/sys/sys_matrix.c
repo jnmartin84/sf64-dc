@@ -414,13 +414,13 @@ void Matrix_MultVec3f_NoLoad(Vec3f* src, Vec3f* dest) {
 
 // Applies the transform matrix mtx to the vector src, putting the result in dest
 void Matrix_MultVec3f(Matrix* mtx, Vec3f* src, Vec3f* dest) {
-    shz_xmtrx_load_4x4(mtx);
+    //shz_xmtrx_load_4x4(mtx);
 //    float w = 1;
 //    dest->x = src->x;
 //    dest->y = src->y;
 //    dest->z = src->z;
 //    mat_trans_single3_nodivw(dest->x, dest->y, dest->z, w);
-    shz_vec4_t out = shz_xmtrx_trans_vec4((shz_vec4_t) { .x = src->x, .y = src->y, .z = src->z, .w = 1.0f });
+    shz_vec4_t out = shz_mat4x4_trans_vec4((const shz_matrix_4x4_t*)mtx, (shz_vec4_t) { .x = src->x, .y = src->y, .z = src->z, .w = 1.0f });
     dest->x = out.x;
     dest->y = out.y;
     dest->z = out.z;
@@ -442,13 +442,14 @@ void Matrix_MultVec3fNoTranslate_NoLoad(Vec3f* src, Vec3f* dest) {
 // Applies the linear part of the transformation matrix mtx to the vector src, ignoring any translation that mtx might
 // have. Puts the result in dest.
 void Matrix_MultVec3fNoTranslate(Matrix* mtx, Vec3f* src, Vec3f* dest) {
-    shz_xmtrx_load_4x4(mtx);
+//    shz_xmtrx_load_4x4(mtx);
 //    float w = 0;
 //    dest->x = src->x;
 //    dest->y = src->y;
 //    dest->z = src->z;
 //    mat_trans_single3_nodivw(dest->x, dest->y, dest->z, w);
-    shz_vec4_t out = shz_xmtrx_trans_vec4((shz_vec4_t) { .x = src->x, .y = src->y, .z = src->z, .w = 0.0f });
+    shz_vec3_t out = shz_mat4x4_trans_vec3((const shz_matrix_4x4_t*)mtx,(shz_vec3_t) { .x = src->x, .y = src->y, .z = src->z });
+    //shz_vec3_t out = shz_mat4x4_trans_vec3((const shz_matrix_4x4_t*)mtx, (shz_vec3_t) { .x = src->x, .y = src->y, .z = src->z });
     dest->x = out.x;
     dest->y = out.y;
     dest->z = out.z;

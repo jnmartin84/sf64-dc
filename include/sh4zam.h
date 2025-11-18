@@ -2,6 +2,7 @@
 #define SH4ZAM_H
 
 #include <math.h>
+#include <stdint.h>
 
 #define SHZ_NOEXCEPT
 #define SHZ_ALIGNAS(n)          __attribute__((aligned(n)))
@@ -9,6 +10,11 @@
 #define SHZ_FORCE_INLINE        __attribute__((always_inline)) SHZ_INLINE
 #define SHZ_NO_INLINE           __attribute__((noinline))
 #define SHZ_ALIASING            __attribute__((__may_alias__))
+#ifdef __cplusplus
+#define SHZ_RESTRICT            __restrict__
+#else
+#define SHZ_RESTRICT            restrict
+#endif
 
 #define SHZ_FSCA_RAD_FACTOR     10430.37835f
 
@@ -16,9 +22,25 @@
 #define TRIG_ARG_SCALE 0.00009587f
 #define SHZ_ANGLE(a) (((float)((uint16_t)a)) * TRIG_ARG_SCALE)
 
+#define SHZ_FSCHG(pairwise_mode) do { \
+        asm volatile("fschg"); \
+    } while(false)
+#define SHZ_LIKELY(e)            __builtin_expect(!!(e), 1)
+#define SHZ_UNLIKELY(e)          __builtin_expect(!!(e), 0)
+#define SHZ_PREFETCH(a)          __builtin_prefetch(a)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+typedef SHZ_ALIASING int16_t  shz_alias_int16_t;
+typedef SHZ_ALIASING uint16_t shz_alias_uint16_t;
+typedef SHZ_ALIASING int32_t  shz_alias_int32_t;
+typedef SHZ_ALIASING uint32_t shz_alias_uint32_t;
+typedef SHZ_ALIASING float    shz_alias_float_t;
+typedef SHZ_ALIASING int64_t  shz_alias_int64_t;
+typedef SHZ_ALIASING uint64_t shz_alias_uint64_t;
+typedef SHZ_ALIASING double   shz_alias_double_t;
 
 typedef struct shz_sincos {
     float sin;  
@@ -2016,7 +2038,7 @@ SHZ_INLINE void shz_xmtrx_transpose(void) {
 }
 
 
-SHZ_INLINE shz_vec3_t shz_matrix4x4_trans_vec3(const shz_matrix_4x4_t *m, shz_vec3_t v) {
+SHZ_INLINE shz_vec3_t shz_mat4x4_trans_vec3(const shz_matrix_4x4_t* m, shz_vec3_t v) SHZ_NOEXCEPT {
     shz_vec3_t out;
 
     register float fr0 asm("fr0") = v.x;
@@ -2027,10 +2049,10 @@ SHZ_INLINE shz_vec3_t shz_matrix4x4_trans_vec3(const shz_matrix_4x4_t *m, shz_ve
     register float fr4 asm("fr4") = m->elem2D[0][0];
     register float fr5 asm("fr5") = m->elem2D[1][0];
     register float fr6 asm("fr6") = m->elem2D[2][0];
-    register float fr7 asm("fr7") = 0.0f;
+    register float fr7 asm("fr7");
 
-    asm volatile("fipr fv0, fv4" 
-        : "+f" (fr7)
+    asm volatile("fipr fv0, fv4"
+        : "=f" (fr7)
         : "f" (fr0), "f" (fr1), "f" (fr2), "f" (fr3),
           "f" (fr4), "f" (fr5), "f" (fr6));
 
@@ -2039,10 +2061,10 @@ SHZ_INLINE shz_vec3_t shz_matrix4x4_trans_vec3(const shz_matrix_4x4_t *m, shz_ve
     register float fr8  asm("fr8")  = m->elem2D[0][1];
     register float fr9  asm("fr9")  = m->elem2D[1][1];
     register float fr10 asm("fr10") = m->elem2D[2][1];
-    register float fr11 asm("fr11") = 0.0f;
+    register float fr11 asm("fr11");
 
-    asm volatile("fipr fv0, fv8" 
-        : "+f" (fr11)
+    asm volatile("fipr fv0, fv8"
+        : "=f" (fr11)
         : "f" (fr0), "f" (fr1), "f" (fr2), "f" (fr3),
           "f" (fr8), "f" (fr9), "f" (fr10));
 
@@ -2055,20 +2077,98 @@ SHZ_INLINE shz_vec3_t shz_matrix4x4_trans_vec3(const shz_matrix_4x4_t *m, shz_ve
     fr4 = m->elem2D[0][2];
     fr5 = m->elem2D[1][2];
     fr6 = m->elem2D[2][2];
-    fr7 = 0.0f;
 
-    asm volatile("fipr fv0, fv4" 
-        : "+f" (fr7)
+    asm volatile("fipr fv0, fv4"
+        : "=f" (fr7)
         : "f" (fr0), "f" (fr1), "f" (fr2), "f" (fr3),
           "f" (fr4), "f" (fr5), "f" (fr6));
 
-    __atomic_thread_fence(1);      
+    __atomic_thread_fence(1);
 
     out.y = fr11;
     out.z = fr7;
 
     return out;
 }
+
+SHZ_INLINE shz_vec4_t shz_mat4x4_trans_vec4(const shz_matrix_4x4_t* mat, shz_vec4_t in) SHZ_NOEXCEPT {
+    SHZ_PREFETCH(mat);
+
+    shz_vec4_t* v = &in;
+    const shz_vec4_t* c[4] = {
+        &mat->col[0], &mat->col[1], &mat->col[2], &mat->col[3]
+    };
+
+    asm volatile(R"(
+        ! Load input vector into FV12
+        fmov.s  @%[v]+, fr12
+        fmov.s  @%[v]+, fr13
+        fmov.s  @%[v]+, fr14
+        fmov.s  @%[v]+, fr15
+
+        ! Prefetch the second half of the matrix
+        pref    @%[c2]
+
+        ! Load first column int FV0
+        fmov.s  @%[c0]+, fr0
+        fmov.s  @%[c1]+, fr1
+        fmov.s  @%[c2]+, fr2
+        fmov.s  @%[c3]+, fr3
+        ! Start loading next column
+        fmov.s  @%[c0]+, fr4   ! Vector instructions need 3 cycles between
+        fmov.s  @%[c1]+, fr5   ! loading arguments and using them.
+
+        ! Calculate output vector's X component
+        fipr    fv12, fv0
+
+        ! Finish loading second column vector
+        fmov.s  @%[c2]+, fr6
+        fmov.s  @%[c3]+, fr7
+        ! Begin loading third column vector
+        fmov.s  @%[c0]+, fr8
+        fmov.s  @%[c1]+, fr9
+
+        ! Calculate output vector's Y componennt
+        fipr    fv12, fv4
+
+        ! Finish loading third column vector
+        fmov.s  @%[c2]+, fr10
+        add     #-16, %[v]      ! Point v back to the beginning of the input vector
+        fmov.s  @%[c3]+, fr11
+        fmov.s  fr3, @%[v]      ! Store output vector X component
+        ! Start loading fourth column vector
+        fmov.s  @%[c0]+, fr0
+
+        ! Calculate output vector's Z component
+        fipr    fv12, fv8
+
+        ! Finish loading the fourth column vector
+        fmov.s  @%[c1]+, fr1
+        fmov.s  @%[c2]+, fr2
+        fmov.s  @%[c3]+, fr3
+        add     #4, %[v]        ! Advance output vector pointer
+        fmov.s  fr7, @%[v]      ! Store output vector Y component
+
+        ! Calculate output vector's W component
+        fipr    fv12, fv0       ! FUCKING STALL - 4th column vector is still loading (3 cycle delay)
+
+        ! Store output vector's Z component
+        add     #4, %[v]        ! Advance output vector pointer
+        fmov.s  fr11, @%[v]
+        
+        ! Store output vector's W component
+        add     #4, %[v]        ! Advance output vector pointer
+        fmov.s  fr3, @%[v]      ! FUCKING STALL - previous FIPR still in pipeline!
+    )"
+    : [v] "+r" (v), "=m" (in),
+      [c0] "+r" (c[0]), [c1] "+r" (c[1]), [c2] "+r" (c[2]), [c3] "+r" (c[3])
+    : "m" (in), "m" (*c[0]), "m" (*c[1]), "m" (*c[2]), "m" (*c[3])
+    : "fr0", "fr1", "fr2", "fr3", "fr4", "fr5", "fr6", "fr7",
+      "fr8", "fr9", "fr10", "fr11", "fr12", "fr13", "fr14", "fr15");
+
+    return in;
+}
+
 
 SHZ_INLINE shz_vec3_t shz_matrix3x3_trans_vec3(const shz_matrix_3x3_t *m, shz_vec3_t v) {
     shz_vec3_t out;
@@ -2234,6 +2334,35 @@ SHZ_INLINE shz_vec3_t shz_matrix3x3_trans_vec3_transpose(const shz_matrix_3x3_t 
     return out;
 }
 
+SHZ_INLINE void* shz_memcpy(      void* SHZ_RESTRICT dst,
+                            const void* SHZ_RESTRICT src,
+                                 size_t              bytes) SHZ_NOEXCEPT;
+SHZ_FORCE_INLINE void* shz_memcpy1(      void* SHZ_RESTRICT dst,
+                                   const void* SHZ_RESTRICT src,
+                                        size_t              bytes) SHZ_NOEXCEPT;
+SHZ_INLINE void* shz_memcpy2(      void* SHZ_RESTRICT dst,
+                             const void* SHZ_RESTRICT src,
+                                  size_t              bytes) SHZ_NOEXCEPT;
+SHZ_INLINE void* shz_memcpy4(      void* SHZ_RESTRICT dst,
+                             const void* SHZ_RESTRICT src,
+                                  size_t              bytes) SHZ_NOEXCEPT;
+extern void* shz_memcpy8(      void* SHZ_RESTRICT dst,
+                         const void* SHZ_RESTRICT src,
+                              size_t              bytes) SHZ_NOEXCEPT;
+SHZ_INLINE void* shz_memcpy32(      void* SHZ_RESTRICT dst,
+                              const void* SHZ_RESTRICT src,
+                                   size_t              bytes) SHZ_NOEXCEPT;
+SHZ_INLINE void* shz_sq_memcpy32(      void* SHZ_RESTRICT dst,
+                                 const void* SHZ_RESTRICT src,
+                                      size_t              bytes) SHZ_NOEXCEPT;
+SHZ_INLINE void* shz_memcpy64(      void* SHZ_RESTRICT dst,
+                              const void* SHZ_RESTRICT src,
+                                   size_t              bytes) SHZ_NOEXCEPT;
+SHZ_INLINE void* shz_memcpy128(      void* SHZ_RESTRICT dst,
+                               const void* SHZ_RESTRICT src,
+                                    size_t              bytes) SHZ_NOEXCEPT;
+extern void shz_memcpy128_(void* SHZ_RESTRICT dst, const void* SHZ_RESTRICT src, size_t bytes) SHZ_NOEXCEPT;
+
 SHZ_INLINE void shz_memcpy4_16(void *dst, const void *src) {
     SHZ_ALIASING const uint32_t (*d)[16] = (SHZ_ALIASING const uint32_t (*)[16])dst;
     SHZ_ALIASING       uint32_t (*s)[16] = (SHZ_ALIASING       uint32_t (*)[16])src;
@@ -2275,6 +2404,319 @@ SHZ_INLINE void shz_memcpy4_16(void *dst, const void *src) {
     : "=m" (*d)
     : [s] "r" (s), [d] "r" (d), "m" (*s)
     : "r0", "r1", "r2", "r3");
+}
+
+
+SHZ_FORCE_INLINE void shz_memcpy32_store_(uint64_t* SHZ_RESTRICT* dst) SHZ_NOEXCEPT {
+    asm volatile(R"(
+        add       #32, %[dst]
+        fmov.d    dr10, @-%[dst]
+        fmov.d    dr8,  @-%[dst]
+        fmov.d    dr6,  @-%[dst]
+        fmov.d    dr4,  @-%[dst]
+    )"
+    : "=m" ((*dst)[0]), "=m" ((*dst)[1]), "=m" ((*dst)[2]), "=m" ((*dst)[3])
+    : [dst] "r" (*dst));
+}
+
+SHZ_FORCE_INLINE void shz_memcpy32_load_(const uint64_t* SHZ_RESTRICT* src) SHZ_NOEXCEPT {
+    asm volatile(R"(
+        fmov.d    @%[src]+, dr4
+        fmov.d    @%[src]+, dr6
+        fmov.d    @%[src]+, dr8
+        fmov.d    @%[src]+, dr10
+    )"
+    : [src] "+r" (*src)
+    : "m" (src[0]), "m" (src[1]), "m" (src[2]), "m" (src[3]));
+}
+
+SHZ_FORCE_INLINE void shz_memcpy64_load_(const uint64_t* SHZ_RESTRICT* src) SHZ_NOEXCEPT {
+    asm volatile(R"(
+        fmov.d    @%[src]+, dr0
+        fmov.d    @%[src]+, dr2
+        fmov.d    @%[src]+, dr4
+        fmov.d    @%[src]+, dr6
+        fmov.d    @%[src]+, dr8
+        fmov.d    @%[src]+, dr10
+        fmov.d    @%[src]+, dr12
+        fmov.d    @%[src]+, dr14
+    )"
+    : [src] "+r" (*src)
+    : "m" ((*src)[0]), "m" ((*src)[1]), "m" ((*src)[2]), "m" ((*src)[3]),
+      "m" ((*src)[4]), "m" ((*src)[5]), "m" ((*src)[6]), "m" ((*src)[7]));
+}
+
+SHZ_FORCE_INLINE void shz_memcpy64_store_(uint64_t* SHZ_RESTRICT* dst) SHZ_NOEXCEPT {
+    asm volatile(R"(
+        add       #32, %[dst]
+        movca.l   r0, @%[dst]
+        add       #32, %[dst]
+
+        fmov.d    dr14, @-%[dst]
+        fmov.d    dr12, @-%[dst]
+        fmov.d    dr10, @-%[dst]
+        fmov.d    dr8,  @-%[dst]
+
+        add       #-32, %[dst]
+        movca.l   r0, @%[dst]
+        add       #32, %[dst]
+
+        fmov.d    dr6,  @-%[dst]
+        fmov.d    dr4,  @-%[dst]
+        fmov.d    dr2,  @-%[dst]
+        fmov.d    dr0,  @-%[dst]
+    )"
+    : [dst] "+r" (*dst),
+      "=m" ((*dst)[0]), "=m" ((*dst)[1]), "=m" ((*dst)[2]), "=m" ((*dst)[3]),
+      "=m" ((*dst)[4]), "=m" ((*dst)[5]), "=m" ((*dst)[6]), "=m" ((*dst)[7]));
+}
+
+SHZ_FORCE_INLINE void* shz_memcpy1(      void* SHZ_RESTRICT dst,
+                                   const void* SHZ_RESTRICT src,
+                                        size_t              bytes) SHZ_NOEXCEPT {
+    void *ret = dst;
+    uint32_t scratch;
+
+    SHZ_PREFETCH(src);
+
+    if(bytes) {
+        asm volatile(R"(
+        1:
+            mov.b   @%[src]+, %[tmp]
+            dt      %[cnt]
+            mov.b   %[tmp], @%[dst]
+            bf/s    1b;
+            add     #1, %[dst]
+        )"
+        : [src] "+&r" (src), [dst] "+&r" (dst),
+          [cnt] "+&r" (bytes), [tmp] "=r" (scratch)
+        : "m" (*((uint8_t (*)[])src))
+        : "t", "memory");
+    }
+
+    return ret;
+}
+
+SHZ_INLINE void* shz_memcpy2(void*       SHZ_RESTRICT dst,
+                             const void* SHZ_RESTRICT src,
+                                  size_t              bytes) SHZ_NOEXCEPT {
+    const shz_alias_uint16_t* s = (const shz_alias_uint16_t*)src;
+          shz_alias_uint16_t* d = (      shz_alias_uint16_t*)dst;
+
+    bytes >>= 1;
+
+    size_t blocks = bytes >> 3; // Block size of 16 bytes
+
+    if(blocks) {
+        do {
+            s += 8;
+            SHZ_PREFETCH(s); // Prefetch 16 bytes for next iteration
+            d[7] = *(--s);
+            d[6] = *(--s);
+            d[5] = *(--s);
+            d[4] = *(--s);
+            d[3] = *(--s);
+            d[2] = *(--s);
+            d[1] = *(--s);
+            d[0] = *(--s);
+            d += 8;
+            s += 8;
+        } while(SHZ_LIKELY(--blocks));
+        bytes &= 0xf;
+    }
+
+    while(SHZ_LIKELY(bytes--))
+        d[bytes] = s[bytes];
+
+    return dst;
+}
+
+SHZ_INLINE void* shz_memcpy4(void*       SHZ_RESTRICT dst,
+                             const void* SHZ_RESTRICT src,
+                             size_t                   bytes) SHZ_NOEXCEPT {
+    const shz_alias_uint32_t* s = (const shz_alias_uint32_t*)src;
+          shz_alias_uint32_t* d = (      shz_alias_uint32_t*)dst;
+    bytes >>= 2;
+    size_t blocks = bytes >> 5; // Block size of 32 bytes
+
+    if(blocks) {
+        do {
+            s += 8;
+            SHZ_PREFETCH(s); // Prefetch 32 bytes for next iteration
+            d[7] = *(--s);
+            d[6] = *(--s);
+            d[5] = *(--s);
+            d[4] = *(--s);
+            d[3] = *(--s);
+            d[2] = *(--s);
+            d[1] = *(--s);
+            d[0] = *(--s);
+            d += 8;
+            s += 8;
+        } while(SHZ_LIKELY(--blocks));
+        bytes &= 0x1f;
+    }
+
+    while(SHZ_LIKELY(bytes--))
+        d[bytes] = s[bytes];
+
+    return dst;
+}
+
+SHZ_INLINE void* shz_memcpy32(      void* SHZ_RESTRICT dst,
+                              const void* SHZ_RESTRICT src,
+                              size_t                   bytes) SHZ_NOEXCEPT {
+          shz_alias_uint64_t* d = (      shz_alias_uint64_t*)dst;
+    const shz_alias_uint64_t* s = (const shz_alias_uint64_t*)src;
+
+    size_t cnt = (bytes >> 5);
+
+    SHZ_FSCHG(true);
+
+    if(SHZ_LIKELY(cnt >= 8)) {
+        shz_memcpy128_(d, s, bytes);
+        size_t copied = bytes / 128 * 128;
+        cnt -= copied / 32;
+        d += copied / sizeof(uint64_t);
+        s += copied / sizeof(uint64_t);
+    }
+
+    while(SHZ_LIKELY(cnt--)) {
+        shz_memcpy32_load_(&s);
+        shz_dcache_alloc_line(d);
+        shz_memcpy32_store_(&d);
+        SHZ_PREFETCH(s);
+        d += 4;
+    }
+
+    SHZ_FSCHG(false);
+
+    return dst;
+}
+
+SHZ_INLINE void* shz_sq_memcpy32(     void* SHZ_RESTRICT dst,
+                                const void* SHZ_RESTRICT src,
+                                size_t                   bytes) SHZ_NOEXCEPT {
+    void* ret = dst;
+
+    bytes >>= 5;
+
+    SHZ_FSCHG(true);
+
+    asm volatile(R"(
+    1:
+        fmov.d @%[src]+, xd0
+        fmov.d @%[src]+, xd2
+        fmov.d @%[src]+, xd4
+        fmov.d @%[src]+, xd6
+        pref   @%[src]          ! Prefetch 32 bytes for next loop
+        dt     %[blks]          ! while(n--)
+        add    #32, %[dst]
+        fmov.d xd6, @-%[dst]
+        fmov.d xd4, @-%[dst]
+        fmov.d xd2, @-%[dst]
+        fmov.d xd0, @-%[dst]
+        add    #32, %[dst]
+        bf.s   1b
+        pref   @%[dst]          ! Fire off store queue
+    )"
+    : [dst] "+r" (dst), [src] "+&r" (src), [blks] "+r" (bytes)
+    : "m" ((const char (*)[])src)
+    : "memory");
+
+    SHZ_FSCHG(false);
+
+    return ret;
+}
+
+SHZ_INLINE void* shz_memcpy64(      void* SHZ_RESTRICT dst,
+                              const void* SHZ_RESTRICT src,
+                                   size_t              bytes) SHZ_NOEXCEPT {
+    const shz_alias_uint64_t* s = (const shz_alias_uint64_t*)src;
+          shz_alias_uint64_t* d = (      shz_alias_uint64_t*)dst;
+
+
+    SHZ_FSCHG(true);
+
+    size_t cnt = (bytes >> 6);
+
+    if(SHZ_LIKELY(cnt >= 4)) {
+        shz_memcpy128_(d, s, bytes);
+        size_t copied = bytes / 128 * 128;
+        cnt -= copied / 64;
+        d += copied / sizeof(uint64_t);
+        s += copied / sizeof(uint64_t);
+    }
+
+    while(SHZ_LIKELY(cnt--)) {
+        SHZ_PREFETCH(s + 4);
+        shz_memcpy64_load_(&s);
+        shz_memcpy64_store_(&d);
+        SHZ_PREFETCH(s);
+        d += 8;
+    }
+
+    SHZ_FSCHG(false);
+
+    return dst;
+}
+
+SHZ_INLINE void* shz_memcpy128(      void* SHZ_RESTRICT dst,
+                               const void* SHZ_RESTRICT src,
+                                   size_t               bytes) SHZ_NOEXCEPT {
+
+    if(bytes & ~0x7f) {
+        SHZ_FSCHG(true);
+        shz_memcpy128_(dst, src, bytes);
+        SHZ_FSCHG(false);
+    }
+
+    return dst;
+}
+
+SHZ_INLINE void* shz_memcpy(      void* SHZ_RESTRICT dst,
+                            const void* SHZ_RESTRICT src,
+                                size_t               bytes) SHZ_NOEXCEPT {
+    const uint8_t *s = (const uint8_t *)src;
+          uint8_t *d = (      uint8_t *)dst;
+    size_t copied;
+
+    if(SHZ_UNLIKELY(!bytes))
+        return dst;
+    else if(SHZ_LIKELY(bytes < 64)) {
+        shz_memcpy1(d, s, bytes);
+    } else {
+        if((uintptr_t)d & 0x1f) {
+            copied = (((uintptr_t)d + 31) & ~0x1f) - (uintptr_t)d;
+            shz_memcpy1(d, s, copied);
+            bytes -= copied;
+            d     += copied;
+            s     += copied;
+        }
+
+        if(SHZ_LIKELY(bytes >= 32)) {
+            copied = 0;
+
+            if(!(((uintptr_t)s) & 0x7)) {
+                copied = bytes - (bytes & ~7);
+                shz_memcpy8(d, s, copied);
+            } else if(!(((uintptr_t)s) & 0x3)) {
+                copied = bytes - (bytes & ~3);
+                shz_memcpy4(d, s, copied);
+            } else if(!(((uintptr_t)s) & 0x1)) {
+                copied = bytes - (bytes & ~1);
+                shz_memcpy2(d, s, copied);
+            }
+
+            bytes -= copied;
+            d     += copied;
+            s     += copied;
+        }
+
+        shz_memcpy1(d, s, bytes);
+    }
+
+    return dst;
 }
 
 #ifdef __cplusplus

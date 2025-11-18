@@ -364,7 +364,7 @@ static  __attribute__((noinline)) void gfx_generate_cc(struct ColorCombiner* com
 	}
 	comb->cc_id = cc_id;
 	comb->prg = gfx_lookup_or_create_shader_program(shader_id);
-	n64_memcpy(comb->shader_input_mapping, shader_input_mapping, sizeof(shader_input_mapping));
+	shz_memcpy(comb->shader_input_mapping, shader_input_mapping, sizeof(shader_input_mapping));
 }
 
 static  __attribute__((noinline)) struct ColorCombiner* gfx_lookup_or_create_color_combiner(uint32_t cc_id) {
@@ -2032,7 +2032,7 @@ static void gfx_calc_and_set_viewport(const Vp_t* viewport) {
 
 static void gfx_update_lookat(uint8_t index, const void *data) {
 //	if (memcmp(rsp.lookat + ((index - G_MV_LOOKATY) >> 1), data, sizeof(Light_t))) {
-		n64_memcpy(rsp.lookat + ((index - G_MV_LOOKATY) >> 1), data, sizeof(Light_t));
+		shz_memcpy(rsp.lookat + ((index - G_MV_LOOKATY) >> 1), data, sizeof(Light_t));
 		rsp.lights_changed = 1;
 //	}
 }
@@ -2040,7 +2040,7 @@ static void gfx_update_lookat(uint8_t index, const void *data) {
 static void gfx_update_light(uint8_t index, const void* data) {
 //	if (memcmp(rsp.current_lights + ((index - G_MV_L0) >> 1), data, sizeof(Light_t))) {
 		// NOTE: reads out of bounds if it is an ambient light
-		n64_memcpy(rsp.current_lights + ((index - G_MV_L0) >> 1), data, sizeof(Light_t));
+		shz_memcpy(rsp.current_lights + ((index - G_MV_L0) >> 1), data, sizeof(Light_t));
 		rsp.lights_changed = 1;
 //	}
 }

@@ -863,7 +863,7 @@ void Player_DamageWings(Player* player, s32 side, s32 damage) {
 
 // cheats
 #ifdef TESTING_MODE
-#define I_DONT_WANT_TO_DIE 1
+#define I_DONT_WANT_TO_DIE 0
 #else
 #define I_DONT_WANT_TO_DIE 0
 #endif

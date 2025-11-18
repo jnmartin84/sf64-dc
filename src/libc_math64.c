@@ -7,6 +7,9 @@
 
 
 f32 Math_FAtanF(f32 x) {
+#if 1
+    return shz_atanf(x);
+#else
     s32 sector;
     s32 i;
     f32 sq;
@@ -40,4 +43,5 @@ f32 Math_FAtanF(f32 x) {
     } else {
         return x * recip1pconv;/// (1.0f + conv);
     }
+#endif
 }

@@ -401,12 +401,12 @@ void Ground_801B58AC(Gfx** dList, f32 arg1) {
         gDPSetupTile((*dList)++, G_IM_FMT_RGBA, G_IM_SIZ_16b, 32, 32, 0, 0, G_TX_MIRROR | G_TX_WRAP,
                      G_TX_NOMIRROR | G_TX_WRAP, 5, 5, G_TX_NOLOD, G_TX_NOLOD);
         gDPLoadTileTexture((*dList)++, D_TI_6001BA8, G_IM_FMT_RGBA, G_IM_SIZ_16b, 32, 32);
-        gSPMatrix((*dList)++, &gIdentityMtx, G_MTX_PUSH | G_MTX_MUL | G_MTX_MODELVIEW);
+        //gSPMatrix((*dList)++, &gIdentityMtx, G_MTX_PUSH | G_MTX_MUL | G_MTX_MODELVIEW);
         Matrix_Translate(gGfxMatrix, D_i5_801C62D8.x, D_i5_801C62D8.y, D_i5_801C62D8.z + D_i5_801C5C10, MTXF_NEW);
         Matrix_ToMtx(gGfxMtx);
         gSPMatrix((*dList)++, gGfxMtx++, G_MTX_NOPUSH | G_MTX_MUL | G_MTX_MODELVIEW);
         gSPDisplayList((*dList)++, D_i5_801BA950);
-        gSPPopMatrix((*dList)++, G_MTX_MODELVIEW);
+        //gSPPopMatrix((*dList)++, G_MTX_MODELVIEW);
         Ground_801B4AA8(NULL, &spC4);
         ////printf("\tspC4 %d\n", spC4);
     }
@@ -453,9 +453,9 @@ void Ground_801B58AC(Gfx** dList, f32 arg1) {
             }
             Ground_801B5FE0(D_i5_801C5C08, D_i5_801C5C04, 1);
         }
-        gSPMatrix((*dList)++, &gIdentityMtx, G_MTX_PUSH | G_MTX_MUL | G_MTX_MODELVIEW);
+        //gSPMatrix((*dList)++, &gIdentityMtx, G_MTX_PUSH | G_MTX_MUL | G_MTX_MODELVIEW);
         Ground_801B68A8(dList, D_i5_801C5C04, 1);
-        gSPPopMatrix((*dList)++, G_MTX_MODELVIEW);
+        //gSPPopMatrix((*dList)++, G_MTX_MODELVIEW);
     }
 
     D_i5_801C5C10 += arg1;

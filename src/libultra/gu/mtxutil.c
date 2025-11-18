@@ -13,6 +13,8 @@
 #include "PR/ultratypes.h"
 #include "PR/guint.h"
 
+#include "sh4zam.h"
+
 #ifdef GBI_FLOATS
 #include <string.h>
 #endif
@@ -57,7 +59,7 @@ void guMtxL2F(float mf[4][4], Mtx* m) {
 #else
 void n64_memcpy(void *dst, const void *src, size_t size);
 void guMtxF2L(float mf[4][4], Mtx* m) {
-    n64_memcpy(m, mf, sizeof(Mtx));
+    shz_memcpy4_16(m, mf);
 }
 #endif
 
@@ -74,8 +76,11 @@ void guMtxIdentF(float mf[4][4]) {
         }
     }
 #endif
-    memset(mf, 0, 64);
-    mf[0][0] = mf[1][1] = mf[2][2] = mf[3][3] = 1.0f;
+    shz_xmtrx_init_identity();
+    shz_xmtrx_store_4x4_unaligned(mf);
+    //memset(mf, 0, 64);
+    //mf[0][0] = mf[1][1] = mf[2][2] = mf[3][3] = 1.0f;
+
 }
 
 void guMtxIdent(Mtx* m) {

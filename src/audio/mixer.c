@@ -11,6 +11,8 @@
 #define UNUSED
 #endif
 
+#include "sh4zam.h"
+
 #include "mixer.h"
 void n64_memcpy(void* dst, const void* src, size_t size) {
     if (!size)
@@ -561,7 +563,7 @@ void aLoadBufferImpl(const void* source_addr, uint16_t dest_addr, uint16_t nbyte
     
 void aSaveBufferImpl(uint16_t source_addr, int16_t* dest_addr, uint16_t nbytes) {
     size_t rnb = ROUND_DOWN_16(nbytes);
-    n64_memcpy((void *)((uintptr_t)dest_addr&~3), (const void *)BUF_S16(source_addr & ~3), rnb);
+    shz_memcpy((void *)((uintptr_t)dest_addr&~3), (const void *)BUF_S16(source_addr & ~3), rnb);
 }
 
 void aLoadADPCMImpl(int num_entries_times_16, const int16_t* book_source_addr) {
@@ -748,7 +750,7 @@ void aDMEMMoveImpl(uint16_t in_addr, uint16_t out_addr, int nbytes) {
 }
         
 void aDMEMCopyImpl(uint16_t in_addr, uint16_t out_addr, int nbytes) {
-    n64_memcpy(BUF_U8(out_addr&~3), BUF_U8(in_addr&~3), ROUND_UP_16(nbytes));
+    shz_memcpy(BUF_U8(out_addr&~3), BUF_U8(in_addr&~3), ROUND_UP_16(nbytes));
 }
         
 void aSetLoopImpl(ADPCM_STATE* adpcm_loop_state) {
@@ -756,8 +758,6 @@ void aSetLoopImpl(ADPCM_STATE* adpcm_loop_state) {
         rspa.adpcm_loop_state[i] = (int16_t)__builtin_bswap16(adpcm_loop_state[i]);
     }
 }
-
-#include "sh4zam.h"
 
 inline static void shz_xmtrx_load_3x4_rows(const shz_vec4_t* r1, const shz_vec4_t* r2, const shz_vec4_t* r3) {
     asm volatile(R"(
@@ -1262,10 +1262,10 @@ void aDuplicateImpl(uint16_t count, uint16_t in_addr, uint16_t out_addr) {
     uint8_t* in = (uint8_t *)((u8*)rspa.loaded_buffer + in_addr);//BUF_U8(rspa.in);//BUF_U8(in_addr);
     uint8_t* real_in = BUF_U8(DMEM_UNCOMPRESSED_NOTE);
     uint8_t* out = BUF_U8(out_addr);
-    n64_memcpy(real_in, in, 128);
+    shz_memcpy(real_in, in, 128);
     // no overlap as called, dont do temp copy
     do {
-        n64_memcpy(out, real_in, 128);
+        shz_memcpy(out, real_in, 128);
         out += 128;
     } while (count-- > 0);
 }

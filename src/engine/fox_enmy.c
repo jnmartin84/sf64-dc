@@ -667,8 +667,8 @@ if (gCurrentLevel == LEVEL_AREA_6) {
 }
 
 void Effect_Effect348_Spawn(f32 xPos, f32 zPos, s32 state, f32 scale) {
-    s32 i;
-
+    s32 i; //
+ 
     if (gLevelType == LEVELTYPE_PLANET) {
         for (i = 0; i < ARRAY_COUNT(gEffects); i++) {
             if (gEffects[i].obj.status == OBJ_FREE) {

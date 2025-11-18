@@ -84,6 +84,7 @@ endif
 # Detect compiler and set variables appropriately.
 ifeq ($(COMPILER),kos-cc)
   CC       := kos-cc
+  CPP	   := kos-cc
 # $(MIPS_BINUTILS_PREFIX)gcc
 else
 ifeq ($(COMPILER),ido)
@@ -101,6 +102,7 @@ else
 endif
 
 ifeq ($(COMPILER),kos-cc)
+	CFLAGS += -ffast-math -mfsrra -mfsca
 #  CFLAGS += -G 0 -ffast-math -fno-unsafe-math-optimizations -march=vr4300 -mfix4300 -mabi=32 -mno-abicalls -mdivide-breaks -fno-zero-initialized-in-bss -fno-toplevel-reorder -ffreestanding -fno-merge-constants -mno-explicit-relocs -mno-split-addresses $(CHECK_WARNINGS) -funsigned-char
 #  MIPS_VERSION := -mips3
 else
@@ -332,8 +334,8 @@ S_FILES       := $(foreach dir,$(ASM_DIRS) $(SRC_DIRS),$(wildcard $(dir)/*.s))
 BIN_FILES     := $(foreach dir,$(BIN_DIRS),$(wildcard $(dir)/*.bin))
 O_FILES       := $(foreach f,$(C_FILES:.c=.o),$(BUILD_DIR)/$f) \
                  $(foreach f,$(S_FILES:.s=.o),$(BUILD_DIR)/$f) \
-                 $(foreach f,$(BIN_FILES:.bin=.o),$(BUILD_DIR)/$f)
-
+                 $(foreach f,$(BIN_FILES:.bin=.o),$(BUILD_DIR)/$f) \
+				 build/src/shz_mem.o
 
 # Automatic dependency files
 DEP_FILES := $(O_FILES:.o=.d) \
@@ -399,10 +401,12 @@ build/src/assets/ast_zoness/%.o :  OPTFLAGS := -fno-common -fno-toplevel-reorder
 build/src/libc_math64.o:  OPTFLAGS := -O3
 build/src/audio/mixer.o: OPTFLAGS := -O3
 build/src/gfx/gfx_retro_dc.o: OPTFLAGS := -O3
-build/src/sys/sys_matrix.o: OPTFLAGS := -O2
+build/src/sys/sys_matrix.o: OPTFLAGS := -O3
 build/src/sys/sys_math.o: OPTFLAGS := -O3
-build/src/engine/fox_beam.c: OPTFLAGS := -O3
-build/src/engine/fox_col1.c: OPTFLAGS := -O3
+build/src/engine/fox_beam.o: OPTFLAGS := -O3
+build/src/engine/fox_col1.o: OPTFLAGS := -O3
+build/src/engine/fox_col2.o: OPTFLAGS := -O3
+build/src/engine/fox_enmy.o: OPTFLAGS := -O3
 
 # cc & asm-processor
 build/src/libultra/gu/lookat.o:      OPTFLAGS := -O3

@@ -99,11 +99,11 @@ static size_t cb_write_data(int N, const void *src, size_t n) {
     uint32_t idx = head & (r[N]->cap - 1);
     uint32_t first = MIN(n, r[N]->cap - idx);
     if (first)
-        n64_memcpy(r[N]->buf + idx, src, first);
+        shz_memcpy(r[N]->buf + idx, src, first);
     if (n-first) {
 //        printf("hit stupid wrapround write %d %d %d\n", idx, first, (n-first));
 //        printf("\thead %08x tail %08x free %08x idx %d\n", head, tail, free, idx);
-        n64_memcpy(r[N]->buf, (uint8_t*)src + first, n - first);
+        shz_memcpy(r[N]->buf, (uint8_t*)src + first, n - first);
     }
     r[N]->head = head + n;
     return n;
@@ -117,7 +117,7 @@ static size_t cb_read_data(int N, void *dst, size_t n) {
     uint32_t idx = tail & (r[N]->cap - 1);
     __builtin_prefetch(r[N]->buf + idx);
     uint32_t first = MIN(n, r[N]->cap - idx);
-    n64_memcpy(dst, r[N]->buf + idx, first);
+    shz_memcpy(dst, r[N]->buf + idx, first);
     r[N]->tail = tail + n;
     return n;
 }

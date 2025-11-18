@@ -198,7 +198,7 @@ static void resample_tex(const uint16_t* in, int inwidth, int inheight, uint16_t
 #endif
 //    memset(out, 0, outwidth*outheight*2);
     for (int y=0; y < inheight;y++) {
-        n64_memcpy(out + (y*outwidth), in + (y*inwidth), inwidth * 2);
+        shz_memcpy(out + (y*outwidth), in + (y*inwidth), inwidth * 2);
         uint16_t *ptr = out + (y*outwidth) + inwidth;
         ptr[0] = 0;
 //        ptr[1] = 0;

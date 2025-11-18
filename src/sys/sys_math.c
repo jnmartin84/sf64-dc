@@ -94,7 +94,7 @@ f32 Rand_ZeroOneSeeded(void) {
 // branch-free, division-free atan2f approximation
 // copysignf has a branch but penalty-free
 f32 Math_Atan2F(f32 y, f32 x) {
-#if 1
+#if 0
     if (y == 0.0f && x == 0.0f) {
         return 0.0f;
     }
