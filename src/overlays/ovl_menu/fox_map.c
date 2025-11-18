@@ -6233,7 +6233,9 @@ void Map_TeamDownWrench_Draw(s32 teamIdx, s32 alpha) {
 
     Matrix_SetGfxMtx(&gMasterDisp);
 
+gSPRadarMark(gMasterDisp++);
     gSPDisplayList(gMasterDisp++, aDownWrenchDL);
+gSPRadarMark(gMasterDisp++);
 
     Matrix_Pop(&gGfxMatrix);
     Matrix_Push(&gGfxMatrix);
@@ -6244,7 +6246,9 @@ void Map_TeamDownWrench_Draw(s32 teamIdx, s32 alpha) {
 
     Matrix_SetGfxMtx(&gMasterDisp);
 
+gSPRadarMark(gMasterDisp++);
     gSPDisplayList(gMasterDisp++, aDownWrenchDL);
+gSPRadarMark(gMasterDisp++);
 
     Matrix_Pop(&gGfxMatrix);
     Matrix_Pop(&gGfxMatrix);

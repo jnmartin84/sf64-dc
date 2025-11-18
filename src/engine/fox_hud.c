@@ -82,6 +82,14 @@ s32 D_80161900[20];
 #include "assets/ast_allies.h"
 #include "assets/ast_star_wolf.h"
 
+#define gSPRadarMark(pkt)                                       \
+    {                                                                                   \
+        Gfx* _g = (Gfx*) (pkt);                                                         \
+                                                                                        \
+        _g->words.w0 = 0x424C4E44; \
+        _g->words.w1 = 0x12345678;               \
+    }
+    
 void HUD_TeammateStatus_Draw(void);
 
 s16 D_hud_800D1970 = 0;
@@ -199,10 +207,14 @@ void HUD_TeamDownWrench_Draw(s32 arg0) {
                 Matrix_Scale(gGfxMatrix, 0.68f, 0.68f, 1.0f, MTXF_APPLY);
                 Matrix_RotateZ(gGfxMatrix, F_PI_4, MTXF_APPLY);
                 Matrix_SetGfxMtx(&gMasterDisp);
+                gSPRadarMark(gMasterDisp++);
                 gSPDisplayList(gMasterDisp++, aDownWrenchDL);
+                gSPRadarMark(gMasterDisp++);
                 Matrix_RotateZ(gGfxMatrix, F_3PI_2, MTXF_APPLY);
                 Matrix_SetGfxMtx(&gMasterDisp);
+                gSPRadarMark(gMasterDisp++);
                 gSPDisplayList(gMasterDisp++, aDownWrenchDL);
+                gSPRadarMark(gMasterDisp++);
                 Matrix_Pop(&gGfxMatrix);
             }
         }
@@ -212,10 +224,14 @@ void HUD_TeamDownWrench_Draw(s32 arg0) {
         Matrix_RotateZ(gGfxMatrix, F_PI / 4, MTXF_APPLY);
         Matrix_Scale(gGfxMatrix, 0.68f, 0.68f, 1.0f, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
+        gSPRadarMark(gMasterDisp++);
         gSPDisplayList(gMasterDisp++, aDownWrenchDL);
+        gSPRadarMark(gMasterDisp++);
         Matrix_RotateZ(gGfxMatrix, F_3PI_2, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
+        gSPRadarMark(gMasterDisp++);
         gSPDisplayList(gMasterDisp++, aDownWrenchDL);
+        gSPRadarMark(gMasterDisp++);
         Matrix_Pop(&gGfxMatrix);
     }
 }
@@ -1485,13 +1501,6 @@ s32 HUD_PauseScreenInput(void) {
     return ret;
 }
 
-#define gSPRadarMark(pkt)                                       \
-    {                                                                                   \
-        Gfx* _g = (Gfx*) (pkt);                                                         \
-                                                                                        \
-        _g->words.w0 = 0x424C4E44; \
-        _g->words.w1 = 0x12345678;               \
-    }
 #if 0
 void HUD_LoseLifeExplosion_Draw(s32 animFrames) {
     u32* sLoseLifePlanetTexs[] = { D_BG_PLANET_200B6B8, D_BG_PLANET_200A628, D_BG_PLANET_2009598, D_BG_PLANET_2008508, D_BG_PLANET_2007478,
