@@ -95,7 +95,7 @@ endif
 endif
 
 ifeq ($(COMPILER),kos-cc)
-  OPTFLAGS := -Os
+  OPTFLAGS := -O3
 else
   OPTFLAGS := -O2 -g3
 endif

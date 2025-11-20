@@ -346,7 +346,18 @@ int ever_init_wav = 0;
 
 vmufb_t vmubuf;
 
+void debug_msg(char *msg, int x, int y, int r, int g, int b) ;
+float debug_millis_main;
+float debug_millis_gfx;
+float debug_millis_sfx;
+char dbgmsg[256];
+
 void Main_ThreadEntry(void* arg0) {
+
+	// high resolution frame timing
+	uint64_t dstart = 0;
+	uint64_t dend = 0;
+    
     OSMesg osMesg;
     u8 mesg;
     void* sp24;
@@ -452,6 +463,11 @@ run_game_loop:
     Graphics_SetTask();
 
     while (true) {
+		uint32_t last_delta = (uint32_t)((uint64_t)(dend - dstart));
+        debug_millis_main = last_delta * 1e-6f;
+
+		dstart = perf_cntr_timer_ns();
+        
         if (MQ_GET_MESG(&gTimerTaskMesgQueue, &sp24)) {
             Timer_CompleteTask(sp24);
         }
@@ -464,6 +480,26 @@ run_game_loop:
         gSPSegment(gUnkDisp1++, 0, 0);
         gSPDisplayList(gMasterDisp++, gGfxPool->unkDL1);
         Game_Update();
+        int r,g,b=0;
+        if (debug_millis_main >= 33 && debug_millis_gfx < 33) {
+            r = 255; g = 255;
+        } else if (debug_millis_main >= 33 && debug_millis_gfx >= 33) {
+            r = 255; g = 0;
+        } else {
+            r = 0; g = 255;
+        }
+        sprintf(dbgmsg, "LOOP MS %.2f", debug_millis_main);
+        debug_msg(dbgmsg, 40, 100, r, g, b);
+        sprintf(dbgmsg, "GFX MS %.2f", debug_millis_gfx);
+        debug_msg(dbgmsg, 40, 124, r,g,b);
+
+        if (debug_millis_sfx > 8) {
+            r = 255; g = 0;
+        } else {
+            r = 0; g = 255;
+        }
+        sprintf(dbgmsg, "SFX MS %.2f", debug_millis_sfx);
+        debug_msg(dbgmsg, 40, 148, r,g,b);
         gSPEndDisplayList(gUnkDisp1++);
         gSPEndDisplayList(gUnkDisp2++);
         gSPDisplayList(gMasterDisp++, gGfxPool->unkDL2);
@@ -473,11 +509,39 @@ run_game_loop:
 
         Audio_Update();
         gfx_end_frame();
+		dend = perf_cntr_timer_ns();
         thd_pass();
     }
 }
 
+//#define SDCARD_SUPPORT
+#if defined(SDCARD_SUPPORT)
+#include <dc/g1ata.h>
+#include <dc/sd.h>
+#include <fat/fs_fat.h>
+
+static kos_blockdev_t dev;
+#endif
+
+#if defined(SDCARD_SUPPORT)
+void sdcard_init(void) {
+    uint8_t partition_type;
+
+    if (sd_init())
+        return;
+
+    if (sd_blockdev_for_partition(0, &dev, &partition_type))
+        return;
+
+    if (fs_fat_mount("/sd", &dev, FS_FAT_MOUNT_READWRITE))
+        return;
+
+    printf("mounted sd card at /sd\n");
+}
+#endif
+
 int main(int argc, char **argv) {
+#if !defined(SDCARD_SUPPORT)
     FILE* fntest = fopen("/pc/sf_data/logo.bin", "rb");
     if (NULL == fntest) {
         fntest = fopen("/cd/sf_data/logo.bin", "rb");
@@ -495,9 +559,37 @@ int main(int argc, char **argv) {
     }
 
     fclose(fntest);
+#endif
+
+#if defined(SDCARD_SUPPORT)
+    fs_fat_init();
+    printf("/sd/sf64-dc: ");
+    sdcard_init();
+
+    FILE *fntest = fopen("/sd/sf64-dc/sf_data/logo.bin", "rb");
+    if (fntest) {
+        printf("found. Using /sd/sf64-dc for assets.\n");
+        fnpre = "/sd/sf64-dc";
+        goto assetsfound;
+    }
+    printf("not found.\n");
+
+    printf("Couldn't find assets, quitting...\n");
+    exit(-1);
+
+assetsfound:
+    fclose(fntest);
+#endif
 
     Main_ThreadEntry(NULL);
+#if defined(SDCARD_SUPPORT)
+    fs_fat_unmount("/sd");
+    sd_shutdown();
+#endif
 
+#if defined(SDCARD_SUPPORT)
+    fs_fat_shutdown();
+#endif
     return 0;
 }
 
@@ -510,14 +602,20 @@ int main(int argc, char **argv) {
 extern void *cb_next_left(void);
 extern void *cb_next_right(void);
 void *AudioThread(UNUSED void *arg) {
-    Matrix __attribute__((aligned(32))) tmpmtx;
+    	// high resolution frame timing
+	uint64_t dstart = 0;
+	uint64_t dend = 0;
+
     uint64_t last_vbltick = vblticker;
     
     while (1) {
         while (vblticker <= last_vbltick)
             genwait_wait((void*)&vblticker, NULL, 5, NULL);
 
-//        shz_xmtrx_store_4x4(&tmpmtx);
+		uint32_t last_delta = (uint32_t)((uint64_t)(dend - dstart));
+        debug_millis_sfx = last_delta * 1e-6f;
+
+		dstart = perf_cntr_timer_ns();
 
         __builtin_prefetch(audio_buffer[0]);
         last_vbltick = vblticker;
@@ -528,8 +626,8 @@ void *AudioThread(UNUSED void *arg) {
         AudioThread_CreateNextAudioBuffer(//cb_next_left(), cb_next_right(), 448);//
             audio_buffer[0], audio_buffer[1], /* samplecount */448);
         audio_api->play((u8 *)audio_buffer[0], (u8*)audio_buffer[1], /* samplecount<<2 */1792);
+		dend = perf_cntr_timer_ns();
 
-//        shz_xmtrx_load_4x4(&tmpmtx);
     }
 
     return NULL;

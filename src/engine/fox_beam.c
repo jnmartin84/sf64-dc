@@ -1851,12 +1851,13 @@ void PlayerShot_CheckBossHitbox(PlayerShot* shot) {
     for (i = 0; i < ARRAY_COUNT(gBosses); i++, boss++) {
         if ((boss->obj.status == OBJ_ACTIVE) && (boss->timer_05A == 0)) {
             if (boss->obj.id == OBJ_BOSS_KA_SAUCERER) {
-                modFrames = gGameFrameCount % 8U;
+                modFrames = gGameFrameCount & 7U;//% 8U;
                 radius = shot->scale * 40.0f;
             } else {
-                modFrames = gGameFrameCount % 16U;
+                modFrames = gGameFrameCount & 15;//% 16U;
                 radius = shot->scale * 30.0f;
             }
+            radius *= radius;
             hitboxData = boss->info.hitbox;
             count = *hitboxData++;
             if (count != 0) {
@@ -1885,7 +1886,7 @@ void PlayerShot_CheckBossHitbox(PlayerShot* shot) {
                         if ((gLevelMode == LEVELMODE_ON_RAILS) && (test.z < 0.0f)) {
                             test.z *= 0.6f;
                         }
-                        if (VEC3F_MAG(&test) < radius) {
+                        if (shz_mag_sqr3f(test.x,test.y,test.z)/* VEC3F_MAG(&test) */ < radius) {
                             boss->dmgPart = j;
                             boss->dmgType = DMG_BOMB;
                             boss->damage = 20;
@@ -1934,6 +1935,7 @@ void PlayerShot_ApplyExplosionDamage(PlayerShot* shot, s32 damage) {
     Effect* effect;
     Player* player;
     f32 radius = shot->scale * 60.0f;
+    radius *= radius;
 
     scenery = &gScenery[0];
     for (i = 0; i < ARRAY_COUNT(gScenery); i++, scenery++) {
@@ -1941,8 +1943,7 @@ void PlayerShot_ApplyExplosionDamage(PlayerShot* shot, s32 damage) {
             dx = scenery->obj.pos.x - shot->obj.pos.x;
             dy = scenery->obj.pos.y - shot->obj.pos.y;
             dz = scenery->obj.pos.z - shot->obj.pos.z;
-            if (shz_sqrtf_fsrra(shz_mag_sqr4f(dx,dy,dz,0)) 
-                /* SQ(dx) + SQ(dy) + SQ(dz) */ < radius) {
+            if (shz_mag_sqr3f(dx,dy,dz) < radius) {
                 scenery->dmgType = DMG_EXPLOSION;
             }
             scenery->dmgPart = 0;
@@ -1957,8 +1958,7 @@ void PlayerShot_ApplyExplosionDamage(PlayerShot* shot, s32 damage) {
             dx = sprite->obj.pos.x - shot->obj.pos.x;
             dy = sprite->obj.pos.y - shot->obj.pos.y;
             dz = sprite->obj.pos.z - shot->obj.pos.z;
-            if (shz_sqrtf_fsrra(shz_mag_sqr4f(dx,dy,dz,0)) < radius) {
-                //SQ(dx) + SQ(dy) + SQ(dz)) < radius) {
+            if (shz_mag_sqr3f(dx,dy,dz) < radius) {
                 sprite->destroy = true;
             }
         }
@@ -1982,7 +1982,7 @@ void PlayerShot_ApplyExplosionDamage(PlayerShot* shot, s32 damage) {
             actor->hitPos.y = shot->obj.pos.y;
             actor->hitPos.z = shot->obj.pos.z;
 
-            if (shz_sqrtf_fsrra(/* SQ(dx) + SQ(dy) + SQ(dz) */shz_mag_sqr4f(dx,dy,dz,0)) < radius) {
+            if (shz_mag_sqr3f(dx,dy,dz) < radius) {
                 if ((actor->obj.id == OBJ_ACTOR_CO_RADAR) || (actor->obj.id == OBJ_ACTOR_ME_LASER_CANNON_1) ||
                     (actor->obj.id == OBJ_ACTOR_MISSILE_SEEK_TEAM) || (actor->obj.id == OBJ_ACTOR_ME_HOPBOT) ||
                     (actor->obj.id == OBJ_ACTOR_ME_METEO_BALL) || (actor->obj.id == OBJ_ACTOR_ME_LASER_CANNON_2) ||
@@ -2030,14 +2030,14 @@ void PlayerShot_ApplyExplosionDamage(PlayerShot* shot, s32 damage) {
     } else {
         PlayerShot_CheckBossHitbox(shot);
     }
-
+#if 1
     effect = &gEffects[0];
     for (i = 0; i < ARRAY_COUNT(gEffects); i++, effect++) {
         if (effect->obj.status == OBJ_ACTIVE) {
             dx = effect->obj.pos.x - shot->obj.pos.x;
             dy = effect->obj.pos.y - shot->obj.pos.y;
             dz = effect->obj.pos.z - shot->obj.pos.z;
-            if (shz_sqrtf_fsrra(/* SQ(dx) + SQ(dy) + SQ(dz) */shz_mag_sqr4f(dx,dy,dz,0)) < radius) {
+            if (shz_mag_sqr3f(dx,dy,dz) < radius) {
                 if (effect->info.unk_16 == 0) {
                     Object_Kill(&effect->obj, effect->sfxSource);
                 }
@@ -2058,7 +2058,7 @@ void PlayerShot_ApplyExplosionDamage(PlayerShot* shot, s32 damage) {
             }
         }
     }
-
+#endif
     if (gVersusMode) {
         player = gPlayer;
         for (i = 0; i < gCamCount; i++, player++) {
@@ -2066,7 +2066,7 @@ void PlayerShot_ApplyExplosionDamage(PlayerShot* shot, s32 damage) {
                 dx = player->pos.x - shot->obj.pos.x;
                 dy = player->pos.y - shot->obj.pos.y;
                 dz = player->trueZpos - shot->obj.pos.z;
-                if (shz_sqrtf_fsrra(/* SQ(dx) + SQ(dy) + SQ(dz) */shz_mag_sqr4f(dx,dy,dz,0)) < radius) {
+                if (shz_mag_sqr3f(dx,dy,dz) < radius) {
                     player->attacker = shot->sourceId + 1;
                     switch (player->form) {
                         case FORM_ARWING:

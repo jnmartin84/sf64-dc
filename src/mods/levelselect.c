@@ -28,6 +28,14 @@ static PlanetId sPlanetArray[][3] = {
         _g->words.w1 = 0x46004400;                                           \
     }
 
+void debug_msg(char *msg, int x, int y, int r, int g, int b) {
+            RCP_SetupDL(&gMasterDisp, SETUPDL_83);
+        gDPSetPrimColor(gMasterDisp++, 0, 0, r, g, b, 255);
+            gSPPathPriority(gMasterDisp++);
+        Graphics_DisplaySmallText(x, y, 1.0f, 1.0f, msg);
+        gSPPathPriority(gMasterDisp++);
+}
+
 void Map_LevelSelect(void) {
     static s32 mission = 0;
     static s32 difficulty = 0;

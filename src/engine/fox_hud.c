@@ -196,6 +196,7 @@ void HUD_TeamDownWrench_Draw(s32 arg0) {
     };
 
     RCP_SetupDL(&gMasterDisp, SETUPDL_36);
+    gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
 
     if (arg0 == 0) {
         for (i = 1; i < 4; i++) {
@@ -252,7 +253,7 @@ void HUD_MsgWindowBg_Draw(f32 xPos, f32 yPos, f32 xScale, f32 yScale) {
 }
 
 void HUD_RadarWindowFrame_Draw(f32 xPos, f32 yPos, f32 xScale, f32 yScale) {
-        gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
+    gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
     Lib_TextureRect_CI4(&gMasterDisp, aRadarFrameTex, aRadarFrameTLUT, 48, 44, xPos, yPos, xScale, yScale);
 }
 
@@ -5291,7 +5292,7 @@ void Aquas_CsLevelStart(Player* player) {
             } else {
                 player->unk_208--;
             }
-#if 1
+
             if (D_ctx_80177A10[6] < 3) {
                 i = D_ctx_80177A10[6];
                 stepSize = D_ctx_80177A48[5];
@@ -5347,7 +5348,7 @@ void Aquas_CsLevelStart(Player* player) {
                 Math_SmoothStepToF(&D_ctx_80177A48[7], 16.0f, 0.04f, 0.05f, 0.0f);
                 gFillScreenAlphaStep = D_ctx_80177A48[7];
             }
-#endif
+
             break;
 
         case 2:

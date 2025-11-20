@@ -6233,9 +6233,9 @@ void Map_TeamDownWrench_Draw(s32 teamIdx, s32 alpha) {
 
     Matrix_SetGfxMtx(&gMasterDisp);
 
-gSPRadarMark(gMasterDisp++);
+    gSPRadarMark(gMasterDisp++);
     gSPDisplayList(gMasterDisp++, aDownWrenchDL);
-gSPRadarMark(gMasterDisp++);
+    gSPRadarMark(gMasterDisp++);
 
     Matrix_Pop(&gGfxMatrix);
     Matrix_Push(&gGfxMatrix);
@@ -6246,9 +6246,9 @@ gSPRadarMark(gMasterDisp++);
 
     Matrix_SetGfxMtx(&gMasterDisp);
 
-gSPRadarMark(gMasterDisp++);
+    gSPRadarMark(gMasterDisp++);
     gSPDisplayList(gMasterDisp++, aDownWrenchDL);
-gSPRadarMark(gMasterDisp++);
+    gSPRadarMark(gMasterDisp++);
 
     Matrix_Pop(&gGfxMatrix);
     Matrix_Pop(&gGfxMatrix);
@@ -6274,21 +6274,19 @@ void Map_GralPepperFace_Draw(void) {
 
             Matrix_SetGfxMtx(&gMasterDisp);
 
-gSPRadarMark(gMasterDisp++);
+            gSPRadarMark(gMasterDisp++);
             gSPDisplayList(gMasterDisp++, sMapGralPepperFaceDLs[D_menu_801CD810]);
-gSPRadarMark(gMasterDisp++);
+            gSPRadarMark(gMasterDisp++);
 
             Matrix_SetGfxMtx(&gMasterDisp);
 
-gSPRadarMark(gMasterDisp++);
+            gSPRadarMark(gMasterDisp++);
             gSPDisplayList(gMasterDisp++, D_MAP_605A120);
-gSPRadarMark(gMasterDisp++);
+            gSPRadarMark(gMasterDisp++);
         }
         Matrix_Pop(&gGfxMatrix);
 
         RCP_SetupDL(&gMasterDisp, SETUPDL_67);
-//gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
-  //                         TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
 
         gDPSetPrimColor(gMasterDisp++, 0, 0, 255,255,255/* 32, 32, 255 */, D_menu_801CEA98);
         gDPSetEnvColor(gMasterDisp++, /* 207, 207, 255, */32,32,255, 255);
@@ -6305,17 +6303,16 @@ gSPRadarMark(gMasterDisp++);
             Matrix_SetGfxMtx(&gMasterDisp);
 
             gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK);
-gSPRadarMark(gMasterDisp++);
+            gSPRadarMark(gMasterDisp++);
             gSPDisplayList(gMasterDisp++, aMapTvScreenGlowDL);
-gSPRadarMark(gMasterDisp++);
+            gSPRadarMark(gMasterDisp++);
 
-        gDPSetPrimColor(gMasterDisp++, 0, 0, 32, 32, 255, D_menu_801CEA98);
-        gDPSetEnvColor(gMasterDisp++, 207, 207, 255, 255);
+            gDPSetPrimColor(gMasterDisp++, 0, 0, 32, 32, 255, D_menu_801CEA98);
+            gDPSetEnvColor(gMasterDisp++, 207, 207, 255, 255);
 
-
-gSPRadarMark(gMasterDisp++);
+            gSPRadarMark(gMasterDisp++);
             gSPDisplayList(gMasterDisp++, aMapTvScreenGlowDL);
-gSPRadarMark(gMasterDisp++);
+            gSPRadarMark(gMasterDisp++);
             gSPSetGeometryMode(gMasterDisp++, G_CULL_BACK);
         }
         Matrix_Pop(&gGfxMatrix);
@@ -6492,7 +6489,7 @@ void Map_PathLine_Draw(PathType pathType) {
     }
 
     RCP_SetupDL(&gMasterDisp, SETUPDL_67);
-gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
+    gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
                            TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
 
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 80, D_menu_801CEEAC);

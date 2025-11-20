@@ -964,7 +964,7 @@ void Titania_TiBomb_Update(TiBomb* this) {
             }
 
             if (this->timer_0BE == 0) {
-                temp_fa1 = shz_mag_sqr4f(sp44,sp40,sp3C,0);// SQ(sp44) + SQ(sp40) + SQ(sp3C);
+                temp_fa1 = shz_mag_sqr3f(sp44,sp40,sp3C);// SQ(sp44) + SQ(sp40) + SQ(sp3C);
                 if (temp_fa1 < SQ(166.25f)) {
                     this->timer_0BE = 8;
                 } else if (temp_fa1 < SQ(600.0f)) {

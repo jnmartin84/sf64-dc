@@ -39,105 +39,7 @@ f32 __vtx3_z;
 #define TRINORM_Y(A, B, C) ((B##_z - A##_z) * (C##_x - B##_x) - (B##_x - A##_x) * (C##_z - B##_z))
 #define TRINORM_Z(A, B, C) ((B##_x - A##_x) * (C##_y - B##_y) - (B##_y - A##_y) * (C##_x - B##_x))
 
- f32 SHZ_NO_INLINE __attribute__((noinline)) triple_product_mul(Vec3s a, Vec3s b, Vec3s c) {
-    f32 dist = 
-       0.0f - (f32)((a.x * b.y * c.z) - (b.x * c.y * a.z) - (c.x * a.y * b.z) + (a.x * c.y * b.z) + (b.x * a.y * c.z) + (c.x * b.y * a.z));
-       return dist;
-}
 #include "sh4zam.h"
- f32 SHZ_NO_INLINE  __attribute__((noinline)) triple_product_fipr(Vec3s a, Vec3s b, Vec3s c) {
-    f32 px = (f32)(a.x * c.y);
-    f32 py = (f32)(a.y * b.x);
-    f32 pz = (f32)(a.z * b.y);
-
-    f32 rx = (f32)(a.x * b.y);
-    f32 ry = (f32)(b.x * c.y);
-    f32 rz = (f32)(c.x * a.y);
-
-    f32 dotPQ = shz_dot8f(px,py,pz,0,(f32)b.z,(f32)c.z,(f32)c.x,0);
-    f32 dotRS = shz_dot8f(rx,ry,rz,0,(f32)c.z,(f32)a.z,(f32)b.z,0);
-
-    return (dotPQ - dotRS);
-
-    //    f32 dist = 
-  //     0.0f - (f32)((a.x * b.y * c.z) - (b.x * c.y * a.z) - (c.x * a.y * b.z) + (a.x * c.y * b.z) + (b.x * a.y * c.z) + (c.x * b.y * a.z));
-    //   return dist;
-}
-
-// Calculate the directed plane that contains the ordered triangle tri, given as an array of Vec3s
-void func_col1_80097380(PlaneF* plane, Vec3s** tri) {
-    Vec3s a;
-    Vec3s b;
-    Vec3s c;
-//    s32 new_var;
-//    Vec3s* tri2 = *tri;
-
-    a.x = (*tri)->x;
-    a.y = (*tri)->y; //tri2->y; // fake
-    a.z = (*tri)->z;
-    tri++;
-    b.x = (*tri)->x;
-    b.y = (*tri)->y;
-    b.z = (*tri)->z;
-    tri++;
-    xz_vars.__dx1 = (f32)(b.x - a.x);
-    xz_vars.__dy1 = (f32)(b.y - a.y);
-    xz_vars.__dz1 = (f32)(b.z - a.z);
-
-    c.x = (*tri)->x;
-    c.y = (*tri)->y;
-    c.z = (*tri)->z;
-    tri++;
-//    do {
-    xz_vars.__dy2 = (f32)(c.y - b.y);
-    xz_vars.__dx2 = (f32)(c.x - b.x);
-    xz_vars.__dz2 = (f32)(c.z - b.z);
-//    } while (0); // wut
-
-    plane->normal.x = (xz_vars.__dy1 * xz_vars.__dz2) - (xz_vars.__dz1 * xz_vars.__dy2);
-    plane->normal.y = (xz_vars.__dz1 * xz_vars.__dx2) - (xz_vars.__dx1 * xz_vars.__dz2);
-    plane->normal.z = (xz_vars.__dx1 * xz_vars.__dy2) - (xz_vars.__dy1 * xz_vars.__dx2);
-    plane->dist = triple_product_mul(a,b,c);
-      // 0.0f - (f32)((a.x * b.y * c.z) - (b.x * c.y * a.z) - (c.x * a.y * b.z) + (a.x * c.y * b.z) + (b.x * a.y * c.z) + (c.x * b.y * a.z));
-}
-
-// Calculate the directed plane that contains the ordered triangle tri, given as an array of Vec3s. Duplicate of
-// previous
-void func_col1_80097558(PlaneF* plane, Vec3s** tri) {
-    Vec3s a;
-    Vec3s b;
-    Vec3s c;
-//    s32 new_var;
-//    Vec3s* tri2 = *tri;
-
-    a.x = (*tri)->x;
-    a.y = (*tri)->y;//tri2->y; // fake
-    a.z = (*tri)->z;
-    tri++;
-    b.x = (*tri)->x;
-    b.y = (*tri)->y;
-    b.z = (*tri)->z;
-    tri++;
-    c.x = (*tri)->x;
-    c.y = (*tri)->y;
-    c.z = (*tri)->z;
-    tri++;
-
-    xz_vars.__dx1 = b.x - a.x;
-    xz_vars.__dx2 = c.x - b.x;
-    xz_vars.__dy1 = b.y - a.y;
-    do {
-        xz_vars.__dy2 = c.y - b.y;
-        xz_vars.__dz1 = b.z - a.z;
-        xz_vars.__dz2 = c.z - b.z;
-    } while (0); // wut
-
-    plane->normal.x = (xz_vars.__dy1 * xz_vars.__dz2) - (xz_vars.__dz1 * xz_vars.__dy2);
-    plane->normal.y = (xz_vars.__dz1 * xz_vars.__dx2) - (xz_vars.__dx1 * xz_vars.__dz2);
-    plane->normal.z = (xz_vars.__dx1 * xz_vars.__dy2) - (xz_vars.__dy1 * xz_vars.__dx2);
-    plane->dist =triple_product_fipr(a,b,c);
-        //-a.x * b.y * c.z - b.x * c.y * a.z - c.x * a.y * b.z + a.x * c.y * b.z + b.x * a.y * c.z + c.x * b.y * a.z;
-}
 
 // Calculate the normal vector of an ordered triangle, given as a Vec3f array
 void func_col1_80097730(Vec3f* norm, Vec3f* tri) {
@@ -405,19 +307,22 @@ void func_col1_80098860(PlaneF* plane, Vec3f* point, Vec3f* normal) {
 // y dist to closest point on plane
 s32 func_col1_800988B4(Vec3f* vec, PlaneF* plane) {
     f32 recY = shz_fast_invf(plane->normal.y);
-    return (-plane->normal.x * vec->x - plane->normal.z * vec->z - plane->dist) * recY; // / plane->normal.y;
+    //return (-plane->normal.x * vec->x - plane->normal.z * vec->z - plane->dist) * recY; // / plane->normal.y;
+    return shz_dot6f(-plane->normal.x, -plane->normal.z, 1.0f, vec->x, vec->z, -plane->dist) * recY;
 }
 
 // z dist to closest point on plane
 s32 func_col1_800988F8(Vec3f* vec, PlaneF* plane) {
     f32 recZ = shz_fast_invf(plane->normal.z);
-    return (-plane->normal.x * vec->x - plane->normal.y * vec->y - plane->dist) * recZ; // / plane->normal.z;
+    //return (-plane->normal.x * vec->x - plane->normal.y * vec->y - plane->dist) * recZ; // / plane->normal.z;
+    return shz_dot6f(-plane->normal.x, -plane->normal.y, 1.0f, vec->x, vec->y, -plane->dist) * recZ;
 }
 
 // x dist to closest point on plane
 s32 func_col1_8009893C(Vec3f* vec, PlaneF* plane) {
     f32 recX = shz_fast_invf(plane->normal.x);
-    return (-plane->normal.y * vec->y - plane->normal.z * vec->z - plane->dist) * recX; // / plane->normal.x;
+    //return (-plane->normal.y * vec->y - plane->normal.z * vec->z - plane->dist) * recX; // / plane->normal.x;
+    return shz_dot6f(-plane->normal.z, -plane->normal.y, 1.0f, vec->z, vec->y, -plane->dist) * recX;
 }
 
 #define INTSIGN_OF(x) ((((x) >= 1.0f) || ((x) <= -1.0f)) ? (f32) SIGN_OF(x) : 0.0f)
@@ -428,12 +333,15 @@ static inline Vec3f v3f_cross(Vec3f a, Vec3f b) {
     return (Vec3f){a.y*b.z - a.z*b.y, a.z*b.x - a.x*b.z, a.x*b.y - a.y*b.x};
 }
 static inline float v3f_dot(Vec3f a, Vec3f b) {
-    return a.x*b.x + a.y*b.y + a.z*b.z;
+    //return a.x*b.x + a.y*b.y + a.z*b.z;
+    return shz_dot6f(a.x, a.y, a.z, b.x, b.y, b.z);
 }
 
 static inline Vec3f to_f(Vec3s *v) {
     return (Vec3f){ (float)v->x, (float)v->y, (float)v->z };
 }
+
+#if 0
 bool not_func_col1_80098980( Vec3f *p, Vec3s **tri,  Vec3f *n)
 {
     Vec3f v0 = to_f(*tri++), v1 = to_f(*tri++), v2 = to_f(*tri++);
@@ -464,6 +372,7 @@ bool not_func_col1_80098980( Vec3f *p, Vec3s **tri,  Vec3f *n)
     if (s >= 0.0f) return (e0 >= 0.0f && e1 >= 0.0f && e2 >= 0.0f);
     else           return (e0 <= 0.0f && e1 <= 0.0f && e2 <= 0.0f);
 }
+#endif
 
 // checks if the projection of pos onto the plane of tri lies within tri and it is on the same side as the normal.
 bool func_col1_80098980(Vec3f* pos, Vec3s** tri, Vec3f* normal) {

@@ -291,20 +291,21 @@ s16 Animation_GetFrameData(Animation* animationSegment, s32 frame, Vec3f* frameT
 
     frameTable++, key++;
     for (i = 1; i <= limbCount; i++, key++, frameTable++) {
-#if 0
+#if 1
         temp = (frame < key->xLen) ? frameData[key->x + frame] : frameData[key->x];
         frameTable->x = temp * FRAMEDATA_SCALE;
         temp = (frame < key->yLen) ? frameData[key->y + frame] : frameData[key->y];
         frameTable->y = temp * FRAMEDATA_SCALE;
         temp = (frame < key->zLen) ? frameData[key->z + frame] : frameData[key->z];
         frameTable->z = temp * FRAMEDATA_SCALE;
-#endif
+#else
         temp = (frame < key->xLen) ? frameData[key->x + frame] : frameData[key->x];
         frameTable->x = temp * 360.0f / 65536.0f;
         temp = (frame < key->yLen) ? frameData[key->y + frame] : frameData[key->y];
         frameTable->y = temp * 360.0f / 65536.0f;
         temp = (frame < key->zLen) ? frameData[key->z + frame] : frameData[key->z];
         frameTable->z = temp * 360.0f / 65536.0f;
+#endif
     }
     return limbCount + 1;
 }
@@ -314,126 +315,6 @@ s32 Animation_GetFrameCount(Animation* animationSegment) {
 
     return animation->frameCount;
 }
-
-void Animation_FindBoundingBox(Gfx* dList, s32 len, Vec3f* min, Vec3f* max, s32* vtxFound, s32* vtxCount,
-                               Vtx** vtxList) {
-    s64* sp44 = SEGMENTED_TO_VIRTUAL(dList);
-    s64* var_s0;
-
-    for (var_s0 = sp44; (s32) (*var_s0 >> 0x38) != G_ENDDL && var_s0 - sp44 < len; var_s0++) {
-        switch ((s32) (*var_s0 >> 0x38)) {
-            case G_DL:
-                Animation_FindBoundingBox(*var_s0 & 0xFFFFFFFF, (*var_s0 >> 0x20) & 0xFFFF, min, max, vtxFound,
-                                          vtxCount, vtxList);
-                break;
-            case G_VTX:
-                *vtxList = SEGMENTED_TO_VIRTUAL(*var_s0 & 0xFFFFFFFF);
-                *vtxCount = (*var_s0 >> 0x30) & 0xF;
-                break;
-            case G_TRI1:
-                if (!*vtxFound) {
-                    *vtxFound = 1;
-                    max->x = min->x = (*vtxList)[*var_s0 & 0xFF].v.ob[0];
-                    max->y = min->y = (*vtxList)[*var_s0 & 0xFF].v.ob[1];
-                    max->z = min->z = (*vtxList)[*var_s0 & 0xFF].v.ob[2];
-                } else {
-                    min->x = MIN(min->x, (*vtxList)[*var_s0 & 0xFF].v.ob[0]);
-                    min->y = MIN(min->y, (*vtxList)[*var_s0 & 0xFF].v.ob[1]);
-                    min->z = MIN(min->z, (*vtxList)[*var_s0 & 0xFF].v.ob[2]);
-                    max->x = MAX(max->x, (*vtxList)[*var_s0 & 0xFF].v.ob[0]);
-                    max->y = MAX(max->y, (*vtxList)[*var_s0 & 0xFF].v.ob[1]);
-                    max->z = MAX(max->z, (*vtxList)[*var_s0 & 0xFF].v.ob[2]);
-                }
-                min->x = MIN(min->x, (*vtxList)[(*var_s0 >> 8) & 0xFF].v.ob[0]);
-                min->y = MIN(min->y, (*vtxList)[(*var_s0 >> 8) & 0xFF].v.ob[1]);
-                min->z = MIN(min->z, (*vtxList)[(*var_s0 >> 8) & 0xFF].v.ob[2]);
-                max->x = MAX(max->x, (*vtxList)[(*var_s0 >> 8) & 0xFF].v.ob[0]);
-                max->y = MAX(max->y, (*vtxList)[(*var_s0 >> 8) & 0xFF].v.ob[1]);
-                max->z = MAX(max->z, (*vtxList)[(*var_s0 >> 8) & 0xFF].v.ob[2]);
-                min->x = MIN(min->x, (*vtxList)[(*var_s0 >> 0x10) & 0xFF].v.ob[0]);
-                min->y = MIN(min->y, (*vtxList)[(*var_s0 >> 0x10) & 0xFF].v.ob[1]);
-                min->z = MIN(min->z, (*vtxList)[(*var_s0 >> 0x10) & 0xFF].v.ob[2]);
-                max->x = MAX(max->x, (*vtxList)[(*var_s0 >> 0x10) & 0xFF].v.ob[0]);
-                max->y = MAX(max->y, (*vtxList)[(*var_s0 >> 0x10) & 0xFF].v.ob[1]);
-                max->z = MAX(max->z, (*vtxList)[(*var_s0 >> 0x10) & 0xFF].v.ob[2]);
-                break;
-        }
-    }
-}
-
-void Animation_GetDListBoundingBox(Gfx* dList, s32 len, Vec3f* min, Vec3f* max) {
-    s32 vtxFound = 0;
-    s32 vtxCount;
-    Vtx* vtxList;
-
-    Animation_FindBoundingBox(dList, len, min, max, &vtxFound, &vtxCount, &vtxList);
-}
-
-#if 0
-void Animation_GetSkeletonBoundingBox(Limb** skeletonSegment, Animation* animationSegment, s32 frame, Vec3f* min,
-                                      Vec3f* max) {
-    JointKey* key;
-    u16* frameData;
-    Animation* animation;
-    Limb* limb;
-    u16 var_t6;
-    s32 vtxFound;
-    s32 vtxCount;
-    Vtx* vtxList;
-    Vec3f boundBox[8];
-    Vec3f boundBoxRot[8];
-    s32 i;
-    Limb** skeleton = (Limb**) SEGMENTED_TO_VIRTUAL(skeletonSegment);
-
-    limb = (Limb*) SEGMENTED_TO_VIRTUAL(skeleton[0]);
-    animation = (Animation*) SEGMENTED_TO_VIRTUAL(animationSegment);
-    key = (JointKey*) SEGMENTED_TO_VIRTUAL(animation->jointKey);
-    frameData = (u16*) SEGMENTED_TO_VIRTUAL(animation->frameData);
-
-    if (frame < (s16) key[1].zLen) {
-        var_t6 = frameData[(s16) key[1].z + frame];
-    } else {
-        var_t6 = frameData[(s16) key[1].z];
-    }
-    Matrix_RotateZ(gGfxMatrix, (((s32) var_t6 * 360.0f) / 65536.0f) * M_DTOR, MTXF_NEW);
-    if (frame < (s16) key[1].yLen) {
-        var_t6 = frameData[(s16) key[1].y + frame];
-    } else {
-        var_t6 = frameData[(s16) key[1].y];
-    }
-    Matrix_RotateY(gGfxMatrix, (((s32) var_t6 * 360.0f) / 65536.0f) * M_DTOR, MTXF_APPLY);
-    if (frame < (s16) key[1].xLen) {
-        var_t6 = frameData[(s16) key[1].x + frame];
-    } else {
-        var_t6 = frameData[(s16) key[1].x];
-    }
-    Matrix_RotateX(gGfxMatrix, (((s32) var_t6 * 360.0f) / 65536.0f) * M_DTOR, MTXF_APPLY);
-    vtxFound = 0;
-    if (limb->dList != NULL) {
-        Animation_FindBoundingBox(limb->dList, 8192, min, max, &vtxFound, &vtxCount, &vtxList);
-        if (vtxFound) {
-            boundBox[0].x = boundBox[3].x = boundBox[4].x = boundBox[7].x = min->x;
-            boundBox[0].y = boundBox[1].y = boundBox[4].y = boundBox[5].y = max->y;
-            boundBox[0].z = boundBox[1].z = boundBox[2].z = boundBox[3].z = max->z;
-            boundBox[1].x = boundBox[2].x = boundBox[5].x = boundBox[6].x = max->x;
-            boundBox[2].y = boundBox[3].y = boundBox[6].y = boundBox[7].y = min->y;
-            boundBox[4].z = boundBox[5].z = boundBox[6].z = boundBox[7].z = min->z;
-            for (i = 0; i < 8; i++) {
-                // Matrix_MultVec3f(gGfxMatrix, boundBox[i], boundBoxRot[i]); should logically go here
-            }
-            *min = *max = boundBoxRot[0];
-            for (i = 1; i < 8; i++) {
-                min->x = MIN(min->x, boundBoxRot[i].x);
-                max->x = MAX(max->x, boundBoxRot[i].x);
-                min->y = MIN(min->y, boundBoxRot[i].y);
-                max->y = MAX(max->y, boundBoxRot[i].y);
-                min->z = MIN(min->z, boundBoxRot[i].z);
-                max->z = MAX(max->z, boundBoxRot[i].z);
-            }
-        }
-    }
-}
-#endif
 
 f32 Math_SmoothStepToF(f32* value, f32 target, f32 scale, f32 maxStep, f32 minStep) {
     f32 val = *value;
@@ -1147,7 +1028,7 @@ s32 Graphics_GetLargeTextWidth(char* text) {
 void Graphics_DisplayLargeNumber(s32 xPos, s32 yPos, s32 number) {
     s32 place;
     s32 startNumber = 0;
-        gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
+    gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
 
     number %= 10000000;
     place = 1000000;

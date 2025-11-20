@@ -110,7 +110,7 @@ static uint8_t gfx_dc_start_frame(void) {
 
     // skip if frame took longer than (gVIsPerFrame * 16.666667) ms
     if (elapsed > ActualFrameTime) {
-        skip_debounce = 3; // skip a max of once every 4 (1+3) frames
+        skip_debounce = 1;// skip every other 3; // skip a max of once every 4 (1+3) frames
         last_time = cur_time;
         return 0;
     }

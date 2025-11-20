@@ -5882,6 +5882,7 @@ void Macbeth_CheckTrainHitbox(PlayerShot* shot) {
     s32 modFrames;
 
     radius = shot->scale * 40.0f;
+    radius *= radius;
     actor = &gActors[0];
 
     for (i = 0; i < ARRAY_COUNT(gActors); i++, actor++) {
@@ -5895,25 +5896,41 @@ void Macbeth_CheckTrainHitbox(PlayerShot* shot) {
             if (temp_ft3 != 0) {
                 for (j = 0; j < temp_ft3; j++, hitboxData += 6) {
                     if (hitboxData[0] == 200000.0f) {
+#if 0
                         Matrix_RotateZ(gCalcMatrix, -hitboxData[3] * M_DTOR, MTXF_NEW);
                         Matrix_RotateX(gCalcMatrix, -hitboxData[1] * M_DTOR, MTXF_APPLY);
                         Matrix_RotateY(gCalcMatrix, -hitboxData[2] * M_DTOR, MTXF_APPLY);
                         Matrix_RotateZ(gCalcMatrix, -actor->obj.rot.z * M_DTOR, MTXF_APPLY);
                         Matrix_RotateX(gCalcMatrix, -actor->obj.rot.x * M_DTOR, MTXF_APPLY);
                         Matrix_RotateY(gCalcMatrix, -actor->obj.rot.y * M_DTOR, MTXF_APPLY);
+#else
+                        shz_xmtrx_init_rotation_z( -hitboxData[3] * M_DTOR );
+                        shz_xmtrx_apply_rotation_x( -hitboxData[1] * M_DTOR );
+                        shz_xmtrx_apply_rotation_y( -hitboxData[2] * M_DTOR );
+                        shz_xmtrx_apply_rotation_z( -actor->obj.rot.z * M_DTOR );
+                        shz_xmtrx_apply_rotation_x( -actor->obj.rot.x * M_DTOR );
+                        shz_xmtrx_apply_rotation_y( -actor->obj.rot.y * M_DTOR );
+
+#endif
                         hitboxData += 4;
                     } else {
+#if 0
                         Matrix_RotateZ(gCalcMatrix, -actor->obj.rot.z * M_DTOR, MTXF_NEW);
                         Matrix_RotateX(gCalcMatrix, -actor->obj.rot.x * M_DTOR, MTXF_APPLY);
                         Matrix_RotateY(gCalcMatrix, -actor->obj.rot.y * M_DTOR, MTXF_APPLY);
-                    }
+#else
+                        shz_xmtrx_init_rotation_z( -actor->obj.rot.z * M_DTOR );
+                        shz_xmtrx_apply_rotation_x( -actor->obj.rot.x * M_DTOR );
+                        shz_xmtrx_apply_rotation_y( -actor->obj.rot.y * M_DTOR );
+#endif
+                        }
 
                     if ((j == modFrames) && (hitboxData[1] > -100.0f) && (hitboxData[3] > -100.0f)) {
                         shotDistSrc.x = shot->obj.pos.x - actor->obj.pos.x;
                         shotDistSrc.y = shot->obj.pos.y - actor->obj.pos.y;
                         shotDistSrc.z = shot->obj.pos.z - actor->obj.pos.z;
 
-                        Matrix_MultVec3fNoTranslate(gCalcMatrix, &shotDistSrc, &shotDist);
+                        Matrix_MultVec3fNoTranslate_NoLoad(/* gCalcMatrix, */&shotDistSrc, &shotDist);
 
                         test.x = (hitboxData[4] + actor->obj.pos.x) - (actor->obj.pos.x + shotDist.x);
                         test.y = (hitboxData[2] + actor->obj.pos.y) - (actor->obj.pos.y + shotDist.y);
@@ -5923,7 +5940,8 @@ void Macbeth_CheckTrainHitbox(PlayerShot* shot) {
                             test.z *= 0.6f;
                         }
 
-                        if (VEC3F_MAG(&test) < radius) {
+                        //if (VEC3F_MAG(&test) < radius) {
+                        if (shz_mag_sqr3f(test.x, test.y, test.z) < radius)  {
                             actor->dmgPart = j;
                             actor->dmgType = -1;
                             if ((gPlayer[0].trueZpos - actor->obj.pos.z) < 5000.0f) {

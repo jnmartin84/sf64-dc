@@ -46,7 +46,8 @@ f32 Rand_ZeroOne(void) {
     sRandSeed2 = (s32)sr2;
     sRandSeed3 = (s32)sr3;
 
-    return fabsf(Math_ModF(shz_divf(sr1, f30269) + shz_divf(sr2, f30307) + shz_divf(sr3, f30323), 1.0f));
+//    return fabsf(Math_ModF(shz_divf(sr1, f30269) + shz_divf(sr2, f30307) + shz_divf(sr3, f30323), 1.0f));
+    return fabsf(Math_ModF(shz_dot6f(sr1, sr2, sr3, recip30269, recip30307, recip30323), 1.0f));
 }
 
 void Rand_SetSeed(s32 seed1, s32 seed2, s32 seed3) {
@@ -80,7 +81,8 @@ f32 Rand_ZeroOneSeeded(void) {
     sSeededRandSeed2 = (s32)sr2;
     sSeededRandSeed3 = (s32)sr3;
 
-    return fabsf(Math_ModF(shz_divf(sr1, f30269) + shz_divf(sr2, f30307) + shz_divf(sr3, f30323), 1.0f));
+//    return fabsf(Math_ModF(shz_divf(sr1, f30269) + shz_divf(sr2, f30307) + shz_divf(sr3, f30323), 1.0f));
+    return fabsf(Math_ModF(shz_dot6f(sr1, sr2, sr3, recip30269, recip30307, recip30323), 1.0f));
 }
 
 #define F_PI_2      1.57079633f   /* pi/2           */
@@ -102,10 +104,10 @@ f32 Math_Atan2F(f32 y, f32 x) {
     float abs_y = fabsf(y);
 	float absy_plus_absx = abs_y + fabsf(x);
 	float inv_absy_plus_absx = shz_fast_invf(absy_plus_absx);
-	float angle = F_PI_2 - copysignf(F_PI_4, x);
-	float r = (x - copysignf(abs_y, x)) * inv_absy_plus_absx;
+	float angle = F_PI_2 - shz_copysignf(F_PI_4, x);
+	float r = (x - shz_copysignf(abs_y, x)) * inv_absy_plus_absx;
 	angle += (0.1963f * r * r - 0.9817f) * r;
-	return copysignf(angle, y);
+	return shz_copysignf(angle, y);
 #else
     if ((y == 0.0f) && (x == 0.0f)) {
         return 0.0f;

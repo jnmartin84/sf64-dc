@@ -506,7 +506,7 @@ void Corneria_CoGranga_DecideNextAction(CoGranga* this) {
         }
     }
 
-    if ((gBossFrameCount > 800) && ((gBossFrameCount % 512) == 0)) {
+    if ((gBossFrameCount > 800) && ((gBossFrameCount & 511/* % 512 */) == 0)) {
         if (gCoUturnCount < 2) {
             Radio_PlayMessage(gMsg_ID_20237, RCID_PEPPY);
         } else if (D_edisplay_801615D0.z > 0.0f) {

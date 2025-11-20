@@ -200,7 +200,7 @@ void Controller_UpdateInput(void) {
 
         state = maple_dev_status(cont);
 
-        if (strcmp("/pc", fnpre) == 0) {
+        if (1) { //(strcmp("/pc", fnpre) == 0) {
             if (state->ltrig && state->rtrig) {
                 if (state->buttons & CONT_START) {
                     // profiler_stop();

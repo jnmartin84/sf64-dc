@@ -4180,6 +4180,8 @@ void ActorEvent_Draw(ActorEvent* this) {
                         Matrix_SetGfxMtx(&gMasterDisp);
                         Texture_BlendRGBA16(this->fwork[EVA_FWORK_16], 16 * 11, D_VE1_9003890, D_VE1_9003DF0,
                                             D_VE1_9003330);
+                                            // texture that uses the palette
+                        gfx_texture_cache_invalidate(D_VE1_9002F30);
                         gSPDisplayList(gMasterDisp++, aVe1BlockerDL);
                     }
                     break;

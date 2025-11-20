@@ -987,7 +987,7 @@ static void  __attribute__((noinline)) gfx_sp_pop_matrix(void/* UNUSED uint32_t 
 float my_acosf (float a)
 {
     float r, s, t;
-    s = copysignf(2.0f, -a);
+    s = shz_copysignf(2.0f, -a);
     t = fmac(s, a, 2.0f);
     s = shz_sqrtf_fsrra(t);
     r =             4.25032340e-7f;
@@ -1073,8 +1073,8 @@ static void __attribute__((noinline)) gfx_sp_vertex_light(uint8_t n_vertices, ui
 
 		float intensity[2] = {0.0f, 0.0f};
 
-		intensity[0] = light0_scale * shz_dot8f(vn->n[0], vn->n[1], vn->n[2], 0, rsp.current_lights_coeffs[0][0],
-                                             rsp.current_lights_coeffs[0][1], rsp.current_lights_coeffs[0][2], 0);
+		intensity[0] = light0_scale * shz_dot6f(vn->n[0], vn->n[1], vn->n[2], rsp.current_lights_coeffs[0][0],
+                                             rsp.current_lights_coeffs[0][1], rsp.current_lights_coeffs[0][2]);
 		MEM_BARRIER();
 
 		float recw = shz_fast_invf(w);
@@ -1087,8 +1087,8 @@ static void __attribute__((noinline)) gfx_sp_vertex_light(uint8_t n_vertices, ui
         d->_y = y * recw;
 
 		if (rsp.current_lights[4].col[0] || rsp.current_lights[4].col[1] || rsp.current_lights[4].col[2]) {
-			intensity[1] = light4_scale * shz_dot8f(vn->n[0], vn->n[1], vn->n[2], 0, rsp.current_lights_coeffs[4][0],
-												rsp.current_lights_coeffs[4][1], rsp.current_lights_coeffs[4][2], 0);
+			intensity[1] = light4_scale * shz_dot6f(vn->n[0], vn->n[1], vn->n[2], rsp.current_lights_coeffs[4][0],
+												rsp.current_lights_coeffs[4][1], rsp.current_lights_coeffs[4][2]);
 			MEM_BARRIER();
 
 			if (intensity[0] > 0.0f) {
@@ -1111,18 +1111,12 @@ static void __attribute__((noinline)) gfx_sp_vertex_light(uint8_t n_vertices, ui
         }
 
 		int maxc = MAX4(255,r,g,b);
-		float recipmaxc = 255.0f / (float)maxc;
+		float recipmaxc = shz_div_posf(255.0f,(float)maxc);
 
 		r = (uint32_t)((float)r * recipmaxc);
 		g = (uint32_t)((float)g * recipmaxc);
 		b = (uint32_t)((float)b * recipmaxc);
 
-//        if (r > 255)
-//            r = 255;
-//        if (g > 255)
-//            g = 255;
-//        if (b > 255)
-//            b = 255;
         d->color.r = table256[r];
         d->color.g = table256[g];
         d->color.b = table256[b];
@@ -1287,7 +1281,7 @@ static void __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx2
     uint8_t c1 = l_clip_rej[1];
     uint8_t c2 = l_clip_rej[2];
     MEM_BARRIER_PREF(v3);
-#if 1
+
 	if ((c0 & c1 & c2) & 0x3f) {
         // The whole triangle lies outside the visible area
         return;
@@ -1303,23 +1297,23 @@ static void __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx2
             // If all vertices lie behind the eye, the triangle will be rejected anyway.
             cross = -cross;
         }
-        switch (rsp.geometry_mode & G_CULL_BOTH) {
+         switch (rsp.geometry_mode & G_CULL_BOTH) {
             case G_CULL_FRONT:
                 if (cross >= 0) {
                     return;
                 }
                 break;
             case G_CULL_BACK:
-                if (cross <= 0) {
+                 if (cross <= 0) {
                     return;
                 }
-                break;
+                 break;
             default:
                 break;
         }
     }
-#endif
-    if (matrix_dirty) {
+
+	if (matrix_dirty) {
         gfx_flush();
         glMatrixMode(GL_PROJECTION);
         glLoadMatrixf((const float*) rsp.MP_matrix);
@@ -1636,14 +1630,15 @@ static void __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx2
 
                 uint32_t max_c;// = 255;
                 max_c = MAX5(255, color_r, color_g, color_b, color_a);
-                float rmc = shz_fast_invf((float) max_c);
+                float maxc = shz_div_posf(255.0f,(float)max_c);
+				//shz_fast_invf((float) max_c);
 
                 float rn, gn, bn, an;
                 rn = (float) color_r;
                 gn = (float) color_g;
                 bn = (float) color_b;
                 an = (float) color_a;
-                float maxc = 255.0f * rmc;
+                //float maxc = 255.0f * rmc;
                 rn *= maxc;
                 gn *= maxc;
                 bn *= maxc;
@@ -1694,7 +1689,7 @@ static void __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx2
         }
 
         if (lit) {
-			if ((gGameState == 8) || gCurrentLevel == LEVEL_AREA_6 || gCurrentLevel == LEVEL_VENOM_1 || gCurrentLevel == LEVEL_VENOM_2 || gCurrentLevel == LEVEL_VENOM_ANDROSS) {
+			if ((gGameState == 8) || gCurrentLevel == LEVEL_AREA_6 || /* gCurrentLevel == LEVEL_VENOM_1 || gCurrentLevel == LEVEL_VENOM_2 ||  */gCurrentLevel == LEVEL_VENOM_ANDROSS) {
 			color_r = ((color_r * light_r) >> 8) & 0xff;
 			color_g = ((color_g * light_g) >> 8) & 0xff;
 			color_b = ((color_b * light_b) >> 8) & 0xff;
@@ -1942,13 +1937,14 @@ static void __attribute__((noinline)) gfx_sp_quad_2d(uint8_t vtx1_idx, uint8_t v
 
             float rn, gn, bn, an;
             uint32_t max_c = MAX5(255, color_r, color_g, color_b, color_a);
-            float rmc = shz_fast_invf((float) max_c);
+//            float rmc = shz_fast_invf((float) max_c);
+            float maxc = shz_div_posf(255.0f,(float)max_c);
 
             rn = (float) color_r;
             gn = (float) color_g;
             bn = (float) color_b;
             an = (float) color_a;
-            float maxc = 255.0f * rmc;
+//            float maxc = 255.0f * rmc;
             rn *= maxc;
             gn *= maxc;
             bn *= maxc;
@@ -2697,8 +2693,10 @@ extern int ending_great_fox;
 extern Gfx aGreatFoxDamagedDL[];
 extern Gfx aGreatFoxIntactDL[];
 #include <kos.h>
-
+extern float debug_millis_gfx;
 static void  __attribute__((noinline)) gfx_run_dl(Gfx* cmd) {
+	uint64_t dstart;
+	uint64_t dend;
 	ending_great_fox = 0;
 
 	cmd = seg_addr((uintptr_t) cmd);
@@ -2709,6 +2707,8 @@ static void  __attribute__((noinline)) gfx_run_dl(Gfx* cmd) {
 	}
 
 	__builtin_prefetch(cmd);
+
+		dstart = perf_cntr_timer_ns();
 
 	for (;;) {
 		uint32_t opcode = cmd->words.w0 >> 24;
@@ -2807,7 +2807,8 @@ static void  __attribute__((noinline)) gfx_run_dl(Gfx* cmd) {
 			
 			case (uint8_t) G_ENDDL: {
 				ending_great_fox = 0;
-				return;
+				goto endfunc;
+//				return;
 			}
 			
 			case (uint8_t) G_SETGEOMETRYMODE:
@@ -2930,6 +2931,10 @@ static void  __attribute__((noinline)) gfx_run_dl(Gfx* cmd) {
 		}
 		__builtin_prefetch((void*)(++cmd) + 32);
 	}
+endfunc:
+		dend = perf_cntr_timer_ns();
+		uint32_t last_delta = (uint32_t)((uint64_t)(dend - dstart));
+        debug_millis_gfx = last_delta * 1e-6f;
 }
 
 static void gfx_sp_reset() {

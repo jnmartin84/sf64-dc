@@ -682,10 +682,12 @@ static char wavfn[256];
 int played_wav = 0;
 int played_fanfare_wav = 0;
 
+#define USE_MIXER_MUSIC 0
+
 void Audio_StartSequence(u8 seqPlayId, u8 seqId, u8 seqArgs, u16 fadeInTime) {
     u8 i;
     s32 pad;
-#if 1
+#if !USE_MIXER_MUSIC
     played_wav = 0;
     if (seqPlayId == SEQ_PLAYER_BGM && ((seqId&0x7fff) >= 2 && (seqId&0x7fff) <= 65)) {
 
@@ -802,7 +804,7 @@ void Audio_StartSequence(u8 seqPlayId, u8 seqId, u8 seqArgs, u16 fadeInTime) {
 }
 
 void Audio_StopSequence(u8 seqPlayId, u16 fadeOutTime) {
-#if 1
+#if !USE_MIXER_MUSIC
     if (/* played_fanfare_wav &&  */(seqPlayId == SEQ_PLAYER_FANFARE))
     {
 		wav_destroy(WAV_PLAYER_FANFARE);
@@ -1163,9 +1165,11 @@ void Audio_UpdateActiveSequences(void) {
             for (i = 0; i < 3; i++) {
                 fadeMod *= sActiveSequences[seqPlayId].mainVolume.fadeMod[i] * recip127;// / 127.0f;
             }
+#if !USE_MIXER_MUSIC
             if (seqPlayId == SEQ_PLAYER_BGM && wav_is_playing(WAV_PLAYER_BGM)) {
                 wav_volume(WAV_PLAYER_BGM, (u8) (fadeMod * 160.0f));
             }
+#endif
             SEQCMD_SET_SEQPLAYER_VOLUME(seqPlayId, sActiveSequences[seqPlayId].mainVolume.fadeTimer,
                                         (u8) (fadeMod * 127.0f));
             sActiveSequences[seqPlayId].mainVolume.fadeActive = 0;
@@ -1616,7 +1620,7 @@ void Audio_ChooseActiveSfx(u8 bankId) {
                 entry->distance = 0.0f;
             } else {
                 yScaled = *entry->yPos * 0.4f;// / 2.5f;
-                entry->distance = shz_mag_sqr4f((*entry->xPos), yScaled, (*entry->zPos), 0); 
+                entry->distance = shz_mag_sqr3f((*entry->xPos), yScaled, (*entry->zPos)); 
 //                SQ(*entry->xPos) + SQ(yScaled) + SQ(*entry->zPos);
             }
             importance = SFX_IMPORT(entry->sfxId);
@@ -2726,7 +2730,7 @@ void Audio_PlayFanfare(u16 seqId, u8 bgmVolume, u8 bgmFadeoutTime, u8 bgmFadeinT
     if (Audio_GetActiveSeqId(SEQ_PLAYER_BGM) != NA_BGM_PLAYER_DOWN) {
         Audio_SetSequenceFade(SEQ_PLAYER_BGM, 1, bgmVolume, bgmFadeoutTime);
         SEQCMD_SETUP_RESTORE_SEQPLAYER_VOLUME(SEQ_PLAYER_FANFARE, SEQ_PLAYER_BGM, bgmFadeinTime);
-        //SEQCMD_PLAY_SEQUENCE(SEQ_PLAYER_FANFARE, 0, 0, seqId);
+#if !USE_MIXER_MUSIC
         wav_pause(WAV_PLAYER_BGM);
         played_fanfare_wav = 0;
         if ( ((seqId&0x7fff) >= 2 && (seqId&0x7fff) <= 65)) {
@@ -2755,6 +2759,9 @@ void Audio_PlayFanfare(u16 seqId, u8 bgmVolume, u8 bgmFadeoutTime, u8 bgmFadeinT
                 return;        
             }
         }
+#else
+        SEQCMD_PLAY_SEQUENCE(SEQ_PLAYER_FANFARE, 0, 0, seqId);
+#endif
     }
 }
 

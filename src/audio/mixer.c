@@ -12,6 +12,10 @@
 #endif
 
 #include "mixer.h"
+
+#include "sh4zam.h"
+
+#if 1
 void n64_memcpy(void* dst, const void* src, size_t size) {
     if (!size)
         return;
@@ -104,6 +108,7 @@ n64copy1:
     *bdst = *bsrc;
     return;
 }
+#endif
 
 #define recip8192 0.00012207f
 #define recip2048 0.00048828f
@@ -757,7 +762,6 @@ void aSetLoopImpl(ADPCM_STATE* adpcm_loop_state) {
     }
 }
 
-#include "sh4zam.h"
 
 inline static void shz_xmtrx_load_3x4_rows(const shz_vec4_t* r1, const shz_vec4_t* r2, const shz_vec4_t* r3) {
     asm volatile(R"(
