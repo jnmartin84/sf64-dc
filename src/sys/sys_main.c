@@ -345,7 +345,7 @@ int ever_init_wav = 0;
 #include "james2.xbm"
 
 vmufb_t vmubuf;
-#define DEBUG_PROF 1
+#define DEBUG_PROF 0
 
 #if DEBUG_PROF
 typedef struct debug_float_s {
@@ -360,8 +360,17 @@ debug_float_t debug_millis_gfx;
 debug_float_t debug_millis_sfx;
 debug_float_t debug_millis_tex;
 
-
+debug_float_t debug_count_tris;
+debug_float_t debug_count_quads;
 void update_debug_float(debug_float_t *df) {
+    int polys = (df == &debug_count_tris) || (df == &debug_count_quads);
+    // maybe if ((df->val > (2.0f * df->avg)) return
+//    if (df->avg != 0.0f && (df->val > (4.0f * df->avg))) { //((df->val > 90.0f)/*  && df->min == 0.0f && df->max == 0.0f && df->avg == 0.0f */) {
+//        return;
+//    }
+    if (!polys) {
+    if ((df->val > 50.0f) && (df->val > (df->avg * 2.0f))) return;
+    }
     if ((df->min == 0.0f) || (df->val < df->min))
         df->min = df->val;
     if (df->val > df->max)
@@ -380,6 +389,12 @@ void Main_ThreadEntry(void* arg0) {
 	// high resolution frame timing
 	uint64_t dstart = 0;
 	uint64_t dend = 0;
+    memset(&debug_millis_gfx, 0, sizeof(debug_float_t));
+    memset(&debug_millis_main, 0, sizeof(debug_float_t));
+    memset(&debug_millis_sfx, 0, sizeof(debug_float_t));
+    memset(&debug_millis_tex, 0, sizeof(debug_float_t));
+    memset(&debug_count_tris, 0, sizeof(debug_float_t));
+    memset(&debug_count_quads, 0, sizeof(debug_float_t));
 #endif
 
     OSMesg osMesg;
@@ -389,10 +404,6 @@ void Main_ThreadEntry(void* arg0) {
     u8 visPerFrame;
     u8 validVIsPerFrame;
 
-    memset(&debug_millis_gfx, 0, sizeof(debug_float_t));
-    memset(&debug_millis_main, 0, sizeof(debug_float_t));
-    memset(&debug_millis_sfx, 0, sizeof(debug_float_t));
-    memset(&debug_millis_tex, 0, sizeof(debug_float_t));
 
     maple_device_t* dev = NULL;
     if ((dev = maple_enum_type(0, MAPLE_FUNC_LCD))) {
@@ -401,9 +412,9 @@ void Main_ThreadEntry(void* arg0) {
         vmufb_present(&vmubuf, dev);
     }
 
-    maple_device_t *puru = maple_enum_type(0, MAPLE_FUNC_PURUPURU);
+/*     maple_device_t *puru = maple_enum_type(0, MAPLE_FUNC_PURUPURU);
 printf("Product Name: %s\n", puru->info.product_name);
-printf("Product License: %s\n", puru->info.product_license);
+printf("Product License: %s\n", puru->info.product_license); */
 
     printf("loading audio files\n");
     AudioLoad_LoadFiles();
@@ -519,6 +530,10 @@ run_game_loop:
         Game_Update();
 #if DEBUG_PROF
         int r,g,b=0;
+        sprintf(dbgmsg, "TRIS %d   %d - %d - %d", (int)debug_count_tris.val, (int)debug_count_tris.min, (int)debug_count_tris.max, (int)debug_count_tris.avg);
+        debug_msg(dbgmsg, 40, 100-24, 0, 255, 255);
+//        sprintf(dbgmsg, "QUADS %d   %d - %d - %d", (int)debug_count_quads.val, (int)debug_count_quads.min, (int)debug_count_quads.max, (int)debug_count_quads.avg);
+  //      debug_msg(dbgmsg, 40, 100-24, 0, 255, 255);
         if (debug_millis_main.val >= 33 && debug_millis_gfx.val < 33) {
             r = 255; g = 255;
         } else if (debug_millis_main.val >= 33 && debug_millis_gfx.val >= 33) {

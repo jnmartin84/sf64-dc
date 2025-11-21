@@ -2710,6 +2710,8 @@ void Player_InitVersus(void) {
     }
     Play_ClearObjectData();
 }
+#define DEBUG_PROF 0
+#if DEBUG_PROF
 typedef struct debug_float_s {
     float val;
     float min;
@@ -2721,13 +2723,19 @@ extern debug_float_t debug_millis_main;
 extern debug_float_t debug_millis_gfx;
 extern debug_float_t debug_millis_sfx;
 extern debug_float_t debug_millis_tex;
-
+extern debug_float_t debug_count_tris;
+extern debug_float_t debug_count_quads;
+#endif
 void Play_Init(void) {
     s32 i;
+#if DEBUG_PROF
     memset(&debug_millis_gfx, 0, sizeof(debug_float_t));
     memset(&debug_millis_main, 0, sizeof(debug_float_t));
     memset(&debug_millis_sfx, 0, sizeof(debug_float_t));
     memset(&debug_millis_tex, 0, sizeof(debug_float_t));
+    memset(&debug_count_tris, 0, sizeof(debug_float_t));
+    memset(&debug_count_quads, 0, sizeof(debug_float_t));
+#endif
     gArwingSpeed = 40.0f;
 
     for (i = 0; i < ARRAY_COUNT(gControllerRumbleEnabled); i++) {
