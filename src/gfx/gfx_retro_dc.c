@@ -132,6 +132,9 @@ struct __attribute__((aligned(32))) LoadedVertex {
 	struct RGBA color;
 };
 
+struct __attribute__((aligned(16))) LoadedNormal {
+	float x,y,z,w;
+};
 
 
 // bits 0 - 5 -> clip_rej
@@ -192,6 +195,7 @@ static uint8_t color_combiner_pool_size;
 
 static struct RSP {
 	struct LoadedVertex __attribute__((aligned(32))) loaded_vertices[MAX_VERTICES + 4];
+	struct LoadedNormal __attribute__((aligned(32))) loaded_normals[MAX_VERTICES + 4];
 	struct __attribute__((aligned(32))) dc_fast_t loaded_vertices_2D[4];
 
 	float modelview_matrix_stack[11][4][4] __attribute__((aligned(32)));
@@ -1004,7 +1008,7 @@ static void  __attribute__((noinline)) gfx_sp_pop_matrix(void/* UNUSED uint32_t 
         }
     }
 #endif
-	rsp.lights_changed = 0;	
+	//rsp.lights_changed = 0;	
 	matrix_dirty = 1;
 }
 
@@ -1068,7 +1072,7 @@ extern GameState gGameState;
 
 float __attribute__((aligned(32))) COEFF_MTX[3][3];
 float __attribute__((aligned(32))) COLOR_MTX[3][3];
-
+#if 0
 static void __attribute__((noinline)) gfx_sp_vertex_light(uint8_t n_vertices, uint8_t dest_index, const Vtx* vertices) {
 	float __attribute__((aligned(32))) matrix[4][4];
 	shz_dcache_alloc_line(&rsp.loaded_vertices[dest_index]);
@@ -1190,6 +1194,135 @@ static void __attribute__((noinline)) gfx_sp_vertex_light(uint8_t n_vertices, ui
         d->v = V * 0.03125f;
     }
 }
+#endif
+
+static void __attribute__((noinline)) gfx_sp_vertex_light_step1(uint8_t n_vertices, uint8_t dest_index, const Vtx* vertices) {
+	float __attribute__((aligned(32))) matrix[4][4];
+	shz_dcache_alloc_line(&rsp.loaded_vertices[dest_index]);
+	for (uint8_t i = 0; i < n_vertices; i++, dest_index++) {
+        const Vtx_tn* vn = &vertices[i].n;
+		MEM_BARRIER_PREF(vn);
+        struct LoadedVertex* d = &rsp.loaded_vertices[dest_index];
+        struct LoadedNormal* n = &rsp.loaded_normals[dest_index];
+
+		float x, y, z, w;
+        shz_vec4_t out = shz_xmtrx_trans_vec4((shz_vec4_t) { .x = vn->ob[0], .y = vn->ob[1], .z = vn->ob[2], .w = 1.0f });
+		MEM_BARRIER();
+
+        x = out.x;
+        y = out.y;
+        z = out.z;
+        w = out.w;
+
+		n->x = vn->n[0];
+		n->y = vn->n[1];
+		n->z = vn->n[2];
+
+		// trivial clip rejection
+		uint8_t cr = 128 | ((w < 0) ? 64 : 0x00);
+
+		if (z > w)
+			cr |= 32;
+		if (z < -w)
+			cr |= 16;
+
+		if (y > w)
+			cr |= 8;
+		if (y < -w)
+			cr |= 4;
+		
+		if (x > w)
+			cr |= 2;
+		if (x < -w)
+			cr |= 1;
+		clip_rej[dest_index] = cr;
+
+		d->x = vn->ob[0];
+        d->y = vn->ob[1];
+        d->z = vn->ob[2];
+
+		float recw = shz_fast_invf(w);
+        short U = (vn->tc[0] * (int)rsp.texture_scaling_factor.s) >> 16;
+        short V = (vn->tc[1] * (int)rsp.texture_scaling_factor.t) >> 16;
+
+		shz_dcache_alloc_line(&rsp.loaded_vertices[dest_index+1]);
+
+		d->_x = x * recw;
+        d->_y = y * recw;
+
+        if (rsp.geometry_mode & G_TEXTURE_GEN) {
+            float dotx; 
+            float doty;
+			{
+                register float fr8  asm ("fr8")  = vn->n[0];
+                register float fr9  asm ("fr9")  = vn->n[1];
+                register float fr10 asm ("fr10") = vn->n[2];
+                register float fr11 asm ("fr11") = 0;
+ 
+                doty = recip127 * shz_dot8f(fr8, fr9, fr10, fr11, rsp.current_lookat_coeffs[0][0],
+                                            rsp.current_lookat_coeffs[0][1], rsp.current_lookat_coeffs[0][2], 0);
+
+                dotx = recip127 * shz_dot8f(fr8, fr9, fr10, fr11, rsp.current_lookat_coeffs[1][0],
+                                            rsp.current_lookat_coeffs[1][1], rsp.current_lookat_coeffs[1][2], 0);
+            }
+
+ 			if (dotx < -1.0f)
+                dotx = -1.0f;
+            else if (dotx > 1.0f)
+                dotx = 1.0f;
+
+            if (doty < -1.0f)
+                doty = -1.0f;
+            else if (doty > 1.0f)
+                doty = 1.0f;
+
+            if (rsp.geometry_mode & G_TEXTURE_GEN_LINEAR) {
+                dotx = my_acosf(-dotx) * recip2pi;
+                doty = my_acosf(-doty) * recip2pi;
+            } else {
+                dotx = (dotx * 0.25f) + 0.25f;
+                doty = (doty * 0.25f) + 0.25f;
+            }
+
+            U = (int32_t) (dotx * rsp.texture_scaling_factor.s);
+            V = (int32_t) (doty * rsp.texture_scaling_factor.t);
+        }
+
+        d->u = U * 0.03125f;
+        d->v = V * 0.03125f;
+        d->color.a = vn->a;
+    }
+}
+
+static void __attribute__((noinline)) gfx_sp_vertex_light_step2(uint8_t n_vertices, uint8_t dest_index) {
+	for (uint8_t i = 0; i < n_vertices; i++, dest_index++) {
+        struct LoadedNormal* n = &rsp.loaded_normals[dest_index];
+
+        shz_vec3_t outinten = shz_xmtrx_trans_vec3((shz_vec3_t) { .x = n->x, .y = n->y, .z = n->z });
+		n->x = MAX(0.0f,outinten.x) * light0_scale;
+		n->y = MAX(0.0f,outinten.y) * light4_scale;
+		n->z = 1.0f;
+	}
+}
+
+static void __attribute__((noinline)) gfx_sp_vertex_light_step3(uint8_t n_vertices, uint8_t dest_index, const Vtx* vertices) {
+	for (uint8_t i = 0; i < n_vertices; i++, dest_index++) {
+        struct LoadedVertex* d = &rsp.loaded_vertices[dest_index];
+        struct LoadedNormal* n = &rsp.loaded_normals[dest_index];
+
+		uint8_t r;
+        uint8_t g;
+        uint8_t b;
+        shz_vec3_t outrgb = shz_xmtrx_trans_vec3((shz_vec3_t) { .x = n->x, .y = n->y, .z = n->z });
+		r = (uint8_t)MIN(outrgb.x,255);
+		g = (uint8_t)MIN(outrgb.y,255);
+		b = (uint8_t)MIN(outrgb.z,255);
+
+        d->color.r = table256[r];
+        d->color.g = table256[g];
+        d->color.b = table256[b];
+    }
+}
 
 static void __attribute__((noinline)) gfx_sp_vertex_no(uint8_t n_vertices, uint8_t dest_index, const Vtx* vertices) {
 	MEM_BARRIER_PREF(vertices);
@@ -1258,7 +1391,8 @@ static void __attribute__((noinline)) gfx_sp_vertex(uint8_t n_vertices, uint8_t 
     __builtin_prefetch(&table256[192]);
 	shz_xmtrx_load_4x4(&rsp.MP_matrix);
     if (rsp.geometry_mode & G_LIGHTING) {
-        if (rsp.lights_changed) {
+#if 1
+		if (rsp.lights_changed) {
             calculate_normal_dir(&rsp.current_lights[0], rsp.current_lights_coeffs[0]);
             calculate_normal_dir(&rsp.current_lights[4], rsp.current_lights_coeffs[4]);
             calculate_normal_dir(&rsp.lookat[0], rsp.current_lookat_coeffs[0]);
@@ -1282,7 +1416,13 @@ static void __attribute__((noinline)) gfx_sp_vertex(uint8_t n_vertices, uint8_t 
 			COLOR_MTX[1][2] = rsp.current_lights[4].col[2];
 			COLOR_MTX[2][2] = rsp.current_lights[rsp.current_num_lights - 1].col[2];
 		}
-        gfx_sp_vertex_light(n_vertices, dest_index, segmented_to_virtual(vertices));
+#endif
+		gfx_sp_vertex_light_step1(n_vertices, dest_index, segmented_to_virtual(vertices));
+		shz_xmtrx_load_3x3(&COEFF_MTX);
+		gfx_sp_vertex_light_step2(n_vertices, dest_index);
+		shz_xmtrx_load_3x3(&COLOR_MTX);
+		gfx_sp_vertex_light_step3(n_vertices, dest_index, segmented_to_virtual(vertices));
+
 	} else {
         gfx_sp_vertex_no(n_vertices, dest_index, segmented_to_virtual(vertices));
     }
@@ -2084,11 +2224,12 @@ printf("update lookat\n");
 #endif
 
 static void gfx_update_light(uint8_t index, const void* data) {
-//	if (memcmp(rsp.current_lights + ((index - G_MV_L0) >> 1), data, sizeof(Light_t))) {
+	if (memcmp(rsp.current_lights + ((index - G_MV_L0) >> 1), data, sizeof(Light_t))) {
 		// NOTE: reads out of bounds if it is an ambient light
 		n64_memcpy(rsp.current_lights + ((index - G_MV_L0) >> 1), data, sizeof(Light_t));
 		rsp.lights_changed = 1;
-//	}
+
+			}
 }
 
 static void  gfx_sp_movemem(uint8_t index, const void* data) {
@@ -3253,7 +3394,7 @@ static void __attribute__((noinline)) gfx_run_dl(Gfx* cmd) {
 static void gfx_sp_reset() {
 	rsp.modelview_matrix_stack_size = 0;
 	rsp.current_num_lights = 0;
-	rsp.lights_changed = 1;
+	//rsp.lights_changed = 1;
 	rendering_state.textures[0]->cms = 6;
 	rendering_state.textures[0]->cmt = 6;
 	rendering_state.textures[1]->cms = 6;
