@@ -1196,6 +1196,27 @@ static void __attribute__((noinline)) gfx_sp_vertex_light(uint8_t n_vertices, ui
 }
 #endif
 
+uint8_t trivial_reject(float x, float y, float z, float w) {
+    uint8_t cr = 0;
+
+	if (z > w)
+        cr |= 32;
+    if (z < -w)
+        cr |= 16;
+
+    if (y > w)
+        cr |= 8;
+    if (y < -w)
+        cr |= 4;
+
+    if (x > w)
+        cr |= 2;
+    if (x < -w)
+        cr |= 1;
+
+	return cr;
+}
+
 static void __attribute__((noinline)) gfx_sp_vertex_light_step1(uint8_t n_vertices, uint8_t dest_index, const Vtx* vertices) {
 	float __attribute__((aligned(32))) matrix[4][4];
 	shz_dcache_alloc_line(&rsp.loaded_vertices[dest_index]);
@@ -1220,22 +1241,7 @@ static void __attribute__((noinline)) gfx_sp_vertex_light_step1(uint8_t n_vertic
 
 		// trivial clip rejection
 		uint8_t cr = 128 | ((w < 0) ? 64 : 0x00);
-
-		if (z > w)
-			cr |= 32;
-		if (z < -w)
-			cr |= 16;
-
-		if (y > w)
-			cr |= 8;
-		if (y < -w)
-			cr |= 4;
-		
-		if (x > w)
-			cr |= 2;
-		if (x < -w)
-			cr |= 1;
-		clip_rej[dest_index] = cr;
+		clip_rej[dest_index] = cr | trivial_reject(x, y, z, w);
 
 		d->x = vn->ob[0];
         d->y = vn->ob[1];
@@ -1360,7 +1366,7 @@ static void __attribute__((noinline)) gfx_sp_vertex_no(uint8_t n_vertices, uint8
 
         // trivial clip rejection
 		uint8_t cr = ((w < 0) ? 64 : 0x00);
-
+#if 0
 		if (z > w)
 			cr |= 32;
 		if (z < -w)
@@ -1376,6 +1382,8 @@ static void __attribute__((noinline)) gfx_sp_vertex_no(uint8_t n_vertices, uint8
 		if (x < -w)
 			cr |= 1;
 		clip_rej[dest_index] = cr;
+#endif
+		clip_rej[dest_index] = cr | trivial_reject(x, y, z, w);
 	}
 }
 // y before x in the index number in the abi cmd that loads the lookats
