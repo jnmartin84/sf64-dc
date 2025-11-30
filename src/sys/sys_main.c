@@ -460,7 +460,6 @@ run_game_loop:
         gSysFrameCount++;
         Graphics_InitializeTask(gSysFrameCount);
         Controller_UpdateInput();
-        Controller_Rumble();
         gSPSegment(gUnkDisp1++, 0, 0);
         gSPDisplayList(gMasterDisp++, gGfxPool->unkDL1);
         Game_Update();
@@ -473,6 +472,7 @@ run_game_loop:
 
         Audio_Update();
         gfx_end_frame();
+        Controller_Rumble();
         thd_pass();
     }
 }
