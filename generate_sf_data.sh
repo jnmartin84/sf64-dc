@@ -36,8 +36,8 @@ if [ ! -d "$SF_MUSIC_PATH" ]; then
         echo "Error: neither wget nor curl found on this system."
         echo "Your build will play music with CPU mixer. This is slow."
     fi
+    cd ..
 fi
-cd ..
 
 mkdir -p $SF_DATA_PATH
 
