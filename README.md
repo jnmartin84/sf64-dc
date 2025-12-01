@@ -1,4 +1,4 @@
-#### 0. Setup Dreamcast tooling
+## 0. Setup Dreamcast tooling
 
 sh4-elf toolchain (gcc 14.2 is tested), KOS v2.2.1, kos-ports/libGL all need built and installed.
 
@@ -12,22 +12,21 @@ then
 
 and then...
 
-#### 1. Install build dependencies
+## 1. Install build dependencies
 
-### Windows
+#### Windows
 
 For Windows 10, install WSL and a distribution by following this
 [Windows Subsystem for Linux Installation Guide](https://docs.microsoft.com/en-us/windows/wsl/install-win10).
 We recommend using Debian or Ubuntu 22.04 Linux distributions.
 
-### Linux (Native or under WSL / VM)
+#### Linux (Native or under WSL / VM)
 
 The build process has the following package requirements:
 
 * make
 * git
 * build-essential
-* binutils-mips-linux-gnu
 * python3
 * pip3
 * libpng-dev
@@ -36,23 +35,23 @@ Under Debian / Ubuntu (which we recommend using), you can install them with the 
 
 ```bash
 sudo apt update
-sudo apt install make cmake git build-essential binutils-mips-linux-gnu python3 python3-pip clang-format-14 clang-tidy clang-tools
+sudo apt install make cmake git build-essential python3 python3-pip clang-format-14 clang-tidy clang-tools
 ```
 
-### MacOS
+#### MacOS
 
 Install [Homebrew](https://brew.sh) and the following dependencies:
 ```
 brew update
-brew install coreutils make pkg-config tehzz/n64-dev/mips64-elf-binutils
+brew install coreutils make pkg-config
 ```
-#### 2. go into the repo
+## 2. go into the repo
 
 ```bash
 cd sf64-dc
 ```
 
-#### 3. Install python dependencies
+## 3. Install python dependencies
 
 The build process has a few python packages required that are located in `/tools/requirements-python.txt`.
 
@@ -63,7 +62,7 @@ python3 -m pip install -r ./tools/requirements-python.txt
 ```
 * Depending on your python version, you might need to add  --break-system-packages, or use venv.
 
-#### 4. Update submodules & build toolchain
+## 4. Update submodules & build toolchain
 
 ```bash
 git submodule update --init --recursive
@@ -72,35 +71,55 @@ make
 cd ..
 ```
 
-for macos, you may need to change `make` to the following:
+for systems with newer CMake, you may need to change `make` to the following:
 `CMAKE_POLICY_VERSION_MINIMUM=3.5 gmake`
 
 for the n64 tools build
 
-#### 5. Prepare a base ROM
+## 5. Prepare a base ROM
 
 Copy your ROM to the root of this new project directory, and rename the file of the baserom to reflect the version of ROM you are using. ex: `baserom.us.rev1.z64`
-* Make sure the ROM is the US version, revision 1.1 (REV A).
+* Make sure the ROM is the US version, revision 1.1 (REV A) with the sha1sum of `09f0d105f476b00efa5303a3ebc42e60a7753b7a`.
 
-#### 6. Make and Build the ROM
+## 6. Make and Build the ROM
 
 To start the extraction/build process, run the following command:
 
 ```bash
 make -f Makefile.dc init
 ```
-This will create the build folders, a new folder with the assembly as well as containing the disassembly of nearly all the files containing code.
 
-Eventually you will see an error about failing to build something in `asm/revN/region`.
+After, you can generate the type of file you desire:
 
-Do an `rm -rf asm`.
+### CDI files
+Creating CDI files requires [mkdcdisc](https://gitlab.com/simulant/mkdcdisc) to be installed and in your PATH (it's recommended to place `mkdcdisc` in `/opt/toolchains/dc/bin` to accomplish this).
 
-Run `make -f Makefile.dc` again. 
+#### CDI file for burning to CD-R (padded for performance)
+```bash
+make -f Makefile.dc cdi-cdr
+```
 
-Run `./generate_sf_data.sh` to make segmented ELF files for link-time symbol resolution and for binary data file generation.
+#### For ODE (GDEMU, MODE, USB-GDROM, etc.)
+```bash
+make -f Makefile.dc cdi-ode
+```
 
-Lastly, run `./link.sh` to create an output ELF file.
+### DSISO for DreamShell ISO Loader
+Creating DreamShell ISO files requires `mkisofs` to be installed. This is usually provided by the `cdrtools` or `cdrkit` package provided by your operating system's package manager.
 
-If you want a CDI, check out `test.sh` for details on how to make one.
+```bash
+make -f Makefile.dc dsiso
+```
+
+### Plain files for dcload-serial or dcload-ip
+```bash
+make -f Makefile.dc files-zip
+```
+
+### All of the above
+If you want to go wild and build all of the above types, you can do the following:
+```bash
+make -f Makefile.dc all
+```
 
 Good luck.
