@@ -683,7 +683,7 @@ sf-data: initted.touch
 $(MUSIC_FILES): $(MUSIC_ARCHIVE)
 	@mkdir -p $(SF_MUSIC_PATH)
 	$(call print2,Unpacking music archive...)
-	@tar xzf $(MUSIC_ARCHIVE) -C $(SF_MUSIC_PATH) --exclude='._*' --warning=no-unknown-keyword
+	@tar xzf $(MUSIC_ARCHIVE) -C $(SF_MUSIC_PATH) --exclude='._*'
 	$(call print2,Converting WAV to ADPCM...)
 	@for f in $(SF_MUSIC_PATH)/*.wav; do \
 		[ -e "$$f" ] || continue; \
