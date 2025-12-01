@@ -1,4 +1,43 @@
 SF_DATA_PATH=sf_data
+SF_MUSIC_PATH=music
+
+OUT="./sf64_ost_seqid.tgz"
+URL="https://archive.org/download/sf64_ost_seqid/sf64_ost_seqid.tgz"
+
+
+# Check if directory exists
+if [ ! -d "$SF_MUSIC_PATH" ]; then
+    echo "Music does not exist, downloading..."
+    mkdir -p $SF_MUSIC_PATH
+    cd $SF_MUSIC_PATH
+    if command -v wget >/dev/null 2>&1; then
+        wget -O "$OUT" "$URL"
+        tar xzf "$OUT"
+        rm "$OUT"
+        for f in *.wav; do
+            [ -e "$f" ] || continue
+            adpout="${f%.wav}.adp"
+            echo "Converting: $f -> $adpout"
+            $KOS_BASE/utils/wav2adpcm/wav2adpcm -n -i -t "$f" "$adpout"
+        done
+        rm *.wav
+    elif command -v curl >/dev/null 2>&1; then
+        curl -L -o "$OUT" "$URL"
+        tar xzf "$OUT"
+        rm "$OUT"
+        for f in *.wav; do
+            [ -e "$f" ] || continue
+            adpout="${f%.wav}.adp"
+            echo "Converting: $f -> $adpout"
+            $KOS_BASE/utils/wav2adpcm/wav2adpcm -n -i -t "$f" "$adpout"
+        done
+        rm "./*.wav"
+    else
+        echo "Error: neither wget nor curl found on this system."
+        echo "Your build will play music with CPU mixer. This is slow."
+    fi
+fi
+cd ..
 
 mkdir -p $SF_DATA_PATH
 
