@@ -210,20 +210,16 @@ void Controller_Init(void) {
     maple_attach_callback(MAPLE_FUNC_PURUPURU, Rumble_Scan);
     maple_detach_callback(MAPLE_FUNC_PURUPURU, Rumble_Scan);
 
-#if 1
     rumble_worker_attr.create_detached = 1;
     rumble_worker_attr.stack_size = 4096;
     rumble_worker_attr.stack_ptr = NULL;
     rumble_worker_attr.prio = PRIO_DEFAULT;
     rumble_worker_attr.label = "Controller_RumbleThread";
     rumble_worker_thread = thd_worker_create_ex(&rumble_worker_attr, Controller_RumbleThread, NULL);
-#endif
 }
 
 u16 ucheld;
 extern char* fnpre;
-int shader_debug_toggle = 0;
-int cc_debug_toggle = 0;
 #include <string.h>
 void Map_Main(void);
 
@@ -323,25 +319,23 @@ int last_read = SI_SAVE_SUCCESS;
 int last_write = SI_SAVE_SUCCESS;
 
 void Save_ReadData(void) {
-#if 1
     if ((gStartNMI == 0) && (Save_ReadEeprom(&gSaveIOBuffer) == 0)) {
         // osSendMesg(&gSaveMesgQueue, (OSMesg) SI_SAVE_SUCCESS, OS_MESG_NOBLOCK);
         last_read = SI_SAVE_SUCCESS;
         return;
     }
-#endif
+
     last_read = SI_SAVE_FAILED;
     // osSendMesg(&gSaveMesgQueue, (OSMesg) SI_SAVE_FAILED, OS_MESG_NOBLOCK);
 }
 
 void Save_WriteData(void) {
-#if 1
     if ((gStartNMI == 0) && (Save_WriteEeprom(&gSaveIOBuffer) == 0)) {
         // osSendMesg(&gSaveMesgQueue, (OSMesg) SI_SAVE_SUCCESS, OS_MESG_NOBLOCK);
         last_write = SI_SAVE_SUCCESS;
         return;
     }
-#endif
+
     last_write = SI_SAVE_FAILED;
     // osSendMesg(&gSaveMesgQueue, (OSMesg) SI_SAVE_FAILED, OS_MESG_NOBLOCK);
 }

@@ -1,7 +1,7 @@
 #include "global.h"
 #include "assets/ast_titania.h"
 #include "prevent_bss_reordering.h"
-#if 1
+
 void Ground_801B5244(s32 arg0, s32 arg1);
 void Ground_801B5FE0(s32 arg0, s32 arg1, s32 arg2);
 void Ground_801B68A8(Gfx** dlist, s32 arg1, s32 arg2);
@@ -69,10 +69,7 @@ Vec3f D_i5_801C62D8={0.0f};
 UnkStruct_801C62E8 D_i5_801C62E8[20]={0};
 Vec3fa D_i5_801C65B8[3][15][4]={0};
 s32 D_i5_801C6E28[4][3]={0};
-#endif
 
-
-//#include <stdio.h>
 s32 Ground_801B49D0(Actor* actor) {
     s32 i;
     s32 found = 0;
@@ -103,7 +100,6 @@ void Ground_801B4A54(UnkStruct_801C62E8* arg0) {
   //      arg0->unk_1C = arg0->unk_20 = 0;
     memset(arg0, 0, sizeof(UnkStruct_801C62E8));
 }
-//#include <stdio.h>
 
 void Ground_801B4AA8(s32* arg0, s32* arg1) {
     Actor actor = {0};
@@ -123,10 +119,7 @@ void Ground_801B4AA8(s32* arg0, s32* arg1) {
     s32 j=0;
 
     for (i = 0; i < ARRAY_COUNT(D_i5_801C62E8); i++, var_s2++) {
-        //printf("i %d ", i);
         if (var_s2->unk_00 != 0) {
-            //printf("var_s2->unk_00 %d\n", var_s2->unk_00);
-
             unk_04 = var_s2->unk_04;
             unk_08 = var_s2->unk_08;
             unk_10 = var_s2->unk_10;
@@ -135,12 +128,10 @@ void Ground_801B4AA8(s32* arg0, s32* arg1) {
             var_s1 = arg0;
 
             if (arg0 == NULL) {
-                //printf("\targ0 %08x\n", arg0);
                 unk_04 = D_i5_801BA970[unk_04];
             }
 
             if (var_s2->unk_00 == 1) {
-                //printf("\tunk_04 %d\n", unk_04);
                 switch (unk_04) {
                     case 0:
                         break;
@@ -151,27 +142,27 @@ void Ground_801B4AA8(s32* arg0, s32* arg1) {
                         break;
 
                     case 4:
-//                        //printf("ICHIMAI POLYGON ON\n"); // ONE PLANE POLYGON ON
+                        // ONE PLANE POLYGON ON
                         *arg1 |= 2;
                         break;
 
                     case 5:
-//                        //printf("CHIKEI POLYGON OFF\n"); // TERRAIN POLYGON OFF
+                        // TERRAIN POLYGON OFF
                         *arg1 &= ~1;
                         break;
 
                     case 6:
-//                        //printf("CHIKEI POLYGON ON\n"); // TERRAIN POLYGON ON
+                        // TERRAIN POLYGON ON
                         *arg1 |= 1;
                         break;
 
                     case 7:
-//                        //printf("ICHIMAI POLYGON OFF\n"); // ONE PLANE POLYGON OFF
+                        // ONE PLANE POLYGON OFF
                         *arg1 &= ~2;
                         break;
 
                     case 8:
-//                        //printf("RANDAMU YAMA\n"); // RANDOM MOUNTAIN
+                        // RANDOM MOUNTAIN
                         var_s2->unk_20 = 5000.0f;
                         break;
                 }
@@ -188,17 +179,15 @@ void Ground_801B4AA8(s32* arg0, s32* arg1) {
                         f32 recip_unk_10 = shz_fast_invf(unk_10);
                         for (j = 0; j < 16; j++, var_s1++) {
                             temp_fs0 = (j * 220.0f * D_i5_801BE740) - 1760.0f - unk_08;
-                            //printf("\t\ttemp_fs0 %f unk_10 %f\n", temp_fs0, unk_10);
+
                             if (fabsf(temp_fs0) <= unk_10) {
                                 temp_fs1 = sinf((var_s2->unk_20 * recip_unk_18) * (M_DTOR * 180.0f));
                                 var_fv0 = cosf((temp_fs0 * recip_unk_10) * (M_DTOR * 90.0f));
                                 *var_s1 += var_fv0 * unk_14 * temp_fs1;
-                                //printf("\t\t\t*var_s1 = %d\n", *var_s1);
                             }
                         }
                     }
                     var_s2->unk_20 -= 220.0f;
-                    //printf("\tvar_s2->unk_20 %f\n", var_s2->unk_20);
                     if (var_s2->unk_20 <= 0.0f) {
                         Ground_801B4A54(var_s2);
                     }
@@ -391,13 +380,9 @@ void Ground_801B58AC(Gfx** dList, f32 arg1) {
 
     RCP_SetupDL(dList, 29);
     RCP_SetFog(dList, gFogRed, gFogGreen, gFogBlue, gFogAlpha, gFogNear, gFogFar);
-  //      gDPSetCombineLERP((*dList)++,TEXEL0, 0, SHADE, 0, 0, 0, 0, TEXEL0, COMBINED, 0, ENVIRONMENT, PRIMITIVE, COMBINED, 0,
-    //                       PRIMITIVE, 0);
-    //gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255); 
     spC4 = D_i5_801C5C14;
 
     if (D_i5_801C5C14 & 2) {
-        ////printf("D_i5_801C5C14 & 2\n");
         gDPSetupTile((*dList)++, G_IM_FMT_RGBA, G_IM_SIZ_16b, 32, 32, 0, 0, G_TX_MIRROR | G_TX_WRAP,
                      G_TX_NOMIRROR | G_TX_WRAP, 5, 5, G_TX_NOLOD, G_TX_NOLOD);
         gDPLoadTileTexture((*dList)++, D_TI_6001BA8, G_IM_FMT_RGBA, G_IM_SIZ_16b, 32, 32);
@@ -408,13 +393,10 @@ void Ground_801B58AC(Gfx** dList, f32 arg1) {
         gSPDisplayList((*dList)++, D_i5_801BA950);
         gSPPopMatrix((*dList)++, G_MTX_MODELVIEW);
         Ground_801B4AA8(NULL, &spC4);
-        ////printf("\tspC4 %d\n", spC4);
     }
 
     if (D_i5_801C5C14 & 1) {
-        ////printf("D_i5_801C5C14 & 1\n");
         if (D_i5_801C5C0C == 1) {
-          //  //printf("\tD_i5_801C5C0C == 1\n");
             D_i5_801C5C0C = 0;
             temp_hi = (D_i5_801C5C08 + 27) % 28;
             for (i = 0; i < ARRAY_COUNT(D_i5_801C1D48[0]); i++) {
@@ -423,7 +405,7 @@ void Ground_801B58AC(Gfx** dList, f32 arg1) {
             D_i5_801C2448[temp_hi] = D_i5_801BE740;
             D_i5_801C24B8[temp_hi] = D_i5_801BE744;
             Ground_801B4AA8(D_i5_801C1D48[temp_hi], &spC4);
-            ////printf("\tspC4 %d\n", spC4);
+
             for (i = 0; i < 16; i++) {
                 temp_v0 = &D_i5_801BE748[D_i5_801C5C04][i][0];
                 temp_t1 = &D_i5_801BE748[D_i5_801C5C04][i][1];
@@ -524,7 +506,7 @@ void Ground_801B5FE0(s32 arg0, s32 arg1, s32 arg2) {
                 v3.y = (v1.z * v2.x) - (v1.x * v2.z);
                 v3.z = (v1.x * v2.y) - (v1.y * v2.x);
 
-//                var_fv0 = VEC3F_MAG(&v3);
+                //var_fv0 = VEC3F_MAG(&v3);
                 var_fv0 = 127.0f * shz_vec3_magnitude_inv((shz_vec3_t){v3.x,v3.y,v3.z});
 
                 D_i5_801C65B8[i0][i1][i2].a[0] = (v3.x * var_fv0);//127.0f) / var_fv0;
@@ -563,8 +545,8 @@ void Ground_801B5FE0(s32 arg0, s32 arg1, s32 arg2) {
                 }
 
                 for (i2 = 0; i2 < 4; i2++) {
-//                    var_fv0 = sqrtf(SQ(D_i5_801C6E28[i2][0]) + SQ(D_i5_801C6E28[i2][1]) + SQ(D_i5_801C6E28[i2][2]));
-                var_fv0 = 127.0f * shz_vec3_magnitude_inv((shz_vec3_t){D_i5_801C6E28[i2][0],D_i5_801C6E28[i2][1],D_i5_801C6E28[i2][2]});
+                    //var_fv0 = sqrtf(SQ(D_i5_801C6E28[i2][0]) + SQ(D_i5_801C6E28[i2][1]) + SQ(D_i5_801C6E28[i2][2]));
+                    var_fv0 = 127.0f * shz_vec3_magnitude_inv((shz_vec3_t){D_i5_801C6E28[i2][0],D_i5_801C6E28[i2][1],D_i5_801C6E28[i2][2]});
                     D_i5_801C6E28[i2][0] = (D_i5_801C6E28[i2][0] * var_fv0); // / var_fv0) * 127.0f;
                     D_i5_801C6E28[i2][1] = (D_i5_801C6E28[i2][1] * var_fv0); // / var_fv0) * 127.0f;
                     D_i5_801C6E28[i2][2] = (D_i5_801C6E28[i2][2] * var_fv0); // / var_fv0) * 127.0f;
@@ -598,7 +580,7 @@ void Ground_801B68A8(Gfx** dlist, s32 arg1, s32 arg2) {
     gDPSetupTile((*dlist)++, G_IM_FMT_RGBA, G_IM_SIZ_16b, 32, 32, 0, 0, G_TX_MIRROR | G_TX_WRAP,
                  G_TX_MIRROR | G_TX_WRAP, 5, 5, G_TX_NOLOD, G_TX_NOLOD);
     gDPLoadTileTexture((*dlist)++, D_TI_6001BA8, G_IM_FMT_RGBA, G_IM_SIZ_16b, 32, 32);
-    //printf("%s MatrixTranslate %f,%f,%f\n", __func__, D_i5_801C62D8.x, D_i5_801C62D8.y, D_i5_801C62D8.z + D_i5_801C5C10);
+
     Matrix_Translate(gGfxMatrix, D_i5_801C62D8.x, D_i5_801C62D8.y, D_i5_801C62D8.z + D_i5_801C5C10, MTXF_NEW);
     Matrix_ToMtx(gGfxMtx);
     gSPMatrix((*dlist)++, gGfxMtx++, G_MTX_NOPUSH | G_MTX_MUL | G_MTX_MODELVIEW);

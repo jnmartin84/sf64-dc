@@ -229,10 +229,8 @@ void eeprom_flush(UNUSED void* arg) {
 }
 
 s32 osEepromProbe(UNUSED OSMesgQueue* mq) {
-#if 1
     maple_device_t* vmudev = NULL;
     
-
     if (!eeprom_init) {
         mutex_init(&eeprom_lock, MUTEX_TYPE_NORMAL);
         eeprom_init = 1;
@@ -301,14 +299,10 @@ s32 osEepromProbe(UNUSED OSMesgQueue* mq) {
     //vid_border_color(0, 0, 0);
     
     return EEPROM_TYPE_4K;
-#else
-    return 0;
-#endif
 }
 uint8_t* vmu_load_data(int channel, const char* name, uint8_t* outbuf, uint32_t* bytes_read);
 
 static int reopen_vmu_eeprom(void) {
-#if 1
     maple_device_t* vmudev = NULL;
     
     vmudev = maple_enum_type(0, MAPLE_FUNC_MEMCARD);
@@ -319,14 +313,10 @@ static int reopen_vmu_eeprom(void) {
     eeprom_file = fs_open(get_vmu_fn(vmudev, "sf64.rec"), O_RDWR | O_META);
     
     return (eeprom_file == FILEHND_INVALID);
-#else
-    return 1;
-#endif
 }
 
 s32 osEepromLongRead(UNUSED OSMesgQueue* mq, u8 address, u8* buffer,
                      int length) {
-#if 1
     if (eeprom_file == FILEHND_INVALID) {
         if (reopen_vmu_eeprom()) {
             return 1;
@@ -365,9 +355,6 @@ s32 osEepromLongRead(UNUSED OSMesgQueue* mq, u8 address, u8* buffer,
         
         return 1;
     }
-#else
-    return 1;
-#endif
 }
 
 s32 osEepromRead(OSMesgQueue* mq, u8 address, u8* buffer) {
@@ -376,7 +363,6 @@ s32 osEepromRead(OSMesgQueue* mq, u8 address, u8* buffer) {
 
 s32 osEepromLongWrite(UNUSED OSMesgQueue* mq, u8 address, u8* buffer,
                       int length) {
-#if 1
     if (eeprom_file == FILEHND_INVALID) {
         if (reopen_vmu_eeprom()) {
             return 1;
@@ -413,9 +399,6 @@ s32 osEepromLongWrite(UNUSED OSMesgQueue* mq, u8 address, u8* buffer,
         
         return 1;
     }
-#else
-    return 1;
-#endif
 }
 
 s32 osEepromWrite(OSMesgQueue* mq, unsigned char address, unsigned char* buffer) {

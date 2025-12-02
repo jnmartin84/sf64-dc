@@ -1219,12 +1219,12 @@ Acmd* AudioSynth_ProcessNote(s32 noteIndex, NoteSubEu* noteSub, NoteSynthesisSta
         flags = A_INIT;
     }
 
-//    if (noteSub->bitField1.bookOffset == 3) {
-//        printf("unkcmd19\n");
-//        aUnkCmd19(aList++, 0, aiBufLen * SAMPLE_SIZE, DMEM_TEMP, DMEM_TEMP);
-//    }
+#if 0
+    if (noteSub->bitField1.bookOffset == 3) {
+        aUnkCmd19(aList++, 0, aiBufLen * SAMPLE_SIZE, DMEM_TEMP, DMEM_TEMP);
+    }
+#endif
 
-#if 1
     gain = noteSub->gain;
     if (gain != 0) {
         // A gain of 0x10 (a UQ4.4 number) is equivalent to 1.0 and represents no volume change
@@ -1233,7 +1233,6 @@ Acmd* AudioSynth_ProcessNote(s32 noteIndex, NoteSubEu* noteSub, NoteSynthesisSta
         }
         aHiLoGain(aList++, gain, (aiBufLen + SAMPLES_PER_FRAME) * SAMPLE_SIZE, DMEM_TEMP, 0);
     }
-#endif
 
     aList = AudioSynth_ProcessEnvelope(aList, noteSub, synthState, aiBufLen, DMEM_TEMP, HAAS_EFFECT_DELAY_NONE, flags);
     return aList;

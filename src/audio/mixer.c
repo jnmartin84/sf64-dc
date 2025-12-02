@@ -15,6 +15,9 @@
 
 #include "sh4zam.h"
 
+#define MEM_BARRIER() asm volatile("" : : : "memory");
+#define MEM_BARRIER_PREF(ptr) asm volatile("pref @%0" : : "r"((ptr)) : "memory")
+
 void n64_memcpy(void* dst, const void* src, size_t size) {
     if (!size)
         return;
@@ -75,9 +78,9 @@ void n64_memcpy(void* dst, const void* src, size_t size) {
             b2 = *bsrc++;
             b3 = *bsrc++;
             b4 = *bsrc++;
-#if 1
-            asm volatile("" : : : "memory");
-#endif
+
+            MEM_BARRIER();
+
             *bdst++ = b1;
             *bdst++ = b2;
             *bdst++ = b3;
@@ -142,9 +145,6 @@ static struct __attribute__((aligned(32))) {
     uint16_t rate_wet;
     uint16_t vol_wet;
 } rspa = { 0 };
-
-#define MEM_BARRIER() asm volatile("" : : : "memory");
-#define MEM_BARRIER_PREF(ptr) asm volatile("pref @%0" : : "r"((ptr)) : "memory")
 
 static float __attribute__((aligned(32))) resample_table[64][4] = {
     {

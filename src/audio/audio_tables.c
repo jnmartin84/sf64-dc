@@ -11,9 +11,6 @@ typedef struct {
     /* 0x0E */ s16 shortData3;
 } AudioTableEntry; // size = 0x10
 #endif
-AudioTable gBackupSampleBankTable;
-AudioTable gBackupSeqTable;
-AudioTable gBackupSoundFontTable;
 
 AudioTable gSampleBankTableInit = {
     { 4, 0, 0 },
@@ -24,7 +21,6 @@ AudioTable gSampleBankTableInit = {
         { 0x678C80, 0x0C3900, MEDIUM_CART, CACHEPOLICY_4 },
     },
 };
-
 
 AudioTable gSeqTableInit = {
     { SEQ_ID_MAX, 0, 0 },
