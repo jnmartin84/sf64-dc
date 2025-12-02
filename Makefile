@@ -14,6 +14,12 @@ LOWRES ?= 0
 ### Enable 32KHz sample rate
 USE_32KHZ ?= 0
 
+### Enable loading assets from FAT32-formatted IDE drive
+IDE_SUPPORT ?= 0
+
+### Enable loading assets from FAT32-formatted SD card
+SDCARD_SUPPORT ?= 0
+
 ### Enable testing mode
 # Turns on no damage, extra everything, and level select
 TESTING_MODE ?= 0
@@ -102,6 +108,14 @@ endif
 
 ifeq ($(USE_32KHZ),1)
   CFLAGS += -DUSE_32KHZ
+endif
+
+ifeq ($(IDE_SUPPORT),1)
+  CFLAGS += -DIDE_SUPPORT
+endif
+
+ifeq ($(SDCARD_SUPPORT),1)
+  CFLAGS += -DSDCARD_SUPPORT
 endif
 
 ifeq ($(TESTING_MODE),1)
@@ -545,6 +559,11 @@ ASSET_SYMBOLS := $(foreach elf,$(ASSET_ELFS),-Wl,--just-symbols=build/src/assets
 
 # Libraries
 LIBS := -lc -lm -lkallisti -lGL
+
+# We need libkosfat for IDE/SD card support
+ifneq (,$(filter 1,$(IDE_SUPPORT) $(SDCARD_SUPPORT)))
+  LIBS += -lkosfat
+endif
 
 default: $(ELF)
 

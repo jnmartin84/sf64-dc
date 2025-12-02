@@ -10,6 +10,14 @@
 #include "gfx/gfx_dc.h"
 #include <stdlib.h>
 
+#if defined(IDE_SUPPORT) || defined(SDCARD_SUPPORT)
+#include <dc/g1ata.h>
+#include <dc/sd.h>
+#include <fat/fs_fat.h>
+
+static kos_blockdev_t dev;
+#endif
+
 #if USE_32KHZ
 #define SAMPLES_HIGH 560
 #define SAMPLES_LOW 528
@@ -342,26 +350,114 @@ void Main_ThreadEntry(void* arg0) {
     }
 }
 
-int main(int argc, char **argv) {
-    FILE* fntest = fopen("/pc/sf_data/logo.bin", "rb");
-    if (NULL == fntest) {
-        fntest = fopen("/cd/sf_data/logo.bin", "rb");
-        if (NULL == fntest) {
-            printf("Cant load from /pc or /cd");
-            printf("\n");
-           exit(-1);
-        } else {
-            printf("             using /cd for assets\n");
-            fnpre = "/cd";
-        }
-    } else {
-        printf("             using /pc for assets\n");
-        fnpre = "/pc";
-    }
+#if defined(SDCARD_SUPPORT)
+void sdcard_init(void) {
+    uint8_t partition_type;
 
+    if (sd_init())
+        return;
+
+    if (sd_blockdev_for_partition(0, &dev, &partition_type))
+        return;
+
+    if (fs_fat_mount("/sd", &dev, FS_FAT_MOUNT_READWRITE))
+        return;
+
+    printf("mounted sd card at /sd\n");
+}
+#endif
+
+#if defined(IDE_SUPPORT)
+void ide_init(void) {
+    uint8_t partition_type;
+
+    if (g1_ata_init())
+        return;
+
+    if (g1_ata_blockdev_for_partition(0, 1, &dev, &partition_type))
+        return;
+
+    if (fs_fat_mount("/ide", &dev, FS_FAT_MOUNT_READWRITE))
+        return;
+
+    printf("mounted ide partition at /ide\n");
+}
+#endif
+
+int main(int argc, char **argv) {
+    printf("Searching for assets...\n");
+
+    FILE* fntest;
+
+    printf("/pc: ");
+    fntest = fopen("/pc/sf_data/logo.bin", "rb");
+    if (fntest) {
+        printf("found. Using /pc for assets.\n");
+        fnpre = "/pc";
+        goto assetsfound;
+    }
+    printf("not found.\n");
+
+    printf("/cd: ");
+    fntest = fopen("/cd/sf_data/logo.bin", "rb");
+    if (fntest) {
+        printf("found. Using /cd for assets.\n");
+        fnpre = "/cd";
+        goto assetsfound;
+    }
+    printf("not found.\n");
+
+#if defined(IDE_SUPPORT) || defined(SDCARD_SUPPORT)
+    fs_fat_init();
+#endif
+
+#if defined(SDCARD_SUPPORT)
+    printf("/sd/sf64-dc: ");
+    sdcard_init();
+
+    fntest = fopen("/sd/sf64-dc/sf_data/logo.bin", "rb");
+    if (fntest) {
+        printf("found. Using /sd/sf64-dc for assets.\n");
+        fnpre = "/sd/sf64-dc";
+        goto assetsfound;
+    }
+    printf("not found.\n");
+#endif
+
+#if defined(IDE_SUPPORT)
+    printf("/ide/sf64-dc: ");
+    ide_init();
+
+    fntest = fopen("/ide/sf64-dc/sf_data/logo.bin", "rb");
+    if (fntest) {
+        printf("found. Using /ide/sf64-dc for assets.\n");
+        fnpre = "/ide/sf64-dc";
+        goto assetsfound;
+    }
+    printf("not found.\n");
+#endif
+
+    printf("Couldn't find assets, quitting...\n");
+    exit(-1);
+
+assetsfound:
     fclose(fntest);
 
     Main_ThreadEntry(NULL);
+
+#if defined(IDE_SUPPORT)
+    fs_fat_unmount("/ide");
+    g1_ata_shutdown();
+#endif
+
+#if defined(SDCARD_SUPPORT)
+    fs_fat_unmount("/sd");
+    sd_shutdown();
+#endif
+
+#if defined(IDE_SUPPORT) || defined(SDCARD_SUPPORT)
+    fs_fat_shutdown();
+#endif
 
     return 0;
 }

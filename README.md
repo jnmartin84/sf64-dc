@@ -132,7 +132,7 @@ Creating DreamShell ISO files requires `mkisofs` to be installed. This is usuall
 make dsiso
 ```
 
-### Plain files for dcload-serial or dcload-ip
+### Plain files for dcload-serial/dcload-ip or for direct loading from IDE/SD
 ```bash
 make files-zip
 ```
