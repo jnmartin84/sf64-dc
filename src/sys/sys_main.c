@@ -247,7 +247,6 @@ volatile int called = 0;
 extern void AudioLoad_LoadFiles(void);
 
 void Graphics_SetTask(void) {
-    called++;
     gGfxTask->mesgQueue = &gGfxTaskMesgQueue;
     gGfxTask->msg = (OSMesg) TASK_MESG_2;
     gGfxTask->task.t.type = M_GFXTASK;
@@ -266,9 +265,9 @@ void Graphics_SetTask(void) {
     gGfxTask->task.t.data_size = (gMasterDisp - gGfxPool->masterDL) * sizeof(Gfx);
     gGfxTask->task.t.yield_data_ptr = (u64*) &gOSYieldData;
     gGfxTask->task.t.yield_data_size = OS_YIELD_DATA_SIZE;
+    called++;
     if (called > 5) {
         gfx_run(gGfxPool->masterDL);
-
     }
 }
 
@@ -541,9 +540,8 @@ run_game_loop:
         gDPFullSync(gMasterDisp++);
         gSPEndDisplayList(gMasterDisp++);
         Graphics_SetTask();
-
-        Audio_Update();
         gfx_end_frame();
+        Audio_Update();
         Controller_Rumble();
         thd_pass();
 #if DEBUG_PROF
@@ -597,16 +595,14 @@ void* AudioThread(UNUSED void* arg) {
             genwait_wait((void*)&vblticker, NULL, 5, NULL);
 #endif
 
+        last_vbltick = vblticker;
+
 #if DEBUG_PROF
 		uint32_t last_delta = (uint32_t)((uint64_t)(dend - dstart));
         debug_millis_sfx.val = last_delta * 1e-6f;
 		update_debug_float(&debug_millis_sfx);
 		dstart = perf_cntr_timer_ns();
 #endif
-
-        __builtin_prefetch(audio_buffer[0]);
-        last_vbltick = vblticker;
-        __builtin_prefetch(audio_buffer[1]);
 
 #if USE_32KHZ
         int samplecount = gSysFrameCount & 1 ? SAMPLES_HIGH : SAMPLES_LOW;

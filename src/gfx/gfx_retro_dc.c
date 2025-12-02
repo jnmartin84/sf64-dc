@@ -2869,10 +2869,9 @@ endfunc:
 #endif
 }
 #endif
-#define GFX_DL_STACK_MAX 8  /* tune this to whatever nesting you expect */
-
+#define GFX_DL_STACK_MAX 4  /* tune this to whatever nesting you expect */
+static Gfx __attribute__((aligned(32))) *dl_stack[GFX_DL_STACK_MAX];
 static void __attribute__((noinline)) gfx_run_dl(Gfx* cmd) {
-    Gfx __attribute__((aligned(32))) *dl_stack[GFX_DL_STACK_MAX];
     int  dl_sp = 0;
 
     ending_great_fox = 0;
