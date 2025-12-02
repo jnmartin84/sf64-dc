@@ -2133,7 +2133,7 @@ void Effect_FireSmoke_Draw(EffectFireSmoke* this) {
                         D_800D184C[this->unk_4C].b, D_800D184C[this->unk_4C].a);
         scale = D_800D17F8[this->unk_4C] - 0.5f;
         Matrix_Scale(gGfxMatrix, scale, scale, 1.0f, MTXF_APPLY);
-        Matrix_Translate(gGfxMatrix, 0.0f, 0.0f, 5.0f, MTXF_APPLY);
+        Matrix_Translate(gGfxMatrix, 0.0f, 0.0f, 3.0f, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
         gSPDisplayList(gMasterDisp++, D_800D17A4[this->unk_4C]);
         return;
@@ -2148,9 +2148,9 @@ void Effect_FireSmoke_Draw(EffectFireSmoke* this) {
         Matrix_Scale(gGfxMatrix, 2.5f, 2.5f, 2.5f, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
         gSPDisplayList(gMasterDisp++, D_800D18A0[this->unk_4C]);
-        Matrix_Translate(gGfxMatrix, 0.0f, 0.0f, 5.0f, MTXF_APPLY);
-        Matrix_SetGfxMtx(&gMasterDisp);
     }
+    Matrix_Translate(gGfxMatrix, 0.0f, 0.0f, 3.0f, MTXF_APPLY);
+    Matrix_SetGfxMtx(&gMasterDisp);
     gSPDisplayList(gMasterDisp++, D_800D18A0[this->unk_4C]);
 }
 
