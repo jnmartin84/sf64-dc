@@ -75,6 +75,10 @@ ifeq ($(TESTING_MODE),1)
   CFLAGS += -DTESTING_MODE
 endif
 
+ifeq ($(USE_32KHZ),1)
+  CFLAGS += -DUSE_32KHZ
+endif
+
 NON_MATCHING := 1
 
 CC       := kos-cc

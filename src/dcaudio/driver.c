@@ -156,8 +156,8 @@ static bool audio_dc_init(void) {
         return false;
     }
 
-    printf("Dreamcast Audio: Initialized. Ring buffer size: %u bytes per channel.\n",
-           (unsigned int)RING_BUFFER_MAX_BYTES);
+    printf("Dreamcast Audio: Initialized. %d Hz, ring buffer size: %u bytes per channel.\n",
+           DC_AUDIO_FREQUENCY, (unsigned int)RING_BUFFER_MAX_BYTES);
 
     // Allocate the sound stream with KOS
 #if USE_32KHZ
