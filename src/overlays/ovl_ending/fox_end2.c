@@ -963,27 +963,17 @@ void Ending_80191710(u32 arg0, AssetInfo* asset) {
     Matrix_SetGfxMtx(&gMasterDisp);
     if (asset->unk_00 == aAwCockpitGlassDL) {
         gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 140);
-#if 1
         gDPSetEnvColor(gMasterDisp++, 0,0,0, 0xFF);
         gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
                         TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-#endif
         //gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 140);
-       gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK);
+        gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK);
     }  else if (asset->unk_00 == aEndBackdrop2DL) {
-      /*   Matrix_Translate(gGfxMatrix, 0,
-                     0,
-                     -1000, MTXF_APPLY);
-    Matrix_SetGfxMtx(&gMasterDisp); */
-    gSPFixDepthCut(gMasterDisp++);
+        gSPFixDepthCut(gMasterDisp++);
     } 
     gSPDisplayList(gMasterDisp++, asset->unk_00);
     if (asset->unk_00 == aEndBackdrop2DL) {
-      /*   Matrix_Translate(gGfxMatrix, 0,
-                     0,
-                     -1000, MTXF_APPLY);
-    Matrix_SetGfxMtx(&gMasterDisp); */
-    gSPFixDepthCut(gMasterDisp++);
+        gSPFixDepthCut(gMasterDisp++);
     } 
 }
 

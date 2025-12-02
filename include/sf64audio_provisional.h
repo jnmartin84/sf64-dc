@@ -238,26 +238,6 @@ typedef struct {
 #endif
 } AdpcmBook; // size >= 8, 0x8 aligned
 
-
-#if 0
-typedef struct {
-#if 1
-    /* 0x00 */ u32 isRelocated : 1; // Has the sample header been relocated (offsets to pointers)
-    /* 0x00 */ u32 unk_bit26 : 1;
-    /* 0x00 */ u32 medium : 2;      // Medium where sample is currently stored
-    /* 0x00 */ u32 codec : 4;       // The state of compression or decompression
-    /* 0x01 */ u32 size : 24;       // Size of the sample
-#endif
-    /* 0x04 */ u8* sampleAddr;      // Raw sample data. Offset from the start of the sample bank or absolute address to
-                                    // either rom or ram
-    /* 0x08 */ AdpcmLoop*
-        loop; // Adpcm loop parameters used by the sample. Offset from the start of the sound font / pointer to ram
-    /* 0x0C */ AdpcmBook*
-        book; // Adpcm book parameters used by the sample. Offset from the start of the sound font / pointer to ram
-} Sample;     // size = 0x10
-#endif
-
-
 typedef struct {
     /* 0x00 */ u32 isRelocated : 1; // Has the sample header been relocated (offsets to pointers)
     /* 0x00 */ u32 unk_bit26 : 1;

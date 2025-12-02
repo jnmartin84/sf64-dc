@@ -458,11 +458,6 @@ void Background_DrawBackdrop(void) {
                             } else {
                                 sAndrossUnkBrightness = 255.0f;
                             }
-/* #if 1
-        gDPSetEnvColor(gMasterDisp++, 0,0,0, 0xFF);
-        gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                        TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-#endif */
 
                             gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, (s32) sAndrossUnkBrightness,
                                             (s32) sAndrossUnkBrightness, (s32) gAndrossUnkAlpha);
@@ -486,11 +481,9 @@ void Background_DrawBackdrop(void) {
 
                        //     RCP_SetupDL(&gMasterDisp, SETUPDL_49);//62);
                             gDPSetEnvColor(gMasterDisp++, 255,0,127, 0xFF);
-#if 1
                             gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
                                             TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
     //                        gDPSetEnvColor(gMasterDisp++, 0,0,0, 0xFF);
-#endif
                             if (gDrawBackdrop == 5) {
                                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 64);
                             } else {

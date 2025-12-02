@@ -19,20 +19,21 @@ char* Graphics_ClearPrintBuffer(char* buf, s32 fill, s32 len) {
 s32 Graphics_Printf(const char* fmt, ...) {
     va_list args;
     va_start(args, fmt);
-//printf(fmt, args);
     Graphics_ClearPrintBuffer(gGfxPrintBuffer, 0, 100);
-    /* Lib_vsPrintf */vsprintf(gGfxPrintBuffer, fmt, args);
+    vsprintf(gGfxPrintBuffer, fmt, args);
     va_end(args);
 
     return 0;
 }
+
 extern void gfx_texture_cache_invalidate(void *addr);
+
 void Lib_Texture_Scroll(u16* texture, s32 width, s32 height, u8 mode) {
     u16* pixel = SEGMENTED_TO_VIRTUAL(texture);
     u16 tempPxl;
     s32 u;
     s32 v;
-//    gfx_texture_cache_invalidate(pixel);
+
     switch (mode) {
         case 0:
             for (u = 0; u < width; u++) {
@@ -153,9 +154,9 @@ void Animation_DrawLimb(s32 mode, Limb* limb, Limb** skeleton, Vec3f* jointTable
     s32 override = 0;
     s32 limbIndex = 0;
     Gfx* dList = NULL;
-    Vec3f trans;// = { 0.0f, 0.0f, 0.0f };
-    Vec3f rot;// = { 0.0f, 0.0f, 0.0f };
-    Vec3f pos;// = { 0.0f, 0.0f, 0.0f };
+    Vec3f trans;
+    Vec3f rot;
+    Vec3f pos;
     Vec3f origin = { 0.0f, 0.0f, 0.0f };
 
     Matrix_Push(&gCalcMatrix);
@@ -208,12 +209,12 @@ void Animation_DrawLimb(s32 mode, Limb* limb, Limb** skeleton, Vec3f* jointTable
 
 void Animation_DrawSkeleton(s32 mode, Limb** skeletonSegment, Vec3f* jointTable, OverrideLimbDraw overrideLimbDraw,
                             PostLimbDraw postLimbDraw, void* data, Matrix* transform) {
-    s32 override;//=0;
-    Limb** skeleton;//=NULL;
-    Limb* rootLimb;//=NULL;
-    s32 rootIndex;//=0;
-    Gfx* dList;//=NULL;
-    Vec3f baseTrans;// = {0.0f,0.0f,0.0f};
+    s32 override;
+    Limb** skeleton;
+    Limb* rootLimb;
+    s32 rootIndex;
+    Gfx* dList;
+    Vec3f baseTrans;
     Vec3f baseRot = {0.0f,0.0f,0.0f};
 
     Matrix_Push(&gCalcMatrix);

@@ -175,14 +175,7 @@ SHZ_FORCE_INLINE float shz_invf_fsrra(float x) SHZ_NOEXCEPT {
 
 #include <math.h>
 SHZ_FORCE_INLINE float shz_sqrtf_fsrra(float x) {
-#if 1
-    //    if (__builtin_constant_p(x))
-    //        return sqrtf(x);
-
     return x == 0.0f ? 0.0f : shz_inv_sqrtf(x) * x;
-#else
-    return sqrtf(x);
-#endif
 }
 
 SHZ_FORCE_INLINE float shz_mag_sqr3f(float x, float y, float z) SHZ_NOEXCEPT {
@@ -257,7 +250,6 @@ SHZ_FORCE_INLINE float shz_div_posf(float num, float denom) {
 
 //! Takes the inverse of \p p using a faster approximation than doing a full division.
 SHZ_FORCE_INLINE float shz_fast_invf(float x) {
-#if 1
     float inv;
 
     if (__builtin_constant_p(x))
@@ -269,9 +261,6 @@ SHZ_FORCE_INLINE float shz_fast_invf(float x) {
         inv = -inv;
 
     return inv;
-#else
-    return 1.0f / x;
-#endif
 }
 
 //! Divides \p num by \p denom using a very fast approximation

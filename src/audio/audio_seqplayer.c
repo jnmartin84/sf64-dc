@@ -589,7 +589,6 @@ void AudioSeq_SeqLayerProcessScript(SequenceLayer* layer) {
                 *stuning = __builtin_bswap32(*stuning);
 
                 layer->freqMod = _tuning;//layer->tunedSample->tuning;
-                //printf("layer->freqMod %f\n", layer->freqMod);
             } else {
                 cmd += seqPlayer->transposition + channel->transposition + layer->transposition;
                 if (cmd >= 0x80) {
@@ -615,7 +614,6 @@ void AudioSeq_SeqLayerProcessScript(SequenceLayer* layer) {
                             tuning = sample->tuning;
                             uint32_t *stuning = (uint32_t *)&tuning;
                             *stuning = __builtin_bswap32(*stuning);
-                                            //printf("tuning %f\n", tuning);
                         } else {
                             tuning = 1.0f;
                             layer->tunedSample = NULL;
@@ -669,8 +667,6 @@ void AudioSeq_SeqLayerProcessScript(SequenceLayer* layer) {
                         uint32_t *stuning = (uint32_t *)&_tuning;
                         *stuning = __builtin_bswap32(*stuning);
                         layer->freqMod = gPitchFrequencies[cmd] * _tuning;//sample->tuning;
-                                                                    //printf("layer->freqMod %f\n", layer->freqMod);
-
                     } else {
                         layer->tunedSample = NULL;
                         layer->freqMod = gPitchFrequencies[cmd];

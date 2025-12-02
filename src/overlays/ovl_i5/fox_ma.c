@@ -400,7 +400,6 @@ void Matrix_MultVec3f_NoLoad(Vec3f* src, Vec3f* dest);
 
 /* 32 x 32 pixels texture rotation */
 void Macbeth_Texture_RotateZ(u8* destTex, u8* srcTex, f32 angle) {
-#if 1
     s32 i;
     s32 j;
     s32 xDest;
@@ -436,11 +435,6 @@ void Macbeth_Texture_RotateZ(u8* destTex, u8* srcTex, f32 angle) {
         }
     }
     Matrix_Pop(&gCalcMatrix);
-#else
-    destTex = SEGMENTED_TO_VIRTUAL(destTex);
-    srcTex = SEGMENTED_TO_VIRTUAL(srcTex);
-    memcpy(destTex, srcTex, 32*32);
-#endif
 }
 
 void Macbeth_Texture_Scroll(u8* tex, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {

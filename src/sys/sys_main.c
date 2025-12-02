@@ -52,8 +52,6 @@ void _AudioInit(void) {
     }
 }
 
-s32 sGammaMode = 1;
-
 SPTask* gCurrentTask;
 SPTask* sAudioTasks[1];
 SPTask* sGfxTasks[2];
@@ -84,97 +82,20 @@ u32 gSegments[16] = {
 0x8c010000,
 };
 
-// borrowed from skmp / DCA3
-// thanks
-extern const char etext[];
-__attribute__((noinline)) void stacktrace() {
-	uint32 sp=0, pr=0;
-	__asm__ __volatile__(
-		"mov	r15,%0\n"
-		"sts	pr,%1\n"
-		: "+r" (sp), "+r" (pr)
-		:
-		: );
-	printf("[ %08X ", (uintptr_t)pr);
-	int found = 0;
-	if(!(sp & 3) && sp > 0x8c000000 && sp < 0x8d000000) {
-		char** sp_ptr = (char**)sp;
-		for (int so = 0; so < 16384; so++) {
-			if ((uintptr_t)(&sp_ptr[so]) >= 0x8d000000) {
-				//printf("(@@%08X) ", (uintptr_t)&sp_ptr[so]);
-				break;
-			}
-			if (sp_ptr[so] > (char*)0x8c000000 && sp_ptr[so] < etext) {
-				uintptr_t addr = (uintptr_t)(sp_ptr[so]);
-				// candidate return pointer
-				if (addr & 1) {
-					// dbglog(DBG_CRITICAL, "Stack trace: %p (@%p): misaligned\n", (void*)sp_ptr[so], &sp_ptr[so]);
-					continue;
-				}
-
-				uint16_t* instrp = (uint16_t*)addr;
-
-				uint16_t instr = instrp[-2];
-				// BSR or BSRF or JSR @Rn ?
-				if (((instr & 0xf000) == 0xB000) || ((instr & 0xf0ff) == 0x0003) || ((instr & 0xf0ff) == 0x400B)) {
-					printf("%08X ", (uintptr_t)instrp);
-					if (found++ > 24) {
-						//printf("(@%08X) ", (uintptr_t)&sp_ptr[so]);
-						break;
-					}
-				} else {
-					// dbglog(DBG_CRITICAL, "%p:%04X ", instrp, instr);
-				}
-			} else {
-				// dbglog(DBG_CRITICAL, "Stack trace: %p (@%p): out of range\n", (void*)sp_ptr[so], &sp_ptr[so]);
-			}
-		}
-		printf("]\n");
-	} else {
-		printf("%08x ]\n", (uintptr_t)sp);
-	}
-}
-
 extern u8 seg_used[15];
-void *virtual_to_segmented(const void *addr) {
-    unsigned int uip_addr = (unsigned int) addr;
-
-    uint32_t lowest_dist = 0xffffffff;
-    uint32_t lowest_index = 0xffffffff;
-
-    for (int i=15;i>0;i--) {
-        if (seg_used[i] == 0)
-            continue;
-        if ((uip_addr >= gSegments[i]) && (uip_addr <= (gSegments[i] + 0xffffff))) {
-            if ((uip_addr - gSegments[i]) < lowest_dist) {
-                lowest_dist = (uip_addr - gSegments[i]);
-                lowest_index = i;
-            }
-        }
-    }
-
-    if (lowest_index != 0xffffffff) {
-        return (void*)((uip_addr - gSegments[lowest_index]) | ((lowest_index+1) << 24));
-    }
-
-    return uip_addr;
-}
-
 
 void* segmented_to_virtual(const void* addr) {
-    unsigned int uip_addr = (unsigned int) addr;
+    u32 uaddr = (u32) addr;
 
-    if ((uip_addr >= 0x8c010000) && (uip_addr <= 0x8cffffff)) {
-        return uip_addr;
+    if ((uaddr >= 0x8c010000) && (uaddr <= 0x8cffffff)) {
+        return uaddr;
     }
 
-    unsigned int segment = (unsigned int) (uip_addr >> 24);// & 0x0f;
-
-    unsigned int offset = (unsigned int) uip_addr & 0x00FFFFFF;
+    u32 segment = (u32) (uaddr >> 24);
+    u32 offset = (u32) uaddr & 0x00FFFFFF;
     u32 translated_addr = gSegments[segment] + offset;
     return (void*)translated_addr;
 }
-
 
 OSMesgQueue gPiMgrCmdQueue;
 OSMesg sPiMgrCmdBuff[50];
@@ -309,8 +230,6 @@ void Main_InitMesgQueues(void) {
     osCreateMesgQueue(&gSaveMesgQueue, sSaveMsgBuff, ARRAY_COUNT(sSaveMsgBuff));
 }
 
-int ever_init_wav = 0;
-
 #include <dc/sound/sound.h>
 #include <dc/sound/stream.h>
 #include "sndwav.h"
@@ -341,10 +260,7 @@ void Main_ThreadEntry(void* arg0) {
     AudioLoad_LoadFiles();
     printf("\tdone.\n");
 
-    if (ever_init_wav == 0) {
-        ever_init_wav = 1;
-        wav_init();
-    }
+    wav_init();
 
     gVIsPerFrame = 0;
     gSysFrameCount = 0;
@@ -387,31 +303,6 @@ void Main_ThreadEntry(void* arg0) {
     Audio_InitSounds();
     vblank_handler_add(&vblfunc, NULL);
     Game_Initialize();
-
-#if defined(MEMTEST)
-    for (int mi = 0; mi < 8 * 1048576; mi += 65536) {
-        void* test_m = malloc(mi);
-        if (test_m != NULL) {
-            free(test_m);
-            test_m = NULL;
-            continue;
-        } else {
-            int bi = mi - 65536;
-            for (; bi < 8 * 1048576; bi++) {
-                test_m = malloc(bi);
-                if (test_m != NULL) {
-                    free(test_m);
-                    test_m = NULL;
-                    continue;
-                } else {
-                    printf("free ram for malloc: %d\n", bi);
-                    goto run_game_loop;
-                }
-            }
-        }
-    }
-run_game_loop:
-#endif
 
     osSendMesg(&gSerialThreadMesgQueue, (OSMesg) SI_READ_CONTROLLER, OS_MESG_NOBLOCK);
     Graphics_InitializeTask(gSysFrameCount);

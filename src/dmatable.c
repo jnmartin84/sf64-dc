@@ -2,6 +2,8 @@
 
 // NO SEGMENT 0
 
+// do not get rid of those `+2048`, you've been warned
+
 // common
 #define SEG1_BUF_SIZE 207520+2048
 u8 __attribute__((aligned(32))) SEG1_BUF[SEG1_BUF_SIZE];
@@ -67,9 +69,6 @@ u8 __attribute__((aligned(32))) SEGE_BUF[SEGE_BUF_SIZE];
 // max(9472,83856)
 #define SEGF_BUF_SIZE 83856+2048
 u8 __attribute__((aligned(32))) SEGF_BUF[SEGF_BUF_SIZE];
-
-
-//u8 SEG_BUF[15][0x60D80];
 
 u8 *SEG_BUF[15] = {
     SEG1_BUF, SEG2_BUF, SEG3_BUF, SEG4_BUF,

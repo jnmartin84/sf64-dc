@@ -505,8 +505,6 @@ s32 Title_GetRankTotalHits(void) {
 }
 
 void Title_Screen_Setup(void) {
-//printf("%s\n",__func__);
-
     bool allExpertMedals = 1;
     s32 i;
 
@@ -734,8 +732,7 @@ void Title_Screen_Update(void) {
     s32 i;
     static f32 D_menu_801ADA64[4] = { 10.0f, 20.0f, 20.0f, 20.0f };
     static f32 D_menu_801ADA74[4] = { 2.0f, 5.0f, 4.0f, 4.0f };
-    //printf("%s\n", __func__);
-    //printf("\tsSceneState is %d\n", sSceneState);
+
     switch (sSceneState) {
         case 0:
             Title_Screen_Setup();
@@ -775,7 +772,6 @@ void Title_Screen_Update(void) {
             }
 
             while (temp_fv1 == D_menu_801B8340) {
-                //printf("temp_fv1 %f D_menu_801B8340 %f\n", temp_fv1, D_menu_801B8340);
                 D_menu_801B8340 = RAND_INT(4.0f);
             }
 
@@ -1015,7 +1011,6 @@ void Title_CsGreatFox_Setup(void) {
 void Title_CsGreatFoxTraveling_Update(void) {
     f32 temp;
     f32 temp2;
-    //printf("%s\n", __func__);
 
     switch (sSceneState) {
         case 0:
@@ -1509,8 +1504,6 @@ void Title_CsGreatFoxCloseUp_Setup(void) {
 }
 
 void Title_CsGreatFoxCloseUp_Update(void) {
-      //printf("%s\n", __func__);
-
     switch (sSceneState) {
         case 0:
             Title_CsGreatFoxCloseUp_Setup();
@@ -1668,7 +1661,6 @@ void Title_CsTakeOff_Setup(void) {
 void Title_CsTakeOff_Update(void) {
     s32 i;
     f32 temp[4];
-    //printf("%s\n", __func__);
 
     switch (sSceneState) {
         case 0:
@@ -2036,7 +2028,6 @@ void Title_CsTakeOffSpace_Update(void) {
     static f32 D_menu_801AE434[4] = { -15.0f, -5.0f, 5.0f, 10.0f };
     static f32 D_menu_801AE444[4] = { -50.0f, -45.0f, -55.0f, -60.0f };
     static f32 D_menu_801AE454[4] = { 265.0f, 260.0f, 255.0f, 230.0f };
-    //printf("%s\n", __func__);
 
     switch (sSceneState) {
         case 0:
@@ -3293,9 +3284,10 @@ void Title_NextState_TitleScreen(void) {
             break;
     }
 }
+
 #define DEBUG_ENDING 0
+
 void Title_NextState_OptionMenu(void) {
-    //printf("%s\n", __func__);
     if (gControllerLock == 0) {
         switch (sLevelStartState) {
             case 0: // Wait for input
@@ -3315,17 +3307,17 @@ void Title_NextState_OptionMenu(void) {
                     sWipeHeight += 18;
                 } else {
 #if DEBUG_ENDING
- gGameState = GSTATE_ENDING;  
+                    gGameState = GSTATE_ENDING;
 #else
-                gGameState = GSTATE_MENU;
+                    gGameState = GSTATE_MENU;
 #endif
-                gNextGameStateTimer = 2;
+                    gNextGameStateTimer = 2;
                     gOptionMenuStatus = OPTION_WAIT;
                     gDrawMode = DRAW_NONE;
                     gStarCount = 0;
                     sLevelStartState = 0;
                     sWipeHeight = 0;
-                    gControllerLock = 0;//3;
+                    gControllerLock = 0; // 3;
                 }
                 break;
         }
@@ -3335,7 +3327,6 @@ void Title_NextState_OptionMenu(void) {
 void Title_Screen_Input(void) {
     f32 stickX;
     f32 stickY;
-    //printf("%s\n", __func__);
 
     if ((D_menu_801B82B0 == 0) && !D_menu_801B9040 &&
         ((gControllerPress[gMainController].stick_x != 0) || (gControllerPress[gMainController].stick_y != 0))) {

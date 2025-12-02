@@ -53,9 +53,6 @@ s32 sLevelSceneIds[] = {
 };
 #include <stdio.h>
 void Game_Initialize(void) {
-
-    //printf("%s()\n", __func__);
-
     Memory_FreeAll();
     Rand_Init();
     Rand_SetSeed(1, 29000, 9876);
@@ -126,7 +123,6 @@ void Game_SetGameState(void) {
 }
 
 s32 Game_ChangeScene(void) {
-    //printf("%s\n", __func__);
     static u8 sHoldTimer = 0;
     static u8 sSceneSelect = SCENE_LOGO;
     static u8 sCurrentSceneId = SCENE_LOGO;
@@ -149,26 +145,26 @@ s32 Game_ChangeScene(void) {
     return 0;
 }
 
-#define gSPFixDepthCut(pkt)                                       \
-    {                                                                                   \
-        Gfx* _g = (Gfx*) (pkt);                                                         \
-                                                                                        \
+#define gSPFixDepthCut(pkt)        \
+    {                              \
+        Gfx* _g = (Gfx*) (pkt);    \
+                                   \
         _g->words.w0 = 0x424C4E44; \
-        _g->words.w1 = 0x46554369;                                           \
+        _g->words.w1 = 0x46554369; \
     }
 
-#define gSPTheBlur(pkt)                                       \
-    {                                                                                   \
-        Gfx* _g = (Gfx*) (pkt);                                                         \
-                                                                                        \
+#define gSPTheBlur(pkt)            \
+    {                              \
+        Gfx* _g = (Gfx*) (pkt);    \
+                                   \
         _g->words.w0 = 0x424C4E44; \
-        _g->words.w1 = 0x46554360;                                           \
+        _g->words.w1 = 0x46554360; \
     }
-void capture_framebuffer(int num);
+
+void capture_framebuffer(void);
 
 extern uint8_t scaled2[];
 extern int force_screen_fill_colors;
-
 
 Vtx ast_blur_vtx[] = {
     {{{  6958,  5177,      -12600}, 0, {  644,     0}, {255, 255, 255, 255}}},
@@ -177,7 +173,6 @@ Vtx ast_blur_vtx[] = {
     {{{  6958, -5177,      -12600}, 0, {  644,   968}, {255, 255, 255, 255}}},
 };
 
-
 Gfx aBlurBackdropDL[] = {
     gsDPLoadTextureBlock(scaled2, G_IM_FMT_RGBA, G_IM_SIZ_16b, 32, 32, 0, G_TX_MIRROR | G_TX_WRAP, G_TX_MIRROR | G_TX_WRAP, 5, 5, G_TX_NOLOD, G_TX_NOLOD),
     gsSPVertex(ast_blur_vtx, 4, 0),
@@ -185,19 +180,17 @@ Gfx aBlurBackdropDL[] = {
     gsSPEndDisplayList(),
 };
 
-
 void Game_InitMasterDL(Gfx** dList) {
     static int last_frame_cap = 0;
 
-    //printf("%s\n", __func__);
     gSPDisplayList((*dList)++, gRcpInitDL);
     gDPSetScissor((*dList)++, G_SC_NON_INTERLACE, SCREEN_MARGIN, SCREEN_MARGIN, SCREEN_WIDTH - SCREEN_MARGIN,
                   SCREEN_HEIGHT - SCREEN_MARGIN);
     gDPSetDepthImage((*dList)++, &gZBuffer);
     gDPSetColorImage((*dList)++, G_IM_FMT_RGBA, G_IM_SIZ_16b, SCREEN_WIDTH, &gZBuffer);
     gDPSetFillColor((*dList)++, FILL_COLOR(GPACK_ZDZ(G_MAXFBZ, 0)));
-//    gDPFillRectangle((*dList)++, SCREEN_MARGIN, SCREEN_MARGIN, SCREEN_WIDTH - SCREEN_MARGIN - 1,
-  //                   SCREEN_HEIGHT - SCREEN_MARGIN - 1);
+    //    gDPFillRectangle((*dList)++, SCREEN_MARGIN, SCREEN_MARGIN, SCREEN_WIDTH - SCREEN_MARGIN - 1,
+    //                   SCREEN_HEIGHT - SCREEN_MARGIN - 1);
     gDPSetColorImage((*dList)++, G_IM_FMT_RGBA, G_IM_SIZ_16b, SCREEN_WIDTH, gFrameBuffer);
 
     // when we have captured a frame, but we arent doing blur anymore
@@ -209,7 +202,7 @@ void Game_InitMasterDL(Gfx** dList) {
     // we would need to do blur now
     if (gBlurAlpha < 255) {
         // always capture a frame
-        capture_framebuffer(0);//gGameFrameCount & 3);
+        capture_framebuffer();
         // the last time we init'd, we did *not* have a current capture
         if (!last_frame_cap) {
             // set this flag to say that we captured
@@ -220,68 +213,39 @@ void Game_InitMasterDL(Gfx** dList) {
         // otherwise, we have "one in the chamber"
         // we can do the full render with blur now
 
-//        if (gGameFrameCount & 1) {
         gfx_texture_cache_invalidate(scaled2);
-//        }
-        //gDPPipeSync((*dList)++);
-//        gDPSetCycleType((*dList)++, G_CYC_1CYCLE);
-  //      gDPSetCombineMode((*dList)++, G_CC_PRIMITIVE, G_CC_PRIMITIVE);
-    //    gDPSetRenderMode((*dList)++, G_RM_XLU_SURF, G_RM_XLU_SURF2);
-//        gDPSetPrimColor((*dList)++, 0x00, 0x00,255,255,255, /* RGBA16_RED(gBgColor) * 8, RGBA16_GRN(gBgColor) * 8,
-  //                      RGBA16_BLU(gBgColor) * 8 ,*/ gBlurAlpha);
-            RCP_SetupDL(&gMasterDisp, SETUPDL_76);
-//                        gDPSetEnvColor(gMasterDisp++, RGBA16_RED(gBgColor) * 8, RGBA16_GRN(gBgColor) * 8,
-  //                      RGBA16_BLU(gBgColor) * 8, 0xFF);
-    //                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-      //                                  TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-            gDPSetPrimColor(gMasterDisp++, 0, 0, 255,255,255 , gBlurAlpha);
-            gSPTheBlur(gMasterDisp++);
-//            Lib_TextureRect_RGBA16(&gMasterDisp, (u16 *)scaled2, 64, 64, 0, 0, 5.0f, 1.875f);
- //                               Matrix_Scale(gGfxMatrix, 1.27f, 0.70f, 1.0f, MTXF_APPLY);
-//                                Matrix_Translate(gGfxMatrix, 60.0f, -10.0f, 0.0f, MTXF_APPLY);//-12600.0f/* -290.0f *//* * 41.0f */, MTXF_APPLY);
-                              //  Matrix_Scale(gGfxMatrix, 42 ,30.75f,1,MTXF_APPLY);
-                                    ///* 1.07f*  */1.3f*41.0f, 0.7f*/* 0.93f* */ 41.0f, 1.0f, MTXF_APPLY);
-//                                Matrix_Push(&gGfxMatrix);
-//                                Matrix_RotateZ(gGfxMatrix, -(f32) gGameFrameCount * 10.0f * M_DTOR, MTXF_APPLY);
-//                                Matrix_Scale(gGfxMatrix, 1.07f, 0.93f, 1.0f, MTXF_APPLY);
-//                                Matrix_RotateZ(gGfxMatrix, gGameFrameCount * 10.0f * M_DTOR, MTXF_APPLY);
-//                                Matrix_Scale(gGfxMatrix, 1.07f, 0.93f, 1.0f, MTXF_APPLY);
-                                Matrix_SetGfxMtx(&gMasterDisp);
-//                  gSPFixDepthCut2(gMasterDisp++);
-                                gSPDisplayList(gMasterDisp++, aBlurBackdropDL);
-  //                gSPFixDepthCut2(gMasterDisp++);
-  //                              Matrix_Pop(&gGfxMatrix);
-
-gSPTheBlur(gMasterDisp++);
-
-} else {
+        RCP_SetupDL(&gMasterDisp, SETUPDL_76);
+        gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, gBlurAlpha);
+        gSPTheBlur(gMasterDisp++);
+        Matrix_SetGfxMtx(&gMasterDisp);
+        gSPDisplayList(gMasterDisp++, aBlurBackdropDL);
+        gSPTheBlur(gMasterDisp++);
+    } else {
     skip_first:
-        if (!force_screen_fill_colors){
-            gDPSetFillColor((*dList)++, FILL_COLOR(gBgColor | 1));}
-        else{
+        if (!force_screen_fill_colors) {
+            gDPSetFillColor((*dList)++, FILL_COLOR(gBgColor | 1));
+        } else {
             gDPSetFillColor((*dList)++, FILL_COLOR(0x0001));
-}
+        }
 
-            gSPFixDepthCut((*dList)++);
-   gDPFillRectangle((*dList)++, SCREEN_MARGIN, SCREEN_MARGIN, SCREEN_WIDTH - SCREEN_MARGIN - 1,
-                     (SCREEN_HEIGHT - SCREEN_MARGIN) - 1 );
-gSPFixDepthCut((*dList)++);
+        gSPFixDepthCut((*dList)++);
+        gDPFillRectangle((*dList)++, SCREEN_MARGIN, SCREEN_MARGIN, SCREEN_WIDTH - SCREEN_MARGIN - 1,
+                         (SCREEN_HEIGHT - SCREEN_MARGIN) - 1);
+        gSPFixDepthCut((*dList)++);
     }
 
-//gDPPipeSync((*dList)++);
+    // gDPPipeSync((*dList)++);
     gDPSetColorDither((*dList)++, G_CD_MAGICSQ);
 }
 
 void Game_InitStandbyDL(Gfx** dList) {
-        //printf("%s\n", __func__);
-
     gSPDisplayList((*dList)++, gRcpInitDL);
-    gDPSetScissor((*dList)++, G_SC_NON_INTERLACE, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);// * 3);
+    gDPSetScissor((*dList)++, G_SC_NON_INTERLACE, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     gDPSetFillColor((*dList)++, FILL_COLOR(0x0001));
     gDPSetColorImage((*dList)++, G_IM_FMT_RGBA, G_IM_SIZ_16b, SCREEN_WIDTH, gFrameBuffers[0].data);
-gSPFixDepthCut((*dList)++);
-    gDPFillRectangle((*dList)++, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1);//* 3 - 1);
-gSPFixDepthCut((*dList)++);
+    gSPFixDepthCut((*dList)++);
+    gDPFillRectangle((*dList)++, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1);
+    gSPFixDepthCut((*dList)++);
     //gDPPipeSync((*dList)++);
     gDPSetColorDither((*dList)++, G_CD_MAGICSQ);
 }
@@ -294,7 +258,6 @@ void Game_InitFullViewport(void) {
 }
 
 void Game_InitViewport(Gfx** dList, u8 camCount, u8 camIndex) {
-//printf("%s\n", __func__);
     switch (camCount) {
         case 4:
             switch (camIndex) {
@@ -360,7 +323,6 @@ void Game_InitViewport(Gfx** dList, u8 camCount, u8 camIndex) {
 }
 
 void Game_Draw(s32 playerNum) {
-    //printf("GAMEDRAW(%d)\n",playerNum);
     switch (gDrawMode) {
         case DRAW_NONE:
             break;
@@ -397,11 +359,9 @@ void Game_Draw(s32 playerNum) {
             Ending_Draw();
             break;
     }
-    //printf("\tdone.\n");
 }
 
 void Game_SetScene(void) {
-    //printf("%s\n", __func__);
     switch (gGameState) {
         case GSTATE_INIT:
             gSceneId = SCENE_TITLE;

@@ -157,7 +157,6 @@ extern int16_t fog_ofs;
 extern float gProjectNear;
 extern float gProjectFar;
 int fog_dirty = 0;
-extern int shader_debug_toggle;
 
 #include <kos.h>
 
@@ -407,26 +406,7 @@ static void gfx_opengl_select_texture(int tile, uint32_t texture_id) {
     glBindTexture(GL_TEXTURE_2D, texture_id);
 }
 
-#define LET_GLDC_TWIDDLE 1
-
-static inline uint16_t rgb565_to_argb1555(uint16_t rgb565) {
-    // Extract components from RGB565
-    uint8_t r5 = (rgb565 >> 11) & 0x1F; // 5 bits red
-    uint8_t g5 = (rgb565 >> 6) & 0x1F;  // 5 bits green
-    uint8_t b5 = rgb565 & 0x1F;         // 5 bits blue
-
-    // Convert 6-bit green to 5-bit by shifting (losing LSB)
-//    uint8_t g5 = (g6 >> 1) & 0x1F;
-
-    // Pack into RGBA5551
-    // Alpha = 1 (opaque)
-    uint16_t rgba5551 = (1 << 15) | (r5 << 10) | (g5 << 5) | b5;
-
-    return rgba5551;
-}
-
-void capture_framebuffer(int num) {
-#if 1
+void capture_framebuffer(void) {
 #if LOWRES
     for (int y=0;y<240;y+=2) {
         for (int x=0;x<320;x+=2) {
@@ -440,13 +420,14 @@ void capture_framebuffer(int num) {
         }
     }
 #endif
-#endif
 }
 
 static struct __attribute__((aligned(32))) {
     float u_scale[1024];
     float v_scale[1024];
 } tex_scaler;
+
+#define LET_GLDC_TWIDDLE 1
 
 static void gfx_opengl_upload_texture(const uint16_t* rgba16_buf, int width, int height, unsigned int type) {
     GLint intFormat;

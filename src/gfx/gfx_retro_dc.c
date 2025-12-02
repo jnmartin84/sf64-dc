@@ -423,8 +423,6 @@ static inline uint32_t /* old_ */hash10_murmur(uint32_t addr) {
     return (x >> 22) & 0x3ff;
 }
 
-void *virtual_to_segmented(const void *addr);
-
 void gfx_texture_cache_invalidate(void* orig_addr) {
  	void* segaddr = segmented_to_virtual(orig_addr);
 	int dirtied = 0;
@@ -877,21 +875,10 @@ static __attribute__((noinline)) void gfx_sp_matrix(uint8_t parameters, const vo
 // popping identity matrix
 // count is only ever 1
 static void  __attribute__((noinline)) gfx_sp_pop_matrix(void/* UNUSED uint32_t count */) {
-#if 1
 	if (rsp.modelview_matrix_stack_size > 0) {
 		--rsp.modelview_matrix_stack_size;
 	}
-#else
-	while (count--) {
-        if (rsp.modelview_matrix_stack_size > 0) {
-            --rsp.modelview_matrix_stack_size;
-            if (rsp.modelview_matrix_stack_size > 0) {
-                gfx_matrix_mul(rsp.MP_matrix, rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1],
-                               rsp.P_matrix);
-            }
-        }
-    }
-#endif
+
 	//rsp.lights_changed = 0;	
 	matrix_dirty = 1;
 }
@@ -1106,7 +1093,6 @@ static void __attribute__((noinline)) gfx_sp_vertex(uint8_t n_vertices, uint8_t 
 //    __builtin_prefetch(&table256[192]);
 	shz_xmtrx_load_4x4(&rsp.MP_matrix);
     if (rsp.geometry_mode & G_LIGHTING) {
-#if 1
 		if (rsp.lights_changed) {
             calculate_normal_dir(&rsp.current_lights[0], rsp.current_lights_coeffs[0]);
             calculate_normal_dir(&rsp.current_lights[4], rsp.current_lights_coeffs[4]);
@@ -1138,7 +1124,7 @@ static void __attribute__((noinline)) gfx_sp_vertex(uint8_t n_vertices, uint8_t 
 			COLOR_MTX[1][2] = rsp.current_lights[4].col[2];
 			COLOR_MTX[2][2] = rsp.current_lights[rsp.current_num_lights - 1].col[2];
 		}
-#endif
+
 		gfx_sp_vertex_light_step1(n_vertices, dest_index, segmented_to_virtual(vertices));
         if (rsp.geometry_mode & G_TEXTURE_GEN) {
 			shz_xmtrx_load_3x3(&ENV_MTX);
@@ -1156,8 +1142,7 @@ static void __attribute__((noinline)) gfx_sp_vertex(uint8_t n_vertices, uint8_t 
 
 int need_to_add = 0;
 uint8_t add_r,add_g,add_b,add_a;
-extern int cc_debug_toggle;
-#if 1
+
 extern u16 aCoGroundGrassTex[];
 extern u16 D_CO_6028A60[];
 extern u16 aVe1GroundTex[];
@@ -1167,7 +1152,7 @@ extern u16 aAqWaterTex[];
 extern u16 D_TI_6001BA8[];
 extern u16 aZoWaterTex[];
 int last_was_special = 0;
-#endif
+
 extern int path_priority_draw;
 
 extern float get_current_u_scale(void);

@@ -136,12 +136,12 @@ static size_t audio_cb(UNUSED snd_stream_hnd_t hnd, uintptr_t l, uintptr_t r, si
 }
 
 static bool audio_dc_init(void) {
-#if 1
     if (snd_stream_init()) {
         printf("AICA INIT FAILURE!\n");
         return false;
     }
-#endif
+
+    // without increasing scheduler frequency, things don't work nicely
     thd_set_hz(300);
 
     // --- Initial Pre-fill of Ring Buffer with Silence ---

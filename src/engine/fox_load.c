@@ -65,23 +65,13 @@ u8 Load_SceneFiles(NewScene* scene, int snum) {
         // do nothing
     } else {
         changeScene = 1;
-        //if (scene[snum].id != sCurrentScene.id)
         nuke_everything();
-//        memtest();
-        // still do nothing
     }
 
     sCurrentScene.id = scene[snum].id;
     sCurrentScene.snum = snum;
 
     if(changeScene) {
-            /* if (scene[snum].id == 8) {
-                file_t file = fs_open("/cd/sf_data/titania_backdrop.tex", O_RDONLY);
-                fs_read(file, SEG_BUF[14], 16 + (64*32*2));
-                fs_close(file);
-            } */
-
-        //printf("changing scene to snum %d\n", snum);
         for (segment=1; segment < 16; segment += 1) {
             Load_RomFile(scene[snum].segs[segment], segment);
         }
