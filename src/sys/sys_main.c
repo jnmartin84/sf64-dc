@@ -552,34 +552,7 @@ run_game_loop:
     }
 }
 
-//#define SDCARD_SUPPORT
-#if defined(SDCARD_SUPPORT)
-#include <dc/g1ata.h>
-#include <dc/sd.h>
-#include <fat/fs_fat.h>
-
-static kos_blockdev_t dev;
-#endif
-
-#if defined(SDCARD_SUPPORT)
-void sdcard_init(void) {
-    uint8_t partition_type;
-
-    if (sd_init())
-        return;
-
-    if (sd_blockdev_for_partition(0, &dev, &partition_type))
-        return;
-
-    if (fs_fat_mount("/sd", &dev, FS_FAT_MOUNT_READWRITE))
-        return;
-
-    printf("mounted sd card at /sd\n");
-}
-#endif
-
 int main(int argc, char **argv) {
-#if !defined(SDCARD_SUPPORT)
     FILE* fntest = fopen("/pc/sf_data/logo.bin", "rb");
     if (NULL == fntest) {
         fntest = fopen("/cd/sf_data/logo.bin", "rb");
@@ -597,37 +570,9 @@ int main(int argc, char **argv) {
     }
 
     fclose(fntest);
-#endif
-
-#if defined(SDCARD_SUPPORT)
-    fs_fat_init();
-    printf("/sd/sf64-dc: ");
-    sdcard_init();
-
-    FILE *fntest = fopen("/sd/sf64-dc/sf_data/logo.bin", "rb");
-    if (fntest) {
-        printf("found. Using /sd/sf64-dc for assets.\n");
-        fnpre = "/sd/sf64-dc";
-        goto assetsfound;
-    }
-    printf("not found.\n");
-
-    printf("Couldn't find assets, quitting...\n");
-    exit(-1);
-
-assetsfound:
-    fclose(fntest);
-#endif
 
     Main_ThreadEntry(NULL);
-#if defined(SDCARD_SUPPORT)
-    fs_fat_unmount("/sd");
-    sd_shutdown();
-#endif
 
-#if defined(SDCARD_SUPPORT)
-    fs_fat_shutdown();
-#endif
     return 0;
 }
 
