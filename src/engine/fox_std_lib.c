@@ -25,7 +25,9 @@ s32 Graphics_Printf(const char* fmt, ...) {
 
     return 0;
 }
+
 extern void gfx_texture_cache_invalidate(void *addr);
+
 void Lib_Texture_Scroll(u16* texture, s32 width, s32 height, u8 mode) {
     u16* pixel = SEGMENTED_TO_VIRTUAL(texture);
     u16 tempPxl;
