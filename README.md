@@ -1,14 +1,25 @@
-# Star Fox 64 for Dreamcast
+# Star Fox 64 for Sega Dreamcast
 
-This is a Star Fox 64 port for Dreamcast, based on the [Star Fox 64 decompilation](https://github.com/sonicdcer/sf64) that also powers [Starship](https://github.com/HarbourMasters/Starship). Check out [footage of the Dreamcast version](https://www.youtube.com/playlist?list=PLXx8QBt8z_x8jq1VrSsZ8wAi76keeBIkO) running on real hardware.
+This is a Star Fox 64 port for the Sega Dreamcast, based on [sonicdcer](https://github.com/sonicdcer/)'s excellent [Star Fox 64 decompilation](https://github.com/sonicdcer/sf64) (that also powers [Starship](https://github.com/HarbourMasters/Starship)).
+
+
+Check out [footage of the Dreamcast version](https://www.youtube.com/playlist?list=PLXx8QBt8z_x8jq1VrSsZ8wAi76keeBIkO) running on real hardware.
 
 **A direct CDI download of Star Fox 64 for Dreamcast is not provided, nor will it be provided.**
 
 You must build it yourself from your own N64 ROM. There is no exception to this. Do not ask.
 
-Running Star Fox 64 for Dreamcast on a Dreamcast emulator is **not** supported. It may or may not work right. This is for real Dreamcast hardware.
+Running Star Fox 64 for Dreamcast on a Dreamcast emulator is **not** supported. It may or may not work correctly. This port is intended to be used only on real hardware. Just emulate an N64 and move on if that's your plan.
 
-**Saving**: If a VMU is present, the cartridge data will be saved.
+**Rumble**:
+Force-feedback is supported and tested with the following devices:
+- Sega Jump / Puru Pack
+- Performance TremorPak
+- Nyko DC Hyper Pak
+- Retro Fighters Striker DC Wireless built-in
+
+**Saving**: 
+If a VMU is present, the cartridge EEPROM data will be saved. 3 blocks are required.
 
 **Dreamcast controls**:
 - A: Fire laser
@@ -22,6 +33,8 @@ Running Star Fox 64 for Dreamcast on a Dreamcast emulator is **not** supported. 
 - D-Pad Up: Change camera
 - D-Pad Right: Answer ROB call
 
+The training mode and in-game messages have been updated with the new button mappings.
+
 ## 1. Setup Dreamcast tooling
 Set up a KallistiOS environment using KallistiOS `v2.2.1` with a GCC `14.x` toolchain.
 If you don't know how to do this, check the [Getting Started with Dreamcast Development](https://dreamcast.wiki/Getting_Started_with_Dreamcast_development) guide.
@@ -33,7 +46,7 @@ If you don't know how to do this, check the [Getting Started with Dreamcast Deve
    - Enable fat LTO by changing
      - from `#export KOS_CFLAGS="${KOS_CFLAGS} -freorder-blocks-algorithm=simple -flto=auto"`
      - to `export KOS_CFLAGS="${KOS_CFLAGS} -flto=auto -ffat-lto-objects"`
-     - (note the removal of the `#` at the beginning of the line)
+     - (note the removal of the `#` at the beginning of the line and the removal of `-freorder-blocks-algorithm=simple` from the middle of it)
 
 After applying those changes to `environ.sh`, run `source /opt/toolchains/dc/kos/environ.sh` to apply the new settings to your environment and compile KallistiOS and the `libGL` KOS port as usual via the instructions.
 
@@ -72,13 +85,15 @@ make
 cd ..
 ```
 
+If you are on macOS, you should use `gmake` instead of `make` for this step. You may need to install this with `brew`.
+
 If you are on a system with a newer CMake and get this error:
 ```
 Compatibility with CMake < 3.5 has been removed from CMake.
 ```
 You may need to change the `make` command above to the following:
 
-`CMAKE_POLICY_VERSION_MINIMUM=3.5 gmake`
+`CMAKE_POLICY_VERSION_MINIMUM=3.5 make`
 
 ## 5. Prepare the Star Fox 64 ROM file
 
@@ -129,3 +144,16 @@ make all
 ```
 
 Good luck.
+
+# Acknowledgments
+- sonicdreamcaster
+- darc
+- gyrovorbis
+- stiffpeaks
+- mittens
+- pcercuei
+- bbhoodsta
+- gpftroy
+- quzar
+- mrneo240
+- the list goes on
