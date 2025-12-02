@@ -225,7 +225,6 @@ extern char* fnpre;
 int shader_debug_toggle = 0;
 int cc_debug_toggle = 0;
 #include <string.h>
-// #include "../dcprofiler.h"
 void Map_Main(void);
 
 void Controller_UpdateInput(void) {
@@ -248,8 +247,6 @@ void Controller_UpdateInput(void) {
         if (state->ltrig && state->rtrig) {
             if (state->buttons & CONT_START) {
                 if (strcmp("/pc", fnpre) == 0) {
-                    // profiler_stop();
-                    // profiler_clean_up();
                     //  give vmu a chance to write and close
                     thd_sleep(3000);
                     exit(0);

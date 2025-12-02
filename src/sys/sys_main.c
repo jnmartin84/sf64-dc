@@ -9,7 +9,6 @@
 #include "gfx/gfx_opengl.h"
 #include "gfx/gfx_dc.h"
 #include <stdlib.h>
-#include "../dcprofiler.h"
 
 #if USE_32KHZ
 #define SAMPLES_HIGH 560
@@ -389,11 +388,8 @@ void Main_ThreadEntry(void* arg0) {
     AudioLoad_Init();
     Audio_InitSounds();
     vblank_handler_add(&vblfunc, NULL);
-    //    profiler_init("/pc/sf64_gmon.out");
-    //    profiler_start();
     Game_Initialize();
 
-//#define MEMTEST
 #if defined(MEMTEST)
     for (int mi = 0; mi < 8 * 1048576; mi += 65536) {
         void* test_m = malloc(mi);

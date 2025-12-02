@@ -337,8 +337,7 @@ MUSIC_FILES := $(SF_MUSIC_PATH)/02.adp $(SF_MUSIC_PATH)/03.adp $(SF_MUSIC_PATH)/
 
 # Dreamcast-specific objects
 DC_OBJS := build/dcconsole.o \
-           build/dclogo.o \
-           build/src/dcprofiler.o
+           build/dclogo.o
 
 # Audio objects
 AUDIO_OBJS := build/src/audio/libwav.o \
