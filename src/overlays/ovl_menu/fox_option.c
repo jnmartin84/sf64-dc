@@ -1461,6 +1461,8 @@ void Option_Sound_SetVolumeLevels(void) {
     }
 }
 
+#include "aXtoCancelTex.h"
+
 void Option_Sound_Draw(void) {
     s32 i;
     s32 colorGB;
@@ -1537,7 +1539,7 @@ void Option_Sound_Draw(void) {
             break;
     }
 
-    Lib_TextureRect_IA8(&gMasterDisp, aBtoCancelTex, 96, 10, 166.0f, 213.0f, 1.0f, 1.0f);
+    Lib_TextureRect_IA8(&gMasterDisp, x_to_cancel, 96, 10, 166.0f, 213.0f, 1.0f, 1.0f);
 
     for (i = 0; i < ARRAY_COUNT(D_menu_801AEAA0); i++) {
         Option_DrawCardLabel(D_menu_801AEAA0[i]);
@@ -3573,7 +3575,7 @@ void Option_VsOKConfirm_Draw(void) {
 void Option_VsSelectionArrows_Draw(f32 xPos, f32 yPos, f32 offset, s32 r, s32 g, s32 b) {
     RCP_SetupDL(&gMasterDisp, SETUPDL_83);
     gDPSetPrimColor(gMasterDisp++, 0, 0, r, g, b, 255);
-        gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
+    gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
     Lib_TextureRect_IA8_MirX(&gMasterDisp, D_VS_MENU_7004010, 8, 8, xPos, yPos, 1.0f, 1.0f);
     Lib_TextureRect_IA8(&gMasterDisp, D_VS_MENU_7004010, 8, 8, xPos + offset, yPos, 1.0f, 1.0f);
 }
@@ -3581,9 +3583,9 @@ void Option_VsSelectionArrows_Draw(f32 xPos, f32 yPos, f32 offset, s32 r, s32 g,
 void Option_AcceptCancel_Draw(void) {
     RCP_SetupDL(&gMasterDisp, SETUPDL_83);
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
-        gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
+    gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
     Lib_TextureRect_IA8(&gMasterDisp, aAtoConfirmTex, 96, 10, 62.0f, 213.0f, 1.0f, 1.0f);
-    Lib_TextureRect_IA8(&gMasterDisp, aBtoCancelTex, 96, 10, 166.0f, 213.0f, 1.0f, 1.0f);
+    Lib_TextureRect_IA8(&gMasterDisp, x_to_cancel, 96, 10, 166.0f, 213.0f, 1.0f, 1.0f);
 }
 
 void Option_VsBackToSubMenu(OptionId menuEntryState) {
