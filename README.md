@@ -1,58 +1,52 @@
-#### 0. Setup Dreamcast tooling
+# Star Fox 64 for Dreamcast
 
-sh4-elf toolchain (gcc 14.2 is tested), KOS v2.2.1, kos-ports/libGL all need built and installed.
+This is a Star Fox 64 port for Dreamcast, based on the [Star Fox 64 decompilation](https://github.com/sonicdcer/sf64) that also powers [Starship](https://github.com/HarbourMasters/Starship). Check out [footage of the Dreamcast version](https://www.youtube.com/playlist?list=PLXx8QBt8z_x8jq1VrSsZ8wAi76keeBIkO) running on real hardware.
 
-For the `environ.sh` , modify the "optimization level" section like this
+**A direct CDI download of Star Fox 64 for Dreamcast is not provided, nor will it be provided.**
 
-`export KOS_CFLAGS="${KOS_CFLAGS} -O3 -flto=auto -ffat-lto-objects"`
+You must build it yourself from your own N64 ROM. There is no exception to this. Do not ask.
 
-then
+Running Star Fox 64 for Dreamcast on a Dreamcast emulator is **not** supported. It may or may not work right. This is for real Dreamcast hardware.
 
-`source /opt/toolchains/dc/kos/environ.sh` 
+**Saving**: If a VMU is present, the cartridge data will be saved.
 
-and then...
+**Dreamcast controls**:
+- A: Fire laser
+- X: Fire bomb
+- Y: Boost
+- B: Brake
+- Down + Y: Somersault
+- Down + B: U-Turn
+- L Trigger: Tilt left 90 degrees
+- R Trigger: Tilt right 90 degrees
+- D-Pad Up: Change camera
+- D-Pad Right: Answer ROB call
 
-#### 1. Install build dependencies
+## 1. Setup Dreamcast tooling
+Set up a KallistiOS environment using KallistiOS `v2.2.1` with a GCC `14.x` toolchain.
+If you don't know how to do this, check the [Getting Started with Dreamcast Development](https://dreamcast.wiki/Getting_Started_with_Dreamcast_development) guide.
+1. At the `Configuring the dc-chain script` step, make sure you use the `14.3.0` toolchain profile, **not** the default `stable` toolchain.
+2. At the `Setting up the environment settings` step, alter your `environ.sh` file:
+   - Enable O3 optimizations by changing
+     - from `export KOS_CFLAGS="${KOS_CFLAGS} -O2"`
+     - to `export KOS_CFLAGS="${KOS_CFLAGS} -O3"`
+   - Enable fat LTO by changing
+     - from `#export KOS_CFLAGS="${KOS_CFLAGS} -freorder-blocks-algorithm=simple -flto=auto"`
+     - to `export KOS_CFLAGS="${KOS_CFLAGS} -flto=auto -ffat-lto-objects"`
+     - (note the removal of the `#` at the beginning of the line)
 
-### Windows
+After applying those changes to `environ.sh`, run `source /opt/toolchains/dc/kos/environ.sh` to apply the new settings to your environment and compile KallistiOS and the `libGL` KOS port as usual via the instructions.
 
-For Windows 10, install WSL and a distribution by following this
-[Windows Subsystem for Linux Installation Guide](https://docs.microsoft.com/en-us/windows/wsl/install-win10).
-We recommend using Debian or Ubuntu 22.04 Linux distributions.
+Using any other version of KallistiOS or the toolchain is unsupported and may not work.
 
-### Linux (Native or under WSL / VM)
-
-The build process has the following package requirements:
-
-* make
-* git
-* build-essential
-* binutils-mips-linux-gnu
-* python3
-* pip3
-* libpng-dev
-
-Under Debian / Ubuntu (which we recommend using), you can install them with the following commands:
-
-```bash
-sudo apt update
-sudo apt install make cmake git build-essential binutils-mips-linux-gnu python3 python3-pip clang-format-14 clang-tidy clang-tools
-```
-
-### MacOS
-
-Install [Homebrew](https://brew.sh) and the following dependencies:
-```
-brew update
-brew install coreutils make pkg-config tehzz/n64-dev/mips64-elf-binutils
-```
-#### 2. go into the repo
+## 2. Clone and enter the repository
 
 ```bash
+git clone https://github.com/jnmartin84/sf64-dc.git
 cd sf64-dc
 ```
 
-#### 3. Install python dependencies
+## 3. Install python dependencies
 
 The build process has a few python packages required that are located in `/tools/requirements-python.txt`.
 
@@ -61,9 +55,15 @@ To install them simply run in a terminal:
 ```bash
 python3 -m pip install -r ./tools/requirements-python.txt
 ```
-* Depending on your python version, you might need to add  --break-system-packages, or use venv.
 
-#### 4. Update submodules & build toolchain
+If you get an error about an externally managed environment, you can create a local virtual environment for this project:
+```bash
+python3 -m venv .
+. ./bin/activate
+python3 -m pip install -r ./tools/requirements-python.txt
+```
+
+## 4. Update submodules & build N64 tools
 
 ```bash
 git submodule update --init --recursive
@@ -72,35 +72,60 @@ make
 cd ..
 ```
 
-for macos, you may need to change `make` to the following:
+If you are on a system with a newer CMake and get this error:
+```
+Compatibility with CMake < 3.5 has been removed from CMake.
+```
+You may need to change the `make` command above to the following:
+
 `CMAKE_POLICY_VERSION_MINIMUM=3.5 gmake`
 
-for the n64 tools build
+## 5. Prepare the Star Fox 64 ROM file
 
-#### 5. Prepare a base ROM
+You need the US version, revision 1.1 (REV A) ROM file for Star Fox 64.
+The correct sha1sum is `09f0d105f476b00efa5303a3ebc42e60a7753b7a`
 
-Copy your ROM to the root of this new project directory, and rename the file of the baserom to reflect the version of ROM you are using. ex: `baserom.us.rev1.z64`
-* Make sure the ROM is the US version, revision 1.1 (REV A).
+Copy your ROM to the root of this project directory, and rename the file to `baserom.us.rev1.z64`.
 
-#### 6. Make and Build the ROM
+## 6. Process the ROM and build assets
 
-To start the extraction/build process, run the following command:
+Process the ROM file by running the following command:
 
 ```bash
-make -f Makefile.dc init
+make init
 ```
-This will create the build folders, a new folder with the assembly as well as containing the disassembly of nearly all the files containing code.
+## 7. Build the Dreamcast version
+When the above command completes, you can generate the type of file for Dreamcast you desire:
 
-Eventually you will see an error about failing to build something in `asm/revN/region`.
+### CDI files
+Creating CDI files requires [mkdcdisc](https://gitlab.com/simulant/mkdcdisc) to be installed and in your PATH (it's recommended to place `mkdcdisc` in `/opt/toolchains/dc/bin` to accomplish this).
 
-Do an `rm -rf asm`.
+#### CDI file for burning to CD-R (padded for performance)
+```bash
+make cdi-cdr
+```
 
-Run `make -f Makefile.dc` again. 
+#### For ODE (GDEMU, MODE, USB-GDROM, etc.)
+```bash
+make cdi-ode
+```
 
-Run `./generate_sf_data.sh` to make segmented ELF files for link-time symbol resolution and for binary data file generation.
+### DSISO for DreamShell ISO Loader
+Creating DreamShell ISO files requires `mkisofs` to be installed. This is usually provided by the `cdrtools` or `cdrkit` package provided by your operating system's package manager.
 
-Lastly, run `./link.sh` to create an output ELF file.
+```bash
+make dsiso
+```
 
-If you want a CDI, check out `test.sh` for details on how to make one.
+### Plain files for dcload-serial or dcload-ip
+```bash
+make files-zip
+```
+
+### All of the above
+If you want to go wild and build all of the above types, you can do the following:
+```bash
+make all
+```
 
 Good luck.

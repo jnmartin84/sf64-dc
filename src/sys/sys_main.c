@@ -330,13 +330,18 @@ void Main_InitMesgQueues(void) {
     osCreateMesgQueue(&gSaveMesgQueue, sSaveMsgBuff, ARRAY_COUNT(sSaveMsgBuff));
 }
 
- int ever_init_wav = 0;
+int ever_init_wav = 0;
+
 #include <dc/sound/sound.h>
 #include <dc/sound/stream.h>
 #include "sndwav.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <kos/thread.h>
+#include <kos.h>
+#include "james2.xbm"
+
+vmufb_t vmubuf;
 
 void Main_ThreadEntry(void* arg0) {
     OSMesg osMesg;
@@ -345,18 +350,23 @@ void Main_ThreadEntry(void* arg0) {
     u8 i;
     u8 visPerFrame;
     u8 validVIsPerFrame;
-
+    maple_device_t* dev = NULL;
+    if ((dev = maple_enum_type(0, MAPLE_FUNC_LCD))) {
+        vmufb_paint_xbm(&vmubuf, 0, 0, 48, 32, james_bits);
+        // only draw to first vmu
+        vmufb_present(&vmubuf, dev);
+    }
     printf("loading audio files\n");
     AudioLoad_LoadFiles();
     printf("\tdone.\n");
 
-        if (ever_init_wav == 0) {
-            ever_init_wav = 1;
-            wav_init();
-            //dbglog_set_level(DBG_INFO);
-        }
+    if (ever_init_wav == 0) {
+        ever_init_wav = 1;
+        wav_init();
+        // dbglog_set_level(DBG_INFO);
+    }
 
-        gVIsPerFrame = 0;
+    gVIsPerFrame = 0;
     gSysFrameCount = 0;
     gStartNMI = false;
     gStopTasks = false;
@@ -396,14 +406,14 @@ void Main_ThreadEntry(void* arg0) {
     AudioLoad_Init();
     Audio_InitSounds();
     vblank_handler_add(&vblfunc, NULL);
-//    profiler_init("/pc/sf64_gmon.out");
-//    profiler_start();
+    //    profiler_init("/pc/sf64_gmon.out");
+    //    profiler_start();
     Game_Initialize();
 
 //#define MEMTEST
 #if defined(MEMTEST)
-    for(int mi=0;mi<8*1048576;mi+=65536) {
-        void *test_m = malloc(mi);
+    for (int mi = 0; mi < 8 * 1048576; mi += 65536) {
+        void* test_m = malloc(mi);
         if (test_m != NULL) {
             free(test_m);
             test_m = NULL;
@@ -447,7 +457,6 @@ run_game_loop:
         gSysFrameCount++;
         Graphics_InitializeTask(gSysFrameCount);
         Controller_UpdateInput();
-        Controller_Rumble();
         gSPSegment(gUnkDisp1++, 0, 0);
         gSPDisplayList(gMasterDisp++, gGfxPool->unkDL1);
         Game_Update();
@@ -457,14 +466,10 @@ run_game_loop:
         gDPFullSync(gMasterDisp++);
         gSPEndDisplayList(gMasterDisp++);
         Graphics_SetTask();
-        visPerFrame = MIN(gVIsPerFrame, 4);
-        validVIsPerFrame = MAX(visPerFrame, gGfxVImesgQueue.validCount + 1);
-        for (i = 0; i < validVIsPerFrame; i += 1) { // Can't be ++
-            MQ_WAIT_FOR_MESG(&gGfxVImesgQueue, NULL);
-        }
 
         Audio_Update();
         gfx_end_frame();
+        Controller_Rumble();
         thd_pass();
     }
 }
