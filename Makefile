@@ -110,7 +110,7 @@ ifeq ($(NON_MATCHING),1)
     CPPFLAGS += -DNON_MATCHING -DAVOID_UB
 endif
 
-MAKE = gmake -f Makefile.dc
+MAKE = gmake
 CPPFLAGS += -fno-dollars-in-identifiers -P
 LDFLAGS  := --no-check-sections --accept-unknown-input-arch --emit-relocs
 
@@ -127,7 +127,7 @@ else ifeq ($(UNAME_S),Linux)
     endif
 else ifeq ($(UNAME_S),Darwin)
     DETECTED_OS := macos
-    MAKE := gmake -f Makefile.dc
+    MAKE := gmake
     CPPFLAGS += -xc++
     CC_CHECK_COMP := clang
 endif
@@ -723,6 +723,15 @@ extract:
 	@$(CAT) yamls/$(VERSION)/$(REV)/header.yaml yamls/$(VERSION)/$(REV)/main.yaml yamls/$(VERSION)/$(REV)/assets.yaml yamls/$(VERSION)/$(REV)/overlays.yaml > $(SPLAT_YAML)
 	$(call print2,Extracting...)
 	@$(SPLAT) $(SPLAT_YAML)
+	@rm -rf src/libc_sprintf.c
+	@rm -rf src/libultra/gu/cosf.c
+	@rm -rf src/libultra/gu/sinf.c
+	@rm -rf src/libultra/gu/sqrtf.c
+	@rm -rf src/libultra/host/
+	@rm -rf src/libultra/io/
+	@rm -rf src/libultra/libc/
+	@rm -rf src/libultra/os/
+	@rm -rf src/libultra/rmon/
 
 assets:
 	$(call print2,Extracting assets from ROM...)
@@ -765,13 +774,6 @@ context:
 	$(call print2,Generating ctx.c...)
 	@$(PYTHON) ./$(TOOLS)/m2ctx.py $(filter-out $@, $(MAKECMDGOALS))
 
-disasm:
-	@$(RM) -r asm/$(VERSION)/$(REV) bin/$(VERSION)/$(REV)
-	$(call print2,Unifying yamls...)
-	@$(CAT) yamls/$(VERSION)/$(REV)/header.yaml yamls/$(VERSION)/$(REV)/main.yaml yamls/$(VERSION)/$(REV)/assets.yaml yamls/$(VERSION)/$(REV)/overlays.yaml > $(SPLAT_YAML)
-	$(call print2,Extracting...)
-	@$(SPLAT) $(SPLAT_YAML) --disassemble-all
-
 #### Various Recipes ####
 
 # PreProcessor
@@ -806,4 +808,4 @@ build/src/libultra/libc/ll.o: src/libultra/libc/ll.c
 # Print target for debugging
 print-% : ; $(info $* is a $(flavor $*) variable set to [$($*)]) @true
 
-.PHONY: default all clean init extract format checkformat decompress assets context disasm toolchain sf-data objects elf bin cdi-cdr cdi-ode files-zip dsiso
+.PHONY: default all clean init extract format checkformat decompress assets context toolchain sf-data objects elf bin cdi-cdr cdi-ode files-zip dsiso
