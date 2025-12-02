@@ -599,11 +599,11 @@ $(BIN): $(ELF)
 
 $(CDI_ODE): $(ELF) $(MUSIC_FILES)
 	$(call print2,Creating CDI file for ODE use...)
-	mkdcdisc -a jnmartin84 -n "Star Fox 64" -r 20251201 -i $(MR_LOGO) -f sf64.ico -d $(SF_MUSIC_PATH) -d $(SF_DATA_PATH) -e $(ELF) -o $(CDI_ODE) -N
+	mkdcdisc -a jnmartin84 -n "Star Fox 64" -r 20251205 -i $(MR_LOGO) -f sf64.ico -d $(SF_MUSIC_PATH) -d $(SF_DATA_PATH) -e $(ELF) -o $(CDI_ODE) -N
 
 $(CDI_CDR): $(ELF) $(MUSIC_FILES)
 	$(call print2,Creating CDI file for burning to CD-R...)
-	mkdcdisc -a jnmartin84 -n "Star Fox 64" -r 20251201 -i $(MR_LOGO) -f sf64.ico -d $(SF_MUSIC_PATH) -d $(SF_DATA_PATH) -e $(ELF) -o $(CDI_CDR)
+	mkdcdisc -a jnmartin84 -n "Star Fox 64" -r 20251205 -i $(MR_LOGO) -f sf64.ico -d $(SF_MUSIC_PATH) -d $(SF_DATA_PATH) -e $(ELF) -o $(CDI_CDR)
 
 $(DSISO): $(BIN) $(MUSIC_FILES)
 	$(call print2,Creating DreamShell ISO file...)
