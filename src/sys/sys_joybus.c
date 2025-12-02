@@ -1,5 +1,5 @@
 #include "n64sys.h"
-
+#include "context.h"
 
 #define N64_CONT_A 0x8000
 #define N64_CONT_B 0x4000
@@ -92,6 +92,7 @@ OSContPad sPrevController[4]={0};
 OSContStatus sControllerStatus[4]={1};
 OSPfs sControllerMotor[4]={0};
 
+
 void I_RumbleThread(void *param);
 #include <stdio.h>
 #include <kos/thread.h>
@@ -138,27 +139,81 @@ void Controller_AddDeadZone(s32 contrNum) {
     gControllerPress[contrNum].stick_x = var_a0;
     gControllerPress[contrNum].stick_y = var_v0;
 }
-#include <kos.h>
 
-void Controller_Init(void) {
-    s32 i;
-    printf("%s()\n", __func__);
+#include <stdio.h>
+#include <stdlib.h>
+#include <kos/thread.h>
+#include <dc/maple.h>
+#include <dc/maple/controller.h>
+#include <dc/maple/keyboard.h>
+#include <dc/maple/purupuru.h>
 
-    for (i = 0; i < 4; i++) {
-        maple_device_t *cont;
-        cont_state_t *state;
-        cont = maple_enum_type(i, MAPLE_FUNC_CONTROLLER);
+static maple_device_t *ControllerDevice[4] = {0};
 
-        gControllerPlugged[i] = !!cont;//(sp1F >> i) & 1;
-        if (cont)
-            sControllerStatus[i].status = 1;
-
-        cont = NULL; //maple_enum_type(i, MAPLE_FUNC_PURUPURU);
-
-        gControllerRumbleEnabled[i] = !!cont;//(sp1F >> i) & 1;
+void Controller_Scan(void) {
+    /* Clear existing controller status */
+    for (int i = 0; i < 4; i++) {
+        gControllerPlugged[i] = 0;
+        sControllerStatus[i].status = 0;
+        ControllerDevice[i] = NULL;
     }
 
-#if 0
+    /* Loop through all available controllers
+       and assign them to the proper ports */
+    int i = 0;
+    int port = 0;
+    maple_device_t *cont;
+    while((cont = maple_enum_type(i, MAPLE_FUNC_CONTROLLER))) {
+        port = cont->port;
+
+        gControllerPlugged[port] = 1;
+        sControllerStatus[port].status = 1;
+        ControllerDevice[port] = cont;
+
+        i++;
+    }
+}
+
+static maple_device_t *RumbleDevice[4] = {0};
+
+void Rumble_Scan(void) {
+    /* Clear existing rumble info */
+    for (int i = 0; i < 4; i++) {
+        RumbleDevice[i] = NULL;
+        gControllerRumbleEnabled[i] = 0;
+        gControllerRumbleFlags[i] = 0;
+    }
+
+    /* Loop through all available purupuru packs
+       and assign them to the proper ports  */
+    int i = 0;
+    int port = 0;
+    maple_device_t *purupuru;
+    while((purupuru = maple_enum_type(i, MAPLE_FUNC_PURUPURU))) {
+        port = purupuru->port;
+
+        gControllerRumbleEnabled[port] = 1;
+        RumbleDevice[port] = purupuru;
+
+        i++;
+    }
+}
+
+void Controller_Init(void) {
+    printf("%s()\n", __func__);
+
+    Controller_Scan();
+    Rumble_Scan();
+
+    /* Re-scan controllers and rumble packs
+       if there's relevant maple activity */
+    maple_attach_callback(MAPLE_FUNC_CONTROLLER, Controller_Scan);
+    maple_detach_callback(MAPLE_FUNC_CONTROLLER, Controller_Scan);
+
+    maple_attach_callback(MAPLE_FUNC_PURUPURU, Rumble_Scan);
+    maple_detach_callback(MAPLE_FUNC_PURUPURU, Rumble_Scan);
+
+#if 1
     rumble_worker_attr.create_detached = 1;
 	rumble_worker_attr.stack_size = 4096;
 	rumble_worker_attr.stack_ptr = NULL;
@@ -166,54 +221,45 @@ void Controller_Init(void) {
 	rumble_worker_attr.label = "I_RumbleThread";
 	rumble_worker_thread = thd_worker_create_ex(&rumble_worker_attr, I_RumbleThread, NULL);
 #endif
-
-//    for (i = 0; i < 4; i++) {
-//        printf("controller enable? %d rumble enable? %d\n", gControllerPlugged[i], gControllerRumbleEnabled[i]);
-//    }
 }
 
-#include <stdlib.h>
 u16 ucheld;
 extern char *fnpre;
 int shader_debug_toggle = 0;
 int cc_debug_toggle = 0;
-#include <dc/maple/keyboard.h>
-#include "../dcprofiler.h"
+#include <string.h>
+//#include "../dcprofiler.h"
 void Map_Main(void);
 
 void Controller_UpdateInput(void) {
-    s32 i;
-    for (i = 0; i < 4; i++) {
-        maple_device_t* cont;
+    for (int i = 0; i < 4; i++) {
         cont_state_t* state;
         ucheld = 0;
-        cont = maple_enum_type(i, MAPLE_FUNC_CONTROLLER);
-        gControllerPlugged[i] = (!!cont) && (cont->port == i);
-        if (!gControllerPlugged[i])
+
+        if(!ControllerDevice[i]) {
+            gControllerPlugged[i] = 0;
             continue;
-        if (gControllerPlugged[i]) {
-            sControllerStatus[i].status = 1;
-            sNextController[i].errno = 0;
-            maple_device_t* puru = maple_enum_type(i, MAPLE_FUNC_PURUPURU);
-            gControllerRumbleEnabled[i] = !!puru;
         }
 
-        state = maple_dev_status(cont);
+        if(!(state = maple_dev_status(ControllerDevice[i])))
+            continue;
 
-        if (1) { //(strcmp("/pc", fnpre) == 0) {
-            if (state->ltrig && state->rtrig) {
-                if (state->buttons & CONT_START) {
+        gControllerPlugged[i] = 1;
+        sControllerStatus[i].status = 1;
+        sNextController[i].errno = 0;
+
+        if (state->ltrig && state->rtrig) {
+            if (state->buttons & CONT_START) {
+                if (strcmp("/pc", fnpre) == 0) {
                     // profiler_stop();
                     // profiler_clean_up();
                     //  give vmu a chance to write and close
                     thd_sleep(3000);
                     exit(0);
-                } // else {
-                  // if (state->buttons && CONT_A)
-                  // Map_Main();
-                //}
+                }
             }
         }
+
         const char stickH = state->joyx;
         const char stickV = 0xff - ((uint8_t) (state->joyy));
 
@@ -258,18 +304,6 @@ void Controller_UpdateInput(void) {
             (gControllerHold[i].button ^ sPrevController[i].button) & gControllerHold[i].button;
         gControllerHold[i].errno = 0;
     }
-
-#if 0
-    maple_device_t *controller;
-	// now move on to the keyboard and mouse additions
-	controller = maple_enum_type(0, MAPLE_FUNC_KEYBOARD);
-    if (controller) {
-        kbd_state_t* kbd = kbd_get_state(controller);
-        if(kbd->key_states[KBD_KEY_ESCAPE].value == KEY_STATE_CHANGED_DOWN) {
-            shader_debug_toggle = !shader_debug_toggle;
-        }
-    }
-#endif
 }
 
 void Controller_ReadData(void) {
@@ -318,48 +352,68 @@ void Save_WriteData(void) {
     //osSendMesg(&gSaveMesgQueue, (OSMesg) SI_SAVE_FAILED, OS_MESG_NOBLOCK);
 }
 
+struct rumble_data_s {
+    maple_device_t *dev;
+    uint32_t packet;
+};
+struct rumble_data_s datas[4];
+
+
 void I_RumbleThread(void *param)
 {
 	(void)param;
 	kthread_job_t *next_job = thd_worker_dequeue_job(rumble_worker_thread);
 
 	if (next_job) {
-        uint32_t packet = (uint32_t)next_job->data;
-        free(next_job);
-		maple_device_t *purudev = NULL;
-		purudev = maple_enum_type(0, MAPLE_FUNC_PURUPURU);
-		if (purudev)
-				purupuru_rumble_raw(purudev, packet);
+        uint32_t i = (uint32_t)next_job->data;
+		purupuru_rumble_raw(datas[i].dev, datas[i].packet);
 	}
 }
 
-void Controller_Rumble(void) {
-#if 0
-    s32 i;
+kthread_job_t jobs[4];
 
-    for (i = 0; i < 4; i++) {
-        if ((gControllerPlugged[i] != 0) && (sControllerStatus[i].errno == 0)) {
-            if (sControllerStatus[i].status & 1) {
-                if (gControllerRumbleEnabled[i] == 1) {
-                    if (gControllerRumbleFlags[i] != 0) {
-                        kthread_job_t *next_job = (kthread_job_t *)malloc(sizeof(kthread_job_t));
-                        next_job->data = (void *)0x021A7009;
-                        thd_worker_add_job(rumble_worker_thread, next_job);
-                        thd_worker_wakeup(rumble_worker_thread);
-                    } else {
-                        kthread_job_t *next_job = (kthread_job_t *)malloc(sizeof(kthread_job_t));
-                        next_job->data = (void *)0;
-                        thd_worker_add_job(rumble_worker_thread, next_job);
-                        thd_worker_wakeup(rumble_worker_thread);
-                    }
-                }
-            } else {
-                gControllerRumbleEnabled[i] = 0;
-            }
+void Controller_Rumble(void) {
+    for (int i = 0; i < 4; i++) {
+        if (!gControllerPlugged[i])
+            continue;
+
+        if (sControllerStatus[i].errno)
+            continue;
+
+        if (!(sControllerStatus[i].status & 1)) {
+            gControllerRumbleEnabled[i] = 0;
+            continue;
         }
-    }
-    for (i = 0; i < 4; i++) {
+
+        if(!RumbleDevice[i]) {
+            gControllerRumbleEnabled[i] = 0;
+            continue;
+        }
+
+        gControllerRumbleEnabled[i] = 1;
+
+        if (!(gControllerRumbleFlags[i]))
+            continue;
+
+        purupuru_effect_t rumble = {
+            .cont  = false,                        /* Do not run continuously */
+            .motor = 1,                            /* Standard motor */
+            .fpow  = 6,                            /* Forward motion, intensity 6/7 */
+            .conv  = 1,                            /* Convergent curve to vibration */
+            .freq  = 26,                           /* Frequency 26/59 */
+            .inc   = gControllerRumbleTimers[i] ?  /* Duration */
+                     gControllerRumbleTimers[i] : 1,
+        };
+
+        datas[i].dev = RumbleDevice[i];
+        datas[i].packet = rumble.raw;
+        jobs[i].data = i;
+
+        thd_worker_add_job(rumble_worker_thread, &jobs[i]);
+        thd_worker_wakeup(rumble_worker_thread);
+
+//        purupuru_rumble_raw(RumbleDevice[i], rumble.raw);
+
         gControllerRumbleFlags[i] = 0;
     }
-#endif
 }

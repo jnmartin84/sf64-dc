@@ -108,7 +108,7 @@ f32 sGroundPositions360z[4] = {
         _g->words.w0 = 0x424C4E44; \
         _g->words.w1 = 0x46554370;                                           \
     }
-#define LOWRES 0
+
 void Background_DrawStarfield(void) {
     f32 by;
     f32 bx;

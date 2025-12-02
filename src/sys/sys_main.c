@@ -11,11 +11,13 @@
 #include <stdlib.h>
 #include "../dcprofiler.h"
 
-//#define SAMPLES_HIGH 533
+#if USE_32KHZ
+#define SAMPLES_HIGH 560
+#define SAMPLES_LOW 528
+#else
 #define SAMPLES_HIGH 464
-//560
 #define SAMPLES_LOW 432
-//528
+#endif
 
 uintptr_t arch_stack_32m = 0x8d000000;
 
@@ -52,7 +54,6 @@ void _AudioInit(void) {
         audio_api->init();
     }
 }
-
 
 s32 sGammaMode = 1;
 
@@ -152,8 +153,6 @@ void *virtual_to_segmented(const void *addr) {
                 lowest_dist = (uip_addr - gSegments[i]);
                 lowest_index = i;
             }
-
-//            return (void*)((uip_addr - gSegments[i]) | (i << 24));
         }
     }
 
@@ -174,27 +173,8 @@ void* segmented_to_virtual(const void* addr) {
 
     unsigned int segment = (unsigned int) (uip_addr >> 24);// & 0x0f;
 
-    // investigate why this hits on Sherbet Land 4 player attract mode demo
-#if 0
-//DEBUG
-    if (segment > 0xf) {
-        printf("%08x converts to bad segment %02x %08x\n", (uintptr_t) addr, segment, (uintptr_t) uip_addr);
-        printf("\n");
-        stacktrace();
-        printf("\n");
-//        while (1) {}
-        exit(-1);
-    }
-#endif
-
     unsigned int offset = (unsigned int) uip_addr & 0x00FFFFFF;
     u32 translated_addr = gSegments[segment] + offset;
-#ifdef RANGECHECK
-    //    if (translated_addr > 0x8cffffff) {
-//        printf("serious problem seg2vir %08x -> %08x\n", uip_addr, translated_addr);
-//        exit(-1);
-//    }
-#endif
     return (void*)translated_addr;
 }
 
@@ -524,7 +504,6 @@ run_game_loop:
         gSysFrameCount++;
         Graphics_InitializeTask(gSysFrameCount);
         Controller_UpdateInput();
-        Controller_Rumble();
         gSPSegment(gUnkDisp1++, 0, 0);
         gSPDisplayList(gMasterDisp++, gGfxPool->unkDL1);
         Game_Update();
@@ -564,6 +543,8 @@ run_game_loop:
         Graphics_SetTask();
 
         Audio_Update();
+        gfx_end_frame();
+        Controller_Rumble();
         thd_pass();
         gfx_end_frame();
 #if DEBUG_PROF
@@ -654,20 +635,20 @@ assetsfound:
 #if MODS_ISVIEWER == 1
 #include "../mods/isviewer.c"
 #endif
-//533
-/* #define SAMPLES_HIGH 560
-#define SAMPLES_LOW 528 */
-extern void *cb_next_left(void);
-extern void *cb_next_right(void);
-void *AudioThread(UNUSED void *arg) {
+
+void* AudioThread(UNUSED void* arg) {
 #if DEBUG_PROF
     // high resolution frame timing
 	uint64_t dstart = 0;
 	uint64_t dend = 0;
 #endif
     uint64_t last_vbltick = vblticker;
-//    return NULL;
+
     while (1) {
+#if USE_32KHZ
+        while (vblticker <= last_vbltick + 1)
+            genwait_wait((void*) &vblticker, NULL, 15, NULL);
+#else
         while (vblticker <= last_vbltick)
             genwait_wait((void*)&vblticker, NULL, 5, NULL);
 
@@ -682,11 +663,18 @@ void *AudioThread(UNUSED void *arg) {
         last_vbltick = vblticker;
         __builtin_prefetch(audio_buffer[1]);
 
-        /* int samplecount = gSysFrameCount & 1 ? SAMPLES_HIGH : SAMPLES_LOW; */
+#if USE_32KHZ
+        int samplecount = gSysFrameCount & 1 ? SAMPLES_HIGH : SAMPLES_LOW;
+        AudioThread_CreateNextAudioBuffer(audio_buffer[0], audio_buffer[1], samplecount);
+        AudioThread_CreateNextAudioBuffer(audio_buffer[0] + (samplecount), audio_buffer[1] + (samplecount),
+                                          samplecount);
 
-        AudioThread_CreateNextAudioBuffer(//cb_next_left(), cb_next_right(), 448);//
-            audio_buffer[0], audio_buffer[1], /* samplecount */448);
-        audio_api->play((u8 *)audio_buffer[0], (u8*)audio_buffer[1], /* samplecount<<2 */1792);
+        audio_api->play((u8*) audio_buffer[0], (u8*) audio_buffer[1], samplecount * 8);
+#else
+        AudioThread_CreateNextAudioBuffer(audio_buffer[0], audio_buffer[1], 448);
+        audio_api->play((u8 *)audio_buffer[0], (u8*)audio_buffer[1], 1792);
+#endif
+
 #if DEBUG_PROF
 		dend = perf_cntr_timer_ns();
 #endif

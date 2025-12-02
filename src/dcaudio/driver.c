@@ -23,8 +23,14 @@
 // Stereo
 #define DC_AUDIO_CHANNELS (2) 
 #define DC_STEREO_AUDIO ( DC_AUDIO_CHANNELS == 2)
+
+#if USE_32KHZ
 // Sample rate for the AICA (32kHz)
-#define DC_AUDIO_FREQUENCY (26800) 
+#define DC_AUDIO_FREQUENCY (32000) 
+#else
+#define DC_AUDIO_FREQUENCY (26800)
+#endif
+
 #define RING_BUFFER_MAX_BYTES (16384)
 
 // --- Global State for Dreamcast Audio Backend ---
@@ -68,12 +74,8 @@ void *cb_next_left(void) {
     uint32_t tail = r[0]->tail;
     uint32_t free = r[0]->cap - (head - tail);
     uint32_t idx = head & (r[0]->cap - 1);
-    uint32_t first = MIN((448*2), r[0]->cap - idx);
     r[0]->head = head + (448*2);
-    //if (first)
-        return (void*)r[0]->buf + idx;
-    //if ((448*2)-first)
-    //    return (void*)r[0]->buf;
+    return (void*)r[0]->buf + idx;
 }
 
 void *cb_next_right(void) {
@@ -81,12 +83,9 @@ void *cb_next_right(void) {
     uint32_t tail = r[1]->tail;
     uint32_t free = r[1]->cap - (head - tail);
     uint32_t idx = head & (r[1]->cap - 1);
-    uint32_t first = MIN((448*2), r[1]->cap - idx);
     r[1]->head = head + (448*2);
-    //if (first)
-        return (void*)r[1]->buf + idx;
-    //if ((448*2)-first)
-    //    return (void*)r[1]->buf;
+
+    return (void*)r[1]->buf + idx;
 }
 
 
@@ -100,11 +99,8 @@ static size_t cb_write_data(int N, const void *src, size_t n) {
     uint32_t first = MIN(n, r[N]->cap - idx);
     if (first)
         n64_memcpy(r[N]->buf + idx, src, first);
-    if (n-first) {
-//        printf("hit stupid wrapround write %d %d %d\n", idx, first, (n-first));
-//        printf("\thead %08x tail %08x free %08x idx %d\n", head, tail, free, idx);
+    if (n-first)
         n64_memcpy(r[N]->buf, (uint8_t*)src + first, n - first);
-    }
     r[N]->head = head + n;
     return n;
 }
@@ -122,27 +118,8 @@ static size_t cb_read_data(int N, void *dst, size_t n) {
     return n;
 }
 
-#if 0
-// Calculates and returns the number of bytes currently in the ring buffer
-static size_t cb_get_used(int N) {
-    // Atomically load both head and tail to get a consistent snapshot.
-    // The order of loads might matter in some weak memory models,
-    // but for head-tail diff, generally not.
-    uint32_t head = r[N]->head;
-    uint32_t tail = r[N]->tail;
-    
-    // The number of used bytes is simply the difference between head and tail.
-    // This works because head and tail are continuously incrementing indices,
-    // and effectively handle wrap-around due to the (head - tail) arithmetic.
-    return head - tail;
-}
-#endif
-
 // --- KOS Stream Audio Callback (Consumer): Called by KOS when the AICA needs more data ---
 #define NUM_BUFFER_BLOCKS (2)
-//#define TEMP_BUF_SIZE ((8192/* *2 */ /*  / 2 */) * NUM_BUFFER_BLOCKS)
-//static uint8_t __attribute__((aligned(32))) temp_buf[2][TEMP_BUF_SIZE];
-//static unsigned int temp_buf_sel[2] = {0};
 
 void mute_stream(void) {
     snd_stream_volume(shnd, 0); // Set maximum volume
@@ -153,34 +130,10 @@ void unmute_stream(void) {
 }
 
 static size_t audio_cb(UNUSED snd_stream_hnd_t hnd, uintptr_t l, uintptr_t r, size_t req) {
-        // Correct atomic read
-
     cb_read_data(0, (void*)l , req/2);
     cb_read_data(1, (void*)r , req/2);
     return req;
 }
-
-#if 0
-void *audio_callback(UNUSED snd_stream_hnd_t hnd, int samples_requested_bytes, int *samples_returned_bytes) {
-    size_t samples_requested = samples_requested_bytes / 4;
-    size_t samples_avail_bytes = cb_read_data(temp_buf + ((4096) * temp_buf_sel) , samples_requested_bytes);
-    
-    *samples_returned_bytes = samples_requested_bytes;
-    size_t samples_returned = samples_avail_bytes / 4;
-    
-    /*@Note: This is more correct, fill with empty audio */
-    if (samples_avail_bytes < (unsigned)samples_requested_bytes) {
-        memset(temp_buf + ((4096) * temp_buf_sel) + samples_avail_bytes, 0, (samples_requested_bytes - samples_avail_bytes));
-    }
-    
-    temp_buf_sel += 1;
-    if (temp_buf_sel >= NUM_BUFFER_BLOCKS) {
-        temp_buf_sel = 0;
-    }
-    
-    return (void*)(temp_buf + ((4096) * temp_buf_sel));
-}
-#endif
 
 static bool audio_dc_init(void) {
 #if 1
@@ -193,7 +146,7 @@ static bool audio_dc_init(void) {
 
     // --- Initial Pre-fill of Ring Buffer with Silence ---
     sq_clr(cb_buf_internal, sizeof(cb_buf_internal));
-//    sq_clr(temp_buf, sizeof(temp_buf));
+
     if (!cb_init(0,RING_BUFFER_MAX_BYTES)) {
         printf("CB INIT FAILURE!\n");
         return false;
@@ -203,11 +156,15 @@ static bool audio_dc_init(void) {
         return false;
     }
 
-    printf("Dreamcast Audio: Initialized. Ring buffer size: %u bytes per channel.\n",
-           (unsigned int)RING_BUFFER_MAX_BYTES);
-#if 1
+    printf("Dreamcast Audio: Initialized. %d Hz, ring buffer size: %u bytes per channel.\n",
+           DC_AUDIO_FREQUENCY, (unsigned int)RING_BUFFER_MAX_BYTES);
+
     // Allocate the sound stream with KOS
+#if USE_32KHZ
+    shnd = snd_stream_alloc(NULL, 8192);
+#else
     shnd = snd_stream_alloc(NULL, 4096);
+#endif
     if (shnd == SND_STREAM_INVALID) {
         printf("SND: Stream allocation failure!\n");
         snd_stream_destroy(shnd);
@@ -215,26 +172,10 @@ static bool audio_dc_init(void) {
     }
     snd_stream_set_callback_direct(shnd, audio_cb);
 
-// Set maximum volume
+    // Set maximum volume
     snd_stream_volume(shnd, 160); 
 
     printf("Sound init complete!\n");
-#endif
-
-#if 0
-    mmucontext_t * cxt;
-    /* Initialize MMU support */
-    mmu_init();
-
-    /* Setup a context */
-    cxt = mmu_context_create(0);
-    mmu_use_table(cxt);
-    mmu_switch_context(cxt);
-
-    /* Map the PVR video memory to 0 */
-    mmu_page_map(cxt, 0, 0x05000000 >> PAGESIZE_BITS, (8 * 1024 * 1024) >> PAGESIZE_BITS,
-                 MMU_ALL_RDWR, MMU_NO_CACHE, 0, 1);
-#endif
 
     return true;
 }
@@ -248,7 +189,6 @@ static int audio_dc_get_desired_buffered(void) {
 }
 
 static void audio_dc_play(uint8_t *bufL, uint8_t *bufR, size_t len) {
-//    size_t ring_data_available = cb_get_used();
     size_t writtenL = cb_write_data(0, bufL, len/2);
     size_t writtenR = cb_write_data(1, bufR, len/2);
 
