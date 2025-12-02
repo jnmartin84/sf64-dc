@@ -85,7 +85,7 @@ make
 cd ..
 ```
 
-If you are on macOS, you should use `gmake` instead of `make` for this step. You may need to install this with `brew`.
+If you are on macOS, you should use `gmake` instead of `make` for this step. You may need to install `gmake` with `brew`.
 
 If you are on a system with a newer CMake and get this error:
 ```
