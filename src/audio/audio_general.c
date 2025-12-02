@@ -682,105 +682,120 @@ static char wavfn[256];
 int played_wav = 0;
 int played_fanfare_wav = 0;
 
+int USE_MIXER_MUSIC = 0;
+
 void Audio_StartSequence(u8 seqPlayId, u8 seqId, u8 seqArgs, u16 fadeInTime) {
+    static int checked_music = 0;
     u8 i;
     s32 pad;
-#if 1
-    played_wav = 0;
-    if (seqPlayId == SEQ_PLAYER_BGM && ((seqId&0x7fff) >= 2 && (seqId&0x7fff) <= 65)) {
-
-        if (!sStartSeqDisabled) {
-            int looping = 1;
-            int playId = seqId&0x7fff;
-
-            // 2
-            // 3
-            // 4
-            // 5
-            // 6
-            // 7
-            // 8
-            // 9
-            // 10
-            if (playId == SEQ_ID_SOLAR) {
-                playId = SEQ_ID_SECTOR_Y;
-            }
-            // 12
-            // 13
-            // 14
-            else if (playId == SEQ_ID_SECTOR_Z) {
-                playId = SEQ_ID_FORTUNA;
-            } else if (playId == SEQ_ID_MACBETH) {
-                playId = SEQ_ID_TITANIA;
-            }
-            // 17
-            // 18
-            // 19 
-            else if (playId == SEQ_ID_BOSS_TI || playId == SEQ_ID_BOSS_SY || playId == SEQ_ID_BOSS_SO || playId == SEQ_ID_BOSS_MA) {
-                playId = SEQ_ID_BOSS_ME;
-            } else if (playId == SEQ_ID_BOSS_SX || playId == SEQ_ID_BOSS_ZO) {
-                playId = SEQ_ID_BOSS_CO_1;
-            }
-            // 23
-            // ..
-            // ..
-            // ..
-            // ..
-            // 28
-            else if (playId == SEQ_ID_BOSS_KA || playId == SEQ_ID_BOSS_SZ) { // katina boss, sector z missiles
-                playId = SEQ_ID_BOSS_BO;
-            }
-            else if (playId == SEQ_ID_BOSS_VE || playId == SEQ_ID_BOSS_AQ || playId == SEQ_ID_BOSS_CO_2) { // aquas boss
-                playId = SEQ_ID_BOSS_A6;
-            }
-            // 33
-            // 34
-            // 35
-            // 36
-            // 37
-            // 38
-            // 39
-            // 40
-            // 41 -- unused?
-            // 42
-            // 43
-            // 44
-            // 45
-            // 46
-            // 47
-            // 48
-            // 49
-            // 50
-            // 51
-
-            if (playId == SEQ_ID_TITLE || playId == SEQ_ID_OPENING || playId == SEQ_ID_CO_INTRO || playId == SEQ_ID_GOOD_END || 
-                playId == SEQ_ID_DEATH || playId == SEQ_ID_GAME_OVER || playId == SEQ_ID_UNK_41 || playId == SEQ_ID_STAFF_ROLL ||
-                playId == SEQ_ID_INTRO_S || playId == SEQ_ID_INTRO_M || playId == SEQ_ID_BAD_END || playId == SEQ_ID_ME_INTRO || 
-                playId == SEQ_ID_INTRO_51 || playId == SEQ_ID_TO_ANDROSS
-                ) {
-                looping = 0;
-            }
-
-            if (sx_distort) {
-                sprintf(wavfn, "%s/music/21_2.adp", fnpre);
-                sx_distort = 0;
-            } else if (andross_robot) {
-                sprintf(wavfn, "%s/music/33_2.adp", fnpre);
-                andross_robot = 0;
-            } else {
-                sprintf(wavfn, "%s/music/%02d.adp", fnpre, playId);
-            }
-
-            wav_destroy(WAV_PLAYER_BGM);
-            wav_create(WAV_PLAYER_BGM, wavfn, looping, 0, 0);
-            sActiveSequences[seqPlayId].seqId = seqId;
-            wav_play(WAV_PLAYER_BGM);
-            S_SetMusicVolume(WAV_PLAYER_BGM,90);
-            played_wav = 1;
-            return;
+    if (!checked_music) {
+        checked_music = 1;
+        char musictestfn[256];
+        sprintf(musictestfn, "%s/music/02.adp", fnpre);
+        file_t musictestfile = fs_open(musictestfn, O_RDONLY);
+        if (FILEHND_INVALID == musictestfile) {
+            printf("Streaming music files not present. Switching to mixer music.\n");
+            USE_MIXER_MUSIC = 1;
+        } else {
+            printf("Streaming music files are present.\n");
         }
     }
-#endif
+    if(!USE_MIXER_MUSIC) {
+        played_wav = 0;
+        if (seqPlayId == SEQ_PLAYER_BGM && ((seqId&0x7fff) >= 2 && (seqId&0x7fff) <= 65)) {
+
+            if (!sStartSeqDisabled) {
+                int looping = 1;
+                int playId = seqId&0x7fff;
+
+                // 2
+                // 3
+                // 4
+                // 5
+                // 6
+                // 7
+                // 8
+                // 9
+                // 10
+                if (playId == SEQ_ID_SOLAR) {
+                    playId = SEQ_ID_SECTOR_Y;
+                }
+                // 12
+                // 13
+                // 14
+                else if (playId == SEQ_ID_SECTOR_Z) {
+                    playId = SEQ_ID_FORTUNA;
+                } else if (playId == SEQ_ID_MACBETH) {
+                    playId = SEQ_ID_TITANIA;
+                }
+                // 17
+                // 18
+                // 19 
+                else if (playId == SEQ_ID_BOSS_TI || playId == SEQ_ID_BOSS_SY || playId == SEQ_ID_BOSS_SO || playId == SEQ_ID_BOSS_MA) {
+                    playId = SEQ_ID_BOSS_ME;
+                } else if (playId == SEQ_ID_BOSS_SX || playId == SEQ_ID_BOSS_ZO) {
+                    playId = SEQ_ID_BOSS_CO_1;
+                }
+                // 23
+                // ..
+                // ..
+                // ..
+                // ..
+                // 28
+                else if (playId == SEQ_ID_BOSS_KA || playId == SEQ_ID_BOSS_SZ) { // katina boss, sector z missiles
+                    playId = SEQ_ID_BOSS_BO;
+                }
+                else if (playId == SEQ_ID_BOSS_VE || playId == SEQ_ID_BOSS_AQ || playId == SEQ_ID_BOSS_CO_2) { // aquas boss
+                    playId = SEQ_ID_BOSS_A6;
+                }
+                // 33
+                // 34
+                // 35
+                // 36
+                // 37
+                // 38
+                // 39
+                // 40
+                // 41 -- unused?
+                // 42
+                // 43
+                // 44
+                // 45
+                // 46
+                // 47
+                // 48
+                // 49
+                // 50
+                // 51
+
+                if (playId == SEQ_ID_TITLE || playId == SEQ_ID_OPENING || playId == SEQ_ID_CO_INTRO || playId == SEQ_ID_GOOD_END || 
+                    playId == SEQ_ID_DEATH || playId == SEQ_ID_GAME_OVER || playId == SEQ_ID_UNK_41 || playId == SEQ_ID_STAFF_ROLL ||
+                    playId == SEQ_ID_INTRO_S || playId == SEQ_ID_INTRO_M || playId == SEQ_ID_BAD_END || playId == SEQ_ID_ME_INTRO || 
+                    playId == SEQ_ID_INTRO_51 || playId == SEQ_ID_TO_ANDROSS
+                    ) {
+                    looping = 0;
+                }
+
+                if (sx_distort) {
+                    sprintf(wavfn, "%s/music/21_2.adp", fnpre);
+                    sx_distort = 0;
+                } else if (andross_robot) {
+                    sprintf(wavfn, "%s/music/33_2.adp", fnpre);
+                    andross_robot = 0;
+                } else {
+                    sprintf(wavfn, "%s/music/%02d.adp", fnpre, playId);
+                }
+
+                wav_destroy(WAV_PLAYER_BGM);
+                wav_create(WAV_PLAYER_BGM, wavfn, looping, 0, 0);
+                sActiveSequences[seqPlayId].seqId = seqId;
+                wav_play(WAV_PLAYER_BGM);
+                S_SetMusicVolume(WAV_PLAYER_BGM,90);
+                played_wav = 1;
+                return;
+            }
+        }
+    }
 
     if (!sStartSeqDisabled || (seqPlayId == SEQ_PLAYER_SFX)) {
         AUDIOCMD_GLOBAL_INIT_SEQPLAYER((u32) seqPlayId, (u32) seqId, 0, fadeInTime);
@@ -802,16 +817,14 @@ void Audio_StartSequence(u8 seqPlayId, u8 seqId, u8 seqArgs, u16 fadeInTime) {
 }
 
 void Audio_StopSequence(u8 seqPlayId, u16 fadeOutTime) {
-#if 1
-    if (/* played_fanfare_wav &&  */(seqPlayId == SEQ_PLAYER_FANFARE))
-    {
-		wav_destroy(WAV_PLAYER_FANFARE);
+    if(!USE_MIXER_MUSIC) {
+        if (seqPlayId == SEQ_PLAYER_FANFARE) {
+            wav_destroy(WAV_PLAYER_FANFARE);
+        }
+        else if (seqPlayId == SEQ_PLAYER_BGM) {
+            wav_destroy(WAV_PLAYER_BGM);
+        }
     }
-    else if (/* played_wav &&  */(seqPlayId == SEQ_PLAYER_BGM))
-    {
-		wav_destroy(WAV_PLAYER_BGM);
-    }
-#endif
     AUDIOCMD_GLOBAL_DISABLE_SEQPLAYER(seqPlayId, fadeOutTime);
     sActiveSequences[seqPlayId].seqId = SEQ_ID_NONE;
 }
@@ -1163,8 +1176,10 @@ void Audio_UpdateActiveSequences(void) {
             for (i = 0; i < 3; i++) {
                 fadeMod *= sActiveSequences[seqPlayId].mainVolume.fadeMod[i] * recip127;// / 127.0f;
             }
-            if (seqPlayId == SEQ_PLAYER_BGM && wav_is_playing(WAV_PLAYER_BGM)) {
-                wav_volume(WAV_PLAYER_BGM, (u8) (fadeMod * 160.0f));
+            if(!USE_MIXER_MUSIC) {
+                if (seqPlayId == SEQ_PLAYER_BGM && wav_is_playing(WAV_PLAYER_BGM)) {
+                    wav_volume(WAV_PLAYER_BGM, (u8) (fadeMod * 160.0f));
+                }
             }
             SEQCMD_SET_SEQPLAYER_VOLUME(seqPlayId, sActiveSequences[seqPlayId].mainVolume.fadeTimer,
                                         (u8) (fadeMod * 127.0f));
@@ -2726,34 +2741,25 @@ void Audio_PlayFanfare(u16 seqId, u8 bgmVolume, u8 bgmFadeoutTime, u8 bgmFadeinT
     if (Audio_GetActiveSeqId(SEQ_PLAYER_BGM) != NA_BGM_PLAYER_DOWN) {
         Audio_SetSequenceFade(SEQ_PLAYER_BGM, 1, bgmVolume, bgmFadeoutTime);
         SEQCMD_SETUP_RESTORE_SEQPLAYER_VOLUME(SEQ_PLAYER_FANFARE, SEQ_PLAYER_BGM, bgmFadeinTime);
-        //SEQCMD_PLAY_SEQUENCE(SEQ_PLAYER_FANFARE, 0, 0, seqId);
-        wav_pause(WAV_PLAYER_BGM);
-        played_fanfare_wav = 0;
-        if ( ((seqId&0x7fff) >= 2 && (seqId&0x7fff) <= 65)) {
-/*             if (ever_init_wav == 0) {
-                ever_init_wav = 1;
-                wav_init();
-                //dbglog_set_level(DBG_INFO);
-            }
- */            if (!sStartSeqDisabled) {
-                int looping = 0;
-                int playId = seqId&0x7fff;
-                sprintf(wavfn, "%s/music/%02d.adp", fnpre, playId);
-//                if (WAV_PLAYER_FANFARE != SND_STREAM_INVALID) {
+        if(!USE_MIXER_MUSIC) {
+            wav_pause(WAV_PLAYER_BGM);
+            played_fanfare_wav = 0;
+            if ( ((seqId&0x7fff) >= 2 && (seqId&0x7fff) <= 65)) {
+                if (!sStartSeqDisabled) {
+                    int looping = 0;
+                    int playId = seqId&0x7fff;
+                    sprintf(wavfn, "%s/music/%02d.adp", fnpre, playId);
                     wav_destroy(WAV_PLAYER_FANFARE);
-//                    WAV_PLAYER_FANFARE = SND_STREAM_INVALID;
-//                }
-                /* WAV_PLAYER_FANFARE = */ wav_create(WAV_PLAYER_FANFARE, wavfn,looping,0,0);
-//                if (WAV_PLAYER_FANFARE != SND_STREAM_INVALID) {
+                    wav_create(WAV_PLAYER_FANFARE, wavfn,looping,0,0);
                     sActiveSequences[SEQ_PLAYER_FANFARE].seqId = seqId;
                     wav_play(WAV_PLAYER_FANFARE);
                     S_SetMusicVolume(WAV_PLAYER_FANFARE, 90);
                     played_fanfare_wav = 1;
-//                } else {
-                    //goto couldnt_find_the_wav_version;
-//                }
-                return;        
+                    return;        
+                }
             }
+        } else {
+                SEQCMD_PLAY_SEQUENCE(SEQ_PLAYER_FANFARE, 0, 0, seqId);
         }
     }
 }
