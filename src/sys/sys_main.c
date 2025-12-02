@@ -18,8 +18,6 @@
 #define SAMPLES_LOW 432
 #endif
 
-uintptr_t arch_stack_32m = 0x8d000000;
-
 extern struct GfxWindowManagerAPI gfx_glx;
 extern struct GfxRenderingAPI gfx_opengl_api;
 static struct GfxWindowManagerAPI *wm_api = &gfx_dc;
