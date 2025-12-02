@@ -19,6 +19,7 @@ Running Star Fox 64 for Dreamcast on a Dreamcast emulator is **not** supported. 
 - Down + B: U-Turn
 - L Trigger: Tilt left 90 degrees
 - R Trigger: Tilt right 90 degrees
+- D-Pad Up: Change camera
 - D-Pad Right: Answer ROB call
 
 ## 1. Setup Dreamcast tooling
@@ -31,7 +32,7 @@ If you don't know how to do this, check the [Getting Started with Dreamcast Deve
      - to `export KOS_CFLAGS="${KOS_CFLAGS} -O3"`
    - Enable fat LTO by changing
      - from `#export KOS_CFLAGS="${KOS_CFLAGS} -freorder-blocks-algorithm=simple -flto=auto"`
-     - to `export KOS_CFLAGS="${KOS_CFLAGS} -freorder-blocks-algorithm=simple -flto=auto -ffat-lto-objects"`
+     - to `export KOS_CFLAGS="${KOS_CFLAGS} -flto=auto -ffat-lto-objects"`
      - (note the removal of the `#` at the beginning of the line)
 
 After applying those changes to `environ.sh`, run `source /opt/toolchains/dc/kos/environ.sh` to apply the new settings to your environment and compile KallistiOS and the `libGL` KOS port as usual via the instructions.
