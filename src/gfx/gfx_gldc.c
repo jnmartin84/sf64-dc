@@ -23,7 +23,6 @@
 #include <GL/glu.h>
 #include <GL/glext.h>
 #include <GL/glkos.h>
-#define LOWRES 0
 
 #define FOR_WINDOWS 0
 

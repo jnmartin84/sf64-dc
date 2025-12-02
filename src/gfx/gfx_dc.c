@@ -8,7 +8,7 @@
 #include <assert.h>
 
 #define GFX_API_NAME "Dreamcast GLdc"
-#define LOWRES 0
+
 #if LOWRES
 #define SCR_WIDTH (320)
 // for fsaa
