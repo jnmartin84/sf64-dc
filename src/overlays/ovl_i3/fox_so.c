@@ -3309,7 +3309,9 @@ void Solar_LevelComplete(Player* player) {
             gFillScreenAlphaStep = 4;
 
             if (gMsgCharIsPrinting) {
-                player->arwing.teamFaceXrot = (s32) (gGameFrameCount % 2U) * 5.0f;
+                // we don't have the slowdown that the N64 does at this point
+                // so change this from `% 2` to `& 2`
+                player->arwing.teamFaceXrot = (s32) (gGameFrameCount & 2U) * 5.0f;
             }
 
             switch (gCsFrameCount) {
