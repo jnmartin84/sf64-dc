@@ -10,6 +10,8 @@ find-command = $(shell which $(1) 2>/dev/null)
 
 #### Defaults ####
 
+# Enable 320x240 resolution
+LOWRES ?= 0
 # Enable testing mode
 TESTING_MODE ?= 0
 # Enable 32khz sample rate
@@ -70,6 +72,10 @@ SF_MUSIC_PATH := music
 # If gcc is used, define the NON_MATCHING flag respectively so the files that
 # are safe to be used can avoid using GLOBAL_ASM which doesn't work with gcc.
 CFLAGS += -DCOMPILER_GCC -DNON_MATCHING=1 -Wno-int-conversion -falign-functions=32 -fno-data-sections -DAVOID_UB=1 -MMD -MP -Wno-incompatible-pointer-types -Wno-missing-braces -Wno-unused-variable -Wno-switch  -DGBI_FLOATS -fno-toplevel-reorder
+
+ifeq ($(LOWRES),1)
+  CFLAGS += -DLOWRES
+endif
 
 ifeq ($(TESTING_MODE),1)
   CFLAGS += -DTESTING_MODE
