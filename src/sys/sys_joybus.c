@@ -227,7 +227,8 @@ u16 ucheld;
 extern char *fnpre;
 int shader_debug_toggle = 0;
 int cc_debug_toggle = 0;
-#include "../dcprofiler.h"
+#include <string.h>
+//#include "../dcprofiler.h"
 void Map_Main(void);
 
 void Controller_UpdateInput(void) {
@@ -247,20 +248,18 @@ void Controller_UpdateInput(void) {
         sControllerStatus[i].status = 1;
         sNextController[i].errno = 0;
 
-        if (1) { //(strcmp("/pc", fnpre) == 0) {
-            if (state->ltrig && state->rtrig) {
-                if (state->buttons & CONT_START) {
+        if (state->ltrig && state->rtrig) {
+            if (state->buttons & CONT_START) {
+                if (strcmp("/pc", fnpre) == 0) {
                     // profiler_stop();
                     // profiler_clean_up();
                     //  give vmu a chance to write and close
                     thd_sleep(3000);
                     exit(0);
-                } // else {
-                  // if (state->buttons && CONT_A)
-                  // Map_Main();
-                //}
+                }
             }
         }
+
         const char stickH = state->joyx;
         const char stickV = 0xff - ((uint8_t) (state->joyy));
 
