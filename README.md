@@ -8,7 +8,15 @@ You must build it yourself from your own N64 ROM. There is no exception to this.
 
 Running Star Fox 64 for Dreamcast on a Dreamcast emulator is **not** supported. It may or may not work correctly. This port is intended to be used only on real hardware. Just emulate an N64 and move on if that's your plan.
 
-**Saving**: If a VMU is present, the cartridge data will be saved.
+**Rumble**:
+Force-feedback is supported and tested with the following devices:
+- Sega Jump / Puru Pack
+- Performance TremorPak
+- Nyko DC Hyper Pak
+- Retro Fighters Striker DC Wireless built-in
+
+**Saving**: 
+If a VMU is present, the cartridge EEPROM data will be saved. 3 blocks are required.
 
 **Dreamcast controls**:
 - A: Fire laser
@@ -133,3 +141,16 @@ make all
 ```
 
 Good luck.
+
+** Acknowledgments **
+- sonicdreamcaster
+- gyrovorbis
+- darc
+- stiffpeaks
+- mittens
+- pcercuei
+- bbhoodsta
+- gpftroy
+- quzar
+- mrneo240
+- the list goes on
