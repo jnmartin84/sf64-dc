@@ -92,7 +92,7 @@ Copy your ROM to the root of this project directory, and rename the file to `bas
 Process the ROM file by running the following command:
 
 ```bash
-make -f Makefile.dc init
+make init
 ```
 ## 7. Build the Dreamcast version
 When the above command completes, you can generate the type of file for Dreamcast you desire:
@@ -102,30 +102,30 @@ Creating CDI files requires [mkdcdisc](https://gitlab.com/simulant/mkdcdisc) to 
 
 #### CDI file for burning to CD-R (padded for performance)
 ```bash
-make -f Makefile.dc cdi-cdr
+make cdi-cdr
 ```
 
 #### For ODE (GDEMU, MODE, USB-GDROM, etc.)
 ```bash
-make -f Makefile.dc cdi-ode
+make cdi-ode
 ```
 
 ### DSISO for DreamShell ISO Loader
 Creating DreamShell ISO files requires `mkisofs` to be installed. This is usually provided by the `cdrtools` or `cdrkit` package provided by your operating system's package manager.
 
 ```bash
-make -f Makefile.dc dsiso
+make dsiso
 ```
 
 ### Plain files for dcload-serial or dcload-ip
 ```bash
-make -f Makefile.dc files-zip
+make files-zip
 ```
 
 ### All of the above
 If you want to go wild and build all of the above types, you can do the following:
 ```bash
-make -f Makefile.dc all
+make all
 ```
 
 Good luck.
