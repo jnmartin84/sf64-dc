@@ -11,8 +11,13 @@
 #include <stdlib.h>
 #include "../dcprofiler.h"
 
+#if USE_32KHZ
 #define SAMPLES_HIGH 560
 #define SAMPLES_LOW 528
+#else
+#define SAMPLES_HIGH 464
+#define SAMPLES_LOW 432
+#endif
 
 uintptr_t arch_stack_32m = 0x8d000000;
 
@@ -503,23 +508,31 @@ int main(int argc, char **argv) {
 #endif
 
 void* AudioThread(UNUSED void* arg) {
-    Matrix __attribute__((aligned(32))) tmpmtx;
     uint64_t last_vbltick = vblticker;
 
     while (1) {
+#if USE_32KHZ
         while (vblticker <= last_vbltick + 1)
             genwait_wait((void*) &vblticker, NULL, 15, NULL);
-
+#else
+        while (vblticker <= last_vbltick)
+            genwait_wait((void*)&vblticker, NULL, 5, NULL);
+#endif
         __builtin_prefetch(audio_buffer[0]);
         last_vbltick = vblticker;
         __builtin_prefetch(audio_buffer[1]);
 
+#if USE_32KHZ
         int samplecount = gSysFrameCount & 1 ? SAMPLES_HIGH : SAMPLES_LOW;
         AudioThread_CreateNextAudioBuffer(audio_buffer[0], audio_buffer[1], samplecount);
         AudioThread_CreateNextAudioBuffer(audio_buffer[0] + (samplecount), audio_buffer[1] + (samplecount),
                                           samplecount);
 
         audio_api->play((u8*) audio_buffer[0], (u8*) audio_buffer[1], samplecount * 8);
+#else
+        AudioThread_CreateNextAudioBuffer(audio_buffer[0], audio_buffer[1], 448);
+        audio_api->play((u8 *)audio_buffer[0], (u8*)audio_buffer[1], 1792);
+#endif
     }
 
     return NULL;
