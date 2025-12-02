@@ -307,31 +307,6 @@ void Main_ThreadEntry(void* arg0) {
     vblank_handler_add(&vblfunc, NULL);
     Game_Initialize();
 
-#if defined(MEMTEST)
-    for (int mi = 0; mi < 8 * 1048576; mi += 65536) {
-        void* test_m = malloc(mi);
-        if (test_m != NULL) {
-            free(test_m);
-            test_m = NULL;
-            continue;
-        } else {
-            int bi = mi - 65536;
-            for (; bi < 8 * 1048576; bi++) {
-                test_m = malloc(bi);
-                if (test_m != NULL) {
-                    free(test_m);
-                    test_m = NULL;
-                    continue;
-                } else {
-                    printf("free ram for malloc: %d\n", bi);
-                    goto run_game_loop;
-                }
-            }
-        }
-    }
-run_game_loop:
-#endif
-
     osSendMesg(&gSerialThreadMesgQueue, (OSMesg) SI_READ_CONTROLLER, OS_MESG_NOBLOCK);
     Graphics_InitializeTask(gSysFrameCount);
     {
