@@ -1,4 +1,4 @@
-# Star Fox 64 for Sega Dreamcast
+# Star Fox 64 for Sega Dreamcast (2025/12/05)
 
 This is a Star Fox 64 port for the Sega Dreamcast, based on [sonicdcer](https://github.com/sonicdcer/)'s excellent [Star Fox 64 decompilation](https://github.com/sonicdcer/sf64) (that also powers [Starship](https://github.com/HarbourMasters/Starship)).
 
