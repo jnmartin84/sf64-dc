@@ -23,8 +23,6 @@ OSMesgQueue* gThreadCmdProcQueue = &sThreadCmdProcQueue;
 OSMesgQueue* gAudioSpecQueue = &sAudioSpecQueue;
 OSMesgQueue* gAudioResetQueue = &sAudioResetQueue;
 
-#define SAMPLES_LEFT 454
-#include <stdio.h>
 void AudioThread_CreateNextAudioBuffer(s16* samplesL, s16* samplesR, u32 num_samples) {
     s32 abiCmdCount;
     OSMesg specId;
@@ -61,133 +59,13 @@ void AudioThread_CreateNextAudioBuffer(s16* samplesL, s16* samplesR, u32 num_sam
 
     AudioSynth_Update(gCurAbiCmdBuffer, &abiCmdCount, samplesL, samplesR, num_samples);
 
-    // Spectrum Analyzer fix
-    //memcpy(gAiBuffers[gCurAiBuffIndex], samples, 2 * num_samples * sizeof(s16));
-
-    gAudioRandom = osGetCount() * (gAudioRandom + gAudioTaskCountQ);
-}
-
 #if 0
-SPTask* AudioThread_CreateTask(void) {
-    static s32 gMaxAbiCmdCnt = 128;
-    static SPTask* gWaitingAudioTask = NULL;
-    u32 aiSamplesLeft;
-    s32 abiCmdCount;
-    s32 aiBuffIndex;
-    s32 pad48;
-    OSTask_t* task;
-    u16* aiBuffer;
-    s32 pad3C;
-    u32 specId;
-    u32 msg;
-    s32 pad30;
-
-    gAudioTaskCountQ++;
-    if ((gAudioTaskCountQ % gAudioBufferParams.numBuffers) != 0) {
-        return gWaitingAudioTask;
-    }
-
-    osSendMesg(gAudioTaskStartQueue, (OSMesg) gAudioTaskCountQ, OS_MESG_NOBLOCK);
-
-    gAudioTaskIndexQ ^= 1;
-    gCurAiBuffIndex++;
-    gCurAiBuffIndex %= 3;
-
-    aiBuffIndex = (gCurAiBuffIndex + 1) % 3;
-    aiSamplesLeft = SAMPLES_LEFT;//osAiGetLength() / 4;
-
-    if ((gAudioResetTimer < 16) && (gAiBuffLengths[aiBuffIndex] != 0)) {
-//        osAiSetNextBuffer(gAiBuffers[aiBuffIndex], gAiBuffLengths[aiBuffIndex] * 4);
-    }
-
-    if (gCurAudioFrameDmaCount && gCurAudioFrameDmaCount) {} //! FAKE ?
-
-    gCurAudioFrameDmaCount = 0;
-    AudioLoad_DecreaseSampleDmaTtls();
-    AudioLoad_ProcessLoads(gAudioResetStep);
-
-    if (MQ_GET_MESG(gAudioSpecQueue, &specId)) {
-        if (gAudioResetStep == 0) {
-            gAudioResetStep = 5;
-        }
-        gAudioSpecId = specId;
-    }
-
-    if ((gAudioResetStep != 0) && (AudioHeap_ResetStep() == 0)) {
-        if (gAudioResetStep == 0) {
-            osSendMesg(gAudioResetQueue, (OSMesg) (s32) gAudioSpecId, OS_MESG_NOBLOCK);
-        }
-        gWaitingAudioTask = NULL;
-        return NULL;
-    }
-
-    if (gAudioResetTimer > 16) {
-        return NULL;
-    }
-    if (gAudioResetTimer != 0) {
-        gAudioResetTimer++;
-    }
-
-    gAudioCurTask = &gAudioRspTasks[gAudioTaskIndexQ];
-    gCurAbiCmdBuffer = gAbiCmdBuffs[gAudioTaskIndexQ];
-    aiBuffIndex = gCurAiBuffIndex;
-    aiBuffer = gAiBuffers[aiBuffIndex];
-    gAiBuffLengths[aiBuffIndex] = ALIGN16_ALT(gAudioBufferParams.samplesPerFrameTarget - aiSamplesLeft + 0x80);
-
-    if (gAiBuffLengths[aiBuffIndex] < gAudioBufferParams.minAiBufferLength) {
-        gAiBuffLengths[aiBuffIndex] = gAudioBufferParams.minAiBufferLength;
-    }
-    if (gAiBuffLengths[aiBuffIndex] > gAudioBufferParams.maxAiBufferLength) {
-        gAiBuffLengths[aiBuffIndex] = gAudioBufferParams.maxAiBufferLength;
-    }
-    while (MQ_GET_MESG(gThreadCmdProcQueue, &msg)) {
-        AudioThread_ProcessCmds(msg);
-    }
-    gCurAbiCmdBuffer = AudioSynth_Update(gCurAbiCmdBuffer, &abiCmdCount, aiBuffer, gAiBuffLengths[aiBuffIndex]);
-    gAudioRandom = osGetCount() * (gAudioRandom + gAudioTaskCountQ);
-    gAudioRandom = gAiBuffers[aiBuffIndex][gAudioTaskCountQ & 0xFF] + gAudioRandom;
-
-    aiBuffIndex = gAudioTaskIndexQ;
-
-    gAudioCurTask->mesgQueue = NULL;
-    gAudioCurTask->msg = NULL;
-
-    task = &gAudioCurTask->task.t;
-
-    task->type = 2;
-    task->flags = 0;
-    task->ucode_boot = NULL;//rspbootTextStart;
-    task->ucode_boot_size = 0;//(uintptr_t) rspbootTextEnd - (uintptr_t) rspbootTextStart;
-
-    task->ucode = NULL;//aspMainTextStart;
-    task->ucode_data = NULL;//aspMainDataStart;
-    task->ucode_size = SP_UCODE_SIZE;
-    task->ucode_data_size = 0;//(aspMainDataEnd - aspMainDataStart) * 8;
-
-    task->dram_stack = NULL;
-    task->dram_stack_size = 0;
-
-    task->output_buff = NULL;
-    task->output_buff_size = NULL;
-    if (1) {}
-    task->data_ptr = (u64*) gAbiCmdBuffs[aiBuffIndex];
-    task->data_size = abiCmdCount * sizeof(Acmd);
-
-    task->yield_data_ptr = NULL;
-    task->yield_data_size = 0;
-
-    if (gMaxAbiCmdCnt < abiCmdCount) {
-        gMaxAbiCmdCnt = abiCmdCount;
-    }
-
-    if (gAudioBufferParams.numBuffers == 1) {
-        return gAudioCurTask;
-    } else {
-        gWaitingAudioTask = gAudioCurTask;
-        return NULL;
-    }
-}
+    // Spectrum Analyzer fix
+    memcpy(gAiBuffers[gCurAiBuffIndex], samples, 2 * num_samples * sizeof(s16));
 #endif
+
+    gAudioRandom = osGetCount() * (gAudioRandom + gAudioTaskCountQ);
+}
 
 #include "sndwav.h"
 
@@ -221,8 +99,6 @@ void AudioThread_ProcessGlobalCmd(AudioCmd* cmd) {
             for (i = 0; i < ARRAY_COUNT(gSeqPlayers); i++) {
                 SequencePlayer* seqplayer = &gSeqPlayers[i];
                 wav_pause(i);
-//                if (i < 2)
-//                    wav_volume(i, 0);
                 seqplayer->muted = 1;
                 seqplayer->recalculateVolume = 1;
             }
@@ -243,8 +119,6 @@ void AudioThread_ProcessGlobalCmd(AudioCmd* cmd) {
             for (i = 0; i < ARRAY_COUNT(gSeqPlayers); i++) {
                 SequencePlayer* seqplayer = &gSeqPlayers[i];
                 wav_play(i);
-//                if (i < 2)
-  //                  wav_volume(i, 160);
                 seqplayer->muted = 0;
                 seqplayer->recalculateVolume = 1;
             }

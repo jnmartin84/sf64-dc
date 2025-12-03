@@ -463,8 +463,8 @@ s8 Audio_GetSfxPan(f32 xPos, f32 zPos, u8 mode) {
 #endif
 s8 Audio_GetSfxPan(f32 xPos, f32 zPos, u8 mode) {
     if (sSfxLayout != SFX_LAYOUT_VS) {
-        f32 absx = ABSF(xPos);
-        f32 absz = ABSF(zPos);
+        f32 absx = fabsf(xPos);
+        f32 absz = fabsf(zPos);
         f32 pan;
 
         if ((absx < 1.0f) && (absz < 1.0f)) {
@@ -476,11 +476,11 @@ s8 Audio_GetSfxPan(f32 xPos, f32 zPos, u8 mode) {
         if ((xPos == 0) && (zPos == 0)) {
             pan = 0.5f;
         } else if ((xPos >= 0.f) && (absz <= absx)) {
-            pan = 1.0f - ((2400.0f - absx) / (10.0f * (2400.0f - absz)));
+            pan = 1.0f - shz_divf((2400.0f - absx) , (10.0f * (2400.0f - absz)));
         } else if ((xPos < 0.0f) && (absz <= absx)) {
-            pan = (2400.0f - absx) / (10.0f * (2400.0f - absz));
+            pan = shz_divf((2400.0f - absx) , (10.0f * (2400.0f - absz)));
         } else {
-            pan = (xPos / (2.5f * absz)) + 0.5f;
+            pan = shz_divf(xPos, (2.5f * absz)) + 0.5f;
         }
         return ROUND(pan * 127.0f);
     } else if (mode != 4) {
@@ -489,19 +489,21 @@ s8 Audio_GetSfxPan(f32 xPos, f32 zPos, u8 mode) {
     return 64;
 }
 
+#define recip192 0.00520833f
+#define recip33000timespoint2 0.00000606f
 f32 Audio_GetSfxFreqMod(u8 bankId, u8 entryIndex) {
     f32 distance;
     f32 freqMod = 1.0f;
 
     if (sSfxBanks[bankId][entryIndex].sfxId & SFX_FLAG_23) {
-        freqMod -= ((gAudioRandom % 16) / 192.0f);
+        freqMod -= ((float)(gAudioRandom & 15) * recip192/* / 192.0f */);
     }
     distance = sSfxBanks[bankId][entryIndex].distance;
     if (!(sSfxBanks[bankId][entryIndex].sfxId & SFX_FLAG_22)) {
         if (distance >= 33000.0f) {
             freqMod += 0.2f;
         } else {
-            freqMod += 0.2f * (distance / 33000.0f);
+            freqMod += distance * recip33000timespoint2;//0.2f * (distance / 33000.0f);
         }
     }
     if ((sSfxLayout != SFX_LAYOUT_DEFAULT) && (sSfxBanks[bankId][entryIndex].token & 2)) {
@@ -526,7 +528,7 @@ void Audio_SetSfxProperties(u8 bankId, u8 entryIndex, u8 channelId) {
                 AUDIOCMD_CHANNEL_SET_IO(SEQ_PLAYER_SFX, channelId, 1, gLevelType);
             }
             if ((entry->sfxId & SFX_FLAG_18) && (*entry->zPos > 0.0f)) {
-                f32 yScaled = *entry->yPos / 2.5f;
+                f32 yScaled = *entry->yPos * 0.4f; // / 2.5f;
 
                 entry->distance = SQ(*entry->xPos) + SQ(yScaled);
             }
@@ -1170,7 +1172,7 @@ void Audio_UpdateActiveSequences(void) {
             }
             if (!USE_MIXER_MUSIC) {
                 if (seqPlayId == SEQ_PLAYER_BGM && wav_is_playing(WAV_PLAYER_BGM)) {
-                    wav_volume(WAV_PLAYER_BGM, (u8) (fadeMod * 160.0f));
+                    wav_volume(WAV_PLAYER_BGM, (u8) (fadeMod * 90.0f/* 160.0f */));
                 }
             }
             SEQCMD_SET_SEQPLAYER_VOLUME(seqPlayId, sActiveSequences[seqPlayId].mainVolume.fadeTimer,
@@ -2197,7 +2199,7 @@ void Audio_UpdateLandmasterNoise(u8 playerId) {
         freqMod *= sPlayerNoise[playerId].freqMod[i].value;
     }
 #define recip600 0.00166667f
-    if (ABS(gPlayer[playerId].pos.y) < 600.0f) {
+    if (fabsf(gPlayer[playerId].pos.y) < 600.0f) {
         freqMod += (gPlayer[playerId].pos.y * recip600); // / 600.0f);
     } else {
         freqMod += 1.0f;
