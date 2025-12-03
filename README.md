@@ -126,6 +126,9 @@ make cdi-ode
 ```
 
 ### DSISO for DreamShell ISO Loader
+While a target for creating a DreamShell ISO is provided, please note that you may experience crashes that are not present when running from CD-R, ODE or dcload-ip/dcload-serial.
+
+
 Creating DreamShell ISO files requires `mkisofs` to be installed. This is usually provided by the `cdrtools` or `cdrkit` package provided by your operating system's package manager.
 
 ```bash
