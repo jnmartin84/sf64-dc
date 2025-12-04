@@ -377,29 +377,27 @@ f32 Audio_GetSfxFalloff(u8 bankId, u8 entryIndex) {
     } else {
         switch ((sSfxBanks[bankId][entryIndex].sfxId & SFX_RANGE_MASK)) {
             default:
-                range = 33000.0f / 20.0f;
+                range = 1650.0f; // 33000.0f / 20.0f;
                 break;
             case 1 << SFX_RANGE_SHIFT:
-                range = 33000.0f / 15.0f;
+                range = 2200.0f; // 33000.0f / 15.0f;
                 break;
             case 2 << SFX_RANGE_SHIFT:
-                range = 33000.0f / 10.5f;
+                range = 3142.85714286f; // 33000.0f / 10.5f;
                 break;
             case 3 << SFX_RANGE_SHIFT:
-                range = 33000.0f / 5.2f;
+                range = 6346.15384615f; // 33000.0f / 5.2f;
                 break;
         }
-        cutoff = range / 5.0f;
-        if (distance < range / 5.0f) {
+        cutoff = range * 0.2f; // / 5.0f;
+        if (distance < range * 0.2f) { // / 5.0f) {
             falloff = 1.0f;
         } else if (distance < range) {
             midDist = range - cutoff;
-            //            f32 recipdist = shz_fast_invf(midDist);
             midrange = distance - cutoff;
-            falloff = (((midDist - midrange) / midDist) * 0.19f) + 0.81f;
+            falloff = (shz_divf((midDist - midrange) , midDist) * 0.19f) + 0.81f;
         } else {
-            //            f32 recip33ksubrange = shz_fast_invf((33000.0f - range));
-            falloff = (1.0f - ((distance - range) / (33000.0f - range))) * 0.81f;
+            falloff = (1.0f - (shz_divf((distance - range) , (33000.0f - range)))) * 0.81f;
         }
         falloff = SQ(falloff);
     }
@@ -412,8 +410,8 @@ s8 Audio_GetSfxReverb(u8 bankId, u8 entryIndex, u8 channelId) {
     s8 scriptReverb = 0;
 
     if (!(sSfxBanks[bankId][entryIndex].sfxId & SFX_FLAG_21)) {
-        if (sSfxBanks[bankId][entryIndex].distance < (33000.0f / 4.0f)) {
-            distReverb = (sSfxBanks[bankId][entryIndex].distance / (33000.0f / 4.0f)) * 40.0f;
+        if (sSfxBanks[bankId][entryIndex].distance < 8250.0f/* (33000.0f / 4.0f) */) {
+            distReverb = (sSfxBanks[bankId][entryIndex].distance *0.00484848f);  // / (33000.0f / 4.0f) ) * 40.0f;
         } else {
             distReverb = 40;
         }
@@ -429,38 +427,6 @@ s8 Audio_GetSfxReverb(u8 bankId, u8 entryIndex, u8 channelId) {
     return totalReverb;
 }
 
-#if 0
-s8 Audio_GetSfxPan(f32 xPos, f32 zPos, u8 mode) {
-    if (sSfxLayout != SFX_LAYOUT_VS) {
-        f32 absx = fabsf(xPos);
-        f32 absz = fabsf(zPos);
-        f32 pan;
-
-        if ((absx < 1.0f) && (absz < 1.0f)) {
-            return 64;
-        }
-        absx = MIN(1200.0f, absx);
-        absz = MIN(1200.0f, absz);
-
-        if ((xPos == 0) && (zPos == 0)) {
-            pan = 0.5f;
-        } else if ((xPos >= 0.f) && (absz <= absx)) {
-//            f32 recipthing = shz_fast_invf((10.0f * (2400.0f - absz)));
-            pan = 1.0f - ((2400.0f - absx)  / (10.0f * (2400.0f - absz)));
-        } else if ((xPos < 0.0f) && (absz <= absx)) {
-//            f32 recipthing = shz_fast_invf((10.0f * (2400.0f - absz)));
-            pan = (2400.0f - absx)  / (10.0f * (2400.0f - absz));
-        } else {
-         //   f32 recipthing = shz_fast_invf((2.5f * absz));
-            pan = (xPos  / (2.5f * absz) ) + 0.5f;
-        }
-        return ROUND(pan * 127.0f);
-    } else if (mode != 4) {
-        return ((mode & 1) * 127);
-    }
-    return 64;
-}
-#endif
 s8 Audio_GetSfxPan(f32 xPos, f32 zPos, u8 mode) {
     if (sSfxLayout != SFX_LAYOUT_VS) {
         f32 absx = fabsf(xPos);
@@ -1172,7 +1138,7 @@ void Audio_UpdateActiveSequences(void) {
             }
             if (!USE_MIXER_MUSIC) {
                 if (seqPlayId == SEQ_PLAYER_BGM && wav_is_playing(WAV_PLAYER_BGM)) {
-                    wav_volume(WAV_PLAYER_BGM, (u8) (fadeMod * 90.0f/* 160.0f */));
+                    wav_volume(WAV_PLAYER_BGM, (u8) (fadeMod * 160.0f));
                 }
             }
             SEQCMD_SET_SEQPLAYER_VOLUME(seqPlayId, sActiveSequences[seqPlayId].mainVolume.fadeTimer,

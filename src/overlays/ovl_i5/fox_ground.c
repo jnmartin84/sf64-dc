@@ -95,8 +95,8 @@ s32 Ground_801B49D0(Actor* actor) {
 #include <stdlib.h>
 void Ground_801B4A54(UnkStruct_801C62E8* arg0) {
     // Lots of conversions between floats, and ints unnecessarily here because of this chain assignment.
-//    arg0->unk_00 = arg0->unk_04 = arg0->unk_08 = arg0->unk_0C = arg0->unk_10 = arg0->unk_14 = arg0->unk_18 =
-  //      arg0->unk_1C = arg0->unk_20 = 0;
+    /* arg0->unk_00 = arg0->unk_04 = arg0->unk_08 = arg0->unk_0C = arg0->unk_10 = arg0->unk_14 = arg0->unk_18 =
+        arg0->unk_1C = arg0->unk_20 = 0; */
     memset(arg0, 0, sizeof(UnkStruct_801C62E8));
 }
 
@@ -195,12 +195,14 @@ void Ground_801B4AA8(s32* arg0, s32* arg1) {
                 case 2:
                     unk_08 += (1760.0f - (unk_10 * 0.5f));
                     var_fv1 = unk_14;
-#define RECIP_70_DTOR 0.81851114f
+// (70.0f * M_DTOR)
 #define DTOR70 1.22173048f
-                    if (var_s2->unk_20 <= var_fv1 * RECIP_70_DTOR) { /// (70.0f * M_DTOR)) {
-                        var_fv1 = var_s2->unk_20 * DTOR70; // (70.0f * M_DTOR);
-                    } else if ((var_fv1 * RECIP_70_DTOR) /* / (70.0f * M_DTOR) */ >= (unk_18 - var_s2->unk_20)) {
-                        var_fv1 = (unk_18 - var_s2->unk_20) * DTOR70/* (70.0f * M_DTOR) */;
+// 1.0f / (70.0f * M_DTOR)
+#define RECIP_70_DTOR 0.81851114f
+                    if (var_s2->unk_20 <= shz_divf(var_fv1 , DTOR70)) {
+                        var_fv1 = var_s2->unk_20 * DTOR70;
+                    } else if (shz_divf(var_fv1,DTOR70) >= (unk_18 - var_s2->unk_20)) {
+                        var_fv1 = (unk_18 - var_s2->unk_20) * DTOR70;
                     }
 
                     for (j = 0, var_fv0 = 0.0f; j < 16; j++, var_fv0 += 220.0f, var_s1++) {
@@ -223,9 +225,11 @@ void Ground_801B4AA8(s32* arg0, s32* arg1) {
                         for (j = 0; j < 16; j++, var_s1++) {
                             temp_fs0 =
                                 (j * 220.0f * D_i5_801BE740) - 1760.0f - var_s2->unk_08 +
-                                (sinf(((var_s2->unk_20 * 8.0f) * recip_unk_18) * 2 * (M_DTOR * 180.0f)) * 500.0f);
+                                // 2pi
+                                (sinf(((var_s2->unk_20 * 8.0f) * recip_unk_18) * 6.2831844f /* 2 * (M_DTOR * 180.0f) */) * 500.0f);
                             if (fabsf(temp_fs0) <= var_s2->unk_10) {
-                                temp_fa0 = cosf((temp_fs0 * recip_unk_10) * (M_DTOR * 90.0f));
+                                // pi/2
+                                temp_fa0 = cosf((temp_fs0 * recip_unk_10) * 1.5707961f /* (M_DTOR * 90.0f) */);
                                 if (temp_fa0 >= 0.7f) {
                                     temp_fa0 = 0.7f;
                                 }
@@ -233,7 +237,7 @@ void Ground_801B4AA8(s32* arg0, s32* arg1) {
                                     temp_fa0 * var_s2->unk_14 * 4.0f * ((var_s2->unk_18 - var_s2->unk_20) * recip_unk_18);
                             }
                             *var_s1 +=
-                                (var_s2->unk_14 - ((var_s2->unk_20 * recip_unk_18) * var_s2->unk_14)) * 4.0f * 0.7f;
+                                (var_s2->unk_14 - ((var_s2->unk_20 * recip_unk_18) * var_s2->unk_14)) * 2.8f; // * 4.0f * 0.7f;
                         }
                     }
                     var_s2->unk_20 -= 220.0f;
@@ -293,10 +297,12 @@ void Ground_801B5110(f32 x, f32 y, f32 z) {
         Ground_801B4A54(ptr);
     }
 
+    memset(D_i5_801C1D48, 0, 28*16*4);
+
     for (i = 0; i < ARRAY_COUNT(D_i5_801C1D48); i++) {
-        for (k = 0; k < ARRAY_COUNT(D_i5_801C1D48[0]); k++) {
+/*         for (k = 0; k < ARRAY_COUNT(D_i5_801C1D48[0]); k++) {
             D_i5_801C1D48[i][k] = 0;
-        }
+        } */
         D_i5_801C2448[i] = D_i5_801C24B8[i] = 1.0f;
     }
     Ground_801B5244(D_i5_801C5C04, D_i5_801C5C08);
@@ -338,8 +344,8 @@ void Ground_801B5244(s32 arg0, s32 arg1) {
             v1->n.ob[1] = D_i5_801C1D48[(sp5C + 1) % 28][ia2];
 
             for (iv1 = 0; iv1 < 2; iv1++) {
-                D_i5_801BE748[sp60][ia2][iv1].n.tc[0] = (ia2 % 2) * 0x400;
-                D_i5_801BE748[sp60][ia2][iv1].n.tc[1] = iv1 * 0x400;
+                D_i5_801BE748[sp60][ia2][iv1].n.tc[0] = (ia2 & 1/* % 2 */) ? 0x400 : 0; // * 0x400;
+                D_i5_801BE748[sp60][ia2][iv1].n.tc[1] = iv1 ? 0x400 : 0 ;// * 0x400;
             }
         }
         sp60 = (sp60 + 1) % 27;
@@ -354,7 +360,7 @@ void Ground_801B5244(s32 arg0, s32 arg1) {
 
         for (ia2 = 0, var_s6 = 15; var_s6 < 30; ia2++, var_s6 += 15) {
             var_s5 = (var_s6 < 15) ? 15 : 14;
-            gSPVertex(D_i5_801C5C00++, &D_i5_801BE748[sp60][ia2 * 15][0], (var_s5 + 2) * 2, 0);
+            gSPVertex(D_i5_801C5C00++, &D_i5_801BE748[sp60][ia2 * 15][0], (var_s5 + 2) << 1, 0); // * 2, 0);
             for (iv1 = 0; iv1 <= var_s5; iv1++) {
                 gSP1Triangle(D_i5_801C5C00++, (iv1 << 1), (iv1 << 1) + 1, (iv1 << 1) + 3, 0);
                 gSP1Triangle(D_i5_801C5C00++, (iv1 << 1), (iv1 << 1) + 3, (iv1 << 1) + 2, 0);
@@ -529,18 +535,18 @@ void Ground_801B5FE0(s32 arg0, s32 arg1, s32 arg2) {
                 j2 = (i1 - 1) * (i1 != 0);
 
                 for (i2 = 0; i2 < 3; i2++) {
-                    D_i5_801C6E28[0][i2] = (D_i5_801C65B8[0][j2][2].a[i2] + D_i5_801C65B8[1][j2][3].a[i2] +
-                                            D_i5_801C65B8[1][j3][0].a[i2] + D_i5_801C65B8[0][j3][1].a[i2]) /
-                                           4.0f;
-                    D_i5_801C6E28[1][i2] = (D_i5_801C65B8[1][j2][2].a[i2] + D_i5_801C65B8[2][j2][3].a[i2] +
-                                            D_i5_801C65B8[2][j3][0].a[i2] + D_i5_801C65B8[1][j3][1].a[i2]) /
-                                           4.0f;
-                    D_i5_801C6E28[2][i2] = (D_i5_801C65B8[1][j3][2].a[i2] + D_i5_801C65B8[2][j3][3].a[i2] +
-                                            D_i5_801C65B8[2][j1][0].a[i2] + D_i5_801C65B8[1][j1][1].a[i2]) /
-                                           4.0f;
-                    D_i5_801C6E28[3][i2] = (D_i5_801C65B8[0][j3][2].a[i2] + D_i5_801C65B8[1][j3][3].a[i2] +
-                                            D_i5_801C65B8[1][j1][0].a[i2] + D_i5_801C65B8[0][j1][1].a[i2]) /
-                                           4.0f;
+                    D_i5_801C6E28[0][i2] = (s32)(D_i5_801C65B8[0][j2][2].a[i2] + D_i5_801C65B8[1][j2][3].a[i2] +
+                                            D_i5_801C65B8[1][j3][0].a[i2] + D_i5_801C65B8[0][j3][1].a[i2]) >> 2;
+                                            // / 4.0f;
+                    D_i5_801C6E28[1][i2] = (s32)(D_i5_801C65B8[1][j2][2].a[i2] + D_i5_801C65B8[2][j2][3].a[i2] +
+                                            D_i5_801C65B8[2][j3][0].a[i2] + D_i5_801C65B8[1][j3][1].a[i2]) >> 2;
+                                            // / 4.0f;
+                    D_i5_801C6E28[2][i2] = (s32)(D_i5_801C65B8[1][j3][2].a[i2] + D_i5_801C65B8[2][j3][3].a[i2] +
+                                            D_i5_801C65B8[2][j1][0].a[i2] + D_i5_801C65B8[1][j1][1].a[i2]) >> 2;
+                                            // / 4.0f;
+                    D_i5_801C6E28[3][i2] = (s32)(D_i5_801C65B8[0][j3][2].a[i2] + D_i5_801C65B8[1][j3][3].a[i2] +
+                                            D_i5_801C65B8[1][j1][0].a[i2] + D_i5_801C65B8[0][j1][1].a[i2]) >> 2;
+                                            // / 4.0f;
                 }
 
                 for (i2 = 0; i2 < 4; i2++) {
@@ -738,25 +744,25 @@ s32 Ground_801B6E20(f32 arg0, f32 arg1, f32* arg2, f32* arg3, f32* arg4) {
         }
 
         if (var_v1 != 0) {
-            temp = ((-sp84.normal.x * arg0) - (sp84.normal.z * temp_fs2) - sp84.dist) / sp84.normal.y;
+            temp = shz_divf(((-sp84.normal.x * arg0) - (sp84.normal.z * temp_fs2) - sp84.dist) , sp84.normal.y);
             if (*arg3 < temp) {
                 *arg3 = temp;
             }
 
             if (sp84.normal.x != 0.0f) {
-                var_fs2 = -sp84.dist / sp84.normal.x;
+                var_fs2 = shz_divf(-sp84.dist , sp84.normal.x);
             } else {
                 var_fs2 = 0.0f;
             }
 
             if (sp84.normal.y != 0.0f) {
-                var_fs1 = -sp84.dist / sp84.normal.y;
+                var_fs1 = shz_divf(-sp84.dist , sp84.normal.y);
             } else {
                 var_fs1 = 0.0f;
             }
 
             if (sp84.normal.z != 0.0f) {
-                var_fs0_2 = -sp84.dist / sp84.normal.z;
+                var_fs0_2 = shz_divf(-sp84.dist , sp84.normal.z);
             } else {
                 var_fs0_2 = 0.0f;
             }
