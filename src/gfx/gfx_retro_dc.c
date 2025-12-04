@@ -132,7 +132,6 @@ struct __attribute__((aligned(16))) LoadedNormal {
 	float x,y,z,w;
 };
 
-
 // bits 0 - 5 -> clip_rej
 // bit 6 - wlt0
 // bit 7 - lit
@@ -140,9 +139,9 @@ uint8_t __attribute__((aligned(32))) clip_rej[MAX_VERTICES];
 
 static inline uint32_t pack_key(uint32_t a, uint8_t e, uint8_t pal) {
     uint32_t key = 0;
-    key |= ((uint32_t)((a >> 5) /* & 0x7FFFF */)) << 4; // the other bits
-    key |= ((uint32_t)(e & 0x3))<<2;               // 2 bits
-    key |= ((uint32_t)(pal & 0x3));                // 2 bits
+    key |= ((uint32_t)(a >> 5)) << 4; // the rest of the bits
+    key |= ((uint32_t)(e & 0x3)) <<2 ; // 2 bits
+    key |= ((uint32_t)(pal & 0x3)); // 2 bits
 	return key;
 }
 
