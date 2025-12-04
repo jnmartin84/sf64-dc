@@ -455,7 +455,7 @@ void convert_end_palette_rgba5551_to_gray(void) {
     u16* tluts[] = { aEndIncomingMsgTex1TLUT, aEndIncomingMsgTex2TLUT, aEndIncomingMsgTex3TLUT,
                      aEndIncomingMsgTex4TLUT };
     for (int j = 0; j < 4; j++) {
-        uint16_t* pal = segmented_to_virtual(tluts[j]);
+        uint16_t* pal = SEGMENTED_TO_VIRTUAL(tluts[j]);
         for (int i = 0; i < 16; i++) {
             pal[i] = rgba5551_to_gray_clamped(pal[i]);
         }

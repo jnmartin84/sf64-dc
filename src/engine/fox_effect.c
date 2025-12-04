@@ -912,7 +912,7 @@ void Effect_Effect383_Update(Effect383* this) {
 //    Lib_Texture_Scroll(D_10190C0, 16, 32, 0);
     e383_ult = (e383_ult - 4) & 0x7F;
     e383_lrt = (e383_ult + 127) & 0xFFF;
-    Gfx *cmd = (Gfx *)segmented_to_virtual((void *)((Gfx*)(D_10182C0 + 6)));
+    Gfx *cmd = (Gfx *)SEGMENTED_TO_VIRTUAL((void *)((Gfx*)(D_10182C0 + 6)));
 	cmd->words.w0 = (G_SETTILESIZE << 24)        | e383_ult;
     cmd->words.w1 = (cmd->words.w1 & 0x0703F000) | e383_lrt;
 
@@ -4038,7 +4038,7 @@ void Effect_Effect395_Draw(Effect395* this) {
 //                Lib_Texture_Scroll(D_A6_6012840, 16, 16, 0);
                 a6_ult = (a6_ult - 4) & 0x3F;
                 a6_lrt = (a6_ult + 63) & 0xFFF;
-                Gfx* cmd = (Gfx *)segmented_to_virtual((void *)((Gfx*)D_A6_6012550 + 6));
+                Gfx* cmd = (Gfx *)SEGMENTED_TO_VIRTUAL((void *)((Gfx*)D_A6_6012550 + 6));
                 cmd->words.w0 = (G_SETTILESIZE << 24)        | a6_ult;
                 cmd->words.w1 = (cmd->words.w1 & 0x0703F000) | a6_lrt;            
             }

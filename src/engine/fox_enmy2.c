@@ -116,7 +116,7 @@ void CoWaterfall_Update(CoWaterfall* this) {
 //    gfx_texture_cache_invalidate(D_CO_60038F8);
     wf_ult = (wf_ult + 4) & 0x7F;
     wf_lrt = (wf_ult + 127) & 0xFFF;
-    Gfx* cmd1 = (Gfx*) segmented_to_virtual((void*) ((Gfx*) (aCoWaterfallDL + 26)));
+    Gfx* cmd1 = (Gfx*) SEGMENTED_TO_VIRTUAL((void*) ((Gfx*) (aCoWaterfallDL + 26)));
     uint32_t words_w0 = (G_SETTILESIZE << 24) | wf_ult;
     uint32_t words_w1 = (cmd1->words.w1 & 0x0707F000) | wf_lrt;
     cmd1->words.w0 = words_w0;

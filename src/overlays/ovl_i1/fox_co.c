@@ -1371,7 +1371,7 @@ void Corneria_CoGaruda1_Update(CoGaruda1* this) {
             garuda_ult = (garuda_ult + 4) & 0x3F;
             garuda_lrt = (garuda_ult + 63) & 0xFFF;
             // gfx+59
-            Gfx *cmd = (Gfx *)segmented_to_virtual((void *)((Gfx*)(ast_corneria_seg6_gfx_31ED0 + 59)));
+            Gfx *cmd = (Gfx *)SEGMENTED_TO_VIRTUAL((void *)((Gfx*)(ast_corneria_seg6_gfx_31ED0 + 59)));
             // upper left coords
             cmd->words.w0 = (G_SETTILESIZE << 24)        | garuda_ult;
             // lower right coords
@@ -1463,7 +1463,7 @@ void Corneria_CoGaruda2_Update(CoGaruda2* this) {
             garuda_ult = (garuda_ult - 4) & 0x3F;
             garuda_lrt = (garuda_ult + 63) & 0xFFF;
             // gfx+59
-            Gfx *cmd = (Gfx *)segmented_to_virtual((void *)((Gfx*)(ast_corneria_seg6_gfx_31ED0 + 59)));
+            Gfx *cmd = (Gfx *)SEGMENTED_TO_VIRTUAL((void *)((Gfx*)(ast_corneria_seg6_gfx_31ED0 + 59)));
             // upper left coords
             cmd->words.w0 = (G_SETTILESIZE << 24)        | garuda_ult;
             // lower right coords
@@ -1482,7 +1482,7 @@ void Corneria_CoGaruda2_Update(CoGaruda2* this) {
             garuda_ult = (garuda_ult - 4) & 0x3F;
             garuda_lrt = (garuda_ult + 63) & 0xFFF;
             // gfx+59
-            Gfx *cmd = (Gfx *)segmented_to_virtual((void *)((Gfx*)(ast_corneria_seg6_gfx_31ED0 + 59)));
+            Gfx *cmd = (Gfx *)SEGMENTED_TO_VIRTUAL((void *)((Gfx*)(ast_corneria_seg6_gfx_31ED0 + 59)));
             // upper left coords
             cmd->words.w0 = (G_SETTILESIZE << 24)        | garuda_ult;
             // lower right coords
@@ -1550,7 +1550,7 @@ void Corneria_CoGaruda3_Update(CoGaruda3* this) {
             garuda_ult = (garuda_ult - 4) & 0x3F;
             garuda_lrt = (garuda_ult + 63) & 0xFFF;
             // gfx+59
-            Gfx *cmd = (Gfx *)segmented_to_virtual((void *)((Gfx*)(ast_corneria_seg6_gfx_31ED0 + 59)));
+            Gfx *cmd = (Gfx *)SEGMENTED_TO_VIRTUAL((void *)((Gfx*)(ast_corneria_seg6_gfx_31ED0 + 59)));
             // upper left coords
             cmd->words.w0 = (G_SETTILESIZE << 24)        | garuda_ult;
             // lower right coords

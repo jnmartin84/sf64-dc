@@ -3965,7 +3965,7 @@ Gfx D_MA_6012C00[] = {
     scroll2_ult = (scroll2_ult + 4) & 0x1F;
     scroll2_lrt = (scroll2_ult + 31) & 0xFFF;
 
-    Gfx *cmd = (Gfx *)segmented_to_virtual((void *)((Gfx*)(D_MA_6012C00 + 2)));
+    Gfx *cmd = (Gfx *)SEGMENTED_TO_VIRTUAL((void *)((Gfx*)(D_MA_6012C00 + 2)));
 	cmd->words.w0 = (G_SETTILESIZE << 24)        | scroll2_ult;
     cmd->words.w1 = (cmd->words.w1 & 0x0700F000) | scroll2_lrt;
 #endif
@@ -5752,7 +5752,7 @@ void Macbeth_LevelStart(Player* player) {
         // + 141
         // + 150
         // + 177
-        Gfx *cmd = (Gfx *)segmented_to_virtual((void *)((Gfx*)(aLandmasterModelDL + 92)));
+        Gfx *cmd = (Gfx *)SEGMENTED_TO_VIRTUAL((void *)((Gfx*)(aLandmasterModelDL + 92)));
         uint32_t cmd_words_w0, cmd_words_w1;
         // upper left coords
         cmd_words_w0 = (G_SETTILESIZE << 24)        | lm6_ult;
@@ -5761,15 +5761,15 @@ void Macbeth_LevelStart(Player* player) {
         cmd->words.w0 = cmd_words_w0;
         cmd->words.w1 = cmd_words_w1;
 
-        cmd = (Gfx *)segmented_to_virtual((void *)((Gfx*)(aLandmasterModelDL + 141)));
+        cmd = (Gfx *)SEGMENTED_TO_VIRTUAL((void *)((Gfx*)(aLandmasterModelDL + 141)));
         cmd->words.w0 = cmd_words_w0;
         cmd->words.w1 = cmd_words_w1;
 
-        cmd = (Gfx *)segmented_to_virtual((void *)((Gfx*)(aLandmasterModelDL + 150)));
+        cmd = (Gfx *)SEGMENTED_TO_VIRTUAL((void *)((Gfx*)(aLandmasterModelDL + 150)));
         cmd->words.w0 = cmd_words_w0;
         cmd->words.w1 = cmd_words_w1;
 
-        cmd = (Gfx *)segmented_to_virtual((void *)((Gfx*)(aLandmasterModelDL + 177)));
+        cmd = (Gfx *)SEGMENTED_TO_VIRTUAL((void *)((Gfx*)(aLandmasterModelDL + 177)));
         cmd->words.w0 = cmd_words_w0;
         cmd->words.w1 = cmd_words_w1;
     if ((gCsFrameCount > 150) && ((-player->trueZpos - player->zPath) > 200.0f)) {

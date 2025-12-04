@@ -425,7 +425,7 @@ static inline uint32_t /* old_ */hash10_murmur(uint32_t addr) {
 }
 
 void gfx_texture_cache_invalidate(void* orig_addr) {
- 	void* segaddr = segmented_to_virtual(orig_addr);
+ 	void* segaddr = SEGMENTED_TO_VIRTUAL(orig_addr);
 	int dirtied = 0;
 	size_t hash = hash10_fold((uintptr_t) (segaddr));
 	uintptr_t addrcomp = ((uintptr_t)segaddr>>5)&0x7FFFF;
@@ -450,7 +450,7 @@ void gfx_opengl_replace_texture(const uint8_t* rgba32_buf, int width, int height
 
 static  __attribute__((noinline)) uint8_t gfx_texture_cache_lookup(int tile, struct TextureHashmapNode** n, const uint8_t* orig_addr,
 										uint32_t tmem, uint32_t fmt, uint32_t siz, uint8_t pal) {
-	void* segaddr = segmented_to_virtual((void *)orig_addr);
+	void* segaddr = SEGMENTED_TO_VIRTUAL((void *)orig_addr);
 	size_t hash = hash10_fold((uintptr_t)(segaddr));
 	struct TextureHashmapNode** node = &gfx_texture_cache.hashmap[hash];
 	MEM_BARRIER_PREF(*node);
@@ -730,7 +730,7 @@ static void __attribute__((noinline)) import_texture(int tile) {
 	cache_lookup_rv = gfx_texture_cache_lookup(tile, &rendering_state.textures[tile], rdp.loaded_texture[tile].addr, tmem,
 		fmt, siz, rdp.last_palette);
 
-	__builtin_prefetch(segmented_to_virtual(rdp.loaded_texture[tile].addr));
+	__builtin_prefetch(SEGMENTED_TO_VIRTUAL(rdp.loaded_texture[tile].addr));
 
 	if (cache_lookup_rv)
 		return;
@@ -791,7 +791,7 @@ static void gfx_matrix_mul(shz_matrix_4x4_t *res, const shz_matrix_4x4_t *a, con
 static int matrix_dirty = 0;
 
 static __attribute__((noinline)) void gfx_sp_matrix(uint8_t parameters, const void* addr) {
-	void* segaddr = (void*) segmented_to_virtual((void*) addr);
+	void* segaddr = (void*) SEGMENTED_TO_VIRTUAL((void*) addr);
 	float matrix[4][4] __attribute__((aligned(32)));
 	int recompute = 0;
 
@@ -1123,7 +1123,7 @@ static void __attribute__((noinline)) gfx_sp_vertex(uint8_t n_vertices, uint8_t 
 			COLOR_MTX[2][2] = rsp.current_lights[rsp.current_num_lights - 1].col[2];
 		}
 
-		gfx_sp_vertex_light_step1(n_vertices, dest_index, segmented_to_virtual(vertices));
+		gfx_sp_vertex_light_step1(n_vertices, dest_index, SEGMENTED_TO_VIRTUAL(vertices));
 
 		if (rsp.geometry_mode & G_TEXTURE_GEN) {
 			shz_xmtrx_load_3x3(&ENV_MTX);
@@ -1134,9 +1134,9 @@ static void __attribute__((noinline)) gfx_sp_vertex(uint8_t n_vertices, uint8_t 
 		gfx_sp_vertex_light_step2(n_vertices, dest_index);
 
 		shz_xmtrx_load_3x3(&COLOR_MTX);
-		gfx_sp_vertex_light_step3(n_vertices, dest_index, segmented_to_virtual(vertices));
+		gfx_sp_vertex_light_step3(n_vertices, dest_index, SEGMENTED_TO_VIRTUAL(vertices));
 	} else {
-        gfx_sp_vertex_no(n_vertices, dest_index, segmented_to_virtual(vertices));
+        gfx_sp_vertex_no(n_vertices, dest_index, SEGMENTED_TO_VIRTUAL(vertices));
     }
 }
 
@@ -1300,15 +1300,15 @@ static void __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx2
     gfx_rapi->shader_get_info(prg, &num_inputs, used_textures);
     int i;
 
-    void* texaddr = segmented_to_virtual(rdp.texture_to_load.addr);
-    void* grass = segmented_to_virtual(aCoGroundGrassTex);
-    void* water = segmented_to_virtual(D_CO_6028A60);
-    void* ve1ground = segmented_to_virtual(aVe1GroundTex);
-    void* maground = segmented_to_virtual(aMaGroundTex);
-    void* aqground = segmented_to_virtual(aAqGroundTex);
-    void* aqwater = segmented_to_virtual(aAqWaterTex);
-    void* ti_ground = segmented_to_virtual(D_TI_6001BA8);
-    void* zowater = segmented_to_virtual(aZoWaterTex);
+    void* texaddr = SEGMENTED_TO_VIRTUAL(rdp.texture_to_load.addr);
+    void* grass = SEGMENTED_TO_VIRTUAL(aCoGroundGrassTex);
+    void* water = SEGMENTED_TO_VIRTUAL(D_CO_6028A60);
+    void* ve1ground = SEGMENTED_TO_VIRTUAL(aVe1GroundTex);
+    void* maground = SEGMENTED_TO_VIRTUAL(aMaGroundTex);
+    void* aqground = SEGMENTED_TO_VIRTUAL(aAqGroundTex);
+    void* aqwater = SEGMENTED_TO_VIRTUAL(aAqWaterTex);
+    void* ti_ground = SEGMENTED_TO_VIRTUAL(D_TI_6001BA8);
+    void* zowater = SEGMENTED_TO_VIRTUAL(aZoWaterTex);
     float recip_tex_width = 0.03125f; // 1 / 32
     float recip_tex_height = 0.03125f; // 1 / 32
     uint8_t usetex = used_textures[0];
@@ -1949,7 +1949,7 @@ static void gfx_dp_set_scissor(uint32_t ulx, uint32_t uly, uint32_t lrx, uint32_
 }
 
 static void gfx_dp_set_texture_image(uint8_t size, uint32_t width, const void* addr) {
-	rdp.texture_to_load.addr = segmented_to_virtual((void*)addr);
+	rdp.texture_to_load.addr = SEGMENTED_TO_VIRTUAL((void*)addr);
 	rdp.texture_to_load.siz = size;
 	last_set_texture_image_width = width;
 }
@@ -1994,19 +1994,19 @@ static void __attribute__((noinline)) DO_LOAD_TLUT(void) {
 
     int high_index = rdp.palette_dirty;
 
-    if (segmented_to_virtual(rdp.palette) == segmented_to_virtual(gTextCharPalettes[0])) {
+    if (SEGMENTED_TO_VIRTUAL(rdp.palette) == SEGMENTED_TO_VIRTUAL(gTextCharPalettes[0])) {
         font = 1;
-    } else if (segmented_to_virtual(rdp.palette) == segmented_to_virtual(gTextCharPalettes[1])) {
+    } else if (SEGMENTED_TO_VIRTUAL(rdp.palette) == SEGMENTED_TO_VIRTUAL(gTextCharPalettes[1])) {
         font = 1;
-    } else if (segmented_to_virtual(rdp.palette) == segmented_to_virtual(gTextCharPalettes[2])) {
+    } else if (SEGMENTED_TO_VIRTUAL(rdp.palette) == SEGMENTED_TO_VIRTUAL(gTextCharPalettes[2])) {
         font = 1;
-    } else if (segmented_to_virtual(rdp.palette) == segmented_to_virtual(gTextCharPalettes[3])) {
+    } else if (SEGMENTED_TO_VIRTUAL(rdp.palette) == SEGMENTED_TO_VIRTUAL(gTextCharPalettes[3])) {
         font = 1;
     }
 
     memset(tlut, 0, 256 * 2);
 
-    uint16_t* srcp = (uint16_t*) segmented_to_virtual(rdp.palette);
+    uint16_t* srcp = (uint16_t*) SEGMENTED_TO_VIRTUAL(rdp.palette);
     rdp.loaded_palette = rdp.palette;
 
     uint16_t* tlp = tlut;
@@ -2057,7 +2057,7 @@ static void gfx_dp_load_block(uint32_t lrs) {
     }
     uint32_t size_bytes = (lrs + 1) << word_size_shift;
     rdp.loaded_texture[rdp.texture_to_load.tile_number].size_bytes = size_bytes;
-    rdp.loaded_texture[rdp.texture_to_load.tile_number].addr = segmented_to_virtual(rdp.texture_to_load.addr);
+    rdp.loaded_texture[rdp.texture_to_load.tile_number].addr = SEGMENTED_TO_VIRTUAL(rdp.texture_to_load.addr);
 
     rdp.textures_changed[rdp.texture_to_load.tile_number] = 1;
     last_set_texture_image_width = 0;
@@ -2420,7 +2420,7 @@ static void  gfx_sp_set_other_mode(uint8_t shift, uint8_t num_bits, uint64_t mod
 }
 
 static inline void* seg_addr(uintptr_t w1) {
-	return (void*) segmented_to_virtual((void*) w1);
+	return (void*) SEGMENTED_TO_VIRTUAL((void*) w1);
 }
 
 
@@ -2806,12 +2806,12 @@ void gfx_start_frame(void) {
 void gfx_run(Gfx* commands) {
 	gfx_sp_reset();
 
-	if (!gfx_wapi->start_frame()) {
-		dropped_frame = 1;
-		return;
-	}
+	//if (!gfx_wapi->start_frame()) {
+	//	dropped_frame = 1;
+	//	return;
+	//}
 
-	dropped_frame = 0;
+	//dropped_frame = 0;
 
 	gfx_rapi->start_frame();
 	gfx_run_dl(commands);
@@ -2821,8 +2821,8 @@ void gfx_run(Gfx* commands) {
 }
 
 void gfx_end_frame(void) {
-	if (!dropped_frame) {
+	//if (!dropped_frame) {
 		gfx_rapi->finish_render();
 		gfx_wapi->swap_buffers_end();
-	}
+	//}
 }

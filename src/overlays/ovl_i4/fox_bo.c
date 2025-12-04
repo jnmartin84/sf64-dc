@@ -2090,7 +2090,7 @@ void Bolse_BoBaseShield_Update(BoBaseShield* this) {
     bolse_ult = (bolse_ult - 4) & 0x3F;
     bolse_lrt = (bolse_ult + 63) & 0xFFF;
     // pointer to the SetTileSize cmd
-    Gfx *cmd = (Gfx *)segmented_to_virtual((void *)((Gfx*)(aBoBaseShieldDL + 2)));
+    Gfx *cmd = (Gfx *)SEGMENTED_TO_VIRTUAL((void *)((Gfx*)(aBoBaseShieldDL + 2)));
     // upper left coords
     cmd->words.w0 = (G_SETTILESIZE << 24)        | bolse_ult;
     // lower right coords

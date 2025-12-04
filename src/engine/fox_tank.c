@@ -524,7 +524,7 @@ void func_tank_80044868(Player* player) {
         // + 141
         // + 150
         // + 177
-        Gfx *cmd = (Gfx *)segmented_to_virtual((void *)((Gfx*)(aLandmasterModelDL + 92)));
+        Gfx *cmd = (Gfx *)SEGMENTED_TO_VIRTUAL((void *)((Gfx*)(aLandmasterModelDL + 92)));
         uint32_t cmd_words_w0, cmd_words_w1;
         // upper left coords
         cmd_words_w0 = (G_SETTILESIZE << 24)        | lm6_ult;
@@ -533,15 +533,15 @@ void func_tank_80044868(Player* player) {
         cmd->words.w0 = cmd_words_w0;
         cmd->words.w1 = cmd_words_w1;
 
-        cmd = (Gfx *)segmented_to_virtual((void *)((Gfx*)(aLandmasterModelDL + 141)));
+        cmd = (Gfx *)SEGMENTED_TO_VIRTUAL((void *)((Gfx*)(aLandmasterModelDL + 141)));
         cmd->words.w0 = cmd_words_w0;
         cmd->words.w1 = cmd_words_w1;
 
-        cmd = (Gfx *)segmented_to_virtual((void *)((Gfx*)(aLandmasterModelDL + 150)));
+        cmd = (Gfx *)SEGMENTED_TO_VIRTUAL((void *)((Gfx*)(aLandmasterModelDL + 150)));
         cmd->words.w0 = cmd_words_w0;
         cmd->words.w1 = cmd_words_w1;
 
-        cmd = (Gfx *)segmented_to_virtual((void *)((Gfx*)(aLandmasterModelDL + 177)));
+        cmd = (Gfx *)SEGMENTED_TO_VIRTUAL((void *)((Gfx*)(aLandmasterModelDL + 177)));
         cmd->words.w0 = cmd_words_w0;
         cmd->words.w1 = cmd_words_w1;
 
@@ -564,7 +564,7 @@ void func_tank_80044868(Player* player) {
         // + 141
         // + 150
         // + 177
-        Gfx *cmd = (Gfx *)segmented_to_virtual((void *)((Gfx*)(aLandmasterModelDL + 92)));
+        Gfx *cmd = (Gfx *)SEGMENTED_TO_VIRTUAL((void *)((Gfx*)(aLandmasterModelDL + 92)));
         uint32_t cmd_words_w0, cmd_words_w1;
         // upper left coords
         cmd_words_w0 = (G_SETTILESIZE << 24)        | lm6_ult;
@@ -573,15 +573,15 @@ void func_tank_80044868(Player* player) {
         cmd->words.w0 = cmd_words_w0;
         cmd->words.w1 = cmd_words_w1;
 
-        cmd = (Gfx *)segmented_to_virtual((void *)((Gfx*)(aLandmasterModelDL + 141)));
+        cmd = (Gfx *)SEGMENTED_TO_VIRTUAL((void *)((Gfx*)(aLandmasterModelDL + 141)));
         cmd->words.w0 = cmd_words_w0;
         cmd->words.w1 = cmd_words_w1;
 
-        cmd = (Gfx *)segmented_to_virtual((void *)((Gfx*)(aLandmasterModelDL + 150)));
+        cmd = (Gfx *)SEGMENTED_TO_VIRTUAL((void *)((Gfx*)(aLandmasterModelDL + 150)));
         cmd->words.w0 = cmd_words_w0;
         cmd->words.w1 = cmd_words_w1;
 
-        cmd = (Gfx *)segmented_to_virtual((void *)((Gfx*)(aLandmasterModelDL + 177)));
+        cmd = (Gfx *)SEGMENTED_TO_VIRTUAL((void *)((Gfx*)(aLandmasterModelDL + 177)));
         cmd->words.w0 = cmd_words_w0;
         cmd->words.w1 = cmd_words_w1;
         if ((gCurrentLevel == LEVEL_TITANIA) && !gBossActive) {

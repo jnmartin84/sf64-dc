@@ -64,26 +64,48 @@ SPTask* sNewGfxTasks[2];
 
 // make sure that a segment base address is always valid before the game starts
 u32 gSegments[16] = {
-0x8c010000,
-0x8c010000,
-0x8c010000,
-0x8c010000,
-0x8c010000,
-0x8c010000,
-0x8c010000,
-0x8c010000,
-0x8c010000,
-0x8c010000,
-0x8c010000,
-0x8c010000,
-0x8c010000,
-0x8c010000,
-0x8c010000,
-0x8c010000,
+0x8c000000,
+0x8c000000,
+0x8c000000,
+0x8c000000,
+0x8c000000,
+0x8c000000,
+0x8c000000,
+0x8c000000,
+0x8c000000,
+0x8c000000,
+0x8c000000,
+0x8c000000,
+0x8c000000,
+0x8c000000,
+0x8c000000,
+0x8c000000,
 };
 
-extern u8 seg_used[15];
+#if MMU_SEGMENTED
+extern u8 *SEG_BUF[15];
 
+#include <kos.h>
+
+void segment_init(void) {
+    mmucontext_t* cxt;
+
+    mmu_init();
+
+    cxt = mmu_context_create(0);
+    mmu_use_table(cxt);
+    mmu_switch_context(cxt);
+
+    mmu_page_map(cxt, 0, 0x0C000000 >> PAGESIZE_BITS, (1 * 1024 * 1024) >> PAGESIZE_BITS, MMU_ALL_RDWR, MMU_CACHEABLE,
+                 0, 1);
+
+    for (int s = 0; s < 15; s++) {
+        mmu_page_map(cxt, (uintptr_t) ((s + 1) << 24) >> PAGESIZE_BITS,
+                     ((uintptr_t) SEG_BUF[s] - 0x80000000) >> PAGESIZE_BITS, (1 * 1024 * 1024) >> PAGESIZE_BITS,
+                     MMU_ALL_RDWR, MMU_CACHEABLE, 0, 1);
+    }
+}
+#else
 void* segmented_to_virtual(const void* addr) {
     u32 uaddr = (u32) addr;
 
@@ -96,6 +118,7 @@ void* segmented_to_virtual(const void* addr) {
     u32 translated_addr = gSegments[segment] + offset;
     return (void*)translated_addr;
 }
+#endif
 
 OSMesgQueue gPiMgrCmdQueue;
 OSMesg sPiMgrCmdBuff[50];
@@ -248,6 +271,10 @@ void Main_ThreadEntry(void* arg0) {
     u8 i;
     u8 visPerFrame;
     u8 validVIsPerFrame;
+
+#if MMU_SEGMENTED
+    segment_init();
+#endif
 
     maple_device_t* dev = NULL;
     if ((dev = maple_enum_type(0, MAPLE_FUNC_LCD))) {

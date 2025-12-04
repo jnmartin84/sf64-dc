@@ -6762,7 +6762,7 @@ void Play_UpdateLevel(void) {
 //            gfx_texture_cache_invalidate(aMeteoWarpTex);
             met_ult = (met_ult + 4) & 0x1F;
             met_lrt = (met_ult + 31) & 0xFFF;
-            Gfx* cmd = (Gfx *)segmented_to_virtual((void *)((Gfx*)(aMeteoWarpDL + 2)));
+            Gfx* cmd = (Gfx *)SEGMENTED_TO_VIRTUAL((void *)((Gfx*)(aMeteoWarpDL + 2)));
             cmd->words.w0 = (G_SETTILESIZE << 24)        | met_ult;
             cmd->words.w1 = (cmd->words.w1 & 0x0701F000) | met_lrt;
 
@@ -6796,7 +6796,7 @@ void Play_UpdateLevel(void) {
                 // what would it take to do this with UV scrolling?
                 cob1_uls = (cob1_uls - 4) & 0xFF;
                 cob1_lrs = (cob1_uls + 255) & 0xFFF;
-                Gfx* cmd = (Gfx *)segmented_to_virtual((void *)((Gfx*)(aCoBuilding1DL + 36)));
+                Gfx* cmd = (Gfx *)SEGMENTED_TO_VIRTUAL((void *)((Gfx*)(aCoBuilding1DL + 36)));
 			    cmd->words.w0 = (G_SETTILESIZE << 24)        | (cob1_uls << 12);
                 cmd->words.w1 = (cmd->words.w1 & 0x0700007F) | (cob1_lrs << 12);
             }
@@ -6819,8 +6819,8 @@ void Play_UpdateLevel(void) {
             }
 
             sol_lrt = (sol_ult + 127) & 0xFFF;
-            Gfx* cmd1 = (Gfx *)segmented_to_virtual((void *)((Gfx*)(aSoLava1DL + 2)));
-            Gfx* cmd2 = (Gfx *)segmented_to_virtual((void *)((Gfx*)(aSoLava2DL + 2)));
+            Gfx* cmd1 = (Gfx *)SEGMENTED_TO_VIRTUAL((void *)((Gfx*)(aSoLava1DL + 2)));
+            Gfx* cmd2 = (Gfx *)SEGMENTED_TO_VIRTUAL((void *)((Gfx*)(aSoLava2DL + 2)));
             uint32_t words_w0 = (G_SETTILESIZE << 24)        | sol_ult;
             uint32_t words_w1 = (cmd1->words.w1 & 0x0707F000) | sol_lrt;
             cmd1->words.w0 = words_w0;
