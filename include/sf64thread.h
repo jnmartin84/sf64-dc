@@ -126,7 +126,6 @@ extern SPTask* sNewAudioTasks[2];
 extern SPTask* sNewAudioTasks[1];
 #endif
 extern SPTask* sNewGfxTasks[2];
-extern u32 gSegments[16]; // 800E1FD0
 extern OSMesgQueue gPiMgrCmdQueue; // 800E2010
 extern OSMesg sPiMgrCmdBuff[50]; // 800E2028
 

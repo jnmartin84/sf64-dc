@@ -138,13 +138,9 @@ struct __attribute__((aligned(16))) LoadedNormal {
 // bit 7 - lit
 uint8_t __attribute__((aligned(32))) clip_rej[MAX_VERTICES];
 
-//uint8_t __attribute__((aligned(32))) vfog[MAX_VERTICES];
-
-
-static inline uint32_t pack_key(uint32_t a, uint8_t d, uint8_t e, uint8_t pal) {
+static inline uint32_t pack_key(uint32_t a, uint8_t e, uint8_t pal) {
     uint32_t key = 0;
-    key |= ((uint32_t)((a >> 5) & 0x7FFFF)) << 12; // 19 bits
-    key |= ((uint32_t)d & 0xFF)   << 4;            // 8 bits
+    key |= ((uint32_t)((a >> 5) /* & 0x7FFFF */)) << 4; // the other bits
     key |= ((uint32_t)(e & 0x3))<<2;               // 2 bits
     key |= ((uint32_t)(pal & 0x3));                // 2 bits
 	return key;
@@ -393,7 +389,7 @@ void reset_texcache(void) {
 
 static inline uint32_t unpack_A(uint64_t key) {
     // Extract 19-bit field
-    uint32_t a19 = (uint32_t)((key >> 12) & 0x7FFFF);
+    uint32_t a19 = (uint32_t)((key >> 4));
     return a19;
 }
 
@@ -428,7 +424,7 @@ void gfx_texture_cache_invalidate(void* orig_addr) {
  	void* segaddr = SEGMENTED_TO_VIRTUAL(orig_addr);
 	int dirtied = 0;
 	size_t hash = hash10_fold((uintptr_t) (segaddr));
-	uintptr_t addrcomp = ((uintptr_t)segaddr>>5)&0x7FFFF;
+	uintptr_t addrcomp = ((uintptr_t)segaddr>>5);
 
 	struct TextureHashmapNode** node = &gfx_texture_cache.hashmap[hash];
 	uintptr_t last_node = &gfx_texture_cache.pool[gfx_texture_cache.pool_pos];
@@ -449,13 +445,13 @@ void gfx_opengl_replace_texture(const uint8_t* rgba32_buf, int width, int height
 #define MEM_BARRIER_PREF(ptr) asm volatile("pref @%0" : : "r"((ptr)) : "memory")
 
 static  __attribute__((noinline)) uint8_t gfx_texture_cache_lookup(int tile, struct TextureHashmapNode** n, const uint8_t* orig_addr,
-										uint32_t tmem, uint32_t fmt, uint32_t siz, uint8_t pal) {
+										uint32_t tmem, uint32_t siz, uint8_t pal) {
 	void* segaddr = SEGMENTED_TO_VIRTUAL((void *)orig_addr);
 	size_t hash = hash10_fold((uintptr_t)(segaddr));
 	struct TextureHashmapNode** node = &gfx_texture_cache.hashmap[hash];
 	MEM_BARRIER_PREF(*node);
 
-	uint32_t newkey = pack_key(segaddr, fmt, siz, pal);
+	uint32_t newkey = pack_key(segaddr, siz, pal);
 
 	uintptr_t last_node = &gfx_texture_cache.pool[gfx_texture_cache.pool_pos];
 	while (*node != NULL && ((uintptr_t)*node < last_node)) {
@@ -555,7 +551,6 @@ extern LevelId gCurrentLevel;
 extern uint16_t scaled2[];
 int do_the_blur = 0;
 extern u16 aTiBackdropTex[];
-extern uint8_t *SEG_BUF[15];
 
 extern float Rand_ZeroOne(void);
 
@@ -728,7 +723,7 @@ static void __attribute__((noinline)) import_texture(int tile) {
 		gfx_texture_cache_invalidate((void *)rdp.loaded_texture[tile].addr);
 
 	cache_lookup_rv = gfx_texture_cache_lookup(tile, &rendering_state.textures[tile], rdp.loaded_texture[tile].addr, tmem,
-		fmt, siz, rdp.last_palette);
+		siz, rdp.last_palette);
 
 	__builtin_prefetch(SEGMENTED_TO_VIRTUAL(rdp.loaded_texture[tile].addr));
 

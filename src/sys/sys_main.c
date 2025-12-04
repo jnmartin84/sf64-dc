@@ -1,6 +1,6 @@
 #include "n64sys.h"
 #include "sf64audio_external.h"
-//#include "mods.h"
+// #include "mods.h"
 #include <stdio.h>
 #include <kos/thread.h>
 #include <kos/genwait.h>
@@ -20,29 +20,29 @@
 
 extern struct GfxWindowManagerAPI gfx_glx;
 extern struct GfxRenderingAPI gfx_opengl_api;
-static struct GfxWindowManagerAPI *wm_api = &gfx_dc;
-static struct GfxRenderingAPI *rendering_api = &gfx_opengl_api;
+static struct GfxWindowManagerAPI* wm_api = &gfx_dc;
+static struct GfxRenderingAPI* rendering_api = &gfx_opengl_api;
 
-extern void gfx_run(Gfx *commands);
-char *fnpre;
+extern void gfx_run(Gfx* commands);
+char* fnpre;
 #include "src/dcaudio/audio_api.h"
 #include "src/dcaudio/audio_dc.h"
 volatile int inited = 0;
 extern struct AudioAPI audio_dc;
 s16 audio_buffer[2][SAMPLES_HIGH * 2 * 2 * 3] __attribute__((aligned(64)));
-static struct AudioAPI *audio_api = NULL;
+static struct AudioAPI* audio_api = NULL;
 void AudioThread_CreateNextAudioBuffer(s16* samplesL, s16* samplesR, u32 num_samples);
 
-void *AudioThread(UNUSED void *arg);
+void* AudioThread(UNUSED void* arg);
 
-static volatile uint64_t vblticker=0;
+static volatile uint64_t vblticker = 0;
 
-void vblfunc(uint32_t c, void *d) {
-	(void)c;
-	(void)d;
+void vblfunc(uint32_t c, void* d) {
+    (void) c;
+    (void) d;
     vblticker++;
-    osSendMesg(&gGfxVImesgQueue, (OSMesg)NULL, OS_MESG_NOBLOCK);
-    genwait_wake_one((void *)&vblticker);
+    osSendMesg(&gGfxVImesgQueue, (OSMesg) NULL, OS_MESG_NOBLOCK);
+    genwait_wake_one((void*) &vblticker);
 }
 
 void _AudioInit(void) {
@@ -62,29 +62,9 @@ SPTask* sNewAudioTasks[1];
 #endif
 SPTask* sNewGfxTasks[2];
 
-// make sure that a segment base address is always valid before the game starts
-u32 gSegments[16] = {
-0x8c000000,
-0x8c000000,
-0x8c000000,
-0x8c000000,
-0x8c000000,
-0x8c000000,
-0x8c000000,
-0x8c000000,
-0x8c000000,
-0x8c000000,
-0x8c000000,
-0x8c000000,
-0x8c000000,
-0x8c000000,
-0x8c000000,
-0x8c000000,
-};
+extern u8* SEG_BUF[15];
 
 #if MMU_SEGMENTED
-extern u8 *SEG_BUF[15];
-
 #include <kos.h>
 
 void segment_init(void) {
@@ -96,16 +76,29 @@ void segment_init(void) {
     mmu_use_table(cxt);
     mmu_switch_context(cxt);
 
-    mmu_page_map(cxt, 0, 0x0C000000 >> PAGESIZE_BITS, (1 * 1024 * 1024) >> PAGESIZE_BITS, MMU_ALL_RDWR, MMU_CACHEABLE,
-                 0, 1);
+    mmu_page_map(cxt, (uintptr_t) 0, ((uintptr_t) 0x0C010000) >> PAGESIZE_BITS, 1048576 >> PAGESIZE_BITS, MMU_ALL_RDWR,
+                 MMU_CACHEABLE, 0, 1);
 
-    for (int s = 0; s < 15; s++) {
-        mmu_page_map(cxt, (uintptr_t) ((s + 1) << 24) >> PAGESIZE_BITS,
-                     ((uintptr_t) SEG_BUF[s] - 0x80000000) >> PAGESIZE_BITS, (1 * 1024 * 1024) >> PAGESIZE_BITS,
+    for (uint32_t s = 1; s < 16; s++) {
+        mmu_page_map(cxt, (uintptr_t) (s << 24) >> PAGESIZE_BITS,
+                     ((uintptr_t) SEG_BUF[(s - 1)] - 0x80000000) >> PAGESIZE_BITS, 1048576 >> PAGESIZE_BITS,
                      MMU_ALL_RDWR, MMU_CACHEABLE, 0, 1);
     }
 }
 #else
+// make sure that a segment base address is always valid before the game starts
+// even if it is meaningless
+static u32 gSegments[16] = {
+    0x8c010000, 0x8c010000, 0x8c010000, 0x8c010000, 0x8c010000, 0x8c010000, 0x8c010000, 0x8c010000,
+    0x8c010000, 0x8c010000, 0x8c010000, 0x8c010000, 0x8c010000, 0x8c010000, 0x8c010000, 0x8c010000,
+};
+
+void segment_init(void) {
+    for (uint32_t s = 1; s < 16; s++) {
+        gSegments[s] = (u32) SEG_BUF[(s - 1)];
+    }
+}
+
 void* segmented_to_virtual(const void* addr) {
     u32 uaddr = (u32) addr;
 
@@ -116,7 +109,7 @@ void* segmented_to_virtual(const void* addr) {
     u32 segment = (u32) (uaddr >> 24);
     u32 offset = (u32) uaddr & 0x00FFFFFF;
     u32 translated_addr = gSegments[segment] + offset;
-    return (void*)translated_addr;
+    return (void*) translated_addr;
 }
 #endif
 
@@ -231,7 +224,6 @@ void Graphics_InitializeTask(u32 frameCount) {
     D_80178710 = &D_80178580[0];
 }
 
-
 void Main_InitMesgQueues(void) {
     osCreateMesgQueue(&gDmaMesgQueue, sDmaMsgBuff, ARRAY_COUNT(sDmaMsgBuff));
     osCreateMesgQueue(&gTaskMesgQueue, sTaskMsgBuff, ARRAY_COUNT(sTaskMsgBuff));
@@ -240,12 +232,12 @@ void Main_InitMesgQueues(void) {
     osCreateMesgQueue(&gGfxVImesgQueue, sGfxVImsgBuff, ARRAY_COUNT(sGfxVImsgBuff));
     osCreateMesgQueue(&gGfxTaskMesgQueue, sGfxTaskMsgBuff, ARRAY_COUNT(sGfxTaskMsgBuff));
     osCreateMesgQueue(&gSerialEventQueue, sSerialEventBuff, ARRAY_COUNT(sSerialEventBuff));
-    //osSetEventMesg(OS_EVENT_SI, &gSerialEventQueue, NULL);
+    // osSetEventMesg(OS_EVENT_SI, &gSerialEventQueue, NULL);
     osCreateMesgQueue(&gMainThreadMesgQueue, sMainThreadMsgBuff, ARRAY_COUNT(sMainThreadMsgBuff));
-    //osViSetEvent(&gMainThreadMesgQueue, (OSMesg) EVENT_MESG_VI, 1);
-    //osSetEventMesg(OS_EVENT_SP, &gMainThreadMesgQueue, (OSMesg) EVENT_MESG_SP);
-    //osSetEventMesg(OS_EVENT_DP, &gMainThreadMesgQueue, (OSMesg) EVENT_MESG_DP);
-    //osSetEventMesg(OS_EVENT_PRENMI, &gMainThreadMesgQueue, (OSMesg) EVENT_MESG_PRENMI);
+    // osViSetEvent(&gMainThreadMesgQueue, (OSMesg) EVENT_MESG_VI, 1);
+    // osSetEventMesg(OS_EVENT_SP, &gMainThreadMesgQueue, (OSMesg) EVENT_MESG_SP);
+    // osSetEventMesg(OS_EVENT_DP, &gMainThreadMesgQueue, (OSMesg) EVENT_MESG_DP);
+    // osSetEventMesg(OS_EVENT_PRENMI, &gMainThreadMesgQueue, (OSMesg) EVENT_MESG_PRENMI);
     osCreateMesgQueue(&gTimerTaskMesgQueue, sTimerTaskMsgBuff, ARRAY_COUNT(sTimerTaskMsgBuff));
     osCreateMesgQueue(&gTimerWaitMesgQueue, sTimerWaitMsgBuff, ARRAY_COUNT(sTimerWaitMsgBuff));
     osCreateMesgQueue(&gSerialThreadMesgQueue, sSerialThreadMsgBuff, ARRAY_COUNT(sSerialThreadMsgBuff));
@@ -272,9 +264,7 @@ void Main_ThreadEntry(void* arg0) {
     u8 visPerFrame;
     u8 validVIsPerFrame;
 
-#if MMU_SEGMENTED
     segment_init();
-#endif
 
     maple_device_t* dev = NULL;
     if ((dev = maple_enum_type(0, MAPLE_FUNC_LCD))) {
@@ -369,14 +359,14 @@ void Main_ThreadEntry(void* arg0) {
     }
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
     FILE* fntest = fopen("/pc/sf_data/logo.bin", "rb");
     if (NULL == fntest) {
         fntest = fopen("/cd/sf_data/logo.bin", "rb");
         if (NULL == fntest) {
             printf("Cant load from /pc or /cd");
             printf("\n");
-           exit(-1);
+            exit(-1);
         } else {
             printf("             using /cd for assets\n");
             fnpre = "/cd";
@@ -406,7 +396,7 @@ void* AudioThread(UNUSED void* arg) {
             genwait_wait((void*) &vblticker, NULL, 15, NULL);
 #else
         while (vblticker <= last_vbltick)
-            genwait_wait((void*)&vblticker, NULL, 5, NULL);
+            genwait_wait((void*) &vblticker, NULL, 5, NULL);
 #endif
 
         last_vbltick = vblticker;
@@ -420,7 +410,7 @@ void* AudioThread(UNUSED void* arg) {
         audio_api->play((u8*) audio_buffer[0], (u8*) audio_buffer[1], samplecount * 8);
 #else
         AudioThread_CreateNextAudioBuffer(audio_buffer[0], audio_buffer[1], 448);
-        audio_api->play((u8 *)audio_buffer[0], (u8*)audio_buffer[1], 1792);
+        audio_api->play((u8*) audio_buffer[0], (u8*) audio_buffer[1], 1792);
 #endif
     }
 

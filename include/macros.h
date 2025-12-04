@@ -3,8 +3,6 @@
 #include <stdio.h>
 #include "alignment.h"
 
-extern long unsigned int gSegments[16];
-
 #if !MMU_SEGMENTED
 extern void* segmented_to_virtual(const void* addr);
 #endif
@@ -30,8 +28,8 @@ extern void* segmented_to_virtual(const void* addr);
 #define RAND_FLOAT_CENTERED_SEEDED(width) ((Rand_ZeroOneSeeded()-0.5f)*(width))
 
 #if MMU_SEGMENTED
-#define SEGMENTED_TO_VIRTUAL(segment) (segment)
-#define SEGMENTED_TO_VIRTUAL_JP(segment) (segment)
+#define SEGMENTED_TO_VIRTUAL(segment) ((void*)(segment))
+#define SEGMENTED_TO_VIRTUAL_JP(segment) ((void*)(segment))
 #else
 #define SEGMENTED_TO_VIRTUAL(segment) segmented_to_virtual((segment))
 #define SEGMENTED_TO_VIRTUAL_JP(segment) segmented_to_virtual((segment))

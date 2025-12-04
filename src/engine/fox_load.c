@@ -27,16 +27,11 @@ extern u8 *SEG_BUF[15];
 
 char segfiles[16][32] = {0};
 
-u8 seg_used[15] = {0};
-
 void Load_RomFile(char *fname, int snum) {
-    gSegments[snum] = SEG_BUF[snum - 1];
     if (strcmp("",fname)) { 
         if (strcmp(segfiles[snum], fname)) {
             strcpy(segfiles[snum],fname);
             char fullfn[256];
-            seg_used[snum-1] = 1;
-            // dest is always SEG_BUF[snum - 1]
             sprintf(fullfn, "%s/sf_data/%s.bin", fnpre, fname);
             file_t rom_file = fs_open(fullfn, O_RDONLY);
             if ((file_t)-1 == rom_file) {
@@ -45,11 +40,10 @@ void Load_RomFile(char *fname, int snum) {
             }
             size_t rom_file_size = fs_seek(rom_file, 0, SEEK_END);
             fs_seek(rom_file, 0, SEEK_SET);
+            // dest is always SEG_BUF[snum - 1]
             fs_read(rom_file, SEG_BUF[snum - 1], rom_file_size);
             fs_close(rom_file);
         }
-    }  else {
-        seg_used[snum-1] = 0;
     } 
 }
 
@@ -58,8 +52,6 @@ extern void nuke_everything(void);
 u8 Load_SceneFiles(NewScene* scene, int snum) {
     u8 segment;
     u8 changeScene = 0;
-
-    gSegments[0] = 0x8c010000;
 
     if (scene[snum].id == sCurrentScene.id && snum == sCurrentScene.snum) {
         // do nothing
