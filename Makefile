@@ -34,7 +34,9 @@ EXTRA_EVERYTHING ?= 0
 MODS_LEVEL_SELECT ?= 0
 
 ### Joystick max
-JOYSTICK_MAX ?= 64
+# Defaulting to 80 because that's how we've all been testing it
+# Try 64 for a more authentic N64 response
+JOYSTICK_MAX ?= 80
 
 ### MR logo
 # Set a custom IP.BIN boot logo when building CDI files
