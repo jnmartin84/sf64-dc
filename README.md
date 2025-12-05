@@ -129,7 +129,7 @@ make cdi-ode
 While a target for creating a DreamShell ISO is provided, please note that you may experience crashes that are not present when running from CD-R, ODE or dcload-ip/dcload-serial.
 
 
-Also note that running a DreamShell ISO from an SD card will provide a miserable gameplay experience full of stuttering audio. The mixer requires real-time processing guarantees that can't be met with the excessive CPU usage caused by polling the serial port. If you file an issue for this, it will be deleted and you will be ignored.
+Also note that running a DreamShell ISO from an SD card with a DC SD adapter will provide a miserable gameplay experience full of stuttering audio. The mixer requires real-time processing guarantees that can't be met with the excessive CPU usage caused by polling the serial port. If you file an issue for this, it will be deleted and you will be ignored.
 
 
 Creating DreamShell ISO files requires `mkisofs` to be installed. This is usually provided by the `cdrtools` or `cdrkit` package provided by your operating system's package manager.
