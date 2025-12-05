@@ -5,10 +5,16 @@
 #include <stdio.h>
 #include <kos/thread.h>
 
+#ifdef AUDIO_VOICE_JP
+#define SIZE_OF_SEQ 241616
+#define SIZE_OF_BANK 127264
+#define SIZE_OF_TABLE 7712016
+#else
 //7950992
 #define SIZE_OF_SEQ 240880
 #define SIZE_OF_BANK 122912
 #define SIZE_OF_TABLE 7587200
+#endif
 u8 __attribute__((aligned(256))) __audio_seq_ROM_START[SIZE_OF_SEQ + SIZE_OF_BANK + SIZE_OF_TABLE];
 
 s32 D_80146D80;
