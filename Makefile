@@ -33,6 +33,11 @@ EXTRA_EVERYTHING ?= 0
 # Useful for debugging and speedrunning training.
 MODS_LEVEL_SELECT ?= 0
 
+### Joystick max
+# Defaulting to 80 because that's how we've all been testing it
+# Try 64 for a more authentic N64 response
+JOYSTICK_MAX ?= 80
+
 ### MR logo
 # Set a custom IP.BIN boot logo when building CDI files
 MR_LOGO ?= assets/dreamcast/mrlogo.mr
@@ -126,6 +131,8 @@ endif
 ifneq (,$(filter 1,$(TESTING_MODE) $(MODS_LEVEL_SELECT)))
   CFLAGS += -DMODS_LEVEL_SELECT
 endif
+
+CFLAGS += -DJOYSTICK_MAX=$(JOYSTICK_MAX)
 
 NON_MATCHING := 1
 

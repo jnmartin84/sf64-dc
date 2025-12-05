@@ -273,8 +273,8 @@ void Controller_UpdateInput(void) {
         if (state->buttons & CONT_DPAD_RIGHT)
             ucheld |= R_CBUTTONS; // R_CBUTTONS;
 
-        sNextController[i].stick_x = ((float) stickH / 127) * 80;
-        sNextController[i].stick_y = ((float) stickV / 127) * 80;
+        sNextController[i].stick_x = ((float) stickH / 127) * JOYSTICK_MAX;
+        sNextController[i].stick_y = ((float) stickV / 127) * JOYSTICK_MAX;
 
         if (sNextController[i].stick_x < -50)
             ucheld |= N64_CONT_LEFT;
