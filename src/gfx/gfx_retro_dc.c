@@ -137,7 +137,7 @@ struct __attribute__((aligned(16))) LoadedNormal {
 // bit 7 - lit
 uint8_t __attribute__((aligned(32))) clip_rej[MAX_VERTICES];
 
-// exactly one cache-line in size
+// exactly half of a cache-line in size
 struct TextureHashmapNode {
     // 0
     struct TextureHashmapNode* next;
