@@ -446,7 +446,7 @@ static __attribute__((noinline)) uint8_t gfx_texture_cache_lookup(int tile, stru
                                                                   const uint8_t* orig_addr, uint32_t tmem, uint32_t siz,
                                                                   uint8_t pal) {
     void* segaddr = SEGMENTED_TO_VIRTUAL((void*) orig_addr);
-    size_t hash = hash10_fold((uintptr_t) (segaddr));
+    size_t hash = hash10((uintptr_t) (segaddr));
     struct TextureHashmapNode** node = &gfx_texture_cache.hashmap[hash];
     MEM_BARRIER_PREF(*node);
 

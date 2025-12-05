@@ -84,6 +84,7 @@ void segment_init(void) {
                      ((uintptr_t) SEG_BUF[(s - 1)] - 0x80000000) >> PAGESIZE_BITS, 1048576 >> PAGESIZE_BITS,
                      MMU_ALL_RDWR, MMU_CACHEABLE, 0, 1);
     }
+    dcache_purge_all();
 }
 #else
 // make sure that a segment base address is always valid before the game starts
@@ -97,6 +98,7 @@ void segment_init(void) {
     for (uint32_t s = 1; s < 16; s++) {
         gSegments[s] = (u32) SEG_BUF[(s - 1)];
     }
+    dcache_purge_all();
 }
 
 void* segmented_to_virtual(const void* addr) {
