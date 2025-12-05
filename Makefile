@@ -790,6 +790,7 @@ extract:
 	@rm -rf src/libultra/gu/cosf.c
 	@rm -rf src/libultra/gu/sinf.c
 	@rm -rf src/libultra/gu/sqrtf.c
+	@rm -rf src/libultra/debug/
 	@rm -rf src/libultra/host/
 	@rm -rf src/libultra/io/
 	@rm -rf src/libultra/libc/
