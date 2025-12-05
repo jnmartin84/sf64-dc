@@ -64,8 +64,9 @@ SPTask* sNewGfxTasks[2];
 
 extern u8* SEG_BUF[15];
 
-#if MMU_SEGMENTED
 #include <kos.h>
+
+#if MMU_SEGMENTED
 
 void segment_init(void) {
     mmucontext_t* cxt;
@@ -89,7 +90,7 @@ void segment_init(void) {
 #else
 // make sure that a segment base address is always valid before the game starts
 // even if it is meaningless
-static u32 gSegments[16] = {
+u32 gSegments[16] = {
     0x8c010000, 0x8c010000, 0x8c010000, 0x8c010000, 0x8c010000, 0x8c010000, 0x8c010000, 0x8c010000,
     0x8c010000, 0x8c010000, 0x8c010000, 0x8c010000, 0x8c010000, 0x8c010000, 0x8c010000, 0x8c010000,
 };
