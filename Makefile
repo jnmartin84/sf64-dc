@@ -130,9 +130,9 @@ ifneq (,$(filter 1,$(TESTING_MODE) $(EXTRA_EVERYTHING)))
   CFLAGS += -DEXTRA_EVERYTHING
 endif
 
-ifneq (,$(filter 1,$(TESTING_MODE) $(MODS_LEVEL_SELECT)))
-  CFLAGS += -DMODS_LEVEL_SELECT
-endif
+#ifneq (,$(filter 1,$(TESTING_MODE) $(MODS_LEVEL_SELECT)))
+CFLAGS += -DMODS_LEVEL_SELECT
+#endif
 
 NON_MATCHING := 1
 
