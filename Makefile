@@ -562,7 +562,7 @@ LIBS := -lc -lm -lkallisti -lGL
 
 default: $(ELF)
 
-all: elf bin cdi-cdr cdi-ode files-zip dsiso
+all: elf bin music cdi-cdr cdi-ode files-zip dsiso
 
 toolchain:
 	@$(MAKE) -s -C $(TOOLS)
@@ -742,6 +742,8 @@ sf-data: initted.touch
 	@sh-elf-objcopy -O binary --only-section=.data --only-section=.bss build/src/assets/ast_8_ti/ast_8_ti.elf $(SF_DATA_PATH)/8ti.bin
 	@sh-elf-objcopy -O binary --only-section=.data --only-section=.bss build/src/assets/ast_7_ti_2/ast_7_ti_2.elf $(SF_DATA_PATH)/7ti2.bin
 
+music: $(MUSIC_FILES)
+
 $(MUSIC_FILES): $(MUSIC_ARCHIVE)
 	@mkdir -p $(SF_MUSIC_PATH)
 	$(call print2,Unpacking music archive...)
@@ -872,4 +874,4 @@ build/src/libultra/libc/ll.o: src/libultra/libc/ll.c
 # Print target for debugging
 print-% : ; $(info $* is a $(flavor $*) variable set to [$($*)]) @true
 
-.PHONY: default all clean init extract format checkformat decompress assets context toolchain sf-data objects elf bin cdi-cdr cdi-ode files-zip dsiso
+.PHONY: default all clean init extract format checkformat decompress assets context toolchain sf-data music objects elf bin cdi-cdr cdi-ode files-zip dsiso
