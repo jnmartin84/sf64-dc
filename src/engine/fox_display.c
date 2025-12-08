@@ -593,13 +593,13 @@ void Display_Arwing_Skel(ArwingInfo* arwing) {
     if (D_display_800CA220 != 0) {
         drawFace = true;
     }
-
+#define FACESCALE 0.0140994f
     if (drawFace != 0) {
         Matrix_Push(&gGfxMatrix);
         Matrix_Translate(gGfxMatrix, 0.0f, 6.4f, -16.5f, MTXF_APPLY);
         Matrix_RotateY(gGfxMatrix, arwing->teamFaceYrot * M_DTOR, MTXF_APPLY);
         Matrix_RotateX(gGfxMatrix, arwing->teamFaceXrot * M_DTOR, MTXF_APPLY);
-        Matrix_Scale(gGfxMatrix, 1.0f / 70.925f, 1.0f / 70.925f, 1.0f / 70.925f, MTXF_APPLY);
+        Matrix_Scale(gGfxMatrix, FACESCALE, FACESCALE, FACESCALE, MTXF_APPLY);
 
         if (gGameState == GSTATE_ENDING) {
             Matrix_Scale(gGfxMatrix, 0.95f, 0.95f, 0.95f, MTXF_APPLY);

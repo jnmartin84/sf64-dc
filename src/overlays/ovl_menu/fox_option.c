@@ -14,6 +14,8 @@
 #include "assets/ast_vs_menu.h"
 #include "assets/ast_map.h"
 
+void n64_memcpy(void* dst, const void* src, size_t size);
+
 extern s32 gRankingTeamAlive[][3];
 extern Gfx gMapVenomCloudDL[];
 extern Gfx gMapKatinaDL[];
@@ -1910,7 +1912,7 @@ include/sf64save.h:79:13: note: object ‘gDefaultSave’ of size 256
 //                            gSaveFile = *(SaveFile*) &gDefaultSave;
 //                            printf("sizeof(Save) == %d, sizeof(SaveFile) == %d, sizeof(SaveData) == %d\n", sizeof(Save), sizeof(SaveFile), sizeof(SaveData));
 
-                            memcpy(&gSaveFile.save, &gDefaultSave, sizeof(Save));
+                            n64_memcpy(&gSaveFile.save, &gDefaultSave, sizeof(Save));
 
                             Save_Write();
 
