@@ -951,6 +951,14 @@ void AudioLoad_LoadFiles(void) {
     }
 }
 
+#include <kos.h>
+
+audio_timer_callback resettimer(void *d) {
+    // make sure it is working
+    gAudioResetTimer = 1234567;
+    return NULL;
+}
+
 void AudioLoad_Init(void) {
     s32 pad[14];
     s32 i;
@@ -960,7 +968,7 @@ void AudioLoad_Init(void) {
     u64* clearContext;
     void* ramAddr;
 
-    gAudioResetTimer = 0;
+    audio_timer_setup(0, 500, 1, resettimer, NULL);
 
     for (i = 0; i < gAudioHeapSize / 8; i++) {
         *((u64*) gAudioHeap + i) = 0;
@@ -974,6 +982,15 @@ void AudioLoad_Init(void) {
         *clearContext++ = 0;
     }
 #endif
+
+    audio_timer_kick();
+    audio_timer_reset();
+
+    if (gAudioResetTimer != 1234567) {
+        exit(-1);
+    }
+
+    gAudioResetTimer = 0;
 
 #if 0
     // 1000 is a conversion from seconds to milliseconds

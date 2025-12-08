@@ -1138,6 +1138,11 @@ s32 AudioThread_ResetComplete(void);
 void AudioThread_ResetAudioHeap(s32);
 void AudioThread_Init(void);
 
+#define audio_timer_callback wdt_callback
+#define audio_timer_setup wdt_enable_timer
+#define audio_timer_kick wdt_pet
+#define audio_timer_reset wdt_disable
+
 extern AudioTable gSampleBankTableInit;
 extern AudioTable gSeqTableInit;
 extern AudioTable gSoundFontTableInit;

@@ -73,11 +73,31 @@ SPTask* sNewGfxTasks[2];
 extern u8* SEG_BUF[15];
 
 #include <kos.h>
-
 #if MMU_SEGMENTED
+#if USE_TLB_SEGMENTS
+extern u32 SEG_PAGECOUNT[15];
 
 void segment_init(void) {
+    printf("Using SH4 TLB mappings for segmented address translation.\n");
+
+    mmu_init_basic();
+
+    mmu_page_map_static(0, 0x0C000000, PAGE_SIZE_1M, MMU_ALL_RDWR, true);
+
+    for (uint32_t s = 1; s < 16; s++) {
+        for (uint32_t p = 0; p < SEG_PAGECOUNT[s - 1]; p++) {
+            mmu_page_map_static(
+                ((uintptr_t) (s << 24) + (65536 * p)),
+                (((uintptr_t) SEG_BUF[(s - 1)] - 0x80000000) + (65536 * p)),
+                PAGE_SIZE_64K, MMU_ALL_RDWR, true);
+        }
+    }
+}
+#else
+void segment_init(void) {
     mmucontext_t* cxt;
+
+    printf("Using SH4 MMU page-table mappings for segmented address translation.\n");
 
     mmu_init();
 
@@ -94,6 +114,7 @@ void segment_init(void) {
                      MMU_ALL_RDWR, MMU_CACHEABLE, 0, 1);
     }
 }
+#endif
 #else
 // make sure that a segment base address is always valid before the game starts
 // even if it is meaningless
@@ -103,6 +124,8 @@ u32 gSegments[16] = {
 };
 
 void segment_init(void) {
+    printf("Using software segmented address translation.\n");
+
     for (uint32_t s = 1; s < 16; s++) {
         gSegments[s] = (u32) SEG_BUF[(s - 1)];
     }
