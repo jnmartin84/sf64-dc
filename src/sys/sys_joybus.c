@@ -313,29 +313,20 @@ void Controller_ReadData(void) {
     osSendMesg(&gControllerMesgQueue, (OSMesg) SI_CONT_READ_DONE, OS_MESG_NOBLOCK);
 }
 
-int last_read = SI_SAVE_SUCCESS;
-int last_write = SI_SAVE_SUCCESS;
-
-void Save_ReadData(void) {
+s32 Save_ReadData(void) {
     if ((gStartNMI == 0) && (Save_ReadEeprom(&gSaveIOBuffer) == 0)) {
-        // osSendMesg(&gSaveMesgQueue, (OSMesg) SI_SAVE_SUCCESS, OS_MESG_NOBLOCK);
-        last_read = SI_SAVE_SUCCESS;
-        return;
+        return SI_SAVE_SUCCESS;
     }
 
-    last_read = SI_SAVE_FAILED;
-    // osSendMesg(&gSaveMesgQueue, (OSMesg) SI_SAVE_FAILED, OS_MESG_NOBLOCK);
+    return SI_SAVE_FAILED;
 }
 
-void Save_WriteData(void) {
+s32 Save_WriteData(void) {
     if ((gStartNMI == 0) && (Save_WriteEeprom(&gSaveIOBuffer) == 0)) {
-        // osSendMesg(&gSaveMesgQueue, (OSMesg) SI_SAVE_SUCCESS, OS_MESG_NOBLOCK);
-        last_write = SI_SAVE_SUCCESS;
-        return;
+        return SI_SAVE_SUCCESS;
     }
 
-    last_write = SI_SAVE_FAILED;
-    // osSendMesg(&gSaveMesgQueue, (OSMesg) SI_SAVE_FAILED, OS_MESG_NOBLOCK);
+    return SI_SAVE_FAILED;
 }
 
 struct rumble_data_s {

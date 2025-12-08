@@ -1,5 +1,7 @@
 #include "global.h"
 
+void n64_memcpy(void* dst, const void* src, size_t size);
+
 SaveFile gSaveFile;
 
 // clang-format off
@@ -139,56 +141,34 @@ u16 Save_Checksum(Save* arg0) {
     return var_v1;
 }
 
-extern int last_read;//= SI_SAVE_SUCCESS;
-extern int last_write;// = SI_SAVE_SUCCESS;
 
 s32 Save_Write(void) {
-//    OSMesg sp1C;
     gSaveFile.save.checksum = Save_Checksum(&gSaveFile.save);
-//    gSaveFile.backup = gSaveFile.save;
-    memcpy(&gSaveFile.backup, &gSaveFile.save, sizeof(gSaveFile.save));
-//    gSaveIOBuffer = gSaveFile;
-    memcpy(&gSaveIOBuffer, &gSaveFile, sizeof(gSaveFile));
-//    osSendMesg(&gSerialThreadMesgQueue, (OSMesg) SI_WRITE_SAVE, OS_MESG_NOBLOCK);
-//    MQ_WAIT_FOR_MESG(&gSaveMesgQueue, &sp1C);
-    Save_WriteData();
-    //if (sp1C != (OSMesg) SI_SAVE_SUCCESS) {
-    if (last_write != SI_SAVE_SUCCESS) {
+    n64_memcpy(&gSaveFile.backup, &gSaveFile.save, sizeof(gSaveFile.save));
+    n64_memcpy(&gSaveIOBuffer, &gSaveFile, sizeof(gSaveFile));
+
+    if (Save_WriteData() != SI_SAVE_SUCCESS) {
         return -1;
     }
+
     return 0;
 }
 
 s32 Save_Read(void) {
-//    OSMesg sp24;
-    s32 i;
 
-//    osSendMesg(&gSerialThreadMesgQueue, (OSMesg) SI_READ_SAVE, OS_MESG_NOBLOCK);
-//    MQ_WAIT_FOR_MESG(&gSaveMesgQueue, &sp24);
-//    if ((s32) sp24 != SI_SAVE_SUCCESS) {
-//        return -1;
-//    }
-    Save_ReadData();
-    if (last_read != SI_SAVE_SUCCESS) {
+    if (Save_ReadData() != SI_SAVE_SUCCESS) {
         return -1;
     }
-#if 1
-//    gSaveFile = gSaveIOBuffer;
-    memcpy(&gSaveFile, &gSaveIOBuffer, sizeof(gSaveFile));
+
+    n64_memcpy(&gSaveFile, &gSaveIOBuffer, sizeof(gSaveIOBuffer));
 
     if (gSaveFile.save.checksum == Save_Checksum(&gSaveFile.save)) {
         PRINTF("ＥＥＰＲＯＭ ＲＯＭ［０］ 正常\n");
         return 0;
     }
-#ifdef AVOID_UB
-//    for (i = 0; i < sizeof(SaveData); i++) {
-#else
-//    for (i = 0; i <= sizeof(SaveData); i++) { // should be <, but gets overwritten immediately.
-#endif
-//        gSaveFile.save.raw[i] = gSaveFile.backup.raw[i];
-//    }
-    memcpy(&gSaveFile.save, &gSaveFile.backup, sizeof(gSaveFile.backup));
-#endif
+
+    n64_memcpy(&gSaveFile.save, &gSaveFile.backup, sizeof(gSaveFile.backup));
+
     gSaveFile.save.checksum = gSaveFile.backup.checksum;
 
     if (gSaveFile.save.checksum == Save_Checksum(&gSaveFile.save)) {
