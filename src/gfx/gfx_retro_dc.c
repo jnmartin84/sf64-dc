@@ -905,7 +905,7 @@ float __attribute__((aligned(32))) ENV_MTX[3][3];
 float __attribute__((aligned(32))) COEFF_MTX[3][3];
 float __attribute__((aligned(32))) COLOR_MTX[3][3];
 
-uint8_t trivial_reject(float x, float y, float z, float w) {
+inline static uint8_t trivial_reject(float x, float y, float z, float w) {
     uint8_t cr = 0;
 
     if (z > w)
@@ -926,14 +926,15 @@ uint8_t trivial_reject(float x, float y, float z, float w) {
     return cr;
 }
 
-static void __attribute__((noinline)) gfx_sp_vertex_light_step1(uint8_t n_vertices, uint8_t dest_index,
+
+static void __attribute__((noinline)) gfx_sp_vertex_light_step1(int n_vertices, int dest_index,
                                                                 const Vtx* vertices) {
     shz_dcache_alloc_line(&rsp.loaded_vertices[dest_index]);
-    for (uint8_t i = 0; i < n_vertices; i++, dest_index++) {
+    for (int i = 0; i < n_vertices; i++, dest_index++) {
         const Vtx_tn* vn = &vertices[i].n;
-        MEM_BARRIER_PREF(vn);
         struct LoadedVertex* d = &rsp.loaded_vertices[dest_index];
         struct LoadedNormal* n = &rsp.loaded_normals[dest_index];
+        MEM_BARRIER_PREF(n);
 
         float x, y, z, w;
         shz_vec4_t out =
@@ -954,14 +955,16 @@ static void __attribute__((noinline)) gfx_sp_vertex_light_step1(uint8_t n_vertic
 
         float recw = shz_fast_invf(w);
 
+        shz_dcache_alloc_line(d + 1);
+
         // trivial clip rejection
         uint8_t cr = 128 | ((w < 0) ? 64 : 0x00);
         clip_rej[dest_index] = cr | trivial_reject(x, y, z, w);
 
-        shz_dcache_alloc_line(&rsp.loaded_vertices[dest_index + 1]);
-
         d->u = (vn->tc[0] * rsp.texture_scaling_factor.s) * recip64k;
         d->v = (vn->tc[1] * rsp.texture_scaling_factor.t) * recip64k;
+
+        MEM_BARRIER_PREF(vn + 1);
 
         d->_x = x * recw;
         d->_y = y * recw;
@@ -973,9 +976,9 @@ static void __attribute__((noinline)) gfx_sp_vertex_light_step1(uint8_t n_vertic
     }
 }
 
-static void __attribute__((noinline)) gfx_sp_vertex_light_step1b(uint8_t n_vertices, uint8_t dest_index) {
+static void __attribute__((noinline)) gfx_sp_vertex_light_step1b(int n_vertices, int dest_index) {
     // SHZ_PREFETCH(&rsp.loaded_normals[dest_index]);
-    for (uint8_t i = 0; i < n_vertices; i++, dest_index++) {
+    for (int i = 0; i < n_vertices; i++, dest_index++) {
         struct LoadedVertex* d = &rsp.loaded_vertices[dest_index];
         struct LoadedNormal* n = &rsp.loaded_normals[dest_index];
 
@@ -996,9 +999,9 @@ static void __attribute__((noinline)) gfx_sp_vertex_light_step1b(uint8_t n_verti
     }
 }
 
-static void __attribute__((noinline)) gfx_sp_vertex_light_step2(uint8_t n_vertices, uint8_t dest_index) {
+static void __attribute__((noinline)) gfx_sp_vertex_light_step2(int n_vertices, int dest_index) {
     // SHZ_PREFETCH(&rsp.loaded_normals[dest_index]);
-    for (uint8_t i = 0; i < n_vertices; i++, dest_index++) {
+    for (int i = 0; i < n_vertices; i++, dest_index++) {
         struct LoadedNormal* n = &rsp.loaded_normals[dest_index];
 
         shz_vec3_t outinten = shz_xmtrx_trans_vec3(shz_vec3_deref(n));
@@ -1009,10 +1012,10 @@ static void __attribute__((noinline)) gfx_sp_vertex_light_step2(uint8_t n_vertic
     }
 }
 
-static void __attribute__((noinline)) gfx_sp_vertex_light_step3(uint8_t n_vertices, uint8_t dest_index,
+static void __attribute__((noinline)) gfx_sp_vertex_light_step3(int n_vertices, int dest_index,
                                                                 const Vtx* vertices) {
     // SHZ_PREFETCH(&rsp.loaded_vertices[dest_index]);
-    for (uint8_t i = 0; i < n_vertices; i++, dest_index++) {
+    for (int i = 0; i < n_vertices; i++, dest_index++) {
         struct LoadedVertex* d = &rsp.loaded_vertices[dest_index];
         struct LoadedNormal* n = &rsp.loaded_normals[dest_index];
 
