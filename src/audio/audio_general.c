@@ -756,7 +756,7 @@ void Audio_StartSequence(u8 seqPlayId, u8 seqId, u8 seqArgs, u16 fadeInTime) {
                 wav_create(WAV_PLAYER_BGM, wavfn, looping, 0, 0);
                 sActiveSequences[seqPlayId].seqId = seqId;
                 wav_play(WAV_PLAYER_BGM);
-                Audio_SetMusicVolume(WAV_PLAYER_BGM, 90);
+                Audio_SetMusicVolume(WAV_PLAYER_BGM, gVolumeSettings[AUDIO_TYPE_MUSIC]);
                 played_wav = 1;
                 return;
             }
@@ -1142,7 +1142,7 @@ void Audio_UpdateActiveSequences(void) {
             }
             if (!USE_MIXER_MUSIC) {
                 if (seqPlayId == SEQ_PLAYER_BGM && wav_is_playing(WAV_PLAYER_BGM)) {
-                    wav_volume(WAV_PLAYER_BGM, (u8) (fadeMod * 160.0f));
+                    wav_volume(WAV_PLAYER_BGM, (u8) gVolumeSettings[AUDIO_TYPE_MUSIC] * fadeMod * 2.55f); // 255/100
                 }
             }
             SEQCMD_SET_SEQPLAYER_VOLUME(seqPlayId, sActiveSequences[seqPlayId].mainVolume.fadeTimer,
@@ -2719,7 +2719,7 @@ void Audio_PlayFanfare(u16 seqId, u8 bgmVolume, u8 bgmFadeoutTime, u8 bgmFadeinT
                     wav_create(WAV_PLAYER_FANFARE, wavfn, looping, 0, 0);
                     sActiveSequences[SEQ_PLAYER_FANFARE].seqId = seqId;
                     wav_play(WAV_PLAYER_FANFARE);
-                    Audio_SetMusicVolume(WAV_PLAYER_FANFARE, 90);
+                    Audio_SetMusicVolume(WAV_PLAYER_FANFARE, gVolumeSettings[AUDIO_TYPE_MUSIC]);
                     played_fanfare_wav = 1;
                     return;
                 }

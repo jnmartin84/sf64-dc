@@ -28,6 +28,8 @@ static kos_blockdev_t dev;
 #else
 #define SAMPLES_HIGH 464
 #define SAMPLES_LOW 432
+//#define SAMPLES_HIGH 470
+//#define SAMPLES_LOW 442
 #endif
 #endif
 
@@ -520,33 +522,14 @@ void* AudioThread(UNUSED void* arg) {
     uint64_t last_vbltick = vblticker;
 
     while (1) {
-#if USE_32KHZ
-        while (vblticker <= last_vbltick + 1)
-            genwait_wait((void*) &vblticker, NULL, 15, NULL);
-#else
         while (vblticker <= last_vbltick)
             genwait_wait((void*) &vblticker, NULL, 5, NULL);
-#endif
 
         last_vbltick = vblticker;
 
-#if USE_32KHZ
-        int samplecount = gSysFrameCount & 1 ? SAMPLES_HIGH : SAMPLES_LOW;
-        AudioThread_CreateNextAudioBuffer(audio_buffer[0], audio_buffer[1], samplecount);
-        AudioThread_CreateNextAudioBuffer(audio_buffer[0] + (samplecount), audio_buffer[1] + (samplecount),
-                                          samplecount);
-
-        audio_api->play((u8*) audio_buffer[0], (u8*) audio_buffer[1], samplecount * 8);
-#else
-#if USE_16KHZ
         int samplecount = ((gSysFrameCount & 3) < 2) ? SAMPLES_HIGH : SAMPLES_LOW;
         AudioThread_CreateNextAudioBuffer(audio_buffer[0], audio_buffer[1], samplecount);
         audio_api->play((u8*) audio_buffer[0], (u8*) audio_buffer[1], samplecount * 4);
-#else
-        AudioThread_CreateNextAudioBuffer(audio_buffer[0], audio_buffer[1], 448);
-        audio_api->play((u8*) audio_buffer[0], (u8*) audio_buffer[1], 1792);
-#endif
-#endif
     }
 
     return NULL;

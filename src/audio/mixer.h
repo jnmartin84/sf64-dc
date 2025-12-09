@@ -46,9 +46,7 @@ void aADPCMdecImpl(uint8_t flags, ADPCM_STATE state);
 void aResampleImpl(uint8_t flags, uint16_t pitch, RESAMPLE_STATE state);
 void aEnvSetup1Impl(uint8_t initial_vol_wet, uint16_t rate_wet, uint16_t rate_left, uint16_t rate_right);
 void aEnvSetup2Impl(uint16_t initial_vol_left, uint16_t initial_vol_right);
-void aEnvMixerImpl(uint16_t in_addr, uint16_t n_samples, bool swap_reverb, bool neg_left,
-                   bool neg_right, uint32_t wet_dry_addr, uint32_t haas_temp_addr, uint32_t num_channels,
-                   uint32_t cutoff_freq_lfe);
+void aEnvMixerImpl(uint16_t in_addr, uint16_t n_samples, uint16_t dry_addr_start);
 void aSMixImpl(uint16_t in_addr, uint16_t out_addr, uint16_t count);
 void aMixImpl(uint16_t count, int16_t gain, uint16_t in_addr, uint16_t out_addr);
 void aDMEMMove2Impl(uint8_t t, uint16_t in_addr, uint16_t out_addr, uint16_t count);
@@ -81,7 +79,7 @@ void aUnkCmd19Impl(uint8_t f, uint16_t count, uint16_t out_addr, uint16_t in_add
 #define aEnvSetup2(pkt, initialVolLeft, initialVolRight) aEnvSetup2Impl(initialVolLeft, initialVolRight)
 
 #define aEnvMixer(pkt, inAddr, nSamples, swapReverb, negLeft, negRight, wetDryAddr, haasTempAddr, numChannels, cutoffFreqLfe) \
-    aEnvMixerImpl(inAddr, nSamples, swapReverb, negLeft, negRight, wetDryAddr, haasTempAddr, numChannels, cutoffFreqLfe)
+    aEnvMixerImpl(inAddr, nSamples, (wetDryAddr&0xFFFF))
 
 #define aSMix(pkt, g, i, o, c) aSMixImpl(i, o, c)
 #define aMix(pkt, c, g, i, o) aMixImpl(c, g, i, o)
