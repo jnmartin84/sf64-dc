@@ -589,7 +589,7 @@ void aLoadADPCMImpl(int num_entries_times_16, const int16_t* book_source_addr) {
     }
 }
 
-void aSetBufferImpl(UNUSED uint8_t flags, uint16_t in, uint16_t out, uint16_t nbytes) {
+void aSetBufferImpl(uint16_t in, uint16_t out, uint16_t nbytes) {
     rspa.in = in;
     rspa.out = out;
     rspa.nbytes = nbytes;

@@ -38,7 +38,7 @@ void aClearBufferImpl(uint16_t addr, int nbytes);
 void aLoadBufferImpl(const void* source_addr, uint16_t dest_addr, uint16_t nbytes);
 void aSaveBufferImpl(uint16_t source_addr, int16_t* dest_addr, uint16_t nbytes);
 void aLoadADPCMImpl(int num_entries_times_16, const int16_t* book_source_addr);
-void aSetBufferImpl(uint8_t flags, uint16_t in, uint16_t out, uint16_t nbytes);
+void aSetBufferImpl( uint16_t in, uint16_t out, uint16_t nbytes);
 void aInterleaveImpl(uint16_t left, uint16_t right);
 void aDMEMMoveImpl(uint16_t in_addr, uint16_t out_addr, int nbytes);
 void aSetLoopImpl(ADPCM_STATE* adpcm_loop_state);
@@ -69,7 +69,7 @@ void aUnkCmd19Impl(uint8_t f, uint16_t count, uint16_t out_addr, uint16_t in_add
 #define aLoadBuffer(pkt, s, d, c) aLoadBufferImpl(s, d, c)
 #define aSaveBuffer(pkt, s, d, c) aSaveBufferImpl(s, d, c)
 #define aLoadADPCM(pkt, c, d) aLoadADPCMImpl(c, d)
-#define aSetBuffer(pkt, f, i, o, c) aSetBufferImpl(f, i, o, c)
+#define aSetBuffer(pkt, f, i, o, c) aSetBufferImpl(i, o, c)
 #define aInterleave(pkt, l, r) aInterleaveImpl(l, r)
 #define aDMEMMove(pkt, i, o, c) aDMEMMoveImpl(i, o, c)
 #define aDMEMCopy(pkt, i, o, c) aDMEMCopyImpl(i, o, c)

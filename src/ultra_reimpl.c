@@ -8,11 +8,9 @@
 
 #include <kos.h>
 
-
-
 u64 osClockRate = 62500000;
 
-OSTimer timerList = {0};
+OSTimer timerList = { 0 };
 
 int ever_set = 0;
 
@@ -21,24 +19,24 @@ int ever_set = 0;
 typedef struct SFTimer_s {
     int active;
 
-    OSTime			interval;	/* duration set by user */
-	OSTime			value;		/* time remaining before */
-						/* timer fires           */
+    OSTime interval; /* duration set by user */
+    OSTime value;    /* time remaining before */
+                     /* timer fires           */
 
-    oneshot_timer_t *timer;
+    oneshot_timer_t* timer;
 
-	OSMesgQueue		*mq;		/* Message Queue */
-	OSMesg			msg;		/* Message to send */
+    OSMesgQueue* mq; /* Message Queue */
+    OSMesg msg;      /* Message to send */
 
 } SFTimer;
 
-OSTimer *mappool[64] = {0};
-SFTimer timerpool[64] = {0};
+OSTimer* mappool[64] = { 0 };
+SFTimer timerpool[64] = { 0 };
 size_t timerpool_pos = 0;
 #include <stdio.h>
 
 void ostimer_fire(void* arg) {
-    SFTimer *sftimer = (SFTimer *)arg;
+    SFTimer* sftimer = (SFTimer*) arg;
 
     if (sftimer->mq) {
         osSendMesg(sftimer->mq, sftimer->msg, OS_MESG_NOBLOCK);
@@ -52,28 +50,27 @@ void ostimer_fire(void* arg) {
     }
 }
 
-int osSetTimer(OSTimer *timer, OSTime countdown, OSTime interval, 
-                        OSMesgQueue *mq, OSMesg msg) {
+int osSetTimer(OSTimer* timer, OSTime countdown, OSTime interval, OSMesgQueue* mq, OSMesg msg) {
 
-    SFTimer *nextTimer = &timerpool[(timerpool_pos++)&63];
+    SFTimer* nextTimer = &timerpool[(timerpool_pos++) & 63];
 
     while (nextTimer->active) {
         // potential for infinite loop
-        nextTimer = &timerpool[(timerpool_pos++)&63];
+        nextTimer = &timerpool[(timerpool_pos++) & 63];
     }
-    mappool[(timerpool_pos-1) & 63] = timer;
+    mappool[(timerpool_pos - 1) & 63] = timer;
     nextTimer->active = 1;
     nextTimer->msg = msg;
     nextTimer->mq = mq;
     nextTimer->value = countdown;
     nextTimer->interval = interval;
-    nextTimer->timer = oneshot_timer_create(ostimer_fire, (void*)nextTimer, countdown);
+    nextTimer->timer = oneshot_timer_create(ostimer_fire, (void*) nextTimer, countdown);
     oneshot_timer_reset(nextTimer->timer);
     return 0;
 }
 
-int osStopTimer(OSTimer *timer) {
-    for (size_t i=0;i<64;i++) {
+int osStopTimer(OSTimer* timer) {
+    for (size_t i = 0; i < 64; i++) {
         if ((mappool[i] != NULL) && (mappool[i] == timer)) {
             timerpool[i].active = 0;
             // does it need to be cancelable?
@@ -90,7 +87,6 @@ void osCreateMesgQueue(OSMesgQueue* mq, OSMesg* msgBuf, s32 count) {
     mq->msg = msgBuf;
     return;
 }
-
 
 s32 osSendMesg(OSMesgQueue* mq, OSMesg msg, UNUSED s32 flag) {
     s32 index;
@@ -135,8 +131,8 @@ typedef float N64Ticks;
 
 volatile OSTime osGetTime(void) {
     uint64_t ns = timer_ns_gettime64();
-    N64Ticks ticks = (N64Ticks)ns * (N64Ticks)RECIP_N64_NS_PER_TICK;
-    return (OSTime)ticks;
+    N64Ticks ticks = (N64Ticks) ns * (N64Ticks) RECIP_N64_NS_PER_TICK;
+    return (OSTime) ticks;
 }
 
 void osWritebackDCacheAll(void) {
@@ -155,7 +151,7 @@ void osInvalICache(UNUSED void* a, UNUSED s32 b) {
     ;
 }
 
-// 
+//
 static u32 counter = 0;
 static u32 ticked = 0;
 u32 osGetCount(void) {
@@ -186,10 +182,6 @@ s32 osAiSetFrequency(u32 freq) {
 }
 
 extern char* fnpre;
-static char texfn[256];
-static uint8_t icondata[512];
-
-static uint8_t eeprom_block[512] = {0};
 
 #include <kos.h>
 
@@ -197,44 +189,44 @@ static file_t eeprom_file = FILEHND_INVALID;
 static int eeprom_init = 0;
 #include "sf64save.h"
 
-
 static char full_fn[20];
 
-char *get_vmu_fn(maple_device_t *vmudev, char *fn) {
-	if (fn)
-		sprintf(full_fn, "/vmu/%c%d/%s", 'a'+vmudev->port, vmudev->unit, fn);
-	else
-		sprintf(full_fn, "/vmu/%c%d", 'a'+vmudev->port, vmudev->unit);
+char* get_vmu_fn(maple_device_t* vmudev, char* fn) {
+    if (fn)
+        sprintf(full_fn, "/vmu/%c%d/%s", 'a' + vmudev->port, vmudev->unit, fn);
+    else
+        sprintf(full_fn, "/vmu/%c%d", 'a' + vmudev->port, vmudev->unit);
 
-	return full_fn;
+    return full_fn;
 }
 
 UNUSED void eeprom_flush(UNUSED void* arg) {
     if (eeprom_file != FILEHND_INVALID) {
         fs_close(eeprom_file);
         eeprom_file = FILEHND_INVALID;
-    }    
+    }
 }
 
 s32 osEepromProbe(UNUSED OSMesgQueue* mq) {
     maple_device_t* vmudev = NULL;
-    
+
     vmudev = maple_enum_type(0, MAPLE_FUNC_MEMCARD);
     if (!vmudev) {
         return 0;
     }
 
-    //vid_border_color(255, 0, 255);
     eeprom_file = fs_open(get_vmu_fn(vmudev, "sf64.rec"), O_RDONLY | O_META);
     if (FILEHND_INVALID == eeprom_file) {
         eeprom_file = fs_open(get_vmu_fn(vmudev, "sf64.rec"), O_RDWR | O_CREAT | O_META);
 
         if (FILEHND_INVALID == eeprom_file) {
-            //vid_border_color(0, 0, 0);
             return 1;
         }
 
-        //vid_border_color(255, 255, 0);
+        char texfn[256];
+        uint8_t icondata[512];
+        uint8_t eeprom_block[512] = { 0 };
+
         vmu_pkg_t pkg;
         memset(eeprom_block, 0, 512);
         memset(&pkg, 0, sizeof(vmu_pkg_t));
@@ -255,7 +247,6 @@ s32 osEepromProbe(UNUSED OSMesgQueue* mq) {
         if (!pkg_out || pkg_size <= 0) {
             fs_close(eeprom_file);
             eeprom_file = FILEHND_INVALID;
-            //vid_border_color(0, 0, 0);
             return 0;
         }
 
@@ -267,15 +258,13 @@ s32 osEepromProbe(UNUSED OSMesgQueue* mq) {
         eeprom_file = fs_open(get_vmu_fn(vmudev, "sf64.rec"), O_RDWR | O_META);
 
         if (FILEHND_INVALID == eeprom_file) {
-            //vid_border_color(0, 0, 0);
             return 0;
         }
     }
 
-    //vid_border_color(0, 0, 0);
     fs_close(eeprom_file);
     eeprom_file = FILEHND_INVALID;
-    
+
     return EEPROM_TYPE_4K;
 }
 
@@ -283,26 +272,23 @@ uint8_t* vmu_load_data(int channel, const char* name, uint8_t* outbuf, uint32_t*
 
 static int reopen_vmu_eeprom(void) {
     maple_device_t* vmudev = NULL;
-    
+
     vmudev = maple_enum_type(0, MAPLE_FUNC_MEMCARD);
     if (!vmudev) {
         return 1;
     }
 
     eeprom_file = fs_open(get_vmu_fn(vmudev, "sf64.rec"), O_RDWR | O_META);
-    
+
     return (eeprom_file == FILEHND_INVALID);
 }
 
-s32 osEepromLongRead(UNUSED OSMesgQueue* mq, u8 address, u8* buffer,
-                     int length) {
+s32 osEepromLongRead(UNUSED OSMesgQueue* mq, u8 address, u8* buffer, int length) {
     if (eeprom_file == FILEHND_INVALID) {
         if (reopen_vmu_eeprom()) {
             return 1;
         }
     }
-
-    //vid_border_color(0, 255, 0);
 
     if (FILEHND_INVALID != eeprom_file) {
         ssize_t size = fs_total(eeprom_file);
@@ -310,8 +296,6 @@ s32 osEepromLongRead(UNUSED OSMesgQueue* mq, u8 address, u8* buffer,
         if (size != (512 * 3)) {
             fs_close(eeprom_file);
             eeprom_file = FILEHND_INVALID;
-            vid_border_color(255, 255, 0);
-            
             return 1;
         }
 
@@ -319,22 +303,15 @@ s32 osEepromLongRead(UNUSED OSMesgQueue* mq, u8 address, u8* buffer,
         fs_seek(eeprom_file, (512 * 2) + (address * 8), SEEK_SET);
         ssize_t rv = fs_read(eeprom_file, buffer, length);
         if (rv != length) {
-            vid_border_color(255, 255, 0);
-                        fs_close(eeprom_file);
+            fs_close(eeprom_file);
             eeprom_file = FILEHND_INVALID;
-
             return 1;
         }
 
-        //vid_border_color(0, 0, 0);
-//        oneshot_timer_reset(timer);
-                    fs_close(eeprom_file);
-            eeprom_file = FILEHND_INVALID;
-
+        fs_close(eeprom_file);
+        eeprom_file = FILEHND_INVALID;
         return 0;
     } else {
-        vid_border_color(255, 255, 0);
-        
         return 1;
     }
 }
@@ -347,45 +324,33 @@ s32 osFullEepromRead(OSMesgQueue* mq, u8* buffer) {
     return osEepromLongRead(mq, 0, buffer, 512);
 }
 
-s32 osEepromLongWrite(UNUSED OSMesgQueue* mq, u8 address, u8* buffer,
-                      int length) {
+s32 osEepromLongWrite(UNUSED OSMesgQueue* mq, u8 address, u8* buffer, int length) {
     if (eeprom_file == FILEHND_INVALID) {
         if (reopen_vmu_eeprom()) {
             return 1;
         }
     }
-    
-    //vid_border_color(0, 0, 255);
 
     if (FILEHND_INVALID != eeprom_file) {
         ssize_t size = fs_total(eeprom_file);
         if (size != (512 * 3)) {
-            vid_border_color(255, 0, 0);
             fs_close(eeprom_file);
             eeprom_file = FILEHND_INVALID;
-            
             return 1;
         }
         // skip header
         fs_seek(eeprom_file, (512 * 2) + (address * 8), SEEK_SET);
         ssize_t rv = fs_write(eeprom_file, buffer, length);
         if (rv != length) {
-            vid_border_color(255, 0, 0);
-            
             fs_close(eeprom_file);
             eeprom_file = FILEHND_INVALID;
             return 1;
         }
 
-        //vid_border_color(0, 0, 0);
-//        oneshot_timer_reset(timer);
-        
-            fs_close(eeprom_file);
-            eeprom_file = FILEHND_INVALID;
+        fs_close(eeprom_file);
+        eeprom_file = FILEHND_INVALID;
         return 0;
     } else {
-        vid_border_color(255, 0, 0);
-        
         return 1;
     }
 }

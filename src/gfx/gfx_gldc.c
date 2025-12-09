@@ -201,11 +201,7 @@ static uint8_t gfx_opengl_z_is_from_0_to_1(void) {
     return 0;
 }
 
-static inline GLenum texenv_set_color(UNUSED struct ShaderProgram* prg) {
-    return GL_MODULATE;
-}
-
-static inline GLenum texenv_set_texture(UNUSED struct ShaderProgram* prg) {
+static inline GLenum texenv_set_color(void) {
     return GL_MODULATE;
 }
 
@@ -279,24 +275,7 @@ static void gfx_opengl_apply_shader(struct ShaderProgram* prg) {
     }
 
     // configure texenv
-    GLenum mode = texenv_set_color(prg);
-#if 0
-    switch (prg->mix) {
-        case SH_MT_TEXTURE:
-            mode = texenv_set_texture(prg);
-            break;
-        case SH_MT_TEXTURE_TEXTURE:
-            mode = texenv_set_texture_texture(prg);
-            break;
-        case SH_MT_TEXTURE_COLOR:
-            mode = texenv_set_texture_color(prg);
-            break;
-        default:
-            mode = texenv_set_color(prg);
-            break;
-    }
-#endif
-
+    GLenum mode = texenv_set_color();
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, mode);
 }
 

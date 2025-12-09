@@ -49,7 +49,6 @@ void vblfunc(uint32_t c, void* d) {
     (void) c;
     (void) d;
     vblticker++;
-    osSendMesg(&gGfxVImesgQueue, (OSMesg) NULL, OS_MESG_NOBLOCK);
     genwait_wake_one((void*) &vblticker);
 }
 
@@ -145,32 +144,12 @@ void* segmented_to_virtual(const void* addr) {
 }
 #endif
 
-OSMesgQueue gPiMgrCmdQueue;
-OSMesg sPiMgrCmdBuff[50];
-
-OSMesgQueue gDmaMesgQueue;
-void* sDmaMsgBuff[1];
-OSIoMesg gDmaIOMsg;
 OSMesgQueue gSerialEventQueue;
 void* sSerialEventBuff[1];
-OSMesgQueue gMainThreadMesgQueue;
-void* sMainThreadMsgBuff[32];
-OSMesgQueue gTaskMesgQueue;
-void* sTaskMsgBuff[16];
-OSMesgQueue gAudioVImesgQueue;
-void* sAudioVImsgBuff[1];
 OSMesgQueue gAudioTaskMesgQueue;
 void* sAudioTaskMsgBuff[1];
-OSMesgQueue gGfxVImesgQueue;
-void* sGfxVImsgBuff[4];
 OSMesgQueue gGfxTaskMesgQueue;
 void* sGfxTaskMsgBuff[2];
-OSMesgQueue gSerialThreadMesgQueue;
-void* sSerialThreadMsgBuff[8];
-OSMesgQueue gControllerMesgQueue;
-void* sControllerMsgBuff[1];
-OSMesgQueue gSaveMesgQueue;
-void* sSaveMsgBuff[1];
 OSMesgQueue gTimerTaskMesgQueue;
 void* sTimerTaskMsgBuff[16];
 OSMesgQueue gTimerWaitMesgQueue;
@@ -257,24 +236,24 @@ void Graphics_InitializeTask(u32 frameCount) {
 }
 
 void Main_InitMesgQueues(void) {
-    osCreateMesgQueue(&gDmaMesgQueue, sDmaMsgBuff, ARRAY_COUNT(sDmaMsgBuff));
-    osCreateMesgQueue(&gTaskMesgQueue, sTaskMsgBuff, ARRAY_COUNT(sTaskMsgBuff));
-    osCreateMesgQueue(&gAudioVImesgQueue, sAudioVImsgBuff, ARRAY_COUNT(sAudioVImsgBuff));
+    // osCreateMesgQueue(&gDmaMesgQueue, sDmaMsgBuff, ARRAY_COUNT(sDmaMsgBuff));
+    // osCreateMesgQueue(&gTaskMesgQueue, sTaskMsgBuff, ARRAY_COUNT(sTaskMsgBuff));
+    // osCreateMesgQueue(&gAudioVImesgQueue, sAudioVImsgBuff, ARRAY_COUNT(sAudioVImsgBuff));
     osCreateMesgQueue(&gAudioTaskMesgQueue, sAudioTaskMsgBuff, ARRAY_COUNT(sAudioTaskMsgBuff));
-    osCreateMesgQueue(&gGfxVImesgQueue, sGfxVImsgBuff, ARRAY_COUNT(sGfxVImsgBuff));
+    // osCreateMesgQueue(&gGfxVImesgQueue, sGfxVImsgBuff, ARRAY_COUNT(sGfxVImsgBuff));
     osCreateMesgQueue(&gGfxTaskMesgQueue, sGfxTaskMsgBuff, ARRAY_COUNT(sGfxTaskMsgBuff));
     osCreateMesgQueue(&gSerialEventQueue, sSerialEventBuff, ARRAY_COUNT(sSerialEventBuff));
     // osSetEventMesg(OS_EVENT_SI, &gSerialEventQueue, NULL);
-    osCreateMesgQueue(&gMainThreadMesgQueue, sMainThreadMsgBuff, ARRAY_COUNT(sMainThreadMsgBuff));
+    // osCreateMesgQueue(&gMainThreadMesgQueue, sMainThreadMsgBuff, ARRAY_COUNT(sMainThreadMsgBuff));
     // osViSetEvent(&gMainThreadMesgQueue, (OSMesg) EVENT_MESG_VI, 1);
     // osSetEventMesg(OS_EVENT_SP, &gMainThreadMesgQueue, (OSMesg) EVENT_MESG_SP);
     // osSetEventMesg(OS_EVENT_DP, &gMainThreadMesgQueue, (OSMesg) EVENT_MESG_DP);
     // osSetEventMesg(OS_EVENT_PRENMI, &gMainThreadMesgQueue, (OSMesg) EVENT_MESG_PRENMI);
     osCreateMesgQueue(&gTimerTaskMesgQueue, sTimerTaskMsgBuff, ARRAY_COUNT(sTimerTaskMsgBuff));
     osCreateMesgQueue(&gTimerWaitMesgQueue, sTimerWaitMsgBuff, ARRAY_COUNT(sTimerWaitMsgBuff));
-    osCreateMesgQueue(&gSerialThreadMesgQueue, sSerialThreadMsgBuff, ARRAY_COUNT(sSerialThreadMsgBuff));
-    osCreateMesgQueue(&gControllerMesgQueue, sControllerMsgBuff, ARRAY_COUNT(sControllerMsgBuff));
-    osCreateMesgQueue(&gSaveMesgQueue, sSaveMsgBuff, ARRAY_COUNT(sSaveMsgBuff));
+    // osCreateMesgQueue(&gSerialThreadMesgQueue, sSerialThreadMsgBuff, ARRAY_COUNT(sSerialThreadMsgBuff));
+    // osCreateMesgQueue(&gControllerMesgQueue, sControllerMsgBuff, ARRAY_COUNT(sControllerMsgBuff));
+    // osCreateMesgQueue(&gSaveMesgQueue, sSaveMsgBuff, ARRAY_COUNT(sSaveMsgBuff));
 }
 
 #include <dc/sound/sound.h>
@@ -357,7 +336,7 @@ void Main_ThreadEntry(void* arg0) {
     vblank_handler_add(&vblfunc, NULL);
     Game_Initialize();
 
-    osSendMesg(&gSerialThreadMesgQueue, (OSMesg) SI_READ_CONTROLLER, OS_MESG_NOBLOCK);
+    // osSendMesg(&gSerialThreadMesgQueue, (OSMesg) SI_READ_CONTROLLER, OS_MESG_NOBLOCK);
     Graphics_InitializeTask(gSysFrameCount);
     {
         gSPDisplayList(gMasterDisp++, gGfxPool->unkDL1);
