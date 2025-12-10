@@ -1,4 +1,12 @@
-# Star Fox 64 for Sega Dreamcast (2025/12/05)
+# Star Fox 64 for Sega Dreamcast (updated 2025/12/10)
+
+Early xmas present for everyone. You don't have to know how to build a toolchain, or compile anymore.
+
+You can upload a ROM and download a CDI.
+
+Find more details here: https://colab.research.google.com/drive/1jn7SPKeHwZ-0qXIvA4uzdF-ykeh6xtNL
+
+Now for business as usual.
 
 This is a Star Fox 64 port for the Sega Dreamcast, based on [sonicdcer](https://github.com/sonicdcer/)'s excellent [Star Fox 64 decompilation](https://github.com/sonicdcer/sf64) (that also powers [Starship](https://github.com/HarbourMasters/Starship)).
 
