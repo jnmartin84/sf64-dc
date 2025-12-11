@@ -633,7 +633,7 @@ void Audio_SetMusicVolume(WavPlayerId playerId, int volume) {
     }
 
     if (sleeps < 100)
-        wav_volume(playerId, (volume * 255) / 100);
+        wav_volume(playerId, (volume * 192) / 100);
 }
 
 extern int sx_distort;
@@ -1141,7 +1141,7 @@ void Audio_UpdateActiveSequences(void) {
             }
             if (!USE_MIXER_MUSIC) {
                 if (seqPlayId == SEQ_PLAYER_BGM && wav_is_playing(WAV_PLAYER_BGM)) {
-                    wav_volume(WAV_PLAYER_BGM, (u8) gVolumeSettings[AUDIO_TYPE_MUSIC] * fadeMod * 2.55f); // 255/100
+                    wav_volume(WAV_PLAYER_BGM, (u8) gVolumeSettings[AUDIO_TYPE_MUSIC] * fadeMod * 1.92f); // 255/100
                 }
             }
             SEQCMD_SET_SEQPLAYER_VOLUME(seqPlayId, sActiveSequences[seqPlayId].mainVolume.fadeTimer,
