@@ -41,7 +41,7 @@
 // Handle for the sound stream
 static volatile snd_stream_hnd_t shnd = SND_STREAM_INVALID; 
 // The main audio buffer
-static uint8_t __attribute__((aligned(32))) cb_buf_internal[2][RING_BUFFER_MAX_BYTES]; 
+static uint8_t __attribute__((aligned(4096))) cb_buf_internal[2][RING_BUFFER_MAX_BYTES]; 
 static void *const cb_buf[2] = {cb_buf_internal[0],cb_buf_internal[1]};
 static bool audio_started = false;
 
@@ -61,10 +61,56 @@ extern int stream_dump ;
 extern int stream_no ;
 int last_stream_dump = 0;
 
+#define CB_LEFT_ADDR   0x10000000
+#define CB_RIGHT_ADDR  0x20000000
+
 static bool cb_init(int N, size_t capacity) {
+    if (N == 0) {
+    // 4 4kb pages
+    // map:
+    // cb_buf[0][0] to 10000000
+    mmu_page_map_static((uintptr_t)0x10000000, ((uintptr_t)cb_buf_internal[0] - 0x80000000), PAGE_SIZE_4K, MMU_ALL_RDWR, true);
+    // cb_buf[0][4096] to 10001000
+    mmu_page_map_static((uintptr_t)0x10001000, ((uintptr_t)cb_buf_internal[0] - 0x80000000) + 4096, PAGE_SIZE_4K, MMU_ALL_RDWR, true);
+    // cb_buf[0][8192] to 10002000
+    mmu_page_map_static((uintptr_t)0x10002000, ((uintptr_t)cb_buf_internal[0] - 0x80000000) + (4096*2), PAGE_SIZE_4K, MMU_ALL_RDWR, true);
+    // cb_buf[0][12288] to 10003000
+    mmu_page_map_static((uintptr_t)0x10003000, ((uintptr_t)cb_buf_internal[0] - 0x80000000) + (4096*3), PAGE_SIZE_4K, MMU_ALL_RDWR, true);
+
+    // cb_buf[0][0] to 10004000
+    mmu_page_map_static((uintptr_t)0x10004000, ((uintptr_t)cb_buf_internal[0] - 0x80000000), PAGE_SIZE_4K, MMU_ALL_RDWR, true);
+    // cb_buf[0][4096] to 10005000
+    mmu_page_map_static((uintptr_t)0x10005000, ((uintptr_t)cb_buf_internal[0] - 0x80000000) + 4096, PAGE_SIZE_4K, MMU_ALL_RDWR, true);
+    // cb_buf[0][8192] to 10006000
+    mmu_page_map_static((uintptr_t)0x10006000, ((uintptr_t)cb_buf_internal[0] - 0x80000000) + (4096*2), PAGE_SIZE_4K, MMU_ALL_RDWR, true);
+    // cb_buf[0][12288] to 10007000
+    mmu_page_map_static((uintptr_t)0x10007000, ((uintptr_t)cb_buf_internal[0] - 0x80000000) + (4096*3), PAGE_SIZE_4K, MMU_ALL_RDWR, true);
+
+
+    // cb_buf[1][0] to 20000000
+    mmu_page_map_static((uintptr_t)0x20000000, ((uintptr_t)cb_buf_internal[1] - 0x80000000), PAGE_SIZE_4K, MMU_ALL_RDWR, true);
+    // cb_buf[1][4096] to 20001000
+    mmu_page_map_static((uintptr_t)0x20001000, ((uintptr_t)cb_buf_internal[1] - 0x80000000) + 4096, PAGE_SIZE_4K, MMU_ALL_RDWR, true);
+    // cb_buf[1][8192] to 20002000
+    mmu_page_map_static((uintptr_t)0x20002000, ((uintptr_t)cb_buf_internal[1] - 0x80000000) + (4096*2), PAGE_SIZE_4K, MMU_ALL_RDWR, true);
+    // cb_buf[1][12288] to 20003000
+    mmu_page_map_static((uintptr_t)0x20003000, ((uintptr_t)cb_buf_internal[1] - 0x80000000) + (4096*3), PAGE_SIZE_4K, MMU_ALL_RDWR, true);
+
+    // cb_buf[1][0] to 20004000
+    mmu_page_map_static((uintptr_t)0x20004000, ((uintptr_t)cb_buf_internal[1] - 0x80000000), PAGE_SIZE_4K, MMU_ALL_RDWR, true);
+    // cb_buf[1][4096] to 20005000
+    mmu_page_map_static((uintptr_t)0x20005000, ((uintptr_t)cb_buf_internal[1] - 0x80000000) + 4096, PAGE_SIZE_4K, MMU_ALL_RDWR, true);
+    // cb_buf[1][8192] to 20006000
+    mmu_page_map_static((uintptr_t)0x20006000, ((uintptr_t)cb_buf_internal[1] - 0x80000000) + (4096*2), PAGE_SIZE_4K, MMU_ALL_RDWR, true);
+    // cb_buf[1][12288] to 20007000
+    mmu_page_map_static((uintptr_t)0x20007000, ((uintptr_t)cb_buf_internal[1] - 0x80000000) + (4096*3), PAGE_SIZE_4K, MMU_ALL_RDWR, true);
+    }
     // round capacity up to power of two
     r[N]->cap = 1u << (32 - __builtin_clz(capacity - 1));
-    r[N]->buf = cb_buf[N];
+
+    if (N == 0) r[N]->buf = 0x10000000;
+    else r[N]->buf = 0x20000000;
+
     if (!r[N]->buf)
         return false;
     r[N]->head = 0;
@@ -73,51 +119,27 @@ static bool cb_init(int N, size_t capacity) {
 }
 void n64_memcpy(void* dst, const void* src, size_t size);
 
-void *cb_next_left(void) {
-    uint32_t head = r[0]->head;
-    uint32_t tail = r[0]->tail;
-    uint32_t free = r[0]->cap - (head - tail);
-    uint32_t idx = head & (r[0]->cap - 1);
-    r[0]->head = head + (448*2);
-    return (void*)r[0]->buf + idx;
-}
-
-void *cb_next_right(void) {
-    uint32_t head = r[1]->head;
-    uint32_t tail = r[1]->tail;
-    uint32_t free = r[1]->cap - (head - tail);
-    uint32_t idx = head & (r[1]->cap - 1);
-    r[1]->head = head + (448*2);
-
-    return (void*)r[1]->buf + idx;
-}
-
-
 static size_t cb_write_data(int N, const void *src, size_t n) {
+    __builtin_prefetch(src);
     uint32_t head = r[N]->head;
     uint32_t tail = r[N]->tail;
     uint32_t free = r[N]->cap - (head - tail);
     if (n > free)
         return 0;
     uint32_t idx = head & (r[N]->cap - 1);
-    uint32_t first = MIN(n, r[N]->cap - idx);
-    if (first)
-        n64_memcpy(r[N]->buf + idx, src, first);
-    if (n-first)
-        n64_memcpy(r[N]->buf, (uint8_t*)src + first, n - first);
+    n64_memcpy(r[N]->buf + idx, src, n);
     r[N]->head = head + n;
     return n;
 }
 
 static size_t cb_read_data(int N, void *dst, size_t n) {
-    uint32_t head = r[N]->head;
-    uint32_t tail = r[N]->tail;//atomic_load(&r->tail);
-    uint32_t avail = head - tail;
-    if (n > avail) return 0;
+    uint32_t tail = r[N]->tail;
     uint32_t idx = tail & (r[N]->cap - 1);
     __builtin_prefetch(r[N]->buf + idx);
-    uint32_t first = MIN(n, r[N]->cap - idx);
-    n64_memcpy(dst, r[N]->buf + idx, first);
+    uint32_t head = r[N]->head;
+    uint32_t avail = head - tail;
+    if (n > avail) return 0;
+    n64_memcpy(dst, r[N]->buf + idx, n);
     r[N]->tail = tail + n;
     return n;
 }
