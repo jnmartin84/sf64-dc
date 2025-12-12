@@ -1,14 +1,6 @@
 #include "sf64dma.h"
 
-#if MMU_SEGMENTED
-#if USE_TLB_SEGMENTS
 #define SEGBUF_ALIGNMENT 65536
-#else
-#define SEGBUF_ALIGNMENT 4096
-#endif
-#else
-#define SEGBUF_ALIGNMENT 32
-#endif
 
 // NO SEGMENT 0
 

@@ -77,12 +77,13 @@ SPTask* sNewAudioTasks[1];
 #endif
 SPTask* sNewGfxTasks[2];
 
-extern u8* SEG_BUF[15];
-
 #include <kos.h>
-#if MMU_SEGMENTED
-#if USE_TLB_SEGMENTS
+
+extern u8* SEG_BUF[15];
 extern u32 SEG_PAGECOUNT[15];
+
+/* Macro for converting P1 address to physical memory address */
+#define P1_TO_PHYSICAL(addr) ((uintptr_t)(addr) & MEM_AREA_CACHE_MASK)
 
 void segment_init(void) {
     printf("Using SH4 TLB mappings for segmented address translation.\n");
@@ -95,62 +96,11 @@ void segment_init(void) {
         for (uint32_t p = 0; p < SEG_PAGECOUNT[s - 1]; p++) {
             mmu_page_map_static(
                 ((uintptr_t) (s << 24) + (65536 * p)),
-                (((uintptr_t) SEG_BUF[(s - 1)] - 0x80000000) + (65536 * p)),
+                P1_TO_PHYSICAL(SEG_BUF[(s - 1)]) + (65536 * p),
                 PAGE_SIZE_64K, MMU_ALL_RDWR, true);
         }
     }
 }
-#else
-void segment_init(void) {
-    mmucontext_t* cxt;
-
-    printf("Using SH4 MMU page-table mappings for segmented address translation.\n");
-
-    mmu_init();
-
-    cxt = mmu_context_create(0);
-    mmu_use_table(cxt);
-    mmu_switch_context(cxt);
-
-    mmu_page_map(cxt, (uintptr_t) 0, ((uintptr_t) 0x0C010000) >> PAGESIZE_BITS, 1048576 >> PAGESIZE_BITS, MMU_ALL_RDWR,
-                 MMU_CACHEABLE, 0, 1);
-
-    for (uint32_t s = 1; s < 16; s++) {
-        mmu_page_map(cxt, (uintptr_t) (s << 24) >> PAGESIZE_BITS,
-                     ((uintptr_t) SEG_BUF[(s - 1)] - 0x80000000) >> PAGESIZE_BITS, 1048576 >> PAGESIZE_BITS,
-                     MMU_ALL_RDWR, MMU_CACHEABLE, 0, 1);
-    }
-}
-#endif
-#else
-// make sure that a segment base address is always valid before the game starts
-// even if it is meaningless
-u32 gSegments[16] = {
-    0x8c010000, 0x8c010000, 0x8c010000, 0x8c010000, 0x8c010000, 0x8c010000, 0x8c010000, 0x8c010000,
-    0x8c010000, 0x8c010000, 0x8c010000, 0x8c010000, 0x8c010000, 0x8c010000, 0x8c010000, 0x8c010000,
-};
-
-void segment_init(void) {
-    printf("Using software segmented address translation.\n");
-
-    for (uint32_t s = 1; s < 16; s++) {
-        gSegments[s] = (u32) SEG_BUF[(s - 1)];
-    }
-}
-
-void* segmented_to_virtual(const void* addr) {
-    u32 uaddr = (u32) addr;
-
-    if ((uaddr >= 0x8c010000) && (uaddr <= 0x8cffffff)) {
-        return uaddr;
-    }
-
-    u32 segment = (u32) (uaddr >> 24);
-    u32 offset = (u32) uaddr & 0x00FFFFFF;
-    u32 translated_addr = gSegments[segment] + offset;
-    return (void*) translated_addr;
-}
-#endif
 
 OSMesgQueue gPiMgrCmdQueue;
 OSMesg sPiMgrCmdBuff[50];

@@ -3,10 +3,6 @@
 #include <stdio.h>
 #include "alignment.h"
 
-#if !MMU_SEGMENTED
-extern void* segmented_to_virtual(const void* addr);
-#endif
-
 #define SCREEN_WIDTH  320
 #define SCREEN_HEIGHT 240
 #define SCREEN_MARGIN 0
@@ -27,13 +23,8 @@ extern void* segmented_to_virtual(const void* addr);
 #define RAND_INT_SEEDED(max) ((s32)(Rand_ZeroOneSeeded()*(max)))
 #define RAND_FLOAT_CENTERED_SEEDED(width) ((Rand_ZeroOneSeeded()-0.5f)*(width))
 
-#if MMU_SEGMENTED
 #define SEGMENTED_TO_VIRTUAL(segment) ((void*)(segment))
 #define SEGMENTED_TO_VIRTUAL_JP(segment) ((void*)(segment))
-#else
-#define SEGMENTED_TO_VIRTUAL(segment) segmented_to_virtual((segment))
-#define SEGMENTED_TO_VIRTUAL_JP(segment) segmented_to_virtual((segment))
-#endif
 
 #define ARRAY_COUNT(arr) (s32)(sizeof(arr) / sizeof(arr[0]))
 #define ARRAY_COUNTU(arr) (u32)(sizeof(arr) / sizeof(arr[0]))
