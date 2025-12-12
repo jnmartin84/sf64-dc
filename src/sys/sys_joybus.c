@@ -310,7 +310,7 @@ void Controller_ReadData(void) {
         }
     }
 
-    osSendMesg(&gControllerMesgQueue, (OSMesg) SI_CONT_READ_DONE, OS_MESG_NOBLOCK);
+    // osSendMesg(&gControllerMesgQueue, (OSMesg) SI_CONT_READ_DONE, OS_MESG_NOBLOCK);
 }
 
 s32 Save_ReadData(void) {
