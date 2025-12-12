@@ -918,7 +918,6 @@ void AudioHeap_DiscardSampleCaches(void) {
     s32 fontId;
     s32 i;
     s32 numFonts = gSoundFontTable->base.numEntries;
-    s32 pad;
     u8 sampleBankId2;
     u8 sampleBankId1;
     s32 instId;

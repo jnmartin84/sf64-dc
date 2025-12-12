@@ -257,7 +257,6 @@ void* AudioLoad_SyncLoadSeqFonts(s32 seqId, u32* outFontId) {
 }
 
 void AudioLoad_SyncLoadSeqParts(s32 seqId, s32 flags) {
-    s32 pad;
     u32 fontId;
 
     seqId = AudioLoad_GetLoadTableIndex(SEQUENCE_TABLE, seqId);
@@ -515,7 +514,6 @@ void* AudioLoad_SyncLoad(u32 tableType, u32 id, s32* didAllocate) {
     u32 medium;
     s32 loadStatus;
     u32 romAddr;
-    s32 pad;
     s32 cachePolicy;
 
     ramAddr = AudioLoad_SearchCaches(tableType, id);
@@ -1427,7 +1425,6 @@ s32 AudioLoad_RelocateFontAndPreloadSamples(s32 fontId, u32 fontDataAddr, Sample
     Sample* sample;
     u8* sampleRamAddr;
     s32 size;
-    s32 pad;
     u32 nChunks;
     s32 inProgress = 0;
     if (gPreloadSampleStackTop != 0) {

@@ -61,7 +61,6 @@ void AudioSeq_InitSequenceChannel(SequenceChannel* channel) {
 
 s32 AudioSeq_SeqChannelSetLayer(SequenceChannel* channel, s32 layerIndex) {
     SequenceLayer* layer;
-    s32 pad;
 
     if (channel->layers[layerIndex] == NULL) {
         layer = AudioSeq_AudioListPopBack(&gLayerFreeList);
@@ -759,7 +758,7 @@ void AudioSeq_SequenceChannelProcessScript(SequenceChannel* channel) {
     SeqScriptState* state;
     s8 sp4B = 0;
     u8* seqData;
-    s32 pad;
+    s32 tmp_dataidx;
 
     if (!channel->enabled) {
         return;
@@ -1028,8 +1027,8 @@ void AudioSeq_SequenceChannelProcessScript(SequenceChannel* channel) {
 
                     case 0xCB:
                         sp52 = AudioSeq_ScriptReadS16(state);
-                        pad = sp52 + sp4B;
-                        sp4B = seqPlayer->seqData[pad];
+                        tmp_dataidx = sp52 + sp4B;
+                        sp4B = seqPlayer->seqData[tmp_dataidx];
                         break;
 
                     case 0xCE:
@@ -1218,8 +1217,6 @@ void AudioSeq_SequencePlayerProcessSequence(SequencePlayer* seqPlayer) {
     s32 sp50 = 0;
     s32 i;
     s8 pad;
-    u8* pad2;
-    s32 pad3;
 
     if (!seqPlayer->enabled) {
         return;

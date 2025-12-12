@@ -28,7 +28,11 @@
 // Sample rate for the AICA (32kHz)
 #define DC_AUDIO_FREQUENCY (32000) 
 #else
+#if USE_16KHZ
+#define DC_AUDIO_FREQUENCY (16000)
+#else
 #define DC_AUDIO_FREQUENCY (26800)
+#endif
 #endif
 
 #define RING_BUFFER_MAX_BYTES (16384)
@@ -37,8 +41,7 @@
 // Handle for the sound stream
 static volatile snd_stream_hnd_t shnd = SND_STREAM_INVALID; 
 // The main audio buffer
-static uint8_t __attribute__((aligned(32))) cb_buf_internal[2][RING_BUFFER_MAX_BYTES]; 
-static void *const cb_buf[2] = {cb_buf_internal[0],cb_buf_internal[1]};
+static uint8_t __attribute__((aligned(16384))) cb_buf_internal[2][RING_BUFFER_MAX_BYTES]; 
 static bool audio_started = false;
 
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
@@ -52,10 +55,9 @@ typedef struct {
 
 static ring_t cb_ring[2];
 static ring_t *r[2] = {&cb_ring[0],&cb_ring[1]};
-file_t streamout;
-extern int stream_dump ;
-extern int stream_no ;
-int last_stream_dump = 0;
+
+#if !USE_TLB_CB
+static void *const cb_buf[2] = {cb_buf_internal[0],cb_buf_internal[1]};
 
 static bool cb_init(int N, size_t capacity) {
     // round capacity up to power of two
@@ -67,34 +69,16 @@ static bool cb_init(int N, size_t capacity) {
     r[N]->tail = 0;
     return true;
 }
+
 void n64_memcpy(void* dst, const void* src, size_t size);
 
-void *cb_next_left(void) {
-    uint32_t head = r[0]->head;
-    uint32_t tail = r[0]->tail;
-    uint32_t free = r[0]->cap - (head - tail);
-    uint32_t idx = head & (r[0]->cap - 1);
-    r[0]->head = head + (448*2);
-    return (void*)r[0]->buf + idx;
-}
-
-void *cb_next_right(void) {
-    uint32_t head = r[1]->head;
-    uint32_t tail = r[1]->tail;
-    uint32_t free = r[1]->cap - (head - tail);
-    uint32_t idx = head & (r[1]->cap - 1);
-    r[1]->head = head + (448*2);
-
-    return (void*)r[1]->buf + idx;
-}
-
-
-static size_t cb_write_data(int N, const void *src, size_t n) {
+static void cb_write_data(int N, const void *src, size_t n) {
+    __builtin_prefetch(src);
     uint32_t head = r[N]->head;
     uint32_t tail = r[N]->tail;
     uint32_t free = r[N]->cap - (head - tail);
     if (n > free)
-        return 0;
+        return;
     uint32_t idx = head & (r[N]->cap - 1);
     uint32_t first = MIN(n, r[N]->cap - idx);
     if (first)
@@ -102,21 +86,88 @@ static size_t cb_write_data(int N, const void *src, size_t n) {
     if (n-first)
         n64_memcpy(r[N]->buf, (uint8_t*)src + first, n - first);
     r[N]->head = head + n;
-    return n;
 }
 
-static size_t cb_read_data(int N, void *dst, size_t n) {
-    uint32_t head = r[N]->head;
-    uint32_t tail = r[N]->tail;//atomic_load(&r->tail);
-    uint32_t avail = head - tail;
-    if (n > avail) return 0;
+static void cb_read_data(int N, void *dst, size_t n) {
+    uint32_t tail = r[N]->tail;
     uint32_t idx = tail & (r[N]->cap - 1);
     __builtin_prefetch(r[N]->buf + idx);
+    uint32_t head = r[N]->head;
+    uint32_t avail = head - tail;
+    if (n > avail)
+        return;
     uint32_t first = MIN(n, r[N]->cap - idx);
     n64_memcpy(dst, r[N]->buf + idx, first);
     r[N]->tail = tail + n;
-    return n;
 }
+#else
+
+#define CB_LEFT_ADDR   0x10000000
+#define CB_RIGHT_ADDR  0x20000000
+static void *const cb_buf[2] = {CB_LEFT_ADDR,CB_RIGHT_ADDR};
+
+/* Macro for converting P1 address to physical memory address */
+#define P1_TO_PHYSICAL(addr) ((uintptr_t)(addr) & MEM_AREA_CACHE_MASK)
+
+//((uintptr_t)(addr) & ~MEM_AREA_P1_BASE)
+
+static bool cb_init(int N, size_t capacity) {
+    if (N == 0) {
+        mmu_page_map_static((uintptr_t)CB_LEFT_ADDR           , P1_TO_PHYSICAL(cb_buf_internal[0])           , PAGE_SIZE_4K, MMU_ALL_RDWR, true);
+        mmu_page_map_static((uintptr_t)CB_LEFT_ADDR + 4096    , P1_TO_PHYSICAL(cb_buf_internal[0]) + 4096    , PAGE_SIZE_4K, MMU_ALL_RDWR, true);
+        mmu_page_map_static((uintptr_t)CB_LEFT_ADDR + (4096*2), P1_TO_PHYSICAL(cb_buf_internal[0]) + (4096*2), PAGE_SIZE_4K, MMU_ALL_RDWR, true);
+        mmu_page_map_static((uintptr_t)CB_LEFT_ADDR + (4096*3), P1_TO_PHYSICAL(cb_buf_internal[0]) + (4096*3), PAGE_SIZE_4K, MMU_ALL_RDWR, true);
+        mmu_page_map_static((uintptr_t)CB_LEFT_ADDR + (4096*4), P1_TO_PHYSICAL(cb_buf_internal[0])           , PAGE_SIZE_4K, MMU_ALL_RDWR, true);
+        mmu_page_map_static((uintptr_t)CB_LEFT_ADDR + (4096*5), P1_TO_PHYSICAL(cb_buf_internal[0]) + 4096    , PAGE_SIZE_4K, MMU_ALL_RDWR, true);
+        mmu_page_map_static((uintptr_t)CB_LEFT_ADDR + (4096*6), P1_TO_PHYSICAL(cb_buf_internal[0]) + (4096*2), PAGE_SIZE_4K, MMU_ALL_RDWR, true);
+        mmu_page_map_static((uintptr_t)CB_LEFT_ADDR + (4096*7), P1_TO_PHYSICAL(cb_buf_internal[0]) + (4096*3), PAGE_SIZE_4K, MMU_ALL_RDWR, true);
+
+        mmu_page_map_static((uintptr_t)CB_RIGHT_ADDR           , P1_TO_PHYSICAL(cb_buf_internal[1])           , PAGE_SIZE_4K, MMU_ALL_RDWR, true);
+        mmu_page_map_static((uintptr_t)CB_RIGHT_ADDR + 4096    , P1_TO_PHYSICAL(cb_buf_internal[1]) + 4096    , PAGE_SIZE_4K, MMU_ALL_RDWR, true);
+        mmu_page_map_static((uintptr_t)CB_RIGHT_ADDR + (4096*2), P1_TO_PHYSICAL(cb_buf_internal[1]) + (4096*2), PAGE_SIZE_4K, MMU_ALL_RDWR, true);
+        mmu_page_map_static((uintptr_t)CB_RIGHT_ADDR + (4096*3), P1_TO_PHYSICAL(cb_buf_internal[1]) + (4096*3), PAGE_SIZE_4K, MMU_ALL_RDWR, true);
+        mmu_page_map_static((uintptr_t)CB_RIGHT_ADDR + (4096*4), P1_TO_PHYSICAL(cb_buf_internal[1])           , PAGE_SIZE_4K, MMU_ALL_RDWR, true);
+        mmu_page_map_static((uintptr_t)CB_RIGHT_ADDR + (4096*5), P1_TO_PHYSICAL(cb_buf_internal[1]) + 4096    , PAGE_SIZE_4K, MMU_ALL_RDWR, true);
+        mmu_page_map_static((uintptr_t)CB_RIGHT_ADDR + (4096*6), P1_TO_PHYSICAL(cb_buf_internal[1]) + (4096*2), PAGE_SIZE_4K, MMU_ALL_RDWR, true);
+        mmu_page_map_static((uintptr_t)CB_RIGHT_ADDR + (4096*7), P1_TO_PHYSICAL(cb_buf_internal[1]) + (4096*3), PAGE_SIZE_4K, MMU_ALL_RDWR, true);
+    }
+    // round capacity up to power of two
+    r[N]->cap = 1u << (32 - __builtin_clz(capacity - 1));
+
+    r[N]->buf = cb_buf[N];
+
+    r[N]->head = 0;
+    r[N]->tail = 0;
+    return true;
+}
+
+void n64_memcpy(void* dst, const void* src, size_t size);
+
+static void cb_write_data(int N, const void *src, size_t n) {
+    __builtin_prefetch(src);
+    uint32_t head = r[N]->head;
+    uint32_t tail = r[N]->tail;
+    uint32_t free = r[N]->cap - (head - tail);
+    if (n > free)
+        return;
+    uint32_t idx = head & (r[N]->cap - 1);
+    r[N]->head = head + n;
+    n64_memcpy(r[N]->buf + idx, src, n);
+}
+
+static void cb_read_data(int N, void *dst, size_t n) {
+    uint32_t tail = r[N]->tail;
+    uint32_t idx = tail & (r[N]->cap - 1);
+    __builtin_prefetch(r[N]->buf + idx);
+    uint32_t head = r[N]->head;
+    uint32_t avail = head - tail;
+    if (n > avail)
+        return;
+    r[N]->tail = tail + n;
+    n64_memcpy(dst, r[N]->buf + idx, n);
+}
+
+#endif
 
 // --- KOS Stream Audio Callback (Consumer): Called by KOS when the AICA needs more data ---
 #define NUM_BUFFER_BLOCKS (2)
@@ -130,8 +181,8 @@ void unmute_stream(void) {
 }
 
 static size_t audio_cb(UNUSED snd_stream_hnd_t hnd, uintptr_t l, uintptr_t r, size_t req) {
-    cb_read_data(0, (void*)l , req/2);
-    cb_read_data(1, (void*)r , req/2);
+    cb_read_data(0, (void*)l , req >> 1);
+    cb_read_data(1, (void*)r , req >> 1);
     return req;
 }
 
@@ -163,7 +214,11 @@ static bool audio_dc_init(void) {
 #if USE_32KHZ
     shnd = snd_stream_alloc(NULL, 8192);
 #else
+#if USE_16KHZ
+    shnd = snd_stream_alloc(NULL, 2048);
+#else
     shnd = snd_stream_alloc(NULL, 4096);
+#endif
 #endif
     if (shnd == SND_STREAM_INVALID) {
         printf("SND: Stream allocation failure!\n");
@@ -189,8 +244,8 @@ static int audio_dc_get_desired_buffered(void) {
 }
 
 static void audio_dc_play(uint8_t *bufL, uint8_t *bufR, size_t len) {
-    size_t writtenL = cb_write_data(0, bufL, len/2);
-    size_t writtenR = cb_write_data(1, bufR, len/2);
+    cb_write_data(0, bufL, len >> 1);
+    cb_write_data(1, bufR, len >> 1);
 
     if ((!audio_started)) {
         audio_started = true;

@@ -546,7 +546,7 @@ f32 Audio_UpdateDopplerShift(f32* srcPos, f32* srcVel, f32 soundSpeed, f32* curD
     f32 newShift;
     f32 relativeSpeed;
     f32 targetDopplerShift;
-    s32 pad;
+    
     //f32 recipspeed;
 
 #ifdef AVOID_UB
@@ -633,7 +633,7 @@ void Audio_SetMusicVolume(WavPlayerId playerId, int volume) {
     }
 
     if (sleeps < 100)
-        wav_volume(playerId, (volume * 255) / 100);
+        wav_volume(playerId, (volume * 192) / 100);
 }
 
 extern int sx_distort;
@@ -650,7 +650,7 @@ extern mutex_t io_lock;
 void Audio_StartSequence(u8 seqPlayId, u8 seqId, u8 seqArgs, u16 fadeInTime) {
     static int checked_music = 0;
     u8 i;
-    s32 pad;
+    
     if (!checked_music) {
         checked_music = 1;
         char musictestfn[256];
@@ -756,7 +756,7 @@ void Audio_StartSequence(u8 seqPlayId, u8 seqId, u8 seqArgs, u16 fadeInTime) {
                 wav_create(WAV_PLAYER_BGM, wavfn, looping, 0, 0);
                 sActiveSequences[seqPlayId].seqId = seqId;
                 wav_play(WAV_PLAYER_BGM);
-                Audio_SetMusicVolume(WAV_PLAYER_BGM, 90);
+                Audio_SetMusicVolume(WAV_PLAYER_BGM, gVolumeSettings[AUDIO_TYPE_MUSIC]);
                 played_wav = 1;
                 return;
             }
@@ -808,7 +808,6 @@ void Audio_ProcessSeqCmd(u32 seqCmd) {
     u8 ioPort;
     u8 channel;
     u8 found;
-    u8 muteFlag;
     u8 duration;
     u8 seqNumber;
     u8 subOp;
@@ -1120,8 +1119,8 @@ void Audio_UpdateActiveSequences(void) {
     u32 cmd;
     f32 fadeMod;
     u32 out;
-    s32 pad1;
-    s32 pad2;
+    
+    
 
     for (seqPlayId = 0; seqPlayId < SEQ_PLAYER_MAX; seqPlayId++) {
         if (sActiveSequences[seqPlayId].isWaitingForFonts) {
@@ -1142,7 +1141,7 @@ void Audio_UpdateActiveSequences(void) {
             }
             if (!USE_MIXER_MUSIC) {
                 if (seqPlayId == SEQ_PLAYER_BGM && wav_is_playing(WAV_PLAYER_BGM)) {
-                    wav_volume(WAV_PLAYER_BGM, (u8) (fadeMod * 160.0f));
+                    wav_volume(WAV_PLAYER_BGM, (u8) gVolumeSettings[AUDIO_TYPE_MUSIC] * fadeMod * 1.92f); // 255/100
                 }
             }
             SEQCMD_SET_SEQPLAYER_VOLUME(seqPlayId, sActiveSequences[seqPlayId].mainVolume.fadeTimer,
@@ -1541,7 +1540,7 @@ void Audio_ProcessSfxRequest(void) {
 
 void Audio_RemoveSfxBankEntry(u8 bankId, u8 entryIndex) {
     SfxBankEntry* sfxBank = sSfxBanks[bankId];
-    s32 pad;
+    
 
     if (sfxBank[entryIndex].sfxId & SFX_FLAG_19) {
         Audio_ClearBGMMute(sfxBank[entryIndex].channelIndex);
@@ -2308,10 +2307,6 @@ void Audio_ResetVoicesAndPlayers(void) {
 
 void Audio_ProcessPlaylist(void) {
     PlaylistCmd* cmd;
-    u32 temp;
-    u32 temp2;
-    u32 temp1;
-    u32 temp5;
 
     if (sPlaylistIndex != 0xFF) {
         if (sPlaylistTimer == 0) {
@@ -2432,7 +2427,7 @@ u8* Audio_UpdateFrequencyAnalysis(void) {
     s32 i3;
     s32 fbin;
     s16* aiData;
-    s32 pad;
+    
     static s32 sFreqBins[] = {
         0,  1,  2,  3,  4,  6,  7,  8,   9,   10,  11,  12,  14,  16,  19,  22,
         26, 31, 37, 44, 54, 68, 88, 108, 138, 163, 188, 208, 222, 234, 242, 246,
@@ -2719,7 +2714,7 @@ void Audio_PlayFanfare(u16 seqId, u8 bgmVolume, u8 bgmFadeoutTime, u8 bgmFadeinT
                     wav_create(WAV_PLAYER_FANFARE, wavfn, looping, 0, 0);
                     sActiveSequences[SEQ_PLAYER_FANFARE].seqId = seqId;
                     wav_play(WAV_PLAYER_FANFARE);
-                    Audio_SetMusicVolume(WAV_PLAYER_FANFARE, 90);
+                    Audio_SetMusicVolume(WAV_PLAYER_FANFARE, gVolumeSettings[AUDIO_TYPE_MUSIC]);
                     played_fanfare_wav = 1;
                     return;
                 }
@@ -2885,8 +2880,8 @@ void Audio_InitSounds(void) {
 }
 
 void Audio_RestartSeqPlayers(void) {
-    s32 pad1;
-    s32 pad2;
+    
+    
     u16 fadeIn = 1;
 
     Audio_StartSequence(SEQ_PLAYER_VOICE, NA_BGM_VO, -1, 1);

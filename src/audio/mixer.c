@@ -110,6 +110,7 @@ n64copy1:
     return;
 }
 
+#define recip32768 0.00003052f
 #define recip8192 0.00012207f
 #define recip2048 0.00048828f
 #define recip2560 0.00039062f
@@ -119,33 +120,466 @@ n64copy1:
 #define ROUND_UP_16(v) (((v) + 15) & ~15)
 #define ROUND_UP_8(v) (((v) + 7) & ~7)
 
-#define ROUND_DOWN_16(v) ((v) & ~15)
-
 #define DMEM_BUF_SIZE 4096
-#define BUF_U8(a) (rspa.buf.as_u8 + (a))
-#define BUF_S16(a) (rspa.buf.as_s16 + (a) / sizeof(int16_t))
+#define BUF_U8(a) (rspa.buf + (a))
+#define BUF_S16(a) (rspa.buf + (a))
 
-static struct __attribute__((aligned(32))) {
-    union __attribute__((aligned(32))) {
-        int16_t __attribute__((aligned(32))) as_s16[DMEM_BUF_SIZE / sizeof(int16_t)];
-        uint8_t __attribute__((aligned(32))) as_u8[DMEM_BUF_SIZE];
-    } buf;
+#define BUF_DMEM(a) ((void*)(rspa.buf + (a)))
 
+static struct __attribute__((aligned(16384))) {
+    uint8_t __attribute__((aligned(32))) buf[DMEM_BUF_SIZE];
     float __attribute__((aligned(32))) adpcm_table[8][2][8];
+    int16_t __attribute__((aligned(32))) adpcm_loop_state[16];
+
     uint16_t vol[2];
     uint16_t rate[2];
-
-    int16_t __attribute__((aligned(32))) adpcm_loop_state[16];
 
     u16* loaded_buffer;
     uint16_t in;
     uint16_t out;
     uint16_t nbytes;
 
-    uint16_t rate_wet;
-    uint16_t vol_wet;
-} rspa = { 0 };
+    const float __attribute__((aligned(32))) resample_table[64][4];
 
+    const float __attribute__((aligned(32))) nyblls_as_floats[256][2];
+} rspa = {.buf = {0}, .adpcm_table = {0}, .vol = {0}, .rate = {0},
+.adpcm_loop_state = {0}, .loaded_buffer = NULL, .in = 0, .out = 0, .nbytes = 0, 
+.nyblls_as_floats = {
+    { 0.0f, 0.0f },   { 0.0f, 1.0f },   { 0.0f, 2.0f },   { 0.0f, 3.0f },   { 0.0f, 4.0f },   { 0.0f, 5.0f },
+    { 0.0f, 6.0f },   { 0.0f, 7.0f },   { 0.0f, -8.0f },  { 0.0f, -7.0f },  { 0.0f, -6.0f },  { 0.0f, -5.0f },
+    { 0.0f, -4.0f },  { 0.0f, -3.0f },  { 0.0f, -2.0f },  { 0.0f, -1.0f },  { 1.0f, 0.0f },   { 1.0f, 1.0f },
+    { 1.0f, 2.0f },   { 1.0f, 3.0f },   { 1.0f, 4.0f },   { 1.0f, 5.0f },   { 1.0f, 6.0f },   { 1.0f, 7.0f },
+    { 1.0f, -8.0f },  { 1.0f, -7.0f },  { 1.0f, -6.0f },  { 1.0f, -5.0f },  { 1.0f, -4.0f },  { 1.0f, -3.0f },
+    { 1.0f, -2.0f },  { 1.0f, -1.0f },  { 2.0f, 0.0f },   { 2.0f, 1.0f },   { 2.0f, 2.0f },   { 2.0f, 3.0f },
+    { 2.0f, 4.0f },   { 2.0f, 5.0f },   { 2.0f, 6.0f },   { 2.0f, 7.0f },   { 2.0f, -8.0f },  { 2.0f, -7.0f },
+    { 2.0f, -6.0f },  { 2.0f, -5.0f },  { 2.0f, -4.0f },  { 2.0f, -3.0f },  { 2.0f, -2.0f },  { 2.0f, -1.0f },
+    { 3.0f, 0.0f },   { 3.0f, 1.0f },   { 3.0f, 2.0f },   { 3.0f, 3.0f },   { 3.0f, 4.0f },   { 3.0f, 5.0f },
+    { 3.0f, 6.0f },   { 3.0f, 7.0f },   { 3.0f, -8.0f },  { 3.0f, -7.0f },  { 3.0f, -6.0f },  { 3.0f, -5.0f },
+    { 3.0f, -4.0f },  { 3.0f, -3.0f },  { 3.0f, -2.0f },  { 3.0f, -1.0f },  { 4.0f, 0.0f },   { 4.0f, 1.0f },
+    { 4.0f, 2.0f },   { 4.0f, 3.0f },   { 4.0f, 4.0f },   { 4.0f, 5.0f },   { 4.0f, 6.0f },   { 4.0f, 7.0f },
+    { 4.0f, -8.0f },  { 4.0f, -7.0f },  { 4.0f, -6.0f },  { 4.0f, -5.0f },  { 4.0f, -4.0f },  { 4.0f, -3.0f },
+    { 4.0f, -2.0f },  { 4.0f, -1.0f },  { 5.0f, 0.0f },   { 5.0f, 1.0f },   { 5.0f, 2.0f },   { 5.0f, 3.0f },
+    { 5.0f, 4.0f },   { 5.0f, 5.0f },   { 5.0f, 6.0f },   { 5.0f, 7.0f },   { 5.0f, -8.0f },  { 5.0f, -7.0f },
+    { 5.0f, -6.0f },  { 5.0f, -5.0f },  { 5.0f, -4.0f },  { 5.0f, -3.0f },  { 5.0f, -2.0f },  { 5.0f, -1.0f },
+    { 6.0f, 0.0f },   { 6.0f, 1.0f },   { 6.0f, 2.0f },   { 6.0f, 3.0f },   { 6.0f, 4.0f },   { 6.0f, 5.0f },
+    { 6.0f, 6.0f },   { 6.0f, 7.0f },   { 6.0f, -8.0f },  { 6.0f, -7.0f },  { 6.0f, -6.0f },  { 6.0f, -5.0f },
+    { 6.0f, -4.0f },  { 6.0f, -3.0f },  { 6.0f, -2.0f },  { 6.0f, -1.0f },  { 7.0f, 0.0f },   { 7.0f, 1.0f },
+    { 7.0f, 2.0f },   { 7.0f, 3.0f },   { 7.0f, 4.0f },   { 7.0f, 5.0f },   { 7.0f, 6.0f },   { 7.0f, 7.0f },
+    { 7.0f, -8.0f },  { 7.0f, -7.0f },  { 7.0f, -6.0f },  { 7.0f, -5.0f },  { 7.0f, -4.0f },  { 7.0f, -3.0f },
+    { 7.0f, -2.0f },  { 7.0f, -1.0f },  { -8.0f, 0.0f },  { -8.0f, 1.0f },  { -8.0f, 2.0f },  { -8.0f, 3.0f },
+    { -8.0f, 4.0f },  { -8.0f, 5.0f },  { -8.0f, 6.0f },  { -8.0f, 7.0f },  { -8.0f, -8.0f }, { -8.0f, -7.0f },
+    { -8.0f, -6.0f }, { -8.0f, -5.0f }, { -8.0f, -4.0f }, { -8.0f, -3.0f }, { -8.0f, -2.0f }, { -8.0f, -1.0f },
+    { -7.0f, 0.0f },  { -7.0f, 1.0f },  { -7.0f, 2.0f },  { -7.0f, 3.0f },  { -7.0f, 4.0f },  { -7.0f, 5.0f },
+    { -7.0f, 6.0f },  { -7.0f, 7.0f },  { -7.0f, -8.0f }, { -7.0f, -7.0f }, { -7.0f, -6.0f }, { -7.0f, -5.0f },
+    { -7.0f, -4.0f }, { -7.0f, -3.0f }, { -7.0f, -2.0f }, { -7.0f, -1.0f }, { -6.0f, 0.0f },  { -6.0f, 1.0f },
+    { -6.0f, 2.0f },  { -6.0f, 3.0f },  { -6.0f, 4.0f },  { -6.0f, 5.0f },  { -6.0f, 6.0f },  { -6.0f, 7.0f },
+    { -6.0f, -8.0f }, { -6.0f, -7.0f }, { -6.0f, -6.0f }, { -6.0f, -5.0f }, { -6.0f, -4.0f }, { -6.0f, -3.0f },
+    { -6.0f, -2.0f }, { -6.0f, -1.0f }, { -5.0f, 0.0f },  { -5.0f, 1.0f },  { -5.0f, 2.0f },  { -5.0f, 3.0f },
+    { -5.0f, 4.0f },  { -5.0f, 5.0f },  { -5.0f, 6.0f },  { -5.0f, 7.0f },  { -5.0f, -8.0f }, { -5.0f, -7.0f },
+    { -5.0f, -6.0f }, { -5.0f, -5.0f }, { -5.0f, -4.0f }, { -5.0f, -3.0f }, { -5.0f, -2.0f }, { -5.0f, -1.0f },
+    { -4.0f, 0.0f },  { -4.0f, 1.0f },  { -4.0f, 2.0f },  { -4.0f, 3.0f },  { -4.0f, 4.0f },  { -4.0f, 5.0f },
+    { -4.0f, 6.0f },  { -4.0f, 7.0f },  { -4.0f, -8.0f }, { -4.0f, -7.0f }, { -4.0f, -6.0f }, { -4.0f, -5.0f },
+    { -4.0f, -4.0f }, { -4.0f, -3.0f }, { -4.0f, -2.0f }, { -4.0f, -1.0f }, { -3.0f, 0.0f },  { -3.0f, 1.0f },
+    { -3.0f, 2.0f },  { -3.0f, 3.0f },  { -3.0f, 4.0f },  { -3.0f, 5.0f },  { -3.0f, 6.0f },  { -3.0f, 7.0f },
+    { -3.0f, -8.0f }, { -3.0f, -7.0f }, { -3.0f, -6.0f }, { -3.0f, -5.0f }, { -3.0f, -4.0f }, { -3.0f, -3.0f },
+    { -3.0f, -2.0f }, { -3.0f, -1.0f }, { -2.0f, 0.0f },  { -2.0f, 1.0f },  { -2.0f, 2.0f },  { -2.0f, 3.0f },
+    { -2.0f, 4.0f },  { -2.0f, 5.0f },  { -2.0f, 6.0f },  { -2.0f, 7.0f },  { -2.0f, -8.0f }, { -2.0f, -7.0f },
+    { -2.0f, -6.0f }, { -2.0f, -5.0f }, { -2.0f, -4.0f }, { -2.0f, -3.0f }, { -2.0f, -2.0f }, { -2.0f, -1.0f },
+    { -1.0f, 0.0f },  { -1.0f, 1.0f },  { -1.0f, 2.0f },  { -1.0f, 3.0f },  { -1.0f, 4.0f },  { -1.0f, 5.0f },
+    { -1.0f, 6.0f },  { -1.0f, 7.0f },  { -1.0f, -8.0f }, { -1.0f, -7.0f }, { -1.0f, -6.0f }, { -1.0f, -5.0f },
+    { -1.0f, -4.0f }, { -1.0f, -3.0f }, { -1.0f, -2.0f }, { -1.0f, -1.0f }
+},
+.resample_table = {
+    {
+        (f32) 3129,
+        (f32) 26285,
+        (f32) 3398,
+        (f32) -33,
+    },
+    {
+        (f32) 2873,
+        (f32) 26262,
+        (f32) 3679,
+        (f32) -40,
+    },
+    {
+        (f32) 2628,
+        (f32) 26217,
+        (f32) 3971,
+        (f32) -48,
+    },
+    {
+        (f32) 2394,
+        (f32) 26150,
+        (f32) 4276,
+        (f32) -56,
+    },
+    {
+        (f32) 2173,
+        (f32) 26061,
+        (f32) 4592,
+        (f32) -65,
+    },
+    {
+        (f32) 1963,
+        (f32) 25950,
+        (f32) 4920,
+        (f32) -74,
+    },
+    {
+        (f32) 1764,
+        (f32) 25817,
+        (f32) 5260,
+        (f32) -84,
+    },
+    {
+        (f32) 1576,
+        (f32) 25663,
+        (f32) 5611,
+        (f32) -95,
+    },
+    {
+        (f32) 1399,
+        (f32) 25487,
+        (f32) 5974,
+        (f32) -106,
+    },
+    {
+        (f32) 1233,
+        (f32) 25291,
+        (f32) 6347,
+        (f32) -118,
+    },
+    {
+        (f32) 1077,
+        (f32) 25075,
+        (f32) 6732,
+        (f32) -130,
+    },
+    {
+        (f32) 932,
+        (f32) 24838,
+        (f32) 7127,
+        (f32) -143,
+    },
+    {
+        (f32) 796,
+        (f32) 24583,
+        (f32) 7532,
+        (f32) -156,
+    },
+    {
+        (f32) 671,
+        (f32) 24309,
+        (f32) 7947,
+        (f32) -170,
+    },
+    {
+        (f32) 554,
+        (f32) 24016,
+        (f32) 8371,
+        (f32) -184,
+    },
+    {
+        (f32) 446,
+        (f32) 23706,
+        (f32) 8804,
+        (f32) -198,
+    },
+    {
+        (f32) 347,
+        (f32) 23379,
+        (f32) 9246,
+        (f32) -212,
+    },
+    {
+        (f32) 257,
+        (f32) 23036,
+        (f32) 9696,
+        (f32) -226,
+    },
+    {
+        (f32) 174,
+        (f32) 22678,
+        (f32) 10153,
+        (f32) -240,
+    },
+    {
+        (f32) 99,
+        (f32) 22304,
+        (f32) 10618,
+        (f32) -254,
+    },
+    {
+        (f32) 31,
+        (f32) 21917,
+        (f32) 11088,
+        (f32) -268,
+    },
+    {
+        (f32) -30,
+        (f32) 21517,
+        (f32) 11564,
+        (f32) -280,
+    },
+    {
+        (f32) -84,
+        (f32) 21104,
+        (f32) 12045,
+        (f32) -293,
+    },
+    {
+        (f32) -132,
+        (f32) 20679,
+        (f32) 12531,
+        (f32) -304,
+    },
+    {
+        (f32) -173,
+        (f32) 20244,
+        (f32) 13020,
+        (f32) -314,
+    },
+    {
+        (f32) -210,
+        (f32) 19799,
+        (f32) 13512,
+        (f32) -323,
+    },
+    {
+        (f32) -241,
+        (f32) 19345,
+        (f32) 14006,
+        (f32) -330,
+    },
+    {
+        (f32) -267,
+        (f32) 18882,
+        (f32) 14501,
+        (f32) -336,
+    },
+    {
+        (f32) -289,
+        (f32) 18413,
+        (f32) 14997,
+        (f32) -340,
+    },
+    {
+        (f32) -306,
+        (f32) 17937,
+        (f32) 15493,
+        (f32) -341,
+    },
+    {
+        (f32) -320,
+        (f32) 17456,
+        (f32) 15988,
+        (f32) -340,
+    },
+    {
+        (f32) -330,
+        (f32) 16970,
+        (f32) 16480,
+        (f32) -337,
+    },
+    {
+        (f32) -337,
+        (f32) 16480,
+        (f32) 16970,
+        (f32) -330,
+    },
+    {
+        (f32) -340,
+        (f32) 15988,
+        (f32) 17456,
+        (f32) -320,
+    },
+    {
+        (f32) -341,
+        (f32) 15493,
+        (f32) 17937,
+        (f32) -306,
+    },
+    {
+        (f32) -340,
+        (f32) 14997,
+        (f32) 18413,
+        (f32) -289,
+    },
+    {
+        (f32) -336,
+        (f32) 14501,
+        (f32) 18882,
+        (f32) -267,
+    },
+    {
+        (f32) -330,
+        (f32) 14006,
+        (f32) 19345,
+        (f32) -241,
+    },
+    {
+        (f32) -323,
+        (f32) 13512,
+        (f32) 19799,
+        (f32) -210,
+    },
+    {
+        (f32) -314,
+        (f32) 13020,
+        (f32) 20244,
+        (f32) -173,
+    },
+    {
+        (f32) -304,
+        (f32) 12531,
+        (f32) 20679,
+        (f32) -132,
+    },
+    {
+        (f32) -293,
+        (f32) 12045,
+        (f32) 21104,
+        (f32) -84,
+    },
+    {
+        (f32) -280,
+        (f32) 11564,
+        (f32) 21517,
+        (f32) -30,
+    },
+    {
+        (f32) -268,
+        (f32) 11088,
+        (f32) 21917,
+        (f32) 31,
+    },
+    {
+        (f32) -254,
+        (f32) 10618,
+        (f32) 22304,
+        (f32) 99,
+    },
+    {
+        (f32) -240,
+        (f32) 10153,
+        (f32) 22678,
+        (f32) 174,
+    },
+    {
+        (f32) -226,
+        (f32) 9696,
+        (f32) 23036,
+        (f32) 257,
+    },
+    {
+        (f32) -212,
+        (f32) 9246,
+        (f32) 23379,
+        (f32) 347,
+    },
+    {
+        (f32) -198,
+        (f32) 8804,
+        (f32) 23706,
+        (f32) 446,
+    },
+    {
+        (f32) -184,
+        (f32) 8371,
+        (f32) 24016,
+        (f32) 554,
+    },
+    {
+        (f32) -170,
+        (f32) 7947,
+        (f32) 24309,
+        (f32) 671,
+    },
+    {
+        (f32) -156,
+        (f32) 7532,
+        (f32) 24583,
+        (f32) 796,
+    },
+    {
+        (f32) -143,
+        (f32) 7127,
+        (f32) 24838,
+        (f32) 932,
+    },
+    {
+        (f32) -130,
+        (f32) 6732,
+        (f32) 25075,
+        (f32) 1077,
+    },
+    {
+        (f32) -118,
+        (f32) 6347,
+        (f32) 25291,
+        (f32) 1233,
+    },
+    {
+        (f32) -106,
+        (f32) 5974,
+        (f32) 25487,
+        (f32) 1399,
+    },
+    {
+        (f32) -95,
+        (f32) 5611,
+        (f32) 25663,
+        (f32) 1576,
+    },
+    {
+        (f32) -84,
+        (f32) 5260,
+        (f32) 25817,
+        (f32) 1764,
+    },
+    {
+        (f32) -74,
+        (f32) 4920,
+        (f32) 25950,
+        (f32) 1963,
+    },
+    {
+        (f32) -65,
+        (f32) 4592,
+        (f32) 26061,
+        (f32) 2173,
+    },
+    {
+        (f32) -56,
+        (f32) 4276,
+        (f32) 26150,
+        (f32) 2394,
+    },
+    {
+        (f32) -48,
+        (f32) 3971,
+        (f32) 26217,
+        (f32) 2628,
+    },
+    {
+        (f32) -40,
+        (f32) 3679,
+        (f32) 26262,
+        (f32) 2873,
+    },
+    {
+        (f32) -33,
+        (f32) 3398,
+        (f32) 26285,
+        (f32) 3129,
+    },
+}
+
+
+};
+#if 0
+// 1024 bytes
 static float __attribute__((aligned(32))) resample_table[64][4] = {
     {
         (f32) 3129,
@@ -532,7 +966,7 @@ static float __attribute__((aligned(32))) resample_table[64][4] = {
         (f32) 3129,
     },
 };
-
+#endif
 static inline int16_t clamp16(int32_t v) {
     if (v < -0x8000) {
         return -0x8000;
@@ -543,7 +977,7 @@ static inline int16_t clamp16(int32_t v) {
 }
 
 void aClearBufferImpl(uint16_t addr, int nbytes) {
-    memset(BUF_U8(addr & ~3), 0, ROUND_UP_16(nbytes));
+    memset(BUF_DMEM(addr), 0, ROUND_UP_16(nbytes));
 }
 
 void aLoadBufferPointerImpl(const void* source_addr) {
@@ -555,37 +989,38 @@ void aLoadBufferImpl(const void* source_addr, uint16_t dest_addr, uint16_t nbyte
 }
 
 void aSaveBufferImpl(uint16_t source_addr, int16_t* dest_addr, uint16_t nbytes) {
-    size_t rnb = ROUND_DOWN_16(nbytes);
-    n64_memcpy((void*) ((uintptr_t) dest_addr & ~3), (const void*) BUF_S16(source_addr & ~3), rnb);
+    size_t rnb = ROUND_UP_16(nbytes);
+    n64_memcpy((void*) ((uintptr_t) dest_addr), (const void*) BUF_DMEM(source_addr), rnb);
 }
+
+static short __attribute__((aligned(32))) adpcm_tmp[8];
 
 void aLoadADPCMImpl(int num_entries_times_16, const int16_t* book_source_addr) {
     float* aptr = (float*) rspa.adpcm_table;
-    short tmp[8];
     SHZ_PREFETCH(book_source_addr);
 
     for (size_t i = 0; i < num_entries_times_16 / 2; i += 8) {
         SHZ_PREFETCH(&aptr[i]);
 
-        tmp[0] = (short) __builtin_bswap16((uint16_t) book_source_addr[i + 0]);
-        tmp[1] = (short) __builtin_bswap16((uint16_t) book_source_addr[i + 1]);
-        tmp[2] = (short) __builtin_bswap16((uint16_t) book_source_addr[i + 2]);
-        tmp[3] = (short) __builtin_bswap16((uint16_t) book_source_addr[i + 3]);
-        tmp[4] = (short) __builtin_bswap16((uint16_t) book_source_addr[i + 4]);
-        tmp[5] = (short) __builtin_bswap16((uint16_t) book_source_addr[i + 5]);
-        tmp[6] = (short) __builtin_bswap16((uint16_t) book_source_addr[i + 6]);
-        tmp[7] = (short) __builtin_bswap16((uint16_t) book_source_addr[i + 7]);
+        adpcm_tmp[0] = (short) __builtin_bswap16(book_source_addr[i + 0]);
+        adpcm_tmp[1] = (short) __builtin_bswap16(book_source_addr[i + 1]);
+        adpcm_tmp[2] = (short) __builtin_bswap16(book_source_addr[i + 2]);
+        adpcm_tmp[3] = (short) __builtin_bswap16(book_source_addr[i + 3]);
+        adpcm_tmp[4] = (short) __builtin_bswap16(book_source_addr[i + 4]);
+        adpcm_tmp[5] = (short) __builtin_bswap16(book_source_addr[i + 5]);
+        adpcm_tmp[6] = (short) __builtin_bswap16(book_source_addr[i + 6]);
+        adpcm_tmp[7] = (short) __builtin_bswap16(book_source_addr[i + 7]);
 
         MEM_BARRIER_PREF(&book_source_addr[i + 8]);
 
-        aptr[i + 0] = recip2048 * (f32) (s32) tmp[0];
-        aptr[i + 1] = recip2048 * (f32) (s32) tmp[1];
-        aptr[i + 2] = recip2048 * (f32) (s32) tmp[2];
-        aptr[i + 3] = recip2048 * (f32) (s32) tmp[3];
-        aptr[i + 4] = recip2048 * (f32) (s32) tmp[4];
-        aptr[i + 5] = recip2048 * (f32) (s32) tmp[5];
-        aptr[i + 6] = recip2048 * (f32) (s32) tmp[6];
-        aptr[i + 7] = recip2048 * (f32) (s32) tmp[7];
+        aptr[i + 0] = recip2048 * (f32) (s32) adpcm_tmp[0];
+        aptr[i + 1] = recip2048 * (f32) (s32) adpcm_tmp[1];
+        aptr[i + 2] = recip2048 * (f32) (s32) adpcm_tmp[2];
+        aptr[i + 3] = recip2048 * (f32) (s32) adpcm_tmp[3];
+        aptr[i + 4] = recip2048 * (f32) (s32) adpcm_tmp[4];
+        aptr[i + 5] = recip2048 * (f32) (s32) adpcm_tmp[5];
+        aptr[i + 6] = recip2048 * (f32) (s32) adpcm_tmp[6];
+        aptr[i + 7] = recip2048 * (f32) (s32) adpcm_tmp[7];
     }
 }
 
@@ -595,81 +1030,18 @@ void aSetBufferImpl(UNUSED uint8_t flags, uint16_t in, uint16_t out, uint16_t nb
     rspa.nbytes = nbytes;
 }
 
-static int32_t __attribute__((aligned(32))) lrbuf[8];
-
-void aInterleaveImpl(uint16_t left, uint16_t right) {
-    int count = ROUND_UP_16(rspa.nbytes) >> 4; // / sizeof(int16_t) / 8;
-    int32_t* l = BUF_S16(left & ~3);
-    int32_t* r = BUF_S16(right & ~3);
-    int32_t* d = (int32_t*) (((uintptr_t) BUF_S16(rspa.out)) & ~3);
-    SHZ_PREFETCH(r);
-
-    while (count > 0) {
-        SHZ_PREFETCH(l);
-        int32_t right01 = *r++;
-        int32_t right23 = *r++;
-        int32_t right45 = *r++;
-        int32_t right67 = *r++;
-
-        MEM_BARRIER();
-
-        lrbuf[0] = right01 & 0xffff0000; //((uint16_t) *r++ << 16);
-        lrbuf[1] = right01 << 16;        //((uint16_t) *r++ << 16);
-        lrbuf[2] = right23 & 0xffff0000; //((uint16_t) *r++ << 16);
-        lrbuf[3] = right23 << 16;        //((uint16_t) *r++ << 16);
-        lrbuf[4] = right45 & 0xffff0000; //((uint16_t) *r++ << 16);
-        lrbuf[5] = right45 << 16;        //((uint16_t) *r++ << 16);
-        lrbuf[6] = right67 & 0xffff0000; //((uint16_t) *r++ << 16);
-        lrbuf[7] = right67 << 16;        //((uint16_t) *r++ << 16);
-
-        MEM_BARRIER_PREF(r);
-
-        int32_t left01 = *l++;
-        int32_t left23 = *l++;
-        int32_t left45 = *l++;
-        int32_t left67 = *l++;
-
-        MEM_BARRIER();
-
-        lrbuf[0] |= (left01 >> 16) & 0xffff;
-        lrbuf[1] |= (left01) & 0xffff;
-
-        lrbuf[2] |= (left23 >> 16) & 0xffff;
-        lrbuf[3] |= (left23) & 0xffff;
-
-        lrbuf[4] |= (left45 >> 16) & 0xffff;
-        lrbuf[5] |= (left45) & 0xffff;
-
-        lrbuf[6] |= (left67 >> 16) & 0xffff;
-        lrbuf[7] |= (left67) & 0xffff;
-
-        MEM_BARRIER();
-
-        *d++ = lrbuf[0];
-        *d++ = lrbuf[1];
-        *d++ = lrbuf[2];
-        *d++ = lrbuf[3];
-        *d++ = lrbuf[4];
-        *d++ = lrbuf[5];
-        *d++ = lrbuf[6];
-        *d++ = lrbuf[7];
-        SHZ_PREFETCH(d);
-
-        --count;
-    }
-}
-
 void aDMEMMoveImpl(uint16_t in_addr, uint16_t out_addr, int nbytes) {
-    memmove(BUF_U8(out_addr & ~3), BUF_U8(in_addr & ~3), ROUND_UP_16(nbytes));
+    memmove(BUF_DMEM(out_addr), BUF_DMEM(in_addr), ROUND_UP_16(nbytes));
 }
 
 void aDMEMCopyImpl(uint16_t in_addr, uint16_t out_addr, int nbytes) {
-    n64_memcpy(BUF_U8(out_addr & ~3), BUF_U8(in_addr & ~3), ROUND_UP_16(nbytes));
+    n64_memcpy(BUF_DMEM(out_addr), BUF_DMEM(in_addr), ROUND_UP_16(nbytes));
 }
 
 void aSetLoopImpl(ADPCM_STATE* adpcm_loop_state) {
+    int16_t *alpp = (int16_t *)adpcm_loop_state;
     for (size_t i = 0; i < 16; i++) {
-        rspa.adpcm_loop_state[i] = (int16_t) __builtin_bswap16(adpcm_loop_state[i]);
+        rspa.adpcm_loop_state[i] = (int16_t) __builtin_bswap16(alpp[i]);
     }
 }
 
@@ -784,13 +1156,15 @@ static inline s16 clamp16f(float v) {
 }
 
 static inline float shift_to_float_multiplier(uint8_t shift) {
+// 64 bytes
     const static float
         __attribute__((aligned(32))) shift_to_float[16] = { 1.0f,    2.0f,    4.0f,     8.0f,    16.0f,   32.0f,
                                                             64.0f,   128.0f,  256.0f,   512.0f,  1024.0f, 2048.0f,
                                                             4096.0f, 8192.0f, 16364.0f, 32768.0f };
     return shift_to_float[shift];
 }
-
+#if 0
+// 2048 bytes
 static const float __attribute__((aligned(32))) nyblls_as_floats[256][2] = {
     { 0.0f, 0.0f },   { 0.0f, 1.0f },   { 0.0f, 2.0f },   { 0.0f, 3.0f },   { 0.0f, 4.0f },   { 0.0f, 5.0f },
     { 0.0f, 6.0f },   { 0.0f, 7.0f },   { 0.0f, -8.0f },  { 0.0f, -7.0f },  { 0.0f, -6.0f },  { 0.0f, -5.0f },
@@ -836,17 +1210,17 @@ static const float __attribute__((aligned(32))) nyblls_as_floats[256][2] = {
     { -1.0f, 6.0f },  { -1.0f, 7.0f },  { -1.0f, -8.0f }, { -1.0f, -7.0f }, { -1.0f, -6.0f }, { -1.0f, -5.0f },
     { -1.0f, -4.0f }, { -1.0f, -3.0f }, { -1.0f, -2.0f }, { -1.0f, -1.0f }
 };
-
+#endif
 static inline void extend_nyblls_to_floats(uint8_t nybll, float* fp1, float* fp2) {
-    const float* fpair = nyblls_as_floats[nybll];
+    const float* fpair = rspa.nyblls_as_floats[nybll];
     *fp1 = fpair[0];
     *fp2 = fpair[1];
 }
 
 void aADPCMdecImpl(uint8_t flags, ADPCM_STATE state) {
-    int16_t* out = BUF_S16(rspa.out);
+    int16_t* out = (int16_t*) BUF_DMEM(rspa.out);
     MEM_BARRIER_PREF(out);
-    uint8_t* in = (uint8_t*) ((u8*) rspa.loaded_buffer + rspa.in); // BUF_U8(rspa.in);
+    uint8_t* in = (uint8_t*) ((u8*) rspa.loaded_buffer + rspa.in);
     int nbytes = ROUND_UP_32(rspa.nbytes);
     if (flags & A_INIT) {
         shz_zero_16_shorts(out);
@@ -857,32 +1231,32 @@ void aADPCMdecImpl(uint8_t flags, ADPCM_STATE state) {
     }
     MEM_BARRIER_PREF(in);
     out += 16;
-    float prev1 = out[-1];
-    float prev2 = out[-2];
+    float prev1 = (float)out[-1];
+    float prev2 = (float)out[-2];
 
     while (nbytes > 0) {
         const uint8_t si_in = *in++;
         const uint8_t next = *in++;
-        MEM_BARRIER_PREF(nyblls_as_floats[next]);
+        MEM_BARRIER_PREF(rspa.nyblls_as_floats[next]);
         const uint8_t in_array[2][4] = { { next, *in++, *in++, *in++ }, { *in++, *in++, *in++, *in++ } };
-        const unsigned table_index = si_in & 0xf; // should be in 0..7
+        const unsigned table_index = si_in & 0x7; // should be in 0..7
         const float (*tbl)[8] = rspa.adpcm_table[table_index];
         const float shift = shift_to_float_multiplier(si_in >> 4); // should be in 0..12 or 0..14
         float instr[2][8];
 
         for (int i = 0; i < 2; ++i) {
             {
-                MEM_BARRIER_PREF(nyblls_as_floats[in_array[i][1]]);
+                MEM_BARRIER_PREF(rspa.nyblls_as_floats[in_array[i][1]]);
                 extend_nyblls_to_floats(in_array[i][0], &instr[i][0], &instr[i][1]);
                 instr[i][0] *= shift;
                 instr[i][1] *= shift;
-                MEM_BARRIER_PREF(nyblls_as_floats[in_array[i][2]]);
+                MEM_BARRIER_PREF(rspa.nyblls_as_floats[in_array[i][2]]);
                 extend_nyblls_to_floats(in_array[i][1], &instr[i][2], &instr[i][3]);
                 instr[i][2] *= shift;
                 instr[i][3] *= shift;
             }
             {
-                MEM_BARRIER_PREF(nyblls_as_floats[in_array[i][3]]);
+                MEM_BARRIER_PREF(rspa.nyblls_as_floats[in_array[i][3]]);
                 extend_nyblls_to_floats(in_array[i][2], &instr[i][4], &instr[i][5]);
                 instr[i][4] *= shift;
                 instr[i][5] *= shift;
@@ -948,10 +1322,10 @@ void aADPCMdecImpl(uint8_t flags, ADPCM_STATE state) {
 
 void aResampleImpl(uint8_t flags, uint16_t pitch, RESAMPLE_STATE state) {
     int16_t __attribute__((aligned(32))) tmp[32] = { 0 };
-    int16_t* in_initial = BUF_S16(rspa.in);
+    int16_t* in_initial = (int16_t*) BUF_DMEM(rspa.in);
     int16_t* in = in_initial;
     MEM_BARRIER_PREF(in);
-    int16_t* out = BUF_S16(rspa.out);
+    int16_t* out = (int16_t*) BUF_DMEM(rspa.out);
     int nbytes = ROUND_UP_16(rspa.nbytes);
     uint32_t pitch_accumulator = 0;
     int i = 0;
@@ -980,7 +1354,7 @@ void aResampleImpl(uint8_t flags, uint16_t pitch, RESAMPLE_STATE state) {
 
     in -= 4;
     pitch_accumulator = (uint16_t) tmp[4];
-    tbl_f = resample_table[pitch_accumulator >> 10];
+    tbl_f = rspa.resample_table[pitch_accumulator >> 10];
     SHZ_PREFETCH(tbl_f);
 
     dp = in;
@@ -995,7 +1369,7 @@ void aResampleImpl(uint8_t flags, uint16_t pitch, RESAMPLE_STATE state) {
             float in_f[4] = { (float) (int) in[0], (float) (int) in[1], (float) (int) in[2], (float) (int) in[3] };
 
             sample_f =
-                shz_dot8f(in_f[0], in_f[1], in_f[2], in_f[3], tbl_f[0], tbl_f[1], tbl_f[2], tbl_f[3]) * 0.00003052f;
+                shz_dot8f(in_f[0], in_f[1], in_f[2], in_f[3], tbl_f[0], tbl_f[1], tbl_f[2], tbl_f[3]) * recip32768;
 
             MEM_BARRIER();
             pitch_accumulator += (pitch << 1);
@@ -1003,9 +1377,9 @@ void aResampleImpl(uint8_t flags, uint16_t pitch, RESAMPLE_STATE state) {
             MEM_BARRIER_PREF(in);
             pitch_accumulator %= 0x10000;
             MEM_BARRIER();
-            *out++ = clamp16f((sample_f));
+            *out++ = clamp16f(sample_f);
             MEM_BARRIER();
-            tbl_f = resample_table[pitch_accumulator >> 10];
+            tbl_f = rspa.resample_table[pitch_accumulator >> 10];
             MEM_BARRIER_PREF(tbl_f);
         }
         nbytes -= 8 * sizeof(int16_t);
@@ -1029,89 +1403,70 @@ void aResampleImpl(uint8_t flags, uint16_t pitch, RESAMPLE_STATE state) {
         *dp++ = *sp++;
 }
 
-void aEnvSetup1Impl(uint8_t initial_vol_wet, uint16_t rate_wet, uint16_t rate_left, uint16_t rate_right) {
+void aEnvSetup1Impl(uint16_t rate_left, uint16_t rate_right) {
     rspa.rate[0] = rate_left;
     rspa.rate[1] = rate_right;
-    rspa.vol_wet = (uint16_t) (initial_vol_wet << 8);
-    rspa.rate_wet = rate_wet;
 }
 
 void aEnvSetup2Impl(uint16_t initial_vol_left, uint16_t initial_vol_right) {
     rspa.vol[0] = initial_vol_left;
     rspa.vol[1] = initial_vol_right;
 }
+static int16_t __attribute__((aligned(32))) em_samples[2][2];
 
-void aEnvMixerImpl(uint16_t in_addr, uint16_t n_samples, bool swap_reverb, bool neg_left, bool neg_right,
-                   uint32_t wet_dry_addr, uint32_t haas_temp_addr, uint32_t num_channels, uint32_t cutoff_freq_lfe) {
-    int16_t* in = BUF_S16(in_addr);
+void aEnvMixerImpl(uint16_t in_addr, uint16_t n_samples,
+                   uint16_t dry_addr_start) {
+    int32_t* inwide = (int32_t *) BUF_DMEM(in_addr);
     size_t n = ROUND_UP_16(n_samples);
 
-    int dry_addr_start = wet_dry_addr & 0xFFFF;
-
     // Note: max number of samples is 192 (192 * 2 = 384 bytes = 0x180)
-    int32_t* drywide[2] = { (int32_t*) BUF_S16(dry_addr_start & ~3),
-                            (int32_t*) BUF_S16((dry_addr_start + 0x180) & ~3) };
-    int16_t* dry[2] = { BUF_S16(dry_addr_start & ~3), BUF_S16((dry_addr_start + 0x180) & ~3) };
+    int32_t* drywide[2] = { (int32_t*) BUF_DMEM(dry_addr_start),
+                            (int32_t*) BUF_DMEM((dry_addr_start + 0x180)) };
 
     uint16_t rates[2] = { rspa.rate[0], rspa.rate[1] };
     uint16_t vols[2] = { rspa.vol[0], rspa.vol[1] };
 
-    SHZ_PREFETCH(in);
+    SHZ_PREFETCH(inwide);
 
     for (size_t i = 0; i < n; i += 8) {
         for (size_t k = 0; k < 4; k++) {
+            int32_t in12 = *inwide++;
 
-            int16_t sample = *in++;
-            int16_t sample2 = *in++;
-            int16_t samples[2][2];
+            int16_t sample = (int16_t)(in12 >> 16);
+            int16_t sample2 = (int16_t)(in12 & 0xffff);
 
-            samples[0][0] = (sample * vols[0] >> 16);
-            samples[0][1] = (sample2 * vols[0] >> 16);
-            samples[1][0] = (sample * vols[1] >> 16);
-            samples[1][1] = (sample2 * vols[1] >> 16);
-
-            int16_t dsampl1 = clamp16(*dry[0]++ + samples[0][0]);
-            int16_t dsampl2 = clamp16(*dry[0]++ + samples[0][1]);
-
-            int16_t dsampl3 = clamp16(*dry[1]++ + samples[1][0]);
-            int16_t dsampl4 = clamp16(*dry[1]++ + samples[1][1]);
+            em_samples[0][0] = (sample * vols[0] >> 16);
+            em_samples[0][1] = (sample2 * vols[0] >> 16);
+            em_samples[1][0] = (sample * vols[1] >> 16);
+            em_samples[1][1] = (sample2 * vols[1] >> 16);
 
             MEM_BARRIER();
 
-            *drywide[0]++ = (dsampl2 << 16) | (dsampl1 & 0xffff);
-            *drywide[1]++ = (dsampl4 << 16) | (dsampl3 & 0xffff);
+            int32 dsampl12 = *drywide[0];
+            int32 dsampl34 = *drywide[1];
+
+            int16_t dsampl1 = clamp16((int16_t)(dsampl12 >> 16) + em_samples[0][0]);
+            int16_t dsampl2 = clamp16((int16_t)(dsampl12 & 0xffff) + em_samples[0][1]);
+
+            int16_t dsampl3 = clamp16((int16_t)(dsampl34 >> 16) + em_samples[1][0]);
+            int16_t dsampl4 = clamp16((int16_t)(dsampl34 & 0xffff) + em_samples[1][1]);
+
+            MEM_BARRIER();
+
+            *drywide[0]++ = (dsampl1 << 16) | (dsampl2 & 0xffff);
+            *drywide[1]++ = (dsampl3 << 16) | (dsampl4 & 0xffff);
         }
-        SHZ_PREFETCH(in);
+        SHZ_PREFETCH(inwide);
         vols[0] += rates[0];
         vols[1] += rates[1];
     }
 }
 
-void aDMEMMove2Impl(uint8_t t, uint16_t in_addr, uint16_t out_addr, uint16_t count) {
-    ;
-}
-
-void aS8DecImpl(uint8_t flags, ADPCM_STATE state) {
-    ;
-}
-
-void aResampleZohImpl(uint16_t pitch, uint16_t start_fract) {
-    ;
-}
-
-void aAddMixerImpl(uint16_t count, uint16_t in_addr, uint16_t out_addr) {
-    ;
-}
-
-void aUnkCmd19Impl(uint8_t f, uint16_t count, uint16_t out_addr, uint16_t in_addr) {
-    ;
-}
-
 #define DMEM_UNCOMPRESSED_NOTE 0x600
 void aDuplicateImpl(uint16_t count, uint16_t in_addr, uint16_t out_addr) {
-    uint8_t* in = (uint8_t*) ((u8*) rspa.loaded_buffer + in_addr); // BUF_U8(rspa.in);//BUF_U8(in_addr);
-    uint8_t* real_in = BUF_U8(DMEM_UNCOMPRESSED_NOTE);
-    uint8_t* out = BUF_U8(out_addr);
+    uint8_t* in = (uint8_t*) ((u8*) rspa.loaded_buffer + in_addr);
+    uint8_t* real_in = (uint8_t *)BUF_DMEM(DMEM_UNCOMPRESSED_NOTE);
+    uint8_t* out = (uint8_t*)BUF_DMEM(out_addr);
     n64_memcpy(real_in, in, 128);
     // no overlap as called, dont do temp copy
     do {
@@ -1121,15 +1476,13 @@ void aDuplicateImpl(uint16_t count, uint16_t in_addr, uint16_t out_addr) {
 }
 
 void aInterlImpl(uint16_t in_addr, uint16_t out_addr, uint16_t n_samples) {
-    uint32_t* in = (uint32_t*) BUF_S16(in_addr & ~3); // two 16-bit samples per word
-    uint32_t* out = (uint32_t*) BUF_S16(out_addr & ~3);
-    int n = ROUND_UP_8(n_samples);
+    uint32_t* in = (uint32_t*) BUF_DMEM(in_addr & ~3); // two 16-bit samples per word
+    uint32_t* out = (uint32_t*) BUF_DMEM(out_addr & ~3);
+    int n = ROUND_UP_8(n_samples) + 8;
 
-    // asm volatile("pref @%0" : : "r"(in) : "memory");
     MEM_BARRIER_PREF(in);
 
     do {
-        // asm volatile("pref @%0" : : "r"(out) : "memory");
         MEM_BARRIER_PREF(out);
         /* For 8 output samples:
            read 8 words from in (16 samples), extract every other halfword,
@@ -1158,8 +1511,8 @@ void aInterlImpl(uint16_t in_addr, uint16_t out_addr, uint16_t n_samples) {
 }
 
 void aHiLoGainImpl(uint8_t g, uint16_t count, uint16_t addr) {
-    int32_t* samples = (int32_t*) ((uintptr_t) BUF_S16(addr) & ~3);
-    int nbytes = ROUND_UP_32(count);
+    int32_t* samples = (int32_t*) BUF_DMEM(addr & ~3);
+    int nbytes = ROUND_UP_32(count) + 8;
 
     do {
         uint32_t s1, s2, s3, s4;
@@ -1171,6 +1524,7 @@ void aHiLoGainImpl(uint8_t g, uint16_t count, uint16_t addr) {
         s3 &= 0xffff;
 
         MEM_BARRIER();
+
         s1 = clamp16(s1 * g) >> 4;
         s2 = clamp16(s2 * g) >> 4;
         s3 = clamp16(s3 * g) >> 4;
@@ -1182,6 +1536,28 @@ void aHiLoGainImpl(uint8_t g, uint16_t count, uint16_t addr) {
         *samples++ = (s3 << 16) | s2;
         nbytes -= 4;
     } while (nbytes > 0);
+}
+
+// UNUSED
+
+void aDMEMMove2Impl(uint8_t t, uint16_t in_addr, uint16_t out_addr, uint16_t count) {
+    ;
+}
+
+void aS8DecImpl(uint8_t flags, ADPCM_STATE state) {
+    ;
+}
+
+void aResampleZohImpl(uint16_t pitch, uint16_t start_fract) {
+    ;
+}
+
+void aAddMixerImpl(uint16_t count, uint16_t in_addr, uint16_t out_addr) {
+    ;
+}
+
+void aUnkCmd19Impl(uint8_t f, uint16_t count, uint16_t out_addr, uint16_t in_addr) {
+    ;
 }
 
 void aMixImpl(uint16_t count, int16_t gain, uint16_t in_addr, uint16_t out_addr) {

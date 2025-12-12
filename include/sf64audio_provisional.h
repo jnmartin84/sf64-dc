@@ -58,6 +58,7 @@ typedef void (*AudioCustomUpdateFunction)(void);
 
 // Samples are processed in groups of 16 called a "frame"
 #define SAMPLES_PER_FRAME ADPCMFSIZE
+#define LOG2_SAMPLES_PER_FRAME 4
 
 // The length of one left/right channel is 12 frames
 #define DMEM_1CH_SIZE (12 * SAMPLES_PER_FRAME * SAMPLE_SIZE)
@@ -74,6 +75,7 @@ typedef void (*AudioCustomUpdateFunction)(void);
 
 // Must be the same amount of samples as copied by aDuplicate() (audio microcode)
 #define WAVE_SAMPLE_COUNT 64
+#define LOG2_WAVE_SAMPLE_COUNT 6
 
 #define AUDIO_RELOCATED_ADDRESS_START 0x8C010000
 //K0BASE

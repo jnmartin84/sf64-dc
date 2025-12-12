@@ -20,6 +20,9 @@ SCALE_LIGHTS ?= 0
 ### Enable 320x240 resolution
 LOWRES ?= 0
 
+### Enable 16KHz sample rate
+USE_16KHZ ?= 0
+
 ### Enable 32KHz sample rate
 USE_32KHZ ?= 0
 
@@ -125,6 +128,10 @@ endif
 
 ifeq ($(LOWRES),1)
   CFLAGS += -DLOWRES
+endif
+
+ifeq ($(USE_16KHZ),1)
+  CFLAGS += -DUSE_16KHZ
 endif
 
 ifeq ($(USE_32KHZ),1)
