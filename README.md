@@ -6,6 +6,8 @@ You can upload a ROM and download a CDI.
 
 Find more details here: https://colab.research.google.com/drive/1jn7SPKeHwZ-0qXIvA4uzdF-ykeh6xtNL
 
+**To build with docker, see [Docker.md](/docker/Docker.md)**
+
 Now for business as usual.
 
 This is a Star Fox 64 port for the Sega Dreamcast, based on [sonicdcer](https://github.com/sonicdcer/)'s excellent [Star Fox 64 decompilation](https://github.com/sonicdcer/sf64) (that also powers [Starship](https://github.com/HarbourMasters/Starship)).
@@ -46,7 +48,13 @@ If a VMU is present, the cartridge EEPROM data will be saved. 3 blocks are requi
 
 The training mode and in-game messages have been updated with the new button mappings.
 
-## 1. Setup Dreamcast tooling
+## Building
+
+1. Use Colab (see above)
+2. Use Docker (see above)
+3. Build manually (see below)
+
+### 1. Setup Dreamcast tooling
 Set up a KallistiOS environment using KallistiOS `v2.2.1` with a GCC `14.x` toolchain.
 If you don't know how to do this, check the [Getting Started with Dreamcast Development](https://dreamcast.wiki/Getting_Started_with_Dreamcast_development) guide.
 1. At the `Configuring the dc-chain script` step, make sure you use the `14.3.0` toolchain profile, **not** the default `stable` toolchain.
@@ -63,14 +71,14 @@ After applying those changes to `environ.sh`, run `source /opt/toolchains/dc/kos
 
 Using any other version of KallistiOS or the toolchain is unsupported and may not work.
 
-## 2. Clone and enter the repository
+### 2. Clone and enter the repository
 
 ```bash
 git clone https://github.com/jnmartin84/sf64-dc.git
 cd sf64-dc
 ```
 
-## 3. Install python dependencies
+### 3. Install python dependencies
 
 The build process has a few python packages required that are located in `/tools/requirements-python.txt`.
 
@@ -87,7 +95,7 @@ python3 -m venv .
 python3 -m pip install -r ./tools/requirements-python.txt
 ```
 
-## 4. Update submodules & build N64 tools
+### 4. Update submodules & build N64 tools
 
 ```bash
 git submodule update --init --recursive
@@ -106,37 +114,37 @@ You may need to change the `make` command above to the following:
 
 `CMAKE_POLICY_VERSION_MINIMUM=3.5 make`
 
-## 5. Prepare the Star Fox 64 ROM file
+### 5. Prepare the Star Fox 64 ROM file
 
 You need the US version, revision 1.1 (REV A) ROM file for Star Fox 64.
 The correct sha1sum is `09f0d105f476b00efa5303a3ebc42e60a7753b7a`
 
 Copy your ROM to the root of this project directory, and rename the file to `baserom.us.rev1.z64`.
 
-## 6. Process the ROM and build assets
+### 6. Process the ROM and build assets
 
 Process the ROM file by running the following command:
 
 ```bash
 make init
 ```
-## 7. Build the Dreamcast version
+### 7. Build the Dreamcast version
 When the above command completes, you can generate the type of file for Dreamcast you desire:
 
-### CDI files
+#### CDI files
 Creating CDI files requires [mkdcdisc](https://gitlab.com/simulant/mkdcdisc) to be installed and in your PATH (it's recommended to place `mkdcdisc` in `/opt/toolchains/dc/bin` to accomplish this).
 
-#### CDI file for burning to CD-R (padded for performance)
+##### CDI file for burning to CD-R (padded for performance)
 ```bash
 make cdi-cdr
 ```
 
-#### For ODE (GDEMU, MODE, USB-GDROM, etc.)
+##### For ODE (GDEMU, MODE, USB-GDROM, etc.)
 ```bash
 make cdi-ode
 ```
 
-### DSISO for DreamShell ISO Loader
+#### DSISO for DreamShell ISO Loader
 While a target for creating a DreamShell ISO is provided, please note that you may experience crashes that are not present when running from CD-R, ODE or dcload-ip/dcload-serial.
 
 
@@ -149,12 +157,12 @@ Creating DreamShell ISO files requires `mkisofs` to be installed. This is usuall
 make dsiso
 ```
 
-### Plain files for dcload-serial/dcload-ip or for direct loading from IDE/SD
+#### Plain files for dcload-serial/dcload-ip or for direct loading from IDE/SD
 ```bash
 make files-zip
 ```
 
-### All of the above
+#### All of the above
 If you want to go wild and build all of the above types, you can do the following:
 ```bash
 make all
