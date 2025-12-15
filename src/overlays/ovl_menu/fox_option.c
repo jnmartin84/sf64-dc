@@ -983,7 +983,7 @@ void Option_MainMenu_Update(void) {
                 sDrawCursor = false;
                 sMainMenuState = 11;
             }
-            if (gControllerPress[gMainController].button & B_BUTTON) {
+            if (gControllerPress[gMainController].button & D_CBUTTONS) {
                 AUDIO_PLAY_SFX(NA_SE_ARWING_CANCEL, gDefaultSfxSource, 4);
                 sWipeHeight = 0;
                 sLevelStartState = true;
@@ -1215,7 +1215,7 @@ void Option_Versus_Update(void) {
                 sMainMenuState = 11;
             }
 
-            if (gControllerPress[gMainController].button & B_BUTTON) {
+            if (gControllerPress[gMainController].button & D_CBUTTONS) {
                 AUDIO_PLAY_SFX(NA_SE_ARWING_CANCEL, gDefaultSfxSource, 4);
                 sMainMenuState = 0;
                 sMenuEntryState = OPTION_MAIN_MENU;
@@ -1403,7 +1403,7 @@ void Option_Sound_Update(void) {
         D_menu_801B9288 = (D_menu_801B9288 + 1) % 4U;
     }
 
-    if (gControllerPress[gMainController].button & B_BUTTON) {
+    if (gControllerPress[gMainController].button & D_CBUTTONS) {
         AUDIO_PLAY_SFX(NA_SE_ARWING_CANCEL, gDefaultSfxSource, 4);
         if (D_menu_801B9284 == 1) {
             D_menu_801B9284 = 0;
@@ -1462,8 +1462,6 @@ void Option_Sound_SetVolumeLevels(void) {
         Audio_SetVolume(D_menu_801B924C, volume);
     }
 }
-
-#include "aXtoCancelTex.h"
 
 void Option_Sound_Draw(void) {
     s32 i;
@@ -1541,7 +1539,7 @@ void Option_Sound_Draw(void) {
             break;
     }
 
-    Lib_TextureRect_IA8(&gMasterDisp, (u8*)x_to_cancel, 96, 10, 166.0f, 213.0f, 1.0f, 1.0f);
+    Lib_TextureRect_IA8(&gMasterDisp, aBtoCancelTex, 96, 10, 166.0f, 213.0f, 1.0f, 1.0f);
 
     for (i = 0; i < ARRAY_COUNT(D_menu_801AEAA0); i++) {
         Option_DrawCardLabel(D_menu_801AEAA0[i]);
@@ -1694,8 +1692,8 @@ void Option_ExpertSound_Update(void) {
         Audio_PlaySoundTestTrack(D_menu_801B931C);
         sMusicPlaying = true;
     }
-
-    if (gControllerPress[gMainController].button & B_BUTTON) {
+    // map to Dreamcast B button
+    if (gControllerPress[gMainController].button & D_CBUTTONS) {
         if (!sMusicPlaying) {
             AUDIO_PLAY_SFX(NA_SE_ARWING_CANCEL, gDefaultSfxSource, 4);
             AUDIO_PLAY_BGM(NA_BGM_SELECT);
@@ -1973,7 +1971,7 @@ void Option_Data_Select(void) {
                 sMainMenuState = 4;
             }
         }
-    } else if (gControllerPress[gMainController].button & B_BUTTON) {
+    } else if (gControllerPress[gMainController].button & D_CBUTTONS) {
         if (D_menu_801B91CC == 1) {
             AUDIO_PLAY_SFX(NA_SE_CANCEL, gDefaultSfxSource, 4);
             sMainMenuState = 2;
@@ -2112,7 +2110,7 @@ void Option_Ranking_Setup(void) {
 void Option_Ranking_Update(void) {
     Option_Ranking_Select();
 
-    if (gControllerPress[gMainController].button & B_BUTTON) {
+    if (gControllerPress[gMainController].button & D_CBUTTONS) {
         AUDIO_PLAY_SFX(NA_SE_ARWING_CANCEL, gDefaultSfxSource, 4);
         gDrawMode = DRAW_NONE;
         sMenuEntryState = OPTION_MAIN_MENU;
@@ -2796,7 +2794,7 @@ void Option_VersusMenu_Cursor(void) {
             }
         }
 
-        if (gControllerPress[i].button & B_BUTTON) {
+        if (gControllerPress[i].button & D_CBUTTONS) {
             if (D_menu_801B93C4 & (1 << i)) {
                 AUDIO_PLAY_SFX(NA_SE_CANCEL, gDefaultSfxSource, 4);
                 D_menu_801B93C4 &= (1 << i) ^ 15;
@@ -3144,7 +3142,7 @@ void Option_Vs_Point_Selection(void) {
             break;
         }
 
-        if (gControllerPress[i].button & B_BUTTON) {
+        if (gControllerPress[i].button & D_CBUTTONS) {
             AUDIO_PLAY_SFX(NA_SE_CANCEL, gDefaultSfxSource, 4);
             sMenuEntryState = sVsMenuSelection;
             D_menu_801B91C4 = 0;
@@ -3185,7 +3183,7 @@ void Option_VsTimeSelection(void) {
             break;
         }
 
-        if (gControllerPress[i].button & B_BUTTON) {
+        if (gControllerPress[i].button & D_CBUTTONS) {
             AUDIO_PLAY_SFX(NA_SE_CANCEL, gDefaultSfxSource, 4);
             sMenuEntryState = sVsMenuSelection;
             D_menu_801B91C4 = 0;
@@ -3234,7 +3232,7 @@ void Option_VsStageSelection(void) {
             break;
         }
 
-        if (gControllerPress[i].button & B_BUTTON) {
+        if (gControllerPress[i].button & D_CBUTTONS) {
             AUDIO_PLAY_SFX(NA_SE_CANCEL, gDefaultSfxSource, 4);
             if (sVsMenuSelection == OPTION_BR_MATCH) {
                 sMenuEntryState = sVsMenuSelection;
@@ -3274,7 +3272,7 @@ void Option_VsConfirmSelection(void) {
             break;
         }
 
-        if (gControllerPress[i].button & B_BUTTON) {
+        if (gControllerPress[i].button & D_CBUTTONS) {
             AUDIO_PLAY_SFX(NA_SE_CANCEL, gDefaultSfxSource, 4);
             Option_8019A080();
             D_menu_801B933C = 0;
@@ -3588,7 +3586,7 @@ void Option_AcceptCancel_Draw(void) {
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
     gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
     Lib_TextureRect_IA8(&gMasterDisp, aAtoConfirmTex, 96, 10, 62.0f, 213.0f, 1.0f, 1.0f);
-    Lib_TextureRect_IA8(&gMasterDisp, (u8*)x_to_cancel, 96, 10, 166.0f, 213.0f, 1.0f, 1.0f);
+    Lib_TextureRect_IA8(&gMasterDisp, aBtoCancelTex, 96, 10, 166.0f, 213.0f, 1.0f, 1.0f);
 }
 
 void Option_VsBackToSubMenu(OptionId menuEntryState) {
@@ -4156,7 +4154,7 @@ void Option_NameEntry_Select(void) {
                 }
             }
 
-            if ((gControllerPress[gMainController].button & B_BUTTON) && (D_menu_801B9098 != 0)) {
+            if ((gControllerPress[gMainController].button & D_CBUTTONS) && (D_menu_801B9098 != 0)) {
                 AUDIO_PLAY_SFX(NA_SE_CANCEL, gDefaultSfxSource, 4);
                 if (D_menu_801B9138 != 0) {
                     D_menu_801B9138 = 0;
