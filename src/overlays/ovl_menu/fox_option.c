@@ -4154,7 +4154,7 @@ void Option_NameEntry_Select(void) {
                 }
             }
 
-            if ((gControllerPress[gMainController].button & D_CBUTTONS) /*B_BUTTON)*/ && (D_menu_801B9098 != 0)) {
+            if ((gControllerPress[gMainController].button & D_CBUTTONS) && (D_menu_801B9098 != 0)) {
                 AUDIO_PLAY_SFX(NA_SE_CANCEL, gDefaultSfxSource, 4);
                 if (D_menu_801B9138 != 0) {
                     D_menu_801B9138 = 0;
