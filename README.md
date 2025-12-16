@@ -50,16 +50,7 @@ The training mode and in-game messages have been updated with the new button map
 Set up a KallistiOS environment using KallistiOS `v2.2.1` with a GCC `14.x` toolchain.
 If you don't know how to do this, check the [Getting Started with Dreamcast Development](https://dreamcast.wiki/Getting_Started_with_Dreamcast_development) guide.
 1. At the `Configuring the dc-chain script` step, make sure you use the `14.3.0` toolchain profile, **not** the default `stable` toolchain.
-2. At the `Setting up the environment settings` step, alter your `environ.sh` file:
-   - Enable O3 optimizations by changing
-     - from `export KOS_CFLAGS="${KOS_CFLAGS} -O2"`
-     - to `export KOS_CFLAGS="${KOS_CFLAGS} -O3"`
-   - Enable fat LTO by changing
-     - from `#export KOS_CFLAGS="${KOS_CFLAGS} -freorder-blocks-algorithm=simple -flto=auto"`
-     - to `export KOS_CFLAGS="${KOS_CFLAGS} -flto=auto -ffat-lto-objects"`
-     - (note the removal of the `#` at the beginning of the line and the removal of `-freorder-blocks-algorithm=simple` from the middle of it)
-
-After applying those changes to `environ.sh`, run `source /opt/toolchains/dc/kos/environ.sh` to apply the new settings to your environment and compile KallistiOS and the `libGL` KOS port as usual via the instructions.
+2. At the `Setting up the environment settings` step, copy the provided `environ.sh` to `/opt/toolchains/dc/kos/environ.sh` to ensure you build KOS, GLdc and Star Fox 64 with the correct, matching build flags. Run `source /opt/toolchains/dc/kos/environ.sh` to apply the new settings to your environment and compile KallistiOS and the `libGL` KOS port as usual via the instructions.
 
 Using any other version of KallistiOS or the toolchain is unsupported and may not work.
 
