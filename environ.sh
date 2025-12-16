@@ -23,6 +23,6 @@ export KOS_AFLAGS=""
 export DC_ARM_LDFLAGS=""
 export KOS_CFLAGS="${KOS_CFLAGS} -O3 -flto=auto -ffat-lto-objects"
 export KOS_CFLAGS="${KOS_CFLAGS} -fomit-frame-pointer"
-export KOS_CFLAGS="${KOS_CFLAGS} -fbuiltin -ffast-math -ffp-contract=fast"
+export KOS_CFLAGS="${KOS_CFLAGS} -fbuiltin -ffast-math -ffp-contract=fast -mfsrra -mfsca"
 export KOS_SH4_PRECISION="-m4-single-only"
 . ${KOS_BASE}/environ_base.sh
