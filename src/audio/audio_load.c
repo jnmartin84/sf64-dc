@@ -9,7 +9,7 @@
 #define SIZE_OF_SEQ 240880
 #define SIZE_OF_BANK 122912
 #define SIZE_OF_TABLE 7587200
-u8 __attribute__((aligned(256))) __audio_seq_ROM_START[SIZE_OF_SEQ + SIZE_OF_BANK + SIZE_OF_TABLE];
+u8 __attribute__((aligned(65536))) __audio_seq_ROM_START[SIZE_OF_SEQ + SIZE_OF_BANK + SIZE_OF_TABLE];
 
 s32 D_80146D80;
 s32 PAD_80146D88[2];

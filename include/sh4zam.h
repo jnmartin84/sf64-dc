@@ -20,6 +20,7 @@
 #define SHZ_FSCA_RAD_FACTOR 10430.37835f
 
 #define SHZ_F_PI 3.1415926f
+#define SHZ_F_PI_2 1.57079633f
 #define TRIG_ARG_SCALE 0.00009587f
 #define SHZ_ANGLE(a) (((float) ((uint16_t) a)) * TRIG_ARG_SCALE)
 
@@ -276,7 +277,7 @@ SHZ_FORCE_INLINE float shz_atanf_unit(float x) SHZ_NOEXCEPT {
 }
 
 SHZ_INLINE float shz_atanf_q1(float x) SHZ_NOEXCEPT {
-    return (SHZ_F_PI * 0.5f) - shz_atanf_unit(shz_invf_fsrra(x));
+    return (SHZ_F_PI_2) - shz_atanf_unit(shz_invf_fsrra(x));
 }
 
 SHZ_INLINE float shz_atanf(float x) SHZ_NOEXCEPT {
@@ -288,12 +289,39 @@ SHZ_INLINE float shz_atanf(float x) SHZ_NOEXCEPT {
         return shz_atanf_unit(x);
 }
 
+#define SHZ_F_PI_4 0.78539816f
+
+SHZ_INLINE float shz_atan2f(float y, float x) SHZ_NOEXCEPT {
+    if (__builtin_expect((x == 0.0f && y == 0.0f),0))
+        return 0.0f;
+
+    float abs_y = fabsf(y);
+    float abs_sum = abs_y + fabsf(x);
+    float inv_abs_sum = shz_invf_fsrra(abs_sum);
+
+    float angle = SHZ_F_PI_2;
+    float r = x;
+ 
+    if(x < 0.0f) {
+        angle += SHZ_F_PI_4;
+        r += abs_y;
+    } else {
+        angle -= SHZ_F_PI_4;
+        r -= abs_y;
+    }
+
+    r *= inv_abs_sum;
+    angle += shz_fmaf(0.1963f, r * r, -0.9817f) * r;
+
+    return shz_copysignf(angle, y);
+}
+
 SHZ_INLINE float shz_asinf(float x) SHZ_NOEXCEPT {
     return shz_atanf(x * shz_inv_sqrtf(1.0f - (x * x)));
 }
 
 SHZ_INLINE float shz_acosf(float x) SHZ_NOEXCEPT {
-    return (SHZ_F_PI * 0.5f) - shz_asinf(x);
+    return (SHZ_F_PI_2) - shz_asinf(x);
 }
 
 SHZ_FORCE_INLINE shz_vec3_t shz_vec3_scale(shz_vec3_t vec, float factor) SHZ_NOEXCEPT {

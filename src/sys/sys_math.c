@@ -87,6 +87,11 @@ f32 Rand_ZeroOneSeeded(void) {
 
 // branch-free, division-free atan2f approximation
 // shz_copysignf has a branch but penalty-free
+#if 1
+f32 Math_Atan2F(f32 y, f32 x) {
+    return shz_atan2f(y,x);
+}
+#else
 f32 Math_Atan2F(f32 y, f32 x) {
     if (y == 0.0f && x == 0.0f) {
         return 0.0f;
@@ -100,6 +105,7 @@ f32 Math_Atan2F(f32 y, f32 x) {
 	angle += (0.1963f * r * r - 0.9817f) * r;
 	return shz_copysignf(angle, y);
 }
+#endif
 
 f32 Math_Atan2F_XY(f32 x, f32 y) {
     if ((x == 0.0f) && (y == 0.0f)) {
