@@ -68,9 +68,12 @@ u8 Load_SceneFiles(NewScene* scene, int snum) {
     sCurrentScene.snum = snum;
 
     if(changeScene) {
+        // preferably
+        // mutex_lock(&io_lock);
         for (segment=1; segment < 16; segment += 1) {
             Load_RomFile(scene[snum].segs[segment], segment);
         }
+        // mutex_unlock(&io_lock);
     }
 
     if (sFillTimer != 0) {
