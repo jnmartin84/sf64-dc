@@ -766,7 +766,7 @@ static void calculate_normal_dir(const Light_t* light, float coeffs[3]) {
     float light_dir[3] = { light->dir[0] * recip127, light->dir[1] * recip127, light->dir[2] * recip127 };
     gfx_transposed_matrix_mul(
         coeffs, light_dir,
-        (const float (*)[4]) rsp.modelview_matrix_stack[0]); // rsp.modelview_matrix_stack_size - 1]);
+        (const float (*)[4]) rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1]);
     gfx_normalize_vector(coeffs);
 }
 
@@ -1088,54 +1088,55 @@ static void __attribute__((noinline)) gfx_sp_vertex_no(uint8_t n_vertices, uint8
 static void __attribute__((noinline)) gfx_sp_vertex(uint8_t n_vertices, uint8_t dest_index, const Vtx* vertices) {
     shz_xmtrx_load_4x4(&rsp.MP_matrix);
 
-    if (rsp.geometry_mode & G_LIGHTING) {
-        if (rsp.lights_changed) {
-            calculate_normal_dir(&rsp.current_lights[0], rsp.current_lights_coeffs[0]);
-            calculate_normal_dir(&rsp.current_lights[4], rsp.current_lights_coeffs[4]);
-            calculate_normal_dir(&rsp.lookat[0], rsp.current_lookat_coeffs[0]);
-            calculate_normal_dir(&rsp.lookat[1], rsp.current_lookat_coeffs[1]);
-            rsp.lights_changed = 0;
-
-            ENV_MTX[0][0] = rsp.current_lookat_coeffs[1][0] * recip127;
-            ENV_MTX[1][0] = rsp.current_lookat_coeffs[1][1] * recip127;
-            ENV_MTX[2][0] = rsp.current_lookat_coeffs[1][2] * recip127;
-            ENV_MTX[0][1] = rsp.current_lookat_coeffs[0][0] * recip127;
-            ENV_MTX[1][1] = rsp.current_lookat_coeffs[0][1] * recip127;
-            ENV_MTX[2][1] = rsp.current_lookat_coeffs[0][2] * recip127;
-
-            COEFF_MTX[0][0] = rsp.current_lights_coeffs[0][0] * light0_scale;
-            COEFF_MTX[1][0] = rsp.current_lights_coeffs[0][1] * light0_scale;
-            COEFF_MTX[2][0] = rsp.current_lights_coeffs[0][2] * light0_scale;
-            COEFF_MTX[0][1] = rsp.current_lights_coeffs[4][0] * light4_scale;
-            COEFF_MTX[1][1] = rsp.current_lights_coeffs[4][1] * light4_scale;
-            COEFF_MTX[2][1] = rsp.current_lights_coeffs[4][2] * light4_scale;
-
-            COLOR_MTX[0][0] = rsp.current_lights[0].col[0];
-            COLOR_MTX[1][0] = rsp.current_lights[4].col[0];
-            COLOR_MTX[2][0] = rsp.current_lights[rsp.current_num_lights - 1].col[0];
-            COLOR_MTX[0][1] = rsp.current_lights[0].col[1];
-            COLOR_MTX[1][1] = rsp.current_lights[4].col[1];
-            COLOR_MTX[2][1] = rsp.current_lights[rsp.current_num_lights - 1].col[1];
-            COLOR_MTX[0][2] = rsp.current_lights[0].col[2];
-            COLOR_MTX[1][2] = rsp.current_lights[4].col[2];
-            COLOR_MTX[2][2] = rsp.current_lights[rsp.current_num_lights - 1].col[2];
-        }
-
-        gfx_sp_vertex_light_step1(n_vertices, dest_index, SEGMENTED_TO_VIRTUAL(vertices));
-
-        if (rsp.geometry_mode & G_TEXTURE_GEN) {
-            shz_xmtrx_load_3x3(&ENV_MTX);
-            gfx_sp_vertex_light_step1b(n_vertices, dest_index);
-        }
-
-        shz_xmtrx_load_3x3(&COEFF_MTX);
-        gfx_sp_vertex_light_step2(n_vertices, dest_index);
-
-        shz_xmtrx_load_3x3(&COLOR_MTX);
-        gfx_sp_vertex_light_step3(n_vertices, dest_index, SEGMENTED_TO_VIRTUAL(vertices));
-    } else {
+    if (!(rsp.geometry_mode & G_LIGHTING)) {
         gfx_sp_vertex_no(n_vertices, dest_index, SEGMENTED_TO_VIRTUAL(vertices));
+        return;
     }
+
+    if (rsp.lights_changed) {
+        calculate_normal_dir(&rsp.current_lights[0], rsp.current_lights_coeffs[0]);
+        calculate_normal_dir(&rsp.current_lights[4], rsp.current_lights_coeffs[4]);
+        calculate_normal_dir(&rsp.lookat[0], rsp.current_lookat_coeffs[0]);
+        calculate_normal_dir(&rsp.lookat[1], rsp.current_lookat_coeffs[1]);
+        rsp.lights_changed = 0;
+
+        ENV_MTX[0][0] = rsp.current_lookat_coeffs[1][0] * recip127;
+        ENV_MTX[1][0] = rsp.current_lookat_coeffs[1][1] * recip127;
+        ENV_MTX[2][0] = rsp.current_lookat_coeffs[1][2] * recip127;
+        ENV_MTX[0][1] = rsp.current_lookat_coeffs[0][0] * recip127;
+        ENV_MTX[1][1] = rsp.current_lookat_coeffs[0][1] * recip127;
+        ENV_MTX[2][1] = rsp.current_lookat_coeffs[0][2] * recip127;
+
+        COEFF_MTX[0][0] = rsp.current_lights_coeffs[0][0] * light0_scale;
+        COEFF_MTX[1][0] = rsp.current_lights_coeffs[0][1] * light0_scale;
+        COEFF_MTX[2][0] = rsp.current_lights_coeffs[0][2] * light0_scale;
+        COEFF_MTX[0][1] = rsp.current_lights_coeffs[4][0] * light4_scale;
+        COEFF_MTX[1][1] = rsp.current_lights_coeffs[4][1] * light4_scale;
+        COEFF_MTX[2][1] = rsp.current_lights_coeffs[4][2] * light4_scale;
+
+        COLOR_MTX[0][0] = rsp.current_lights[0].col[0];
+        COLOR_MTX[1][0] = rsp.current_lights[4].col[0];
+        COLOR_MTX[2][0] = rsp.current_lights[rsp.current_num_lights - 1].col[0];
+        COLOR_MTX[0][1] = rsp.current_lights[0].col[1];
+        COLOR_MTX[1][1] = rsp.current_lights[4].col[1];
+        COLOR_MTX[2][1] = rsp.current_lights[rsp.current_num_lights - 1].col[1];
+        COLOR_MTX[0][2] = rsp.current_lights[0].col[2];
+        COLOR_MTX[1][2] = rsp.current_lights[4].col[2];
+        COLOR_MTX[2][2] = rsp.current_lights[rsp.current_num_lights - 1].col[2];
+    }
+
+    gfx_sp_vertex_light_step1(n_vertices, dest_index, SEGMENTED_TO_VIRTUAL(vertices));
+
+    if (rsp.geometry_mode & G_TEXTURE_GEN) {
+        shz_xmtrx_load_3x3(&ENV_MTX);
+        gfx_sp_vertex_light_step1b(n_vertices, dest_index);
+    }
+
+    shz_xmtrx_load_3x3(&COEFF_MTX);
+    gfx_sp_vertex_light_step2(n_vertices, dest_index);
+
+    shz_xmtrx_load_3x3(&COLOR_MTX);
+    gfx_sp_vertex_light_step3(n_vertices, dest_index, SEGMENTED_TO_VIRTUAL(vertices));
 }
 
 int need_to_add = 0;
