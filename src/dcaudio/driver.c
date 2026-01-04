@@ -41,7 +41,7 @@
 // Handle for the sound stream
 static volatile snd_stream_hnd_t shnd = SND_STREAM_INVALID; 
 // The main audio buffer
-static uint8_t __attribute__((aligned(16384))) cb_buf_internal[2][RING_BUFFER_MAX_BYTES]; 
+static uint8_t __attribute__((aligned(4096))) cb_buf_internal[2][RING_BUFFER_MAX_BYTES]; 
 static bool audio_started = false;
 
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
@@ -53,10 +53,11 @@ typedef struct {
     uint32_t tail; // next read pos
 } ring_t;
 
-static ring_t cb_ring[2];
+static ring_t __attribute__((aligned(32))) cb_ring[2];
 static ring_t *r[2] = {&cb_ring[0],&cb_ring[1]};
 
-#if !USE_TLB_CB
+#if 0
+!USE_TLB_CB
 static void *const cb_buf[2] = {cb_buf_internal[0],cb_buf_internal[1]};
 
 static bool cb_init(int N, size_t capacity) {

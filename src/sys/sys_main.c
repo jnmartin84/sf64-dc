@@ -26,10 +26,10 @@ static kos_blockdev_t dev;
 #define SAMPLES_HIGH 280
 #define SAMPLES_LOW 264
 #else
-#define SAMPLES_HIGH 464
-#define SAMPLES_LOW 432
-//#define SAMPLES_HIGH 470
-//#define SAMPLES_LOW 442
+#define SAMPLES_HIGH 448
+#define SAMPLES_LOW 448
+//#define SAMPLES_HIGH 464
+//#define SAMPLES_LOW 432
 #endif
 #endif
 
@@ -480,7 +480,7 @@ void* AudioThread(UNUSED void* arg) {
         last_vbltick = vblticker;
 
 #if !USE_16KHZ && !USE_32KHZ
-        int samplecount = ((gSysFrameCount & 3) < 2) ? SAMPLES_HIGH : SAMPLES_LOW;
+        int samplecount = 448;
 #else
         int samplecount = SAMPLES_LOW;
         if ((gSysFrameCount & 3) == 0)
@@ -488,8 +488,10 @@ void* AudioThread(UNUSED void* arg) {
 #endif
         if (USE_MIXER_MUSIC)
             irq_disable();
+
         AudioThread_CreateNextAudioBuffer(audio_buffer[0], audio_buffer[1], samplecount);
         audio_api->play((u8*) audio_buffer[0], (u8*) audio_buffer[1], samplecount * 4);
+
         if (USE_MIXER_MUSIC)
             irq_enable();
     }

@@ -310,7 +310,7 @@ s32 osEepromLongRead(UNUSED OSMesgQueue* mq, u8 address, u8* buffer,
         if (size != (512 * 3)) {
             fs_close(eeprom_file);
             eeprom_file = FILEHND_INVALID;
-            vid_border_color(255, 255, 0);
+            //vid_border_color(255, 255, 0);
             
             return 1;
         }
@@ -319,21 +319,20 @@ s32 osEepromLongRead(UNUSED OSMesgQueue* mq, u8 address, u8* buffer,
         fs_seek(eeprom_file, (512 * 2) + (address * 8), SEEK_SET);
         ssize_t rv = fs_read(eeprom_file, buffer, length);
         if (rv != length) {
-            vid_border_color(255, 255, 0);
-                        fs_close(eeprom_file);
+            //vid_border_color(255, 255, 0);
+            fs_close(eeprom_file);
             eeprom_file = FILEHND_INVALID;
 
             return 1;
         }
 
         //vid_border_color(0, 0, 0);
-//        oneshot_timer_reset(timer);
-                    fs_close(eeprom_file);
-            eeprom_file = FILEHND_INVALID;
+        fs_close(eeprom_file);
+        eeprom_file = FILEHND_INVALID;
 
         return 0;
     } else {
-        vid_border_color(255, 255, 0);
+        //vid_border_color(255, 255, 0);
         
         return 1;
     }
@@ -360,7 +359,7 @@ s32 osEepromLongWrite(UNUSED OSMesgQueue* mq, u8 address, u8* buffer,
     if (FILEHND_INVALID != eeprom_file) {
         ssize_t size = fs_total(eeprom_file);
         if (size != (512 * 3)) {
-            vid_border_color(255, 0, 0);
+            //vid_border_color(255, 0, 0);
             fs_close(eeprom_file);
             eeprom_file = FILEHND_INVALID;
             
@@ -370,21 +369,20 @@ s32 osEepromLongWrite(UNUSED OSMesgQueue* mq, u8 address, u8* buffer,
         fs_seek(eeprom_file, (512 * 2) + (address * 8), SEEK_SET);
         ssize_t rv = fs_write(eeprom_file, buffer, length);
         if (rv != length) {
-            vid_border_color(255, 0, 0);
-            
+            //vid_border_color(255, 0, 0);
             fs_close(eeprom_file);
             eeprom_file = FILEHND_INVALID;
+
             return 1;
         }
 
         //vid_border_color(0, 0, 0);
-//        oneshot_timer_reset(timer);
         
-            fs_close(eeprom_file);
-            eeprom_file = FILEHND_INVALID;
+        fs_close(eeprom_file);
+        eeprom_file = FILEHND_INVALID;
         return 0;
     } else {
-        vid_border_color(255, 0, 0);
+        //vid_border_color(255, 0, 0);
         
         return 1;
     }
