@@ -2731,10 +2731,6 @@ static void __attribute__((noinline)) gfx_run_dl(Gfx* cmd) {
 
 static void gfx_sp_reset() {
     rsp.modelview_matrix_stack_size = 0;
-    rendering_state.textures[0]->cms = 6;
-    rendering_state.textures[0]->cmt = 6;
-    rendering_state.textures[1]->cms = 6;
-    rendering_state.textures[1]->cmt = 6;
     rendering_state.fog_change = 0;
     rendering_state.fog_col_change = 0;
     alpha_noise = 0;

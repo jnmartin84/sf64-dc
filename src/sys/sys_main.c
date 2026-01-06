@@ -90,8 +90,6 @@ void segment_init(void) {
 
     mmu_init_basic();
 
-    mmu_page_map_static(0, 0x0C000000, PAGE_SIZE_1M, MMU_ALL_RDWR, true);
-
     for (uint32_t s = 1; s < 16; s++) {
         for (uint32_t p = 0; p < SEG_PAGECOUNT[s - 1]; p++) {
             mmu_page_map_static(
