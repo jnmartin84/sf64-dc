@@ -13,7 +13,7 @@
 
 #include "mixer.h"
 
-#include "sh4zam.h"
+#include <sh4zam/shz_sh4zam.h>
 
 #define MEM_BARRIER() asm volatile("" : : : "memory");
 #define MEM_BARRIER_PREF(ptr) asm volatile("pref @%0" : : "r"((ptr)) : "memory")
@@ -990,7 +990,7 @@ void aLoadBufferImpl(const void* source_addr, uint16_t dest_addr, uint16_t nbyte
 
 void aSaveBufferImpl(uint16_t source_addr, int16_t* dest_addr, uint16_t nbytes) {
     size_t rnb = ROUND_UP_16(nbytes);
-    n64_memcpy((void*) ((uintptr_t) dest_addr), (const void*) BUF_DMEM(source_addr), rnb);
+    shz_memcpy((void*) ((uintptr_t) dest_addr), (const void*) BUF_DMEM(source_addr), rnb);
 }
 
 static short __attribute__((aligned(32))) adpcm_tmp[8];
@@ -1035,7 +1035,7 @@ void aDMEMMoveImpl(uint16_t in_addr, uint16_t out_addr, int nbytes) {
 }
 
 void aDMEMCopyImpl(uint16_t in_addr, uint16_t out_addr, int nbytes) {
-    n64_memcpy(BUF_DMEM(out_addr), BUF_DMEM(in_addr), ROUND_UP_16(nbytes));
+    shz_memcpy(BUF_DMEM(out_addr), BUF_DMEM(in_addr), ROUND_UP_16(nbytes));
 }
 
 void aSetLoopImpl(ADPCM_STATE* adpcm_loop_state) {
@@ -1276,10 +1276,10 @@ void aADPCMdecImpl(uint8_t flags, ADPCM_STATE state) {
 
             shz_xmtrx_load_3x4_rows((const shz_vec4_t*) &tbl[0][0], (const shz_vec4_t*) &tbl[1][0],
                                     (const shz_vec4_t*) &ins[0]);
-            acc_vec[0] = shz_xmtrx_trans_vec4(in_vec);
+            acc_vec[0] = shz_xmtrx_transform_vec4(in_vec);
             shz_xmtrx_load_3x4_rows((const shz_vec4_t*) &tbl[0][4], (const shz_vec4_t*) &tbl[1][4],
                                     (const shz_vec4_t*) &ins[4]);
-            acc_vec[1] = shz_xmtrx_trans_vec4(in_vec);
+            acc_vec[1] = shz_xmtrx_transform_vec4(in_vec);
 
             {
                 register float fone asm("fr8") = 1.0f;
@@ -1289,10 +1289,10 @@ void aADPCMdecImpl(uint8_t flags, ADPCM_STATE state) {
                 accf[2] = shz_dot8f(fone, ins0, ins1, ins2, accf[2], tbl[1][1], tbl[1][0], 0.0f);
                 accf[7] = shz_dot8f(fone, ins0, ins1, ins2, accf[7], tbl[1][6], tbl[1][5], tbl[1][4]);
                 accf[1] += (tbl[1][0] * ins0);
-                shz_xmtrx_load_4x4_cols((const shz_vec4_t*) &accf[3], (const shz_vec4_t*) &tbl[1][2],
+                shz_xmtrx_load_cols_4x4((const shz_vec4_t*) &accf[3], (const shz_vec4_t*) &tbl[1][2],
                                         (const shz_vec4_t*) &tbl[1][1], (const shz_vec4_t*) &tbl[1][0]);
                 *(SHZ_ALIASING shz_vec4_t*) &accf[3] =
-                    shz_xmtrx_trans_vec4((shz_vec4_t) { .x = fone, .y = ins0, .z = ins1, .w = ins2 });
+                    shz_xmtrx_transform_vec4((shz_vec4_t) { .x = fone, .y = ins0, .z = ins1, .w = ins2 });
             }
             {
                 register float ins3 asm("fr8") = ins[3];
@@ -1442,8 +1442,8 @@ void aEnvMixerImpl(uint16_t in_addr, uint16_t n_samples,
 
             MEM_BARRIER();
 
-            int32 dsampl12 = *drywide[0];
-            int32 dsampl34 = *drywide[1];
+            int32_t dsampl12 = *drywide[0];
+            int32_t dsampl34 = *drywide[1];
 
             int16_t dsampl1 = clamp16((int16_t)(dsampl12 >> 16) + em_samples[0][0]);
             int16_t dsampl2 = clamp16((int16_t)(dsampl12 & 0xffff) + em_samples[0][1]);
@@ -1467,10 +1467,10 @@ void aDuplicateImpl(uint16_t count, uint16_t in_addr, uint16_t out_addr) {
     uint8_t* in = (uint8_t*) ((u8*) rspa.loaded_buffer + in_addr);
     uint8_t* real_in = (uint8_t *)BUF_DMEM(DMEM_UNCOMPRESSED_NOTE);
     uint8_t* out = (uint8_t*)BUF_DMEM(out_addr);
-    n64_memcpy(real_in, in, 128);
+    shz_memcpy(real_in, in, 128);
     // no overlap as called, dont do temp copy
     do {
-        n64_memcpy(out, real_in, 128);
+        shz_memcpy(out, real_in, 128);
         out += 128;
     } while (count-- > 0);
 }

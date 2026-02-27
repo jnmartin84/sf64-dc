@@ -9,7 +9,7 @@
 #include "assets/ast_corneria.h"
 #include "fox_co.h"
 
-#include "sh4zam.h"
+#include <sh4zam/shz_sh4zam.h>
 u8 sFightCarrier;
 f32 sCoGrangaWork[68];
 

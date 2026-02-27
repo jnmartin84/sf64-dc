@@ -1510,7 +1510,7 @@ void func_enmy_8006566C(f32 xPos, f32 yPos, f32 zPos, s32 arg3) {
         }
     }
 }
-#include "sh4zam.h"
+#include <sh4zam/shz_sh4zam.h>
 void ActorMissileSeek_Update(Actor* this) {
     s32 i;
     s32 j;

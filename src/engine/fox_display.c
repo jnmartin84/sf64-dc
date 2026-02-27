@@ -1710,7 +1710,7 @@ void Display_CsLevelCompleteHandleCamera(Player* player) {
             break;
     }
 }
-#include "sh4zam.h"
+#include <sh4zam/shz_sh4zam.h>
 
 #define gSPFixDepthCut(pkt)                                       \
     {                                                                                   \

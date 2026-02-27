@@ -31,6 +31,8 @@
 #include "macros.h"
 #include "gl_fast_vert.h"
 
+#include <sh4zam/shz_sh4zam.h>
+
 #define s32 long int
 #define u16 unsigned short
 
@@ -163,7 +165,7 @@ void n64_memcpy(void* dst, const void* src, size_t size);
 
 static void resample_tex(const uint16_t* in, int inwidth, int inheight, uint16_t* out, int outwidth, int outheight) {
     for (int y=0; y < inheight;y++) {
-        n64_memcpy(out + (y*outwidth), in + (y*inwidth), inwidth * 2);
+        shz_memcpy(out + (y*outwidth), in + (y*inwidth), inwidth * 2);
         uint16_t *ptr = out + (y*outwidth) + inwidth;
         ptr[0] = 0;
     }

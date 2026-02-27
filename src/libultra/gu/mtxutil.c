@@ -56,7 +56,7 @@ void guMtxL2F(float mf[4][4], Mtx* m) {
 }
 #else
 #include <stdint.h>
-#include "sh4zam.h"
+#include <sh4zam/shz_sh4zam.h>
 //void n64_memcpy(void *dst, const void *src, size_t size);
 void guMtxF2L(float mf[4][4], Mtx* m) {
 //    n64_memcpy(m, mf, sizeof(Mtx));
@@ -66,7 +66,7 @@ void guMtxF2L(float mf[4][4], Mtx* m) {
 
 void guMtxIdentF(float mf[4][4]) {
     shz_xmtrx_init_identity();
-    shz_xmtrx_store_4x4_unaligned(mf);
+    shz_xmtrx_store_unaligned_4x4(mf);
 }
 
 void guMtxIdent(Mtx* m) {

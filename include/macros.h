@@ -32,7 +32,7 @@
 #define SQ(x) ((x) * (x))
 #define CUBE(x) ((x) * (x) * (x))
 
-#include "sh4zam.h"
+#include <sh4zam/shz_sh4zam.h>
 
 #define DOT_XYZ(v1Ptr, v2Ptr) shz_dot6f((f32)((v1Ptr)->x), (f32)((v1Ptr)->y), (f32)((v1Ptr)->z), (f32)((v2Ptr)->x), (f32)((v2Ptr)->y), (f32)((v2Ptr)->z))
 #define VEC3F_MAG(vecPtr) shz_sqrtf_fsrra(DOT_XYZ(vecPtr, vecPtr))

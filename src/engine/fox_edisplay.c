@@ -1619,7 +1619,7 @@ void Scenery360_Draw(Scenery360* this) {
         }
     }
 }
-#include "sh4zam.h"
+#include <sh4zam/shz_sh4zam.h>
 void Display_SetSecondLight(Vec3f* pos) {
     Vec3f sp9C;
     f32 sp98;

@@ -47,7 +47,7 @@
 #include <GL/glkos.h>
 #include "gl_fast_vert.h"
 
-#include "sh4zam.h"
+#include <sh4zam/shz_sh4zam.h>
 
 uint32_t last_set_texture_image_width;
 int draw_rect;
@@ -345,7 +345,7 @@ static __attribute__((noinline)) void gfx_generate_cc(struct ColorCombiner* comb
     }
     comb->cc_id = cc_id;
     comb->prg = gfx_lookup_or_create_shader_program(shader_id);
-    n64_memcpy(comb->shader_input_mapping, shader_input_mapping, sizeof(shader_input_mapping));
+    shz_memcpy(comb->shader_input_mapping, shader_input_mapping, sizeof(shader_input_mapping));
 }
 
 static __attribute__((noinline)) struct ColorCombiner* gfx_lookup_or_create_color_combiner(uint32_t cc_id) {
@@ -759,7 +759,7 @@ static void gfx_normalize_vector(float v[3]) {
 }
 
 static void gfx_transposed_matrix_mul(float res[3], const float a[3], const float b[4][4]) {
-    *((shz_vec3_t*) res) = shz_matrix4x4_trans_vec3_transpose(b, *((shz_vec3_t*) a));
+    *((shz_vec3_t*) res) = shz_mat4x4_transform_vec3_transpose(b, *((shz_vec3_t*) a));
 }
 
 static void calculate_normal_dir(const Light_t* light, float coeffs[3]) {
@@ -770,8 +770,8 @@ static void calculate_normal_dir(const Light_t* light, float coeffs[3]) {
     gfx_normalize_vector(coeffs);
 }
 
-static void gfx_matrix_mul(shz_matrix_4x4_t* res, const shz_matrix_4x4_t* a, const shz_matrix_4x4_t* b) {
-    shz_xmtrx_load_4x4_apply_store(res, b, a);
+static void gfx_matrix_mul(shz_mat4x4_t* res, const shz_mat4x4_t* a, const shz_mat4x4_t* b) {
+    shz_xmtrx_load_apply_store_4x4(res, b, a);
 }
 
 static int matrix_dirty = 0;
@@ -804,7 +804,7 @@ static __attribute__((noinline)) void gfx_sp_matrix(uint8_t parameters, const vo
     // the following is specialized for STAR FOX 64 ONLY
     if (parameters & G_MTX_PROJECTION) {
 #ifdef GBI_FLOATS
-        shz_xmtrx_load_4x4_unaligned(segaddr);
+        shz_xmtrx_load_unaligned_4x4(segaddr);
 #endif
         shz_xmtrx_store_4x4(matrix);
         recompute = 1;
@@ -817,7 +817,7 @@ static __attribute__((noinline)) void gfx_sp_matrix(uint8_t parameters, const vo
         // G_MTX_NOPUSH | G_MTX_MUL | G_MTX_MODELVIEW
         if (parameters == 0) {
 #ifdef GBI_FLOATS
-            shz_xmtrx_load_4x4_unaligned(segaddr);
+            shz_xmtrx_load_unaligned_4x4(segaddr);
 #endif
             shz_xmtrx_store_4x4(matrix);
             gfx_matrix_mul(rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1], matrix,
@@ -828,7 +828,7 @@ static __attribute__((noinline)) void gfx_sp_matrix(uint8_t parameters, const vo
             // G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW
             if (parameters == 2) {
 #ifdef GBI_FLOATS
-                shz_xmtrx_load_4x4_unaligned(segaddr);
+                shz_xmtrx_load_unaligned_4x4(segaddr);
 #endif
                 shz_xmtrx_store_4x4(matrix);
                 if (rsp.modelview_matrix_stack_size == 0)
@@ -841,7 +841,7 @@ static __attribute__((noinline)) void gfx_sp_matrix(uint8_t parameters, const vo
                 if (parameters == 4) {
                     if (rsp.modelview_matrix_stack_size < 4) {
                         ++rsp.modelview_matrix_stack_size;
-                        shz_matrix_4x4_copy(rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1],
+                        shz_mat4x4_copy(rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1],
                                             rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 2]);
                     }
                     // STAR FOX 64 ONLY
@@ -878,7 +878,7 @@ static void __attribute__((noinline)) gfx_sp_pop_matrix(void) {
 
 #define MEM_BARRIER() asm volatile("" : : : "memory");
 
-#include "sh4zam.h"
+#include <sh4zam/shz_sh4zam.h>
 
 typedef enum {
     /*   0 */ GSTATE_NONE,
@@ -936,7 +936,7 @@ static void __attribute__((noinline)) gfx_sp_vertex_light_step1(int n_vertices, 
 
         float x, y, z, w;
         shz_vec4_t out =
-            shz_xmtrx_trans_vec4((shz_vec4_t) { .x = vn->ob[0], .y = vn->ob[1], .z = vn->ob[2], .w = 1.0f });
+            shz_xmtrx_transform_vec4((shz_vec4_t) { .x = vn->ob[0], .y = vn->ob[1], .z = vn->ob[2], .w = 1.0f });
 
         d->x = vn->ob[0];
         d->y = vn->ob[1];
@@ -951,7 +951,7 @@ static void __attribute__((noinline)) gfx_sp_vertex_light_step1(int n_vertices, 
 
         MEM_BARRIER();
 
-        float recw = shz_fast_invf(w);
+        float recw = shz_invf(w);
 
         shz_dcache_alloc_line(d + 1);
 
@@ -979,7 +979,7 @@ static void __attribute__((noinline)) gfx_sp_vertex_light_step1b(int n_vertices,
     struct LoadedVertex* d = &rsp.loaded_vertices[dest_index];
     struct LoadedNormal* n = &rsp.loaded_normals[dest_index];
     for (int i = 0; i < n_vertices; i++) {
-        shz_vec3_t dot = shz_xmtrx_trans_vec3(shz_vec3_deref(n));
+        shz_vec3_t dot = shz_xmtrx_transform_vec3(shz_vec3_deref(n));
         //MEM_BARRIER_PREF((n + 2));
         if (rsp.geometry_mode & G_TEXTURE_GEN_LINEAR) {
             dot.x = shz_acosf(dot.x) * recip2pi;
@@ -999,7 +999,7 @@ static void __attribute__((noinline)) gfx_sp_vertex_light_step2(int n_vertices, 
     //SHZ_PREFETCH(&rsp.loaded_normals[dest_index]);
     struct LoadedNormal* n = &rsp.loaded_normals[dest_index];
     for (int i = 0; i < n_vertices; i++) {
-        shz_vec3_t outinten = shz_xmtrx_trans_vec3(shz_vec3_deref(n));
+        shz_vec3_t outinten = shz_xmtrx_transform_vec3(shz_vec3_deref(n));
         //SHZ_PREFETCH((n + 2));
         n->z = 1.0f;
         n->x = MAX(0.0f, outinten.x);
@@ -1016,11 +1016,11 @@ static void __attribute__((noinline)) gfx_sp_vertex_light_step3(int n_vertices, 
         uint8_t r;
         uint8_t g;
         uint8_t b;
-        shz_vec3_t outrgb = shz_xmtrx_trans_vec3(shz_vec3_deref(n));
+        shz_vec3_t outrgb = shz_xmtrx_transform_vec3(shz_vec3_deref(n));
         //SHZ_PREFETCH((n + 2));
 #if SCALE_LIGHTS
         float max_c = MAX4(255.0f, outrgb.x, outrgb.y, outrgb.z);
-        float maxc = shz_div_posf(255.0f, (float) max_c);
+        float maxc = shz_divf_fsrra(255.0f, (float) max_c);
 
         r = (uint8_t) (outrgb.x * maxc);
         g = (uint8_t) (outrgb.y * maxc);
@@ -1045,7 +1045,7 @@ static void __attribute__((noinline)) gfx_sp_vertex_no(uint8_t n_vertices, uint8
     for (uint8_t i = 0; i < n_vertices; i++, dest_index++) {
         const Vtx_t* v = &vertices[i].v;
         struct LoadedVertex* d = &rsp.loaded_vertices[dest_index];
-        shz_vec4_t out = shz_xmtrx_trans_vec4((shz_vec4_t) { .x = v->ob[0], .y = v->ob[1], .z = v->ob[2], .w = 1.0f });
+        shz_vec4_t out = shz_xmtrx_transform_vec4((shz_vec4_t) { .x = v->ob[0], .y = v->ob[1], .z = v->ob[2], .w = 1.0f });
         MEM_BARRIER_PREF(v + 1);
         d->x = v->ob[0];
         d->y = v->ob[1];
@@ -1063,7 +1063,7 @@ static void __attribute__((noinline)) gfx_sp_vertex_no(uint8_t n_vertices, uint8
 
         MEM_BARRIER();
 
-        float recw = shz_fast_invf(w);
+        float recw = shz_invf(w);
 
         d->u = (v->tc[0] * rsp.texture_scaling_factor.s) * recip64k;
         d->v = (v->tc[1] * rsp.texture_scaling_factor.t) * recip64k;
@@ -1391,8 +1391,8 @@ static void __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx2
 
         uint32_t tex_width = (rdp.texture_tile.lrs - rdp.texture_tile.uls + 4) >> 2;
         uint32_t tex_height = (rdp.texture_tile.lrt - rdp.texture_tile.ult + 4) >> 2;
-        recip_tex_width = shz_fast_invf((float) tex_width);
-        recip_tex_height = shz_fast_invf((float) tex_height);
+        recip_tex_width = shz_invf((float) tex_width);
+        recip_tex_height = shz_invf((float) tex_height);
     }
 
     if (!do_the_blur) {
@@ -1450,7 +1450,7 @@ static void __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx2
 
             uint32_t max_c;
             max_c = MAX4(255, color_r, color_g, color_b);
-            float maxc = shz_div_posf(255.0f, (float) max_c);
+            float maxc = shz_divf_fsrra(255.0f, (float) max_c);
 
             float rn, gn, bn;
             rn = (float) color_r * maxc;
@@ -1689,8 +1689,8 @@ static void __attribute__((noinline)) gfx_sp_quad_2d(uint8_t vtx1_idx, uint8_t v
                 do_ending_bg = 0;
             }
             uint32_t tex_height = ((rdp.texture_tile.lrt - rdp.texture_tile.ult + 4) * 0.25f);
-            recip_tex_width = shz_fast_invf((float) tex_width);
-            recip_tex_height = shz_fast_invf((float) tex_height);
+            recip_tex_width = shz_invf((float) tex_width);
+            recip_tex_height = shz_invf((float) tex_height);
             float offs = linear_filter ? 0.5f : 0.0f;
             float uls = (float) (rdp.texture_tile.ult * 0.25f) - offs;
             float ult = (float) (rdp.texture_tile.ult * 0.25f) - offs;
@@ -1775,7 +1775,7 @@ static void __attribute__((noinline)) gfx_sp_quad_2d(uint8_t vtx1_idx, uint8_t v
 
             float rn, gn, bn;
             uint32_t max_c = MAX4(255, color_r, color_g, color_b);
-            float maxc = shz_div_posf(255.0f, (float) max_c);
+            float maxc = shz_divf_fsrra(255.0f, (float) max_c);
 
             rn = (float) color_r * maxc;
             gn = (float) color_g * maxc;
@@ -1914,7 +1914,7 @@ static void gfx_sp_moveword(uint8_t index, uint32_t data) {
             int16_t fog_ofs = (int16_t) data;
             if ((!rendering_state.fog_change)) {
                 rendering_state.fog_change = 1;
-                float recip_fog_mul = shz_fast_invf(fog_mul);
+                float recip_fog_mul = shz_invf(fog_mul);
                 float n64_min = 500.0f * (1.0f - (float) fog_ofs * recip_fog_mul);
                 float n64_max = n64_min + 128000.0f * recip_fog_mul;
                 float scale = (gProjectFar - gProjectNear) * 0.001f;

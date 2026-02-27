@@ -1,7 +1,7 @@
 #ifndef SYS_H
 #define SYS_H
 
-
+typedef signed long int s32;
 #define true 1
 #define false 0
 #define bool s32

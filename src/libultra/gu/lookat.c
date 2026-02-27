@@ -3,7 +3,7 @@
 #include "PR/gu.h"
 #include <math.h>
 #include <stdint.h>
-#include "sh4zam.h"
+#include <sh4zam/shz_sh4zam.h>
 void guLookAtF(float mf[4][4], float xEye, float yEye, float zEye, float xAt, float yAt, float zAt, float xUp,
                float yUp, float zUp) {
     float len, xLook, yLook, zLook, xRight, yRight, zRight;

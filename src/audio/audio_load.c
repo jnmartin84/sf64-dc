@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <kos/thread.h>
+#include <sh4zam/shz_sh4zam.h>
 
 //7950992
 #define SIZE_OF_SEQ 240880
@@ -713,7 +714,7 @@ s32 AudioLoad_Dma(UNUSED OSIoMesg* mesg, UNUSED u32 priority, UNUSED s32 directi
     if (size & 15)
         size = ALIGN16(size);
 
-    n64_memcpy(ramAddr, (void *)devAddr, size);
+    shz_memcpy(ramAddr, (void *)devAddr, size);
 
     if (retQueue)
         osSendMesg(retQueue, (OSMesg)1, 0);

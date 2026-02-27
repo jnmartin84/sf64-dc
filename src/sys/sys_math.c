@@ -1,7 +1,7 @@
 #include "n64sys.h"
 #include "prevent_bss_reordering.h"
 #include <math.h>
-#include "sh4zam.h"
+#include <sh4zam/shz_sh4zam.h>
 s32 sSeededRandSeed3;
 s32 sRandSeed1;
 s32 sRandSeed2;
@@ -10,7 +10,7 @@ s32 sSeededRandSeed1;
 s32 sSeededRandSeed2;
 
 f32 Math_ModF(f32 value, f32 mod) {
-    return value - ((s32) (value * shz_fast_invf(mod)) * mod);
+    return value - ((s32) (value * shz_invf(mod)) * mod);
 }
 extern volatile OSTime osGetTime(void);
 void Rand_Init(void) {
@@ -99,7 +99,7 @@ f32 Math_Atan2F(f32 y, f32 x) {
 
     float abs_y = fabsf(y);
 	float absy_plus_absx = abs_y + fabsf(x);
-	float inv_absy_plus_absx = shz_fast_invf(absy_plus_absx);
+	float inv_absy_plus_absx = shz_invf(absy_plus_absx);
 	float angle = F_PI_2 - shz_copysignf(F_PI_4, x);
 	float r = (x - shz_copysignf(abs_y, x)) * inv_absy_plus_absx;
 	angle += (0.1963f * r * r - 0.9817f) * r;
@@ -157,7 +157,7 @@ f32 Math_Atan2F_XYAlt(f32 x, f32 y) {
     if (y == 0.0f) {
         return 0.0f;
     }
-    float recipy = shz_fast_invf(y);
+    float recipy = shz_invf(y);
 
 
     return -Math_FAtanF(x * recipy);

@@ -250,7 +250,7 @@ SHZ_FORCE_INLINE float shz_div_posf(float num, float denom) {
 }
 
 //! Takes the inverse of \p p using a faster approximation than doing a full division.
-SHZ_FORCE_INLINE float shz_fast_invf(float x) {
+SHZ_FORCE_INLINE float shz_invf(float x) {
     float inv;
 
     if (__builtin_constant_p(x))
@@ -266,7 +266,7 @@ SHZ_FORCE_INLINE float shz_fast_invf(float x) {
 
 //! Divides \p num by \p denom using a very fast approximation
 SHZ_FORCE_INLINE float shz_divf(float num, float denom) {
-    return num * shz_fast_invf(denom);
+    return num * shz_invf(denom);
 }
 
 SHZ_FORCE_INLINE float shz_atanf_unit(float x) SHZ_NOEXCEPT {

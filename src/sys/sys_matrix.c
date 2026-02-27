@@ -66,12 +66,12 @@ Matrix* gGfxMatrix;
 // Copies src Matrix into dst
 
 void Matrix_Copy(Matrix* dst, Matrix* src) {
-    shz_matrix_4x4_copy(dst->m, src->m);
+    shz_mat4x4_copy(dst->m, src->m);
 }
 
 // Makes a copy of the stack's current matrix and puts it on the top of the stack
 void  Matrix_Push(Matrix** mtxStack) {
-    shz_matrix_4x4_copy((*mtxStack + 1)->m, (*mtxStack)->m);
+    shz_mat4x4_copy((*mtxStack + 1)->m, (*mtxStack)->m);
     (*mtxStack)++;
 }
 
@@ -85,7 +85,7 @@ void  Matrix_Mult(Matrix* mtx, Matrix* tf, u8 mode) {
     if (mode == MTXF_APPLY) {
         shz_xmtrx_load_apply_store_4x4(mtx, mtx, tf);
     } else {
-        shz_matrix_4x4_copy(mtx->m, tf->m);
+        shz_mat4x4_copy(mtx->m, tf->m);
     }
 }
 
@@ -347,7 +347,7 @@ void Matrix_MultVec3f_NoLoad(Vec3f* src, Vec3f* dest) {
 //    dest->y = src->y;
 //    dest->z = src->z;
 //    mat_trans_single3_nodivw(dest->x, dest->y, dest->z, w);
-    shz_vec4_t out = shz_xmtrx_trans_vec4((shz_vec4_t) { .x = src->x, .y = src->y, .z = src->z, .w = 1.0f });
+    shz_vec4_t out = shz_xmtrx_transform_vec4((shz_vec4_t) { .x = src->x, .y = src->y, .z = src->z, .w = 1.0f });
     dest->x = out.x;
     dest->y = out.y;
     dest->z = out.z;
@@ -361,7 +361,7 @@ void Matrix_MultVec3f(Matrix* mtx, Vec3f* src, Vec3f* dest) {
 //    dest->y = src->y;
 //    dest->z = src->z;
 //    mat_trans_single3_nodivw(dest->x, dest->y, dest->z, w);
-    shz_vec4_t out = shz_xmtrx_trans_vec4((shz_vec4_t) { .x = src->x, .y = src->y, .z = src->z, .w = 1.0f });
+    shz_vec4_t out = shz_xmtrx_transform_vec4((shz_vec4_t) { .x = src->x, .y = src->y, .z = src->z, .w = 1.0f });
     dest->x = out.x;
     dest->y = out.y;
     dest->z = out.z;
@@ -373,7 +373,7 @@ void Matrix_MultVec3fNoTranslate_NoLoad(Vec3f* src, Vec3f* dest) {
 //    dest->y = src->y;
 //    dest->z = src->z;
 //    mat_trans_single3_nodivw(dest->x, dest->y, dest->z, w);
-    shz_vec4_t out = shz_xmtrx_trans_vec4((shz_vec4_t) { .x = src->x, .y = src->y, .z = src->z, .w = 0.0f });
+    shz_vec4_t out = shz_xmtrx_transform_vec4((shz_vec4_t) { .x = src->x, .y = src->y, .z = src->z, .w = 0.0f });
     dest->x = out.x;
     dest->y = out.y;
     dest->z = out.z;
@@ -389,7 +389,7 @@ void Matrix_MultVec3fNoTranslate(Matrix* mtx, Vec3f* src, Vec3f* dest) {
 //    dest->y = src->y;
 //    dest->z = src->z;
 //    mat_trans_single3_nodivw(dest->x, dest->y, dest->z, w);
-    shz_vec4_t out = shz_xmtrx_trans_vec4((shz_vec4_t) { .x = src->x, .y = src->y, .z = src->z, .w = 0.0f });
+    shz_vec4_t out = shz_xmtrx_transform_vec4((shz_vec4_t) { .x = src->x, .y = src->y, .z = src->z, .w = 0.0f });
     dest->x = out.x;
     dest->y = out.y;
     dest->z = out.z;

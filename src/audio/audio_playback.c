@@ -434,7 +434,7 @@ void Audio_InitSyntheticWave(Note* note, SequenceLayer* layer) {
         waveId = layer->channel->instOrWave;
     }
     harmonicIndex = note->playbackState.harmonicIndex;
-    f32 recipSSPWP = shz_fast_invf((f32)sSamplesPerWavePeriod[harmonicIndex]);
+    f32 recipSSPWP = shz_invf((f32)sSamplesPerWavePeriod[harmonicIndex]);
     note->synthesisState.samplePosInt = (s32)(
         (f32)(note->synthesisState.samplePosInt * sSamplesPerWavePeriod[Audio_BuildSyntheticWave(note, layer, waveId)]) * recipSSPWP);
         // / sSamplesPerWavePeriod[harmonicIndex];
