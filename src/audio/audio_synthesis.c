@@ -5,6 +5,10 @@
 
 #include "mixer.h"
 
+#ifdef __DREAMCAST__
+#include "aica_synth.h"
+#endif
+
 // was 0x470
 // now 36*32
 #define DMEM_WET_SCRATCH 0x480
@@ -128,7 +132,20 @@ Acmd* AudioSynth_Update(Acmd* aList, s32* cmdCount, s16* aiBufStartL, s16* aiBuf
     for (i = gAudioBufferParams.ticksPerUpdate; i > 0; i--) {
         AudioSeq_ProcessSequences(i - 1);
         AudioSynth_SyncSampleStates(gAudioBufferParams.ticksPerUpdate - i);
+        /* NOTE: sub-tick AicaSynth_RefreshActive() disabled while diagnosing an
+           intro hang (suspected SH4->AICA command-queue overflow under the 4x
+           burst + streamer). Re-enable once throttled. */
     }
+
+#ifdef __DREAMCAST__
+    /* AICA hardware mixing: keep the sequence tick + sample-state prepass above,
+       drop the RSP render, drive AICA voices from the finalized gNoteSubsEu. */
+    (void) aiBufStartL; (void) aiBufStartR; (void) aiBufLen;
+    (void) aiBufPtr; (void) chunkLen;
+    AicaSynth_Update();
+    *cmdCount = 0;
+    return aList;
+#endif
 
     aiBufPtr[0] = (s32*) aiBufStartL;
     aiBufPtr[1] = (s32*) aiBufStartR;

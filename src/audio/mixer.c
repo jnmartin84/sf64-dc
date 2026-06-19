@@ -1442,8 +1442,8 @@ void aEnvMixerImpl(uint16_t in_addr, uint16_t n_samples,
 
             MEM_BARRIER();
 
-            int32 dsampl12 = *drywide[0];
-            int32 dsampl34 = *drywide[1];
+            int32_t dsampl12 = *drywide[0];
+            int32_t dsampl34 = *drywide[1];
 
             int16_t dsampl1 = clamp16((int16_t)(dsampl12 >> 16) + em_samples[0][0]);
             int16_t dsampl2 = clamp16((int16_t)(dsampl12 & 0xffff) + em_samples[0][1]);

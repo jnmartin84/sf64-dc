@@ -203,7 +203,7 @@
 #define	CAUSE_EXCMASK	0x0000007C	/* Cause code bits */
 
 #define	CAUSE_EXCSHIFT	2
-
+#if 0
 /* Cause register exception codes */
 
 #define	EXC_CODE(x)	((x)<<2)
@@ -227,7 +227,7 @@
 #define	EXC_FPE		EXC_CODE(15)	/* Floating Point Exception */
 #define	EXC_WATCH	EXC_CODE(23)	/* Watchpoint reference */
 #define	EXC_VCED	EXC_CODE(31)	/* Virt. Coherency on data read */
-
+#endif
 /* C0_PRID Defines */
 #define	C0_IMPMASK	0xff00
 #define	C0_IMPSHIFT	8

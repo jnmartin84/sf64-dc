@@ -13,6 +13,8 @@
 #include "PR/ultratypes.h"
 #include "PR/guint.h"
 
+#include "sh4zam.h"
+
 #ifdef GBI_FLOATS
 #include <string.h>
 #endif

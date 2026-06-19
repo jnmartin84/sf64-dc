@@ -1,3 +1,7 @@
+tools/aica/.encode_cache/
+tools/aica/__pycache__/
+lib/
+pyvenv.cfg
 *.elf
 *.tgz
 *.cdi

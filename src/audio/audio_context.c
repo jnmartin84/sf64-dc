@@ -144,15 +144,8 @@ ReverbSettings D_800C76A8[4] = {
     { 1, 0x30, 0x4FFF, 0, 0 },
     { 1, 0x30, 0x4FFF, 0, 0 },
 };
-#if USE_32KHZ
+
 #define SPEC_RATE 32000
-#else
-#if USE_16KHZ
-#define SPEC_RATE 16000
-#else
-#define SPEC_RATE 26800
-#endif
-#endif
 
 AudioSpec gAudioSpecs[29] = {
     /*  0 */ { SPEC_RATE, 2, 22, ARRAY_COUNT(D_800C74D0), D_800C74D0, 0x7FFF, 0x1200, 0x1100, 0, 0x5000, 0x2400, 0, 0x1B000,

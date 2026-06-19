@@ -28,19 +28,19 @@ SDCARD_SUPPORT ?= 0
 
 ### Enable testing mode
 # Turns on no damage, extra everything, and level select
-TESTING_MODE ?= 0
+TESTING_MODE ?= 1
 
 ### Take no damage
-I_DONT_WANT_TO_DIE ?= 0
+I_DONT_WANT_TO_DIE ?= 1
 
 ### Get laser upgrades, extra lives, extra bombs
-EXTRA_EVERYTHING ?= 0
+EXTRA_EVERYTHING ?= 1
 
 ### Level select
 # At the map screen, use the analog stick to select a level.
 # Press D-Pad Up to select an advanced level phase (warp zone or Andross fight).
 # Useful for debugging and speedrunning training.
-MODS_LEVEL_SELECT ?= 0
+MODS_LEVEL_SELECT ?= 1
 
 ### MR logo
 # Set a custom IP.BIN boot logo when building CDI files
@@ -106,7 +106,7 @@ SF_MUSIC_PATH := music
 
 # If gcc is used, define the NON_MATCHING flag respectively so the files that
 # are safe to be used can avoid using GLOBAL_ASM which doesn't work with gcc.
-CFLAGS += -DCOMPILER_GCC -DNON_MATCHING=1 -Wno-int-conversion -falign-functions=32 -fno-data-sections -DAVOID_UB=1 -MMD -MP -Wno-incompatible-pointer-types -Wno-missing-braces -Wno-unused-variable -Wno-switch  -DGBI_FLOATS -fno-toplevel-reorder
+CFLAGS += -DCOMPILER_GCC -DNON_MATCHING=1 -Wno-int-conversion -falign-functions=32 -fno-data-sections -DAVOID_UB=1 -MMD -MP -Wno-incompatible-pointer-types -Wno-missing-braces -Wno-unused-variable -Wno-switch  -fno-toplevel-reorder -DGBI_FLOATS 
 
 ifeq ($(SCALE_LIGHTS),1)
   CFLAGS += -DSCALE_LIGHTS
@@ -553,6 +553,8 @@ FINAL_OBJS := build/src/ultra_reimpl.o \
               build/src/engine/fox_rcp_init.o \
               build/src/audio/audio_context.o \
               build/src/audio/audio_tables.o \
+              build/src/audio/aica_synth.o \
+              build/src/audio/aica_sample_table.o \
               build/src/gfx/gfx_cc.o \
               build/src/gfx/gfx_gldc.o
 
@@ -647,7 +649,28 @@ $(FILES_ZIP): $(ELF) $(BIN) $(MUSIC_FILES)
 	$(call print2,Creating ZIP archive for plain files...)
 	zip -r $(FILES_ZIP) $(SF_MUSIC_PATH) $(SF_DATA_PATH) $(ELF) $(BIN) sf64.ico
 
-sf-data: initted.touch
+# AICA voice driver: regenerate the Yamaha-ADPCM pool (sf_data/adpcm_pool.bin,
+# loaded at runtime) + sample table from the soundfont banks (timestamp-gated;
+# only re-runs when the banks change). No decimation (oversize samples stream),
+# so stdlib-only -- a clean checkout builds with stock python3.
+AICA_TOOLS := $(wildcard tools/aica/*.py) tools/aica/audio_tables.json
+AICA_BANK  := baserom/audio_bank.$(VERSION).$(REV).bin
+AICA_TABLE := baserom/audio_table.$(VERSION).$(REV).bin
+
+src/audio/aica_sample_table.c: $(AICA_BANK) $(AICA_TABLE) $(AICA_TOOLS)
+	@mkdir -p $(SF_DATA_PATH)
+	PYTHONPATH=tools/aica $(PYTHON) tools/aica/sf64_emit.py \
+		--audiobank $(AICA_BANK) --audiotable $(AICA_TABLE) --tables tools/aica/audio_tables.json \
+		--outdir src/audio --incdir src/audio --pool $(SF_DATA_PATH)/adpcm_pool.bin
+
+# emitted together with aica_sample_table.c by the one recipe above
+src/audio/aica_sample_table.h $(SF_DATA_PATH)/adpcm_pool.bin: src/audio/aica_sample_table.c
+	@touch $@
+
+# aica_synth.c #includes the generated header
+build/src/audio/aica_synth.o: src/audio/aica_sample_table.h
+
+sf-data: initted.touch $(SF_DATA_PATH)/adpcm_pool.bin
 	@mkdir -p $(SF_DATA_PATH)
 	$(call print2,Generating Dreamcast replacement graphics...)
 	@$(KOS_BASE)/utils/pvrtex/pvrtex -i assets/dreamcast/dclogo.png -o dclogo.tex -f ARGB1555 -s 128
@@ -659,7 +682,7 @@ sf-data: initted.touch
 	$(call print2,Copying audio bank/sequence data...)
 	@cp bin/$(VERSION)/$(REV)/audio_bank.bin $(SF_DATA_PATH)/audbank.bin
 	@cp bin/$(VERSION)/$(REV)/audio_seq.bin $(SF_DATA_PATH)/audseq.bin
-	@cp bin/$(VERSION)/$(REV)/audio_table.bin $(SF_DATA_PATH)/audtable.bin
+	# AICA: audtable.bin (raw VADPCM) is replaced by adpcm_pool.bin (gen rule above)
 	$(call print2,Generating asset segments...)
 	@sh-elf-ld -EL -t -e 0 -Ttext=05000000 build/src/assets/ast_text/ast_text.o -o build/src/assets/ast_text/ast_text.elf
 	@sh-elf-objcopy -O binary --only-section=.data --only-section=.bss build/src/assets/ast_text/ast_text.elf $(SF_DATA_PATH)/text.bin

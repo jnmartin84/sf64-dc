@@ -9,7 +9,17 @@
 #define SIZE_OF_SEQ 240880
 #define SIZE_OF_BANK 122912
 #define SIZE_OF_TABLE 7587200
+#ifdef __DREAMCAST__
+/* AICA hardware mixing: the raw VADPCM sample bank (audio_table, ~7.2MB) is
+   never dereferenced once the software render is replaced -- sample->sampleAddr
+   is used only for the pool lookup key (sampleAddr - gSampleBankTable base). So
+   we don't reserve/load it; the base stays valid for the key arithmetic and the
+   6.4MB AICA pool (loaded into gAicaAdpcmPoolBase) takes its place in RAM. */
+u8 __attribute__((aligned(32))) __audio_seq_ROM_START[SIZE_OF_SEQ + SIZE_OF_BANK + 64];
+extern const unsigned char* gAicaAdpcmPoolBase;
+#else
 u8 __attribute__((aligned(32))) __audio_seq_ROM_START[SIZE_OF_SEQ + SIZE_OF_BANK + SIZE_OF_TABLE];
+#endif
 
 s32 D_80146D80;
 s32 PAD_80146D88[2];
@@ -270,6 +280,12 @@ void AudioLoad_SyncLoadSeqParts(s32 seqId, s32 flags) {
 
 s32 AudioLoad_SyncLoadSample(Sample* sample, s32 fontId) {
     u8* sampleAddr;
+#ifdef __DREAMCAST__
+    /* AICA: leave sample->sampleAddr as the audio_table offset (pool key); the
+       engine's PCM cache is unused and would break the key (see RelocateFont). */
+    (void) sample; (void) fontId; (void) sampleAddr;
+    return 0;
+#endif
 
     if ((sample->isRelocated == 1) && (sample->medium != MEDIUM_RAM)) {
         sampleAddr = AudioHeap_AllocPersistentSampleCache(sample->size, fontId, sample->sampleAddr, sample->medium);
@@ -916,7 +932,9 @@ void AudioLoad_LoadFiles(void) {
     }
 
     {
-        sprintf(texfn, "%s/sf_data/audtable.bin", fnpre);
+        /* AICA hardware mixing: load the transcoded Yamaha-ADPCM pool instead of
+           the raw VADPCM audio_table (which is no longer dereferenced). */
+        sprintf(texfn, "%s/sf_data/adpcm_pool.bin", fnpre);
         FILE* file = fopen(texfn, "rb");
         if (!file) {
             perror("fopen");
@@ -926,27 +944,55 @@ void AudioLoad_LoadFiles(void) {
 
         fseek(file, 0, SEEK_END);
         long filesize = ftell(file);
-        printf("audiotables is %ld @ %08x\n", filesize, (uintptr_t) __audio_seq_ROM_START + SIZE_OF_SEQ + SIZE_OF_BANK);
         rewind(file);
+
+        u8* pool = malloc(filesize);
+        if (pool == NULL) {
+            printf("adpcm_pool malloc(%ld) failed\n", filesize);
+            exit(-1);
+        }
 
         size_t toread = filesize;
         size_t didread = 0;
-
-        while (didread < filesize) {
-            size_t rv = fread(&__audio_seq_ROM_START[SIZE_OF_SEQ + SIZE_OF_BANK + didread], 1, toread - didread, file);
-            if (rv == -1) {
-                printf("problem reading audio tables\n");
-                printf("\n");
+        while (didread < (size_t) filesize) {
+            size_t rv = fread(&pool[didread], 1, toread - didread, file);
+            if (rv == (size_t) -1) {
+                printf("problem reading adpcm_pool\n");
                 exit(-1);
             }
-            printf("reading to %08x size %ld\n",
-                   (uintptr_t) &__audio_seq_ROM_START[SIZE_OF_SEQ + SIZE_OF_BANK + didread], rv);
             toread -= rv;
             didread += rv;
         }
-
         fclose(file);
+
+        gAicaAdpcmPoolBase = pool;
+        printf("adpcm_pool %ld @ %08x\n", filesize, (uintptr_t) pool);
     }
+
+    #ifdef __DREAMCAST__
+    for(int mi=0;mi<6*1048576;mi+=65536) {
+        void *test_m = malloc(mi);
+        if (test_m != NULL) {
+            free(test_m);
+            test_m = NULL;
+            continue;
+        } else {
+            int bi = mi - 65536;
+            for (; bi < 6 * 1048576; bi++) {
+                test_m = malloc(bi);
+                if (test_m != NULL) {
+                    free(test_m);
+                    test_m = NULL;
+                    continue;
+                } else {
+                    printf("free ram for malloc: %d\n", bi);
+                    goto run_game_loop;
+                }
+            }
+        }
+    }
+run_game_loop:
+#endif /* __DREAMCAST__ */
 }
 
 #include <kos.h>
@@ -1435,6 +1481,14 @@ s32 AudioLoad_RelocateFontAndPreloadSamples(s32 fontId, u32 fontDataAddr, Sample
 
     gNumUsedSamples = 0;
     AudioLoad_RelocateFont(fontId, fontDataAddr, relocData);
+#ifdef __DREAMCAST__
+    /* AICA: RelocateFont set sample->sampleAddr to the audio_table offset (our
+       pool lookup key). Skip the engine's sample cache/preload entirely -- the
+       AICA driver uses its own ARAM pool, the raw VADPCM table isn't resident,
+       and caching would overwrite sampleAddr with a RAM cache address and break
+       the key (this is why level/async-loaded fonts went silent). */
+    return 0;
+#endif
     size = 0;
 
     for (i = 0; i < gNumUsedSamples; i++) {

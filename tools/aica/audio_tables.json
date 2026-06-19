@@ -1,0 +1,399 @@
+{
+ "version": "sf64-us-rev1",
+ "fake_banks": {},
+ "sample_banks": [
+  {
+   "index": 0,
+   "is_ptr": false,
+   "alias_of": null,
+   "rom_addr": 0,
+   "size": 925232
+  },
+  {
+   "index": 1,
+   "is_ptr": false,
+   "alias_of": null,
+   "rom_addr": 925232,
+   "size": 1046992
+  },
+  {
+   "index": 2,
+   "is_ptr": false,
+   "alias_of": null,
+   "rom_addr": 1972224,
+   "size": 4813952
+  },
+  {
+   "index": 3,
+   "is_ptr": false,
+   "alias_of": null,
+   "rom_addr": 6786176,
+   "size": 801024
+  }
+ ],
+ "soundfonts": [
+  {
+   "index": 0,
+   "rom_addr": 0,
+   "size": 12032,
+   "bank_normal_reported": 0,
+   "bank_normal": 0,
+   "bank_dd": null,
+   "num_instruments": 127,
+   "num_drums": 0,
+   "num_sfx": 0
+  },
+  {
+   "index": 1,
+   "rom_addr": 12032,
+   "size": 4064,
+   "bank_normal_reported": 1,
+   "bank_normal": 1,
+   "bank_dd": null,
+   "num_instruments": 127,
+   "num_drums": 0,
+   "num_sfx": 0
+  },
+  {
+   "index": 2,
+   "rom_addr": 16096,
+   "size": 1600,
+   "bank_normal_reported": 2,
+   "bank_normal": 2,
+   "bank_dd": null,
+   "num_instruments": 127,
+   "num_drums": 0,
+   "num_sfx": 0
+  },
+  {
+   "index": 3,
+   "rom_addr": 17696,
+   "size": 5472,
+   "bank_normal_reported": 2,
+   "bank_normal": 2,
+   "bank_dd": null,
+   "num_instruments": 127,
+   "num_drums": 0,
+   "num_sfx": 0
+  },
+  {
+   "index": 4,
+   "rom_addr": 23168,
+   "size": 3072,
+   "bank_normal_reported": 2,
+   "bank_normal": 2,
+   "bank_dd": null,
+   "num_instruments": 127,
+   "num_drums": 0,
+   "num_sfx": 0
+  },
+  {
+   "index": 5,
+   "rom_addr": 26240,
+   "size": 3552,
+   "bank_normal_reported": 2,
+   "bank_normal": 2,
+   "bank_dd": null,
+   "num_instruments": 127,
+   "num_drums": 0,
+   "num_sfx": 0
+  },
+  {
+   "index": 6,
+   "rom_addr": 29792,
+   "size": 4608,
+   "bank_normal_reported": 2,
+   "bank_normal": 2,
+   "bank_dd": null,
+   "num_instruments": 127,
+   "num_drums": 0,
+   "num_sfx": 0
+  },
+  {
+   "index": 7,
+   "rom_addr": 34400,
+   "size": 4160,
+   "bank_normal_reported": 2,
+   "bank_normal": 2,
+   "bank_dd": null,
+   "num_instruments": 127,
+   "num_drums": 0,
+   "num_sfx": 0
+  },
+  {
+   "index": 8,
+   "rom_addr": 38560,
+   "size": 3648,
+   "bank_normal_reported": 2,
+   "bank_normal": 2,
+   "bank_dd": null,
+   "num_instruments": 127,
+   "num_drums": 0,
+   "num_sfx": 0
+  },
+  {
+   "index": 9,
+   "rom_addr": 42208,
+   "size": 3104,
+   "bank_normal_reported": 2,
+   "bank_normal": 2,
+   "bank_dd": null,
+   "num_instruments": 127,
+   "num_drums": 0,
+   "num_sfx": 0
+  },
+  {
+   "index": 10,
+   "rom_addr": 45312,
+   "size": 6432,
+   "bank_normal_reported": 2,
+   "bank_normal": 2,
+   "bank_dd": null,
+   "num_instruments": 127,
+   "num_drums": 0,
+   "num_sfx": 0
+  },
+  {
+   "index": 11,
+   "rom_addr": 51744,
+   "size": 2592,
+   "bank_normal_reported": 2,
+   "bank_normal": 2,
+   "bank_dd": null,
+   "num_instruments": 127,
+   "num_drums": 0,
+   "num_sfx": 0
+  },
+  {
+   "index": 12,
+   "rom_addr": 54336,
+   "size": 2560,
+   "bank_normal_reported": 2,
+   "bank_normal": 2,
+   "bank_dd": null,
+   "num_instruments": 127,
+   "num_drums": 0,
+   "num_sfx": 0
+  },
+  {
+   "index": 13,
+   "rom_addr": 56896,
+   "size": 3424,
+   "bank_normal_reported": 2,
+   "bank_normal": 2,
+   "bank_dd": null,
+   "num_instruments": 127,
+   "num_drums": 0,
+   "num_sfx": 0
+  },
+  {
+   "index": 14,
+   "rom_addr": 60320,
+   "size": 3104,
+   "bank_normal_reported": 2,
+   "bank_normal": 2,
+   "bank_dd": null,
+   "num_instruments": 127,
+   "num_drums": 0,
+   "num_sfx": 0
+  },
+  {
+   "index": 15,
+   "rom_addr": 63424,
+   "size": 3840,
+   "bank_normal_reported": 2,
+   "bank_normal": 2,
+   "bank_dd": null,
+   "num_instruments": 127,
+   "num_drums": 0,
+   "num_sfx": 0
+  },
+  {
+   "index": 16,
+   "rom_addr": 67264,
+   "size": 3872,
+   "bank_normal_reported": 2,
+   "bank_normal": 2,
+   "bank_dd": null,
+   "num_instruments": 127,
+   "num_drums": 0,
+   "num_sfx": 0
+  },
+  {
+   "index": 17,
+   "rom_addr": 71136,
+   "size": 3616,
+   "bank_normal_reported": 2,
+   "bank_normal": 2,
+   "bank_dd": null,
+   "num_instruments": 127,
+   "num_drums": 0,
+   "num_sfx": 0
+  },
+  {
+   "index": 18,
+   "rom_addr": 74752,
+   "size": 4256,
+   "bank_normal_reported": 2,
+   "bank_normal": 2,
+   "bank_dd": null,
+   "num_instruments": 127,
+   "num_drums": 0,
+   "num_sfx": 0
+  },
+  {
+   "index": 19,
+   "rom_addr": 79008,
+   "size": 9600,
+   "bank_normal_reported": 2,
+   "bank_normal": 2,
+   "bank_dd": null,
+   "num_instruments": 127,
+   "num_drums": 0,
+   "num_sfx": 0
+  },
+  {
+   "index": 20,
+   "rom_addr": 88608,
+   "size": 2528,
+   "bank_normal_reported": 2,
+   "bank_normal": 2,
+   "bank_dd": null,
+   "num_instruments": 127,
+   "num_drums": 0,
+   "num_sfx": 0
+  },
+  {
+   "index": 21,
+   "rom_addr": 91136,
+   "size": 4640,
+   "bank_normal_reported": 3,
+   "bank_normal": 3,
+   "bank_dd": null,
+   "num_instruments": 16,
+   "num_drums": 64,
+   "num_sfx": 0
+  },
+  {
+   "index": 22,
+   "rom_addr": 95776,
+   "size": 384,
+   "bank_normal_reported": 3,
+   "bank_normal": 3,
+   "bank_dd": null,
+   "num_instruments": 3,
+   "num_drums": 0,
+   "num_sfx": 0
+  },
+  {
+   "index": 23,
+   "rom_addr": 96160,
+   "size": 4544,
+   "bank_normal_reported": 3,
+   "bank_normal": 3,
+   "bank_dd": null,
+   "num_instruments": 16,
+   "num_drums": 64,
+   "num_sfx": 0
+  },
+  {
+   "index": 24,
+   "rom_addr": 100704,
+   "size": 2368,
+   "bank_normal_reported": 3,
+   "bank_normal": 3,
+   "bank_dd": null,
+   "num_instruments": 10,
+   "num_drums": 64,
+   "num_sfx": 0
+  },
+  {
+   "index": 25,
+   "rom_addr": 103072,
+   "size": 2528,
+   "bank_normal_reported": 3,
+   "bank_normal": 3,
+   "bank_dd": null,
+   "num_instruments": 10,
+   "num_drums": 64,
+   "num_sfx": 0
+  },
+  {
+   "index": 26,
+   "rom_addr": 105600,
+   "size": 2336,
+   "bank_normal_reported": 3,
+   "bank_normal": 3,
+   "bank_dd": null,
+   "num_instruments": 10,
+   "num_drums": 64,
+   "num_sfx": 0
+  },
+  {
+   "index": 27,
+   "rom_addr": 107936,
+   "size": 2528,
+   "bank_normal_reported": 3,
+   "bank_normal": 3,
+   "bank_dd": null,
+   "num_instruments": 10,
+   "num_drums": 64,
+   "num_sfx": 0
+  },
+  {
+   "index": 28,
+   "rom_addr": 110464,
+   "size": 2528,
+   "bank_normal_reported": 3,
+   "bank_normal": 3,
+   "bank_dd": null,
+   "num_instruments": 10,
+   "num_drums": 64,
+   "num_sfx": 0
+  },
+  {
+   "index": 29,
+   "rom_addr": 112992,
+   "size": 2576,
+   "bank_normal_reported": 3,
+   "bank_normal": 3,
+   "bank_dd": null,
+   "num_instruments": 10,
+   "num_drums": 64,
+   "num_sfx": 0
+  },
+  {
+   "index": 30,
+   "rom_addr": 115568,
+   "size": 2528,
+   "bank_normal_reported": 3,
+   "bank_normal": 3,
+   "bank_dd": null,
+   "num_instruments": 10,
+   "num_drums": 64,
+   "num_sfx": 0
+  },
+  {
+   "index": 31,
+   "rom_addr": 118096,
+   "size": 2560,
+   "bank_normal_reported": 3,
+   "bank_normal": 3,
+   "bank_dd": null,
+   "num_instruments": 10,
+   "num_drums": 64,
+   "num_sfx": 0
+  },
+  {
+   "index": 32,
+   "rom_addr": 120656,
+   "size": 2256,
+   "bank_normal_reported": 3,
+   "bank_normal": 3,
+   "bank_dd": null,
+   "num_instruments": 10,
+   "num_drums": 64,
+   "num_sfx": 0
+  }
+ ]
+}

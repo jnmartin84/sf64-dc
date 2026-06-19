@@ -18,20 +18,8 @@
 static kos_blockdev_t dev;
 #endif
 
-#if USE_32KHZ
 #define SAMPLES_HIGH 560
 #define SAMPLES_LOW 528
-#else
-#if USE_16KHZ
-#define SAMPLES_HIGH 280
-#define SAMPLES_LOW 264
-#else
-#define SAMPLES_HIGH 448
-#define SAMPLES_LOW 448
-//#define SAMPLES_HIGH 464
-//#define SAMPLES_LOW 432
-#endif
-#endif
 
 extern struct GfxWindowManagerAPI gfx_glx;
 extern struct GfxRenderingAPI gfx_opengl_api;
@@ -310,6 +298,9 @@ void Main_ThreadEntry(void* arg0) {
 
     _AudioInit();
     AudioLoad_Init();
+#ifdef __DREAMCAST__
+    { extern void AicaSynth_Init(void); AicaSynth_Init(); }
+#endif
     Audio_InitSounds();
     vblank_handler_add(&vblfunc, NULL);
     Game_Initialize();
@@ -468,32 +459,21 @@ assetsfound:
 #include "../mods/isviewer.c"
 #endif
 
-extern int USE_MIXER_MUSIC;
-
 void* AudioThread(UNUSED void* arg) {
     uint64_t last_vbltick = vblticker;
 
     while (1) {
         while (vblticker <= last_vbltick)
-            genwait_wait((void*) &vblticker, NULL, 5, NULL);
+            genwait_wait((void*) &vblticker, NULL, 0, NULL);
 
         last_vbltick = vblticker;
 
-#if !USE_16KHZ && !USE_32KHZ
-        int samplecount = 448;
-#else
         int samplecount = SAMPLES_LOW;
         if ((gSysFrameCount & 3) == 0)
             samplecount = SAMPLES_HIGH;
-#endif
-        if (USE_MIXER_MUSIC)
-            irq_disable();
 
         AudioThread_CreateNextAudioBuffer(audio_buffer[0], audio_buffer[1], samplecount);
         audio_api->play((u8*) audio_buffer[0], (u8*) audio_buffer[1], samplecount * 4);
-
-        if (USE_MIXER_MUSIC)
-            irq_enable();
     }
 
     return NULL;
