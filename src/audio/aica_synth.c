@@ -20,6 +20,16 @@
 #include <stdio.h>
 #define AICA_DEBUG 0
 #define AICA_OCTAVE_LOG 0   /* log ADPCM samples pitched past +1 octave -> FORCE_PCM candidates */
+#define AICA_DROP_LOG 1     /* instrument every silent drop (ARAM/cache/stream/channel/resolve); capped per site */
+
+/* Log a dropped voice/stream and WHY. Each call site caps independently so a
+   recurring drop can't flood the console; a "<site capped>" marker prints once
+   when a site hits its limit. Prefix "AICADROP " makes them greppable on dcload. */
+#if AICA_DROP_LOG
+#define AICA_DROP(fmt, ...) do { static u32 _n = 0; if (_n < 200) { printf("AICADROP " fmt "\n", ##__VA_ARGS__); if (++_n == 200) printf("AICADROP <site capped>\n"); } } while (0)
+#else
+#define AICA_DROP(fmt, ...) ((void)0)
+#endif
 
 extern int snd_sh4_to_aica(void* packet, uint32_t size);
 extern AudioTable* gSampleBankTable;     /* base.romAddr = audio_table device base */
@@ -54,7 +64,7 @@ static u32 sTick;
 static s8 sChanFree[NUM_AICA_CHANNELS];
 static s32 sChanFreeTop;
 
-typedef struct { s8 channel; u8 active; u32 sampleKey; AramEntry* entry; s32 samplesLeft;
+typedef struct { s8 channel; u8 active; u32 sampleKey; AramEntry* entry;
                  u8 downsampleShift; u32 sentFreq; u8 sentVol, sentPan; } Voice;
 static Voice sVoices[MAX_VOICES];
 static u32 sWaveAram[NUM_WAVEFORMS][NUM_HARMONICS];
@@ -62,7 +72,11 @@ static u32 sWaveAram[NUM_WAVEFORMS][NUM_HARMONICS];
 typedef struct { u32 base, type, length, loop, loopstart, loopend; u8 downsample_shift; } Resolved;
 
 /* ---- long-sample streamer (PCM16 ARAM ring, SH4-decoded, timer-paced) ---- */
-#define MAX_STREAMS 8            /* every >65534 sample streams; size for concurrency */
+#define MAX_STREAMS 16           /* every >65534 sample streams; size for concurrency.
+                                    Hard ceiling is gNumNotes (22): streams are keyed by
+                                    note slot, a note is voice XOR stream, so channel use
+                                    stays <= gNumNotes. Each slot costs one 8KB ARAM ring
+                                    (allocated at init) + one AICA channel while active. */
 #define STREAM_RING_SAMPLES 4096u
 #define STREAM_GUARD 256u
 static const s32 ADPCM_DIFF[16] = { 1,3,5,7,9,11,13,15,-1,-3,-5,-7,-9,-11,-13,-15 };
@@ -98,17 +112,23 @@ static AramEntry* cache_acquire(u32 key, u32 pool_offset, u32 byte_len) {
     s32 i;
     if (e) { e->refs++; e->lru = sTick; return e; }
     u32 aram = (u32)snd_mem_malloc(byte_len);
-    if (aram == 0) {
+    /* ARAM full: evict the LRU unreferenced entry and retry, looping until the
+       alloc fits or nothing more can be freed. One eviction isn't enough when the
+       new sample is larger than the freed block or ARAM is fragmented -- exactly
+       the case for big voice/speech samples. Referenced (playing) entries are
+       never touched, so a busy frame can still legitimately fail (-> drop+log). */
+    while (aram == 0) {
         AramEntry* victim = NULL;
         for (i = 0; i < ARAM_CACHE_ENTRIES; i++)
             if (sCache[i].key != KEY_EMPTY && sCache[i].refs == 0)
                 if (!victim || sCache[i].lru < victim->lru) victim = &sCache[i];
-        if (victim) { snd_mem_free(victim->aram); victim->key = KEY_EMPTY; victim->aram = 0; aram = (u32)snd_mem_malloc(byte_len); }
-        if (aram == 0) return NULL;
+        if (!victim) { AICA_DROP("ARAMFULL key=%X len=%u (no evictable entry left)", (unsigned)key, (unsigned)byte_len); return NULL; }
+        snd_mem_free(victim->aram); victim->key = KEY_EMPTY; victim->aram = 0;
+        aram = (u32)snd_mem_malloc(byte_len);
     }
     spu_memload_sq(aram, (void*)(gAicaAdpcmPoolBase + pool_offset), (byte_len + 31) & ~31);
     e = cache_find(KEY_EMPTY);
-    if (!e) { snd_mem_free(aram); return NULL; }
+    if (!e) { snd_mem_free(aram); AICA_DROP("CACHETBLFULL key=%X (all %d entries resident)", (unsigned)key, ARAM_CACHE_ENTRIES); return NULL; }
     e->key = key; e->aram = aram; e->len = byte_len; e->refs = 1; e->lru = sTick;
     return e;
 }
@@ -219,13 +239,16 @@ static void chan_stop(s32 ch) {
 }
 
 static s32 chan_alloc(void) { return sChanFreeTop ? sChanFree[--sChanFreeTop] : -1; }
-static void chan_release(s32 ch) { if (sChanFreeTop < NUM_AICA_CHANNELS) sChanFree[sChanFreeTop++] = (s8)ch; }
+static void chan_release(s32 ch) {
+    if (sChanFreeTop < NUM_AICA_CHANNELS) sChanFree[sChanFreeTop++] = (s8)ch;
+    else AICA_DROP("CHANOVERRELEASE ch=%d top=%d (double-release/bookkeeping bug)", (int)ch, (int)sChanFreeTop);
+}
 
 static void voice_stop(s32 i) {
     Voice* v = &sVoices[i];
     if (v->channel >= 0) { chan_stop(v->channel); chan_release(v->channel); }
     cache_release(v->entry);
-    v->channel = -1; v->active = 0; v->entry = NULL; v->sampleKey = KEY_EMPTY; v->samplesLeft = -1;
+    v->channel = -1; v->active = 0; v->entry = NULL; v->sampleKey = KEY_EMPTY;
     v->downsampleShift = 0; v->sentFreq = 0; v->sentVol = 0; v->sentPan = 0;
 }
 
@@ -270,8 +293,13 @@ static Stream* stream_for_note(s32 noteIndex) {
 static void stream_start(s32 noteIndex, const AicaSampleDesc* d, u32 freq, u32 vol, u32 pan) {
     Stream* s = NULL; s32 i, ch;
     for (i = 0; i < MAX_STREAMS; i++) if (sStreams[i].noteIndex < 0) { s = &sStreams[i]; break; }
-    if (!s) return;
-    ch = chan_alloc(); if (ch < 0) return;
+    if (!s) {
+        s32 nDone = 0, k;
+        for (k = 0; k < MAX_STREAMS; k++) if (sStreams[k].done) nDone++;
+        AICA_DROP("STREAMSLOTFULL note=%d key=%X (all %d busy, %d done-squatting)", (int)noteIndex, (unsigned)d->src_offset, MAX_STREAMS, (int)nDone);
+        return;
+    }
+    ch = chan_alloc(); if (ch < 0) { AICA_DROP("STREAMCHANFULL note=%d key=%X", (int)noteIndex, (unsigned)d->src_offset); return; }
     s->noteIndex = noteIndex; s->channel = ch; s->key = d->src_offset;
     s->src = gAicaAdpcmPoolBase + d->pool_offset;
     s->nsamples = d->nsamples; s->loopFlag = d->loop_flag;
@@ -306,7 +334,7 @@ static int stream_service(Stream* s, u32 vol, u32 pan) {
 void AicaSynth_Init(void) {
     s32 i, ch; u32 w, h;
     for (i = 0; i < ARAM_CACHE_ENTRIES; i++) { sCache[i].key = KEY_EMPTY; sCache[i].aram = 0; sCache[i].refs = 0; }
-    for (i = 0; i < MAX_VOICES; i++) { sVoices[i].channel = -1; sVoices[i].active = 0; sVoices[i].entry = NULL; sVoices[i].sampleKey = KEY_EMPTY; sVoices[i].samplesLeft = -1; sVoices[i].downsampleShift = 0; sVoices[i].sentFreq = 0; sVoices[i].sentVol = 0; sVoices[i].sentPan = 0; }
+    for (i = 0; i < MAX_VOICES; i++) { sVoices[i].channel = -1; sVoices[i].active = 0; sVoices[i].entry = NULL; sVoices[i].sampleKey = KEY_EMPTY; sVoices[i].downsampleShift = 0; sVoices[i].sentFreq = 0; sVoices[i].sentVol = 0; sVoices[i].sentPan = 0; }
     sChanFreeTop = 0;
     for (ch = NUM_AICA_CHANNELS - 1; ch >= 0; ch--) sChanFree[sChanFreeTop++] = (s8)ch;
 
@@ -315,6 +343,7 @@ void AicaSynth_Init(void) {
     for (w = 0; w < NUM_WAVEFORMS; w++) {
         u32 bytes = NUM_HARMONICS * WAVE_SAMPLES * sizeof(s16);
         u32 aram = (u32)snd_mem_malloc(bytes);
+        if (aram == 0) AICA_DROP("INITWAVEFAIL w=%u bytes=%u (synth wavetable not staged)", (unsigned)w, (unsigned)bytes);
         spu_memload_sq(aram, (void*)gWaveSamples[w], (bytes + 31) & ~31);
         for (h = 0; h < NUM_HARMONICS; h++) sWaveAram[w][h] = aram + h * WAVE_SAMPLES * sizeof(s16);
     }
@@ -388,6 +417,7 @@ void AicaSynth_Update(void) {
 #if AICA_DEBUG
             nFail++;
 #endif
+            AICA_DROP("RESOLVE0 note=%d synth=%d (sample unresolved/ARAM/pool)", (int)i, (int)sub->bitField1.isSyntheticWave);
             if (v->active) voice_stop(i);
             st = stream_for_note(i); if (st) stream_free(st);
             continue;
@@ -429,9 +459,8 @@ void AicaSynth_Update(void) {
             s32 chn;
             if (v->active) voice_stop(i);
             chn = chan_alloc();
-            if (chn < 0) { cache_release(entry); continue; }
+            if (chn < 0) { cache_release(entry); AICA_DROP("VOICECHANFULL note=%d key=%X (no free AICA channel)", (int)i, (unsigned)key); continue; }
             v->channel = chn; v->active = 1; v->sampleKey = key; v->entry = entry;
-            v->samplesLeft = res.loop ? -1 : (s32)res.length;
             v->downsampleShift = res.downsample_shift;
             chan_start(chn, &res, freq, vol, pan);
             v->sentFreq = freq; v->sentVol = (u8)vol; v->sentPan = (u8)pan;
@@ -473,19 +502,6 @@ void AicaSynth_Update(void) {
             if (freq != v->sentFreq || (u8)vol != v->sentVol || (u8)pan != v->sentPan) {
                 chan_update(v->channel, freq, vol, pan);
                 v->sentFreq = freq; v->sentVol = (u8)vol; v->sentPan = (u8)pan;
-            }
-        }
-
-        /* One-shot play-out: the render normally set noteSubEu.finished when a
-           non-looping sample reached its end, which the engine uses to release
-           the note. We replicate it by counting the sample down (~freq/60 samples
-           per frame) and flagging the SOURCE note finished -- otherwise a one-shot
-           note lingers/re-triggers and the sound repeats. */
-        if (v->samplesLeft > 0) {
-            v->samplesLeft -= (s32)(freq / 60u);
-            if (v->samplesLeft <= 0) {
-                v->samplesLeft = -1;
-                gNotes[i].noteSubEu.bitField0.finished = 1;
             }
         }
     }

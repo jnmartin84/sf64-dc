@@ -38,14 +38,14 @@ void AudioThread_CreateNextAudioBuffer(s16* samplesL, s16* samplesR, u32 num_sam
 
 void* AudioThread(UNUSED void* arg);
 
-static volatile uint64_t vblticker = 0;
+/* static  */volatile uint64_t vblticker = 0;
 
 void vblfunc(uint32_t c, void* d) {
     (void) c;
     (void) d;
     vblticker++;
     osSendMesg(&gGfxVImesgQueue, (OSMesg) NULL, OS_MESG_NOBLOCK);
-    genwait_wake_one((void*) &vblticker);
+    genwait_wake_all((void*) &vblticker);
 }
 
 void _AudioInit(void) {

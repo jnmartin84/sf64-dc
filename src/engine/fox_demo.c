@@ -1343,7 +1343,7 @@ void Cutscene_WarpZoneComplete(Player* player);
 void Cutscene_FortunaComplete(Player* player);
 void Cutscene_CoComplete2(Player* player);
 
-#define USE_CUTSCENE_RECORDINGS 1
+#define USE_CUTSCENE_RECORDINGS 0
 
 #if USE_CUTSCENE_RECORDINGS
 typedef struct Record {

@@ -46,10 +46,6 @@ MODS_LEVEL_SELECT ?= 1
 # Set a custom IP.BIN boot logo when building CDI files
 MR_LOGO ?= assets/dreamcast/mrlogo.mr
 
-### Music URL
-# Set the URL for downloading music files
-MUSIC_ARCHIVE_URL ?= https://archive.org/download/sf64_ost_seqid/sf64_ost_seqid.tgz
-
 ##################################################
 #### End User Configurable Options and Cheats ####
 ##################################################
@@ -82,7 +78,6 @@ PRINT ?= printf
 VERSION ?= us
 REV ?= rev1
 
-MUSIC_ARCHIVE        := sf64_ost_seqid.tgz
 BASEROM              := baserom.$(VERSION).$(REV).z64
 BASEROM_UNCOMPRESSED := baserom.$(VERSION).$(REV).uncompressed.z64
 TARGET               := sf64
@@ -100,7 +95,6 @@ CDI_ODE       := $(TARGET)-ode.cdi
 DSISO         := $(TARGET)-ds.iso
 FILES_ZIP     := $(TARGET).zip
 SF_DATA_PATH  := sf_data
-SF_MUSIC_PATH := music
 
 #### Setup ####
 
@@ -383,24 +377,6 @@ ASSET_DIRS := ast_7_ti_1 ast_7_ti_2 ast_8_ti ast_9_ti ast_A_ti \
 # Apply the ASSET_OPTFLAGS to each of the ASSET_DIRS
 $(foreach dir,$(ASSET_DIRS),$(eval build/src/assets/$(dir)/%.o: OPTFLAGS := $(ASSET_OPTFLAGS)))
 
-# music files
-MUSIC_FILES := $(SF_MUSIC_PATH)/02.adp $(SF_MUSIC_PATH)/03.adp $(SF_MUSIC_PATH)/04.adp \
-               $(SF_MUSIC_PATH)/05.adp $(SF_MUSIC_PATH)/06.adp $(SF_MUSIC_PATH)/07.adp \
-               $(SF_MUSIC_PATH)/08.adp $(SF_MUSIC_PATH)/09.adp $(SF_MUSIC_PATH)/10.adp \
-               $(SF_MUSIC_PATH)/12.adp $(SF_MUSIC_PATH)/13.adp $(SF_MUSIC_PATH)/14.adp \
-               $(SF_MUSIC_PATH)/17.adp $(SF_MUSIC_PATH)/18.adp $(SF_MUSIC_PATH)/19.adp \
-               $(SF_MUSIC_PATH)/21_2.adp $(SF_MUSIC_PATH)/23.adp $(SF_MUSIC_PATH)/28.adp \
-               $(SF_MUSIC_PATH)/33.adp $(SF_MUSIC_PATH)/33_2.adp $(SF_MUSIC_PATH)/34.adp \
-               $(SF_MUSIC_PATH)/35.adp $(SF_MUSIC_PATH)/36.adp $(SF_MUSIC_PATH)/37.adp \
-               $(SF_MUSIC_PATH)/38.adp $(SF_MUSIC_PATH)/39.adp $(SF_MUSIC_PATH)/40.adp \
-               $(SF_MUSIC_PATH)/42.adp $(SF_MUSIC_PATH)/43.adp $(SF_MUSIC_PATH)/44.adp \
-               $(SF_MUSIC_PATH)/45.adp $(SF_MUSIC_PATH)/46.adp $(SF_MUSIC_PATH)/47.adp \
-               $(SF_MUSIC_PATH)/49.adp $(SF_MUSIC_PATH)/50.adp $(SF_MUSIC_PATH)/51.adp \
-               $(SF_MUSIC_PATH)/54.adp $(SF_MUSIC_PATH)/55.adp $(SF_MUSIC_PATH)/56.adp \
-               $(SF_MUSIC_PATH)/58.adp $(SF_MUSIC_PATH)/60.adp $(SF_MUSIC_PATH)/61.adp \
-               $(SF_MUSIC_PATH)/62.adp $(SF_MUSIC_PATH)/63.adp $(SF_MUSIC_PATH)/64.adp \
-               $(SF_MUSIC_PATH)/65.adp
-
 # Dreamcast-specific objects
 DC_OBJS := build/dcconsole.o \
            build/dclogo.o
@@ -583,7 +559,7 @@ endif
 
 default: $(ELF)
 
-all: elf bin music cdi-cdr cdi-ode files-zip dsiso
+all: elf bin cdi-cdr cdi-ode files-zip dsiso
 
 toolchain:
 	@$(MAKE) -s -C $(TOOLS)
@@ -632,22 +608,22 @@ $(BIN): $(ELF)
 	$(call print2,Creating $(BIN)...)
 	sh-elf-objcopy -O binary $(ELF) $(BIN)
 
-$(CDI_ODE): $(ELF) $(MUSIC_FILES)
+$(CDI_ODE): $(ELF)
 	$(call print2,Creating CDI file for ODE use...)
-	mkdcdisc -a jnmartin84 -n "Star Fox 64" -r 20251205 -i $(MR_LOGO) -f sf64.ico -d $(SF_MUSIC_PATH) -d $(SF_DATA_PATH) -e $(ELF) -o $(CDI_ODE) -N
+	mkdcdisc -a jnmartin84 -n "Star Fox 64" -r 20251205 -i $(MR_LOGO) -f sf64.ico -d $(SF_DATA_PATH) -e $(ELF) -o $(CDI_ODE) -N
 
-$(CDI_CDR): $(ELF) $(MUSIC_FILES)
+$(CDI_CDR): $(ELF)
 	$(call print2,Creating CDI file for burning to CD-R...)
-	mkdcdisc -a jnmartin84 -n "Star Fox 64" -r 20251205 -i $(MR_LOGO) -f sf64.ico -d $(SF_MUSIC_PATH) -d $(SF_DATA_PATH) -e $(ELF) -o $(CDI_CDR)
+	mkdcdisc -a jnmartin84 -n "Star Fox 64" -r 20251205 -i $(MR_LOGO) -f sf64.ico -d $(SF_DATA_PATH) -e $(ELF) -o $(CDI_CDR)
 
-$(DSISO): $(BIN) $(MUSIC_FILES)
+$(DSISO): $(BIN)
 	$(call print2,Creating DreamShell ISO file...)
 	mkisofs -G ip.bin -V "STARFOX64" -r -J -l -graft-points -o $(DSISO) \
-		$(SF_MUSIC_PATH)=$(SF_MUSIC_PATH) $(SF_DATA_PATH)=$(SF_DATA_PATH) 1ST_READ.BIN=$(BIN) sf64.ico
+		$(SF_DATA_PATH)=$(SF_DATA_PATH) 1ST_READ.BIN=$(BIN) sf64.ico
 
-$(FILES_ZIP): $(ELF) $(BIN) $(MUSIC_FILES)
+$(FILES_ZIP): $(ELF) $(BIN)
 	$(call print2,Creating ZIP archive for plain files...)
-	zip -r $(FILES_ZIP) $(SF_MUSIC_PATH) $(SF_DATA_PATH) $(ELF) $(BIN) sf64.ico
+	zip -r $(FILES_ZIP) $(SF_DATA_PATH) $(ELF) $(BIN) sf64.ico
 
 # AICA voice driver: regenerate the Yamaha-ADPCM pool (sf_data/adpcm_pool.bin,
 # loaded at runtime) + sample table from the soundfont banks (timestamp-gated;
@@ -784,35 +760,6 @@ sf-data: initted.touch $(SF_DATA_PATH)/adpcm_pool.bin
 	@sh-elf-objcopy -O binary --only-section=.data --only-section=.bss build/src/assets/ast_8_ti/ast_8_ti.elf $(SF_DATA_PATH)/8ti.bin
 	@sh-elf-objcopy -O binary --only-section=.data --only-section=.bss build/src/assets/ast_7_ti_2/ast_7_ti_2.elf $(SF_DATA_PATH)/7ti2.bin
 
-music: $(MUSIC_FILES)
-
-$(MUSIC_FILES): $(MUSIC_ARCHIVE)
-	@mkdir -p $(SF_MUSIC_PATH)
-	$(call print2,Unpacking music archive...)
-	@tar xzf $(MUSIC_ARCHIVE) -C $(SF_MUSIC_PATH) --exclude='._*'
-	$(call print2,Converting WAV to ADPCM...)
-	@for f in $(SF_MUSIC_PATH)/*.wav; do \
-		[ -e "$$f" ] || continue; \
-		adpout="$${f%.wav}.adp"; \
-		echo "Converting: $$f -> $$adpout"; \
-		${KOS_BASE}/utils/wav2adpcm/wav2adpcm -n -i -t "$$f" "$$adpout"; \
-	done
-	@rm $(SF_MUSIC_PATH)/*.wav
-
-$(MUSIC_ARCHIVE):
-	$(call print2,Music archive not present -- downloading from $(MUSIC_ARCHIVE_URL)...)
-	@mkdir -p $(SF_MUSIC_PATH)
-	@if command -v wget >/dev/null 2>&1; then \
-		wget -O "$(MUSIC_ARCHIVE)" "$(MUSIC_ARCHIVE_URL)"; \
-	elif command -v curl >/dev/null 2>&1; then \
-		curl -L -o "$(MUSIC_ARCHIVE)" "$(MUSIC_ARCHIVE_URL)"; \
-	else \
-		echo "Error: Can't download $(MUSIC_ARCHIVE) as neither wget nor curl were found on this system."; \
-		echo "Download $(MUSIC_ARCHIVE) from $(MUSIC_ARCHIVE_URL)"; \
-		echo "then place the file in this folder in order to proceed."; \
-		exit 1; \
-	fi
-
 objects: $(O_FILES)
 
 initted.touch:
@@ -851,7 +798,6 @@ mod:
 	@$(TORCH) modding import code $(BASEROM_UNCOMPRESSED)
 
 distclean:
-	@rm $(MUSIC_ARCHIVE)
 	@rm $(BASEROM)
 
 clean:
@@ -870,7 +816,6 @@ clean:
 	@-rm -f $(DSISO)
 	@-rm -f initted.touch
 	@-rm -rf $(SF_DATA_PATH)
-	@-rm -rf $(SF_MUSIC_PATH)
 
 format:
 	@$(PYTHON) $(TOOLS)/format.py -j $(N_THREADS)
@@ -916,4 +861,4 @@ build/src/libultra/libc/ll.o: src/libultra/libc/ll.c
 # Print target for debugging
 print-% : ; $(info $* is a $(flavor $*) variable set to [$($*)]) @true
 
-.PHONY: default all clean init extract format checkformat decompress assets context toolchain sf-data music objects elf bin cdi-cdr cdi-ode files-zip dsiso
+.PHONY: default all clean init extract format checkformat decompress assets context toolchain sf-data objects elf bin cdi-cdr cdi-ode files-zip dsiso

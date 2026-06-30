@@ -120,26 +120,32 @@ static uint8_t gfx_dc_start_frame(void) {
 static void gfx_dc_swap_buffers_begin(void) {
     ;
 }
-
+extern volatile uint64_t vblticker;
+uint64_t last_ticker = 0;
 static void gfx_dc_swap_buffers_end(void) {
-    const unsigned int cur_time = GetSystemTimeLow();
-    const unsigned int elapsed = cur_time - last_time;
+  //  const unsigned int cur_time = GetSystemTimeLow();
+   // const unsigned int elapsed = cur_time - last_time;
 
     // swap before doing any kind of delay or passing of thread
     glKosSwapBuffers();
 
-    last_time = cur_time;
+//    last_time = cur_time;
 
     // Number of microseconds a frame should take (anywhere between 2 and 5 VIs per frame)
-    uint32_t ActualFrameTime = frametimes[gVIsPerFrame];
+//    uint32_t ActualFrameTime = frametimes[gVIsPerFrame];
 
-    if (force_vis && (elapsed < ActualFrameTime)) {
-#ifdef DEBUG
-        printf("elapsed %d ms fps %f delay %d \n", elapsed, 1000.0f / elapsed, ActualFrameTime - elapsed);
-#endif
-        DelayThread(ActualFrameTime - elapsed);
-        last_time += (ActualFrameTime - elapsed);
-    }
+    while (vblticker < (last_ticker + gVIsPerFrame))
+        genwait_wait((void*)&vblticker, NULL, 0, NULL);
+    last_ticker = vblticker;
+
+
+  //  if (force_vis && (elapsed < ActualFrameTime)) {
+//#ifdef DEBUG
+  //      printf("elapsed %d ms fps %f delay %d \n", elapsed, 1000.0f / elapsed, ActualFrameTime - elapsed);
+//#endif
+  //      DelayThread(ActualFrameTime - elapsed);
+    //    last_time += (ActualFrameTime - elapsed);
+    //}
 }
 
 /* Idk what this is for? */
