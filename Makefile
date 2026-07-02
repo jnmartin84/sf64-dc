@@ -386,7 +386,6 @@ DC_OBJS := build/dcconsole.o \
 AUDIO_OBJS := build/src/audio/libwav.o \
               build/src/audio/sndwav.o \
               build/src/audio/mixer.o \
-              build/src/dcaudio/driver.o \
               build/src/audio/audio_synthesis.o \
               build/src/audio/audio_heap.o \
               build/src/audio/audio_load.o \

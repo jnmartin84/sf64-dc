@@ -27,12 +27,8 @@ static struct GfxRenderingAPI* rendering_api = &gfx_pvr_api;
 
 extern void gfx_run(Gfx* commands);
 char* fnpre;
-#include "src/dcaudio/audio_api.h"
-#include "src/dcaudio/audio_dc.h"
+#include <dc/sound/sound.h>
 volatile int inited = 0;
-extern struct AudioAPI audio_dc;
-s16 audio_buffer[2][SAMPLES_HIGH * 2 * 2 * 3] __attribute__((aligned(64)));
-static struct AudioAPI* audio_api = NULL;
 void AudioThread_CreateNextAudioBuffer(s16* samplesL, s16* samplesR, u32 num_samples);
 
 void* AudioThread(UNUSED void* arg);
@@ -48,10 +44,21 @@ void vblfunc(uint32_t c, void* d) {
 }
 
 void _AudioInit(void) {
-    if (audio_api == NULL) {
-        audio_api = &audio_dc;
-        audio_api->init();
+    static int audio_started = 0;
+    if (audio_started) {
+        return;
     }
+    audio_started = 1;
+    /* Bring up the base sound system (AICA ARM program + snd_mem/ARAM allocator +
+       SH4->AICA command queue) that the voice driver relies on. AICA mixes in
+       hardware, so this produces no output of its own. */
+    if (snd_init() != 0) {
+        printf("AICA INIT FAILURE!\n");
+        return;
+    }
+    /* keep the scheduler lively for the vblank-driven synthesis thread */
+    thd_set_hz(300);
+    printf("Sound init complete (AICA hardware mixing, no stream)!\n");
 }
 
 SPTask* gCurrentTask;
@@ -303,9 +310,7 @@ void Main_ThreadEntry(void* arg0) {
 
     _AudioInit();
     AudioLoad_Init();
-#ifdef __DREAMCAST__
     { extern void AicaSynth_Init(void); AicaSynth_Init(); }
-#endif
     Audio_InitSounds();
     vblank_handler_add(&vblfunc, NULL);
     Game_Initialize();
@@ -501,8 +506,10 @@ void* AudioThread(UNUSED void* arg) {
                (not gSysFrameCount) so the sample-count cadence tracks buffers we
                actually produce and stays correct through catch-up. */
             int samplecount = ((audio_frame++ & 3) == 0) ? SAMPLES_HIGH : SAMPLES_LOW;
-            AudioThread_CreateNextAudioBuffer(audio_buffer[0], audio_buffer[1], samplecount);
-            audio_api->play((u8*) audio_buffer[0], (u8*) audio_buffer[1], samplecount * 4);
+            /* AICA mixes in hardware: AudioSynth_Update ticks the synth/voices and (on
+               __DREAMCAST__) discards the sample buffers, so pass NULL — there is no
+               software-mixed output buffer. */
+            AudioThread_CreateNextAudioBuffer(NULL, NULL, samplecount);
         }
     }
 

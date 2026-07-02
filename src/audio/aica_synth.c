@@ -10,8 +10,6 @@
 #include "sf64audio_provisional.h"
 #include "aica_synth.h"
 
-#ifdef __DREAMCAST__
-
 #include <dc/sound/sound.h>
 #include <dc/spu.h>
 #include <dc/sound/aica_comm.h>
@@ -552,10 +550,3 @@ void AicaSynth_Update(void) {
     }
 #endif
 }
-
-#else
-const unsigned char* gAicaAdpcmPoolBase = 0;
-void AicaSynth_Init(void) {}
-void AicaSynth_Update(void) {}
-void AicaSynth_RefreshActive(s32 tick) { (void)tick; }
-#endif

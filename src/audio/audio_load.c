@@ -9,7 +9,6 @@
 #define SIZE_OF_SEQ 240880
 #define SIZE_OF_BANK 122912
 #define SIZE_OF_TABLE 7587200
-#ifdef __DREAMCAST__
 /* AICA hardware mixing: the raw VADPCM sample bank (audio_table, ~7.2MB) is
    never dereferenced once the software render is replaced -- sample->sampleAddr
    is used only for the pool lookup key (sampleAddr - gSampleBankTable base). So
@@ -17,9 +16,6 @@
    6.4MB AICA pool (loaded into gAicaAdpcmPoolBase) takes its place in RAM. */
 u8 __attribute__((aligned(32))) __audio_seq_ROM_START[SIZE_OF_SEQ + SIZE_OF_BANK + 64];
 extern const unsigned char* gAicaAdpcmPoolBase;
-#else
-u8 __attribute__((aligned(32))) __audio_seq_ROM_START[SIZE_OF_SEQ + SIZE_OF_BANK + SIZE_OF_TABLE];
-#endif
 
 s32 D_80146D80;
 s32 PAD_80146D88[2];
@@ -280,31 +276,11 @@ void AudioLoad_SyncLoadSeqParts(s32 seqId, s32 flags) {
 
 s32 AudioLoad_SyncLoadSample(Sample* sample, s32 fontId) {
     u8* sampleAddr;
-#ifdef __DREAMCAST__
-    /* AICA: leave sample->sampleAddr as the audio_table offset (pool key); the
-       engine's PCM cache is unused and would break the key (see RelocateFont). */
+    /* AICA: leave sample->sampleAddr as the audio_table offset (pool key); the engine's
+       PCM cache is unused and would break the key (see RelocateFont). AICA renders from
+       its own ARAM pool, so there is nothing to DMA/cache here. */
     (void) sample; (void) fontId; (void) sampleAddr;
     return 0;
-#endif
-
-    if ((sample->isRelocated == 1) && (sample->medium != MEDIUM_RAM)) {
-        sampleAddr = AudioHeap_AllocPersistentSampleCache(sample->size, fontId, sample->sampleAddr, sample->medium);
-        if (sampleAddr == NULL) {
-            return -1;
-        }
-        if (sample->medium == MEDIUM_DISK) {
-            AudioLoad_SyncDmaDisk(sample->sampleAddr, sampleAddr, sample->size,
-                                       gSampleBankTable->base.diskParam);
-        } else {
-            AudioLoad_SyncDma(sample->sampleAddr, sampleAddr, sample->size, sample->medium);
-        }
-        sample->medium = MEDIUM_RAM;
-        sample->sampleAddr = sampleAddr;
-    }
-
-#ifdef AVOID_UB
-    return 0;
-#endif
 }
 
 s32 AudioLoad_SyncLoadInstrument(s32 fontId, s32 instId, s32 drumId) {
@@ -365,8 +341,7 @@ u8* AudioLoad_GetFontsForSequence(s32 seqId, u32* outNumFonts) {
 }
 
 void AudioLoad_DiscardSeqFonts(s32 seqId) {
-    s32 index = (s32)(__builtin_bswap16(*(u16*) gSeqFontTable + AudioLoad_GetLoadTableIndex(SEQUENCE_TABLE, seqId)));
-//  s32 index = *((u16*) gSeqFontTable + AudioLoad_GetLoadTableIndex(SEQUENCE_TABLE, seqId));
+    s32 index = (s32)(__builtin_bswap16(*((u16*) gSeqFontTable + AudioLoad_GetLoadTableIndex(SEQUENCE_TABLE, seqId))));
 
     s32 numFonts = gSeqFontTable[index++];
     u32 fontId;
@@ -971,7 +946,6 @@ void AudioLoad_LoadFiles(void) {
         printf("adpcm_pool %ld @ %08x\n", filesize, (uintptr_t) pool);
     }
 
-    #ifdef __DREAMCAST__
     for(int mi=0;mi<6*1048576;mi+=65536) {
         void *test_m = malloc(mi);
         if (test_m != NULL) {
@@ -994,7 +968,6 @@ void AudioLoad_LoadFiles(void) {
         }
     }
 run_game_loop:
-#endif /* __DREAMCAST__ */
 }
 
 #include <kos.h>
@@ -1469,106 +1442,19 @@ void AudioLoad_RelocateSample(TunedSample* tSample, u32 fontDataAddr, SampleBank
 }
 
 s32 AudioLoad_RelocateFontAndPreloadSamples(s32 fontId, u32 fontDataAddr, SampleBankRelocInfo* relocData, s32 isAsync) {
-    s32 i;
-    Sample* sample;
-    u8* sampleRamAddr;
-    s32 size;
-    u32 nChunks;
-    s32 inProgress = 0;
-    if (gPreloadSampleStackTop != 0) {
-        inProgress = 1;
-    } else {
+    if (gPreloadSampleStackTop == 0) {
         D_80146D80 = 0;
     }
 
     gNumUsedSamples = 0;
     AudioLoad_RelocateFont(fontId, fontDataAddr, relocData);
-#ifdef __DREAMCAST__
-    /* AICA: RelocateFont set sample->sampleAddr to the audio_table offset (our
-       pool lookup key). Skip the engine's sample cache/preload entirely -- the
-       AICA driver uses its own ARAM pool, the raw VADPCM table isn't resident,
-       and caching would overwrite sampleAddr with a RAM cache address and break
-       the key (this is why level/async-loaded fonts went silent). */
-    return 0;
-#endif
-    size = 0;
 
-    for (i = 0; i < gNumUsedSamples; i++) {
-        size += ALIGN16(gUsedSamples[i]->size);
-    }
-
-    for (i = 0; i < gNumUsedSamples; i++) {
-        if (gPreloadSampleStackTop == 120) {
-            break;
-        }
-        sample = gUsedSamples[i];
-#ifdef AVOID_UB
-        sampleRamAddr = NULL;
-#endif
-        //! @bug Those are assignments, not equality checks.
-        switch (isAsync) {
-            case AUDIOLOAD_SYNC:
-                if (sample->medium == relocData->medium1) {
-                    sampleRamAddr = AudioHeap_AllocPersistentSampleCache(sample->size, relocData->sampleBankId1,
-                                                                         sample->sampleAddr, sample->medium);
-                } else if (sample->medium == relocData->medium2) {
-                    sampleRamAddr = AudioHeap_AllocPersistentSampleCache(sample->size, relocData->sampleBankId2,
-                                                                         sample->sampleAddr, sample->medium);
-                }
-                break;
-
-            case AUDIOLOAD_ASYNC:
-                if (sample->medium == relocData->medium1) {
-                    sampleRamAddr = AudioHeap_AllocTemporarySampleCache(sample->size, relocData->sampleBankId1,
-                                                                        sample->sampleAddr, sample->medium);
-                } else if (sample->medium == relocData->medium2) {
-                    sampleRamAddr = AudioHeap_AllocTemporarySampleCache(sample->size, relocData->sampleBankId2,
-                                                                        sample->sampleAddr, sample->medium);
-                }
-                break;
-        }
-
-        if (sampleRamAddr == NULL) {
-            continue;
-        }
-
-        switch (isAsync) {
-            case AUDIOLOAD_SYNC:
-                if (sample->medium == MEDIUM_DISK) {
-                    AudioLoad_SyncDmaDisk(sample->sampleAddr, sampleRamAddr, sample->size,
-                                               gSampleBankTable->base.diskParam);
-                    sample->sampleAddr = sampleRamAddr;
-                    sample->medium = MEDIUM_RAM;
-                } else {
-                    AudioLoad_SyncDma(sample->sampleAddr, sampleRamAddr, sample->size, sample->medium);
-                    sample->sampleAddr = sampleRamAddr;
-                    sample->medium = MEDIUM_RAM;
-                }
-                break;
-
-            case AUDIOLOAD_ASYNC:
-                size = gPreloadSampleStackTop;
-                gPreloadSampleStack[size].sample = sample;
-                gPreloadSampleStack[size].ramAddr = sampleRamAddr;
-                gPreloadSampleStack[size].encodedInfo = (size << 24) | 0xFFFFFF;
-                gPreloadSampleStack[size].isFree = 0;
-                gPreloadSampleStack[size].endAndMediumKey =
-                    (uintptr_t) sample->sampleAddr + sample->size + sample->medium;
-                gPreloadSampleStackTop++;
-                break;
-        }
-    }
-
-    gNumUsedSamples = 0;
-
-    if ((gPreloadSampleStackTop != 0) && !inProgress) {
-        sample = gPreloadSampleStack[gPreloadSampleStackTop - 1].sample;
-        nChunks = (sample->size / 0x1000) + 1;
-        AudioLoad_StartAsyncLoad(sample->sampleAddr, gPreloadSampleStack[gPreloadSampleStackTop - 1].ramAddr,
-                                 sample->size, sample->medium, nChunks, &gPreloadSampleQueue,
-                                 gPreloadSampleStack[gPreloadSampleStackTop - 1].encodedInfo);
-    }
-
+    /* AICA: RelocateFont set sample->sampleAddr to the audio_table offset (our pool
+       lookup key). The engine's sample cache/preload is skipped entirely -- the AICA
+       driver uses its own ARAM pool, the raw VADPCM table isn't resident, and caching
+       would overwrite sampleAddr with a RAM cache address and break the key (this is why
+       level/async-loaded fonts went silent). isAsync is moot with no preload. */
+    (void) isAsync;
     return 0;
 }
 

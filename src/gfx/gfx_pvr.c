@@ -710,12 +710,10 @@ void gfx_pvr_draw_triangles_2d(void *buf_vbo, UNUSED size_t buf_vbo_len, UNUSED 
 }
 
 static void gfx_pvr_init(void) {
-#ifdef __DREAMCAST__
     if (vid_check_cable() != CT_VGA)
         vid_set_mode(DM_640x480_NTSC_IL, PM_RGB565);
     else
         vid_set_mode(DM_640x480_VGA, PM_RGB565);
-#endif
     pvr_init(&sPvrParams);
 
     // PT alpha-test reference: punch-through discards texels with alpha <= this, giving N64
