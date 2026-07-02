@@ -1,14 +1,12 @@
 // gfx_pvr.c — raw-KOS-PVR backend for the Star Fox 64 DC renderer.
 //
-// Drop-in alternative to the GLdc backend (gfx_gldc.c): implements the same
-// struct GfxRenderingAPI, but submits geometry straight to the PVR via the
-// direct-render (store-queue) path instead of going through OpenGL. The
-// gfx_retro_dc.c front-end (command interpreter, matrix lighting, texgen,
-// palette-id CI4 cache, SW clip/cull/scissor) is shared; only this backend differs.
+// The renderer backend: implements struct GfxRenderingAPI and submits geometry
+// straight to the PVR via the direct-render (store-queue) path. The gfx_retro_dc.c
+// front-end (command interpreter, matrix lighting, texgen, palette-id CI4 cache,
+// SW clip/cull/scissor) is shared; this file owns everything below the vtable.
 //
-// Selected at build time with `make GFX_BACKEND=pvr` (-DGFX_BACKEND_PVR=1), which
-// also wires sys_main.c to pick gfx_pvr_api and tells gfx_dc.c to skip
-// glKosSwapBuffers (the PVR flips inside pvr_scene_finish here).
+// sys_main.c wires gfx_pvr_api as the rendering API; the PVR flips the frame inside
+// pvr_scene_finish (gfx_pvr_finish_render), not via glKosSwapBuffers.
 //
 // SINGLE-TILE: SF64's combiner only ever uses texture tile 0 (the two-tile shape was
 // vestigial inheritance from the 2020 ancestor — see memory project_sf64_raw_pvr_port).
@@ -20,10 +18,7 @@
 // object-space verts through GLdc-era code until the S2/S3 seams (screen-bake + combiner
 // eval + OP/PT/TR classify) land; only this backend changes here.
 
-// Whole file is PVR-backend-only: the Makefile only compiles it in the pvr build, but the
-// guard keeps it an empty translation unit anywhere else (no gfx_pvr_api / front-end refs)
-// so the GLdc default build is unaffected even if the file is picked up.
-#ifdef GFX_BACKEND_PVR
+// This is the sole renderer backend; the Makefile compiles it directly into every build.
 
 #include <PR/gbi.h>
 #include <stdlib.h>
@@ -37,13 +32,10 @@
 #include "gfx_cc.h"
 #include "gfx_rendering_api.h"
 #include "macros.h"
-#include "vert.h"   // dc_fast_t (the front-end's per-vertex emit struct)
 
-// The DR submit path relies on these: each vertex is copied dc_fast_t -> pvr_vertex_t
-// (identical 32-byte layout), and the poly header is written into a single 32-byte
-// store-queue slot. If a KOS revision changes either size, fail at build time rather
-// than corrupting the SQ at runtime.
-_Static_assert(sizeof(dc_fast_t) == sizeof(pvr_vertex_t), "dc_fast_t must match pvr_vertex_t layout");
+// The front-end bakes screen-space vertices straight into KOS pvr_vertex_t, so the DR/bucket
+// submit path is a plain struct copy — no reinterpret, no layout assert. The poly header is
+// written into a single 32-byte store-queue slot; fail at build time if that ever changes.
 _Static_assert(sizeof(pvr_poly_hdr_t) == 32, "pvr_poly_hdr_t must be one 32-byte SQ slot");
 
 // ---------------------------------------------------------------------------
@@ -245,9 +237,9 @@ static void pvr_compile_header(pvr_poly_hdr_t *out, int kind) {
     }
 }
 
-// Append n vertices (n/3 tris) of already-screen-baked dc_fast_t to a bucket,
+// Append n vertices (n/3 tris) of already-screen-baked pvr_vertex_t to a bucket,
 // starting a new batch when the bucket's header state has changed.
-static void pvr_append(PvrBucket *b, int kind, const dc_fast_t *tris, size_t n) {
+static void pvr_append(PvrBucket *b, int kind, const pvr_vertex_t *tris, size_t n) {
     if (b->dirty || b->cur < 0) {
         if (b->nbatch >= b->max_batch) { if (sDropB++ < 8) printf("PVR_DROP batch %d\n", kind); return; }
         b->cur = b->nbatch++;
@@ -259,9 +251,9 @@ static void pvr_append(PvrBucket *b, int kind, const dc_fast_t *tris, size_t n) 
     if (b->nverts + n > b->max_verts) { if (sDropV++ < 8) printf("PVR_DROP verts %d\n", kind); return; }
     for (size_t i = 0; i < n; i++) {
         pvr_vertex_t *v = &b->verts[b->nverts++];
-        *v = *(const pvr_vertex_t *) &tris[i];
+        *v = tris[i];
         v->flags = ((i % 3) == 2) ? PVR_CMD_VERTEX_EOL : PVR_CMD_VERTEX;
-        // oargb (additive offset) carried through dc_fast_t.pad0 — do not zero.
+        // oargb (additive offset) is carried through in the copy — do not zero.
     }
     b->batch[b->cur].count += n;
 }
@@ -270,7 +262,7 @@ static void pvr_append(PvrBucket *b, int kind, const dc_fast_t *tris, size_t n) 
 // pointer into b->verts so the FRONT-END bakes vertices straight into the bucket — no buf_vbo, no
 // copy. Starts a new batch (header compiled from current state) when the bucket is dirty, exactly
 // like pvr_append. These are TRIANGLES (n == n_tris*3), so EOL on every 3rd vertex. NULL on overflow.
-dc_fast_t *pvr_reserve(int kind, size_t n) {
+pvr_vertex_t *pvr_reserve(int kind, size_t n) {
     PvrBucket *b = (kind == PVR_KIND_TR) ? &sTR : &sPunch;
     if (b->dirty || b->cur < 0) {
         if (b->nbatch >= b->max_batch) { if (sDropB++ < 8) printf("PVR_DROP batch %d\n", kind); return NULL; }
@@ -281,7 +273,7 @@ dc_fast_t *pvr_reserve(int kind, size_t n) {
         b->dirty = 0;
     }
     if (b->nverts + n > b->max_verts) { if (sDropV++ < 8) printf("PVR_DROP verts %d\n", kind); return NULL; }
-    dc_fast_t *out = (dc_fast_t *) &b->verts[b->nverts];
+    pvr_vertex_t *out = &b->verts[b->nverts];
     b->nverts += n;
     b->batch[b->cur].count += n;
     for (size_t i = 0; i < n; i++)
@@ -646,12 +638,12 @@ static inline void pvr_emit_op_header(void) {
 // Stream OP geometry straight to the live OP list via DR. Called per source-triangle from the
 // front-end (no buf_vbo) AND internally. Header re-emitted only on state change (sOpDirty), so a
 // same-state run streams headerless after the first. External — no wrapper needed. (oargb carried
-// through dc_fast_t.pad0 — do NOT zero it here.)
-void pvr_submit_op(const dc_fast_t *tris, size_t n) {
+// in the copied vertex — do NOT zero it here.)
+void pvr_submit_op(const pvr_vertex_t *tris, size_t n) {
     pvr_emit_op_header();
     for (size_t i = 0; i < n; i++) {
         pvr_vertex_t *v = (pvr_vertex_t *) pvr_dr_target(sDrState);
-        *v = *(const pvr_vertex_t *) &tris[i];
+        *v = tris[i];
         v->flags = ((i % 3) == 2) ? PVR_CMD_VERTEX_EOL : PVR_CMD_VERTEX;
         pvr_dr_commit(v);
     }
@@ -662,9 +654,9 @@ void pvr_submit_op(const dc_fast_t *tris, size_t n) {
 extern float screen_2d_z;
 static void gfx_pvr_draw_triangles(float buf_vbo[], UNUSED size_t buf_vbo_len,
                                    size_t buf_vbo_num_tris) {
-    // The front-end bakes screen-space dc_fast_t (gfx_sp_tri1 PVR path, S2/S3). dc_fast_t shares
-    // pvr_vertex_t's 32-byte layout, so each vert is a direct SQ submit. Routing via sListKind.
-    const dc_fast_t *tris = (const dc_fast_t *) buf_vbo;
+    // The front-end bakes screen-space pvr_vertex_t (gfx_sp_tri1 PVR path, S2/S3), so each vert is a
+    // direct SQ submit. Routing via sListKind.
+    const pvr_vertex_t *tris = (const pvr_vertex_t *) buf_vbo;
     const size_t n = buf_vbo_num_tris * 3;
     if (sListKind == PVR_KIND_TR)
         pvr_append(&sTR, PVR_KIND_TR, tris, n);
@@ -681,17 +673,17 @@ static void gfx_pvr_draw_triangles(float buf_vbo[], UNUSED size_t buf_vbo_len,
 // here (texturing is decided by the bound shader/texture state). Vertex order/winding to be
 // confirmed when the front-end 2D seam is routed (S4).
 // One native 4-vertex PVR strip (v3 = EOL -> 2 tris). The front-end builds loaded_vertices_2D in
-// PVR STRIP order (ul, ll, ur, lr) under GFX_BACKEND_PVR — see gfx_draw_rectangle et al. — so the
-// strip tessellates correctly (diagonal ll-ur, matching the GLdc (0,1,3)+(1,2,3) split) with no
-// extra verts. Routing via gfx_pvr_set_blend: opaque HUD -> OP; alpha-test glyphs -> PT; blend -> TR.
+// PVR STRIP order (ul, ll, ur, lr) — see gfx_draw_rectangle et al. — so the strip tessellates
+// correctly (diagonal ll-ur) with no extra verts. Routing via gfx_pvr_set_blend: opaque HUD -> OP;
+// alpha-test glyphs -> PT; blend -> TR.
 void gfx_pvr_draw_triangles_2d(void *buf_vbo, UNUSED size_t buf_vbo_len, UNUSED size_t buf_vbo_num_tris) {
-    const dc_fast_t *q = (const dc_fast_t *) buf_vbo;
+    const pvr_vertex_t *q = (const pvr_vertex_t *) buf_vbo;
 
     if (sListKind == PVR_KIND_OP) {
         pvr_emit_op_header();
         for (int i = 0; i < 4; i++) {
             pvr_vertex_t *o = (pvr_vertex_t *) pvr_dr_target(sDrState);
-            *o = *(const pvr_vertex_t *) &q[i];
+            *o = q[i];
             o->flags = (i == 3) ? PVR_CMD_VERTEX_EOL : PVR_CMD_VERTEX;
             pvr_dr_commit(o);
         }
@@ -711,7 +703,7 @@ void gfx_pvr_draw_triangles_2d(void *buf_vbo, UNUSED size_t buf_vbo_len, UNUSED 
     if (b->nverts + 4 > b->max_verts) { if (sDropV++ < 8) printf("PVR_DROP verts %d\n", kind); return; }
     for (int i = 0; i < 4; i++) {
         pvr_vertex_t *o = &b->verts[b->nverts++];
-        *o = *(const pvr_vertex_t *) &q[i];
+        *o = q[i];
         o->flags = (i == 3) ? PVR_CMD_VERTEX_EOL : PVR_CMD_VERTEX;
     }
     b->batch[b->cur].count += 4;
@@ -796,7 +788,7 @@ static void gfx_pvr_draw_edge_mask(void) {
     // header even if the last draw already matched. Frame is ending, so no need to restore.
     sDrawTextured = 0; sDepthTest = 1; sDepthWrite = 1; sOpDirty = 1;
 
-    static dc_fast_t v[24] __attribute__((aligned(32)));   // 4 rects * (2 tris * 3 verts)
+    static pvr_vertex_t v[24] __attribute__((aligned(32)));   // 4 rects * (2 tris * 3 verts)
     const float rects[4][4] = {
         { 0.0f,   0.0f,   b,   H   },   // left
         { W - b,  0.0f,   W,   H   },   // right
@@ -809,14 +801,14 @@ static void gfx_pvr_draw_edge_mask(void) {
         const float x0 = rects[r][0], y0 = rects[r][1], x1 = rects[r][2], y1 = rects[r][3];
         const float xy[4][2] = { { x0, y0 }, { x0, y1 }, { x1, y0 }, { x1, y1 } };
         for (int k = 0; k < 6; k++) {
-            dc_fast_t *p = &v[vi++];
+            pvr_vertex_t *p = &v[vi++];
             p->flags = 0;
-            p->vert.x = xy[idx[k]][0];
-            p->vert.y = xy[idx[k]][1];
-            p->vert.z = Z;
-            p->texture.u = 0.0f; p->texture.v = 0.0f;
-            p->color.packed = 0xFF000000u;     // opaque black (ARGB)
-            p->oargb.packed = 0;             // no additive offset / fog
+            p->x = xy[idx[k]][0];
+            p->y = xy[idx[k]][1];
+            p->z = Z;
+            p->u = 0.0f; p->v = 0.0f;
+            p->argb = 0xFF000000u;     // opaque black (ARGB)
+            p->oargb = 0;             // no additive offset / fog
         }
     }
     pvr_submit_op(v, 24);
@@ -844,8 +836,7 @@ static void gfx_pvr_end_frame(void) {
 }
 
 static void gfx_pvr_finish_render(void) {
-    // Submits the scene to the GPU and flips. (Replaces glKosSwapBuffers, which gfx_dc.c
-    // skips under -DGFX_BACKEND_PVR.)
+    // Submits the scene to the GPU and flips. (This is where the frame flips — gfx_dc.c does not.)
     pvr_scene_finish();
 }
 
@@ -875,5 +866,3 @@ struct GfxRenderingAPI gfx_pvr_api = {
     gfx_pvr_end_frame,
     gfx_pvr_finish_render,
 };
-
-#endif // GFX_BACKEND_PVR

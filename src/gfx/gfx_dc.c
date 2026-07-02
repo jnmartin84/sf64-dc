@@ -7,7 +7,7 @@
 #include <dc/video.h>
 #include <assert.h>
 
-#define GFX_API_NAME "Dreamcast GLdc"
+#define GFX_API_NAME "Dreamcast PVR"
 
 #if LOWRES
 #define SCR_WIDTH (320)
@@ -20,7 +20,6 @@
 static int force_vis = 1;
 static unsigned int last_time = 0;
 
-extern void glKosSwapBuffers(void);
 extern uint64_t timer_ms_gettime64(void);
 
 unsigned int GetSystemTimeLow(void) {
@@ -127,10 +126,7 @@ static void gfx_dc_swap_buffers_end(void) {
    // const unsigned int elapsed = cur_time - last_time;
 
     // swap before doing any kind of delay or passing of thread
-#ifndef GFX_BACKEND_PVR
-    // GLdc flips here. raw-PVR flips in gfx_pvr_finish_render (pvr_scene_finish).
-    glKosSwapBuffers();
-#endif
+    // (raw-PVR flips in gfx_pvr_finish_render via pvr_scene_finish, not here)
 
 //    last_time = cur_time;
 

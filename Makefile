@@ -106,14 +106,6 @@ ifeq ($(SCALE_LIGHTS),1)
   CFLAGS += -DSCALE_LIGHTS
 endif
 
-# GFX_BACKEND - renderer backend:
-#   pvr  - raw KOS PVR direct-render (gfx_pvr.c)
-GFX_BACKEND ?= pvr
-ifeq ($(GFX_BACKEND),pvr)
-  CFLAGS += -DGFX_BACKEND_PVR=1
-  GFX_BACKEND_OBJ := build/src/gfx/gfx_pvr.o
-endif
-
 ifeq ($(LOWRES),1)
   CFLAGS += -DLOWRES
 endif
@@ -541,7 +533,7 @@ FINAL_OBJS := build/src/ultra_reimpl.o \
               build/src/audio/aica_synth.o \
               build/src/audio/aica_sample_table.o \
               build/src/gfx/gfx_cc.o \
-              $(GFX_BACKEND_OBJ)
+              build/src/gfx/gfx_pvr.o
 
 # Asset ELF symbols list
 ASSET_ELFS := ast_common ast_bg_space ast_bg_planet ast_arwing ast_landmaster \

@@ -6,7 +6,6 @@
 #include <kos/genwait.h>
 #include <dc/vblank.h>
 #include "gfx/gfx_pc.h"
-#include "gfx/gfx_opengl.h"
 #include "gfx/gfx_dc.h"
 #include <stdlib.h>
 
@@ -22,17 +21,9 @@ static kos_blockdev_t dev;
 #define SAMPLES_LOW 528
 
 extern struct GfxWindowManagerAPI gfx_glx;
-#ifdef GFX_BACKEND_PVR
 extern struct GfxRenderingAPI gfx_pvr_api;
-#else
-extern struct GfxRenderingAPI gfx_opengl_api;
-#endif
 static struct GfxWindowManagerAPI* wm_api = &gfx_dc;
-#ifdef GFX_BACKEND_PVR
 static struct GfxRenderingAPI* rendering_api = &gfx_pvr_api;
-#else
-static struct GfxRenderingAPI* rendering_api = &gfx_opengl_api;
-#endif
 
 extern void gfx_run(Gfx* commands);
 char* fnpre;
