@@ -142,8 +142,6 @@ extern OSMesgQueue gAudioVImesgQueue;
 extern OSMesg sAudioVImsgBuff[1];
 extern OSMesgQueue gAudioTaskMesgQueue;
 extern OSMesg sAudioTaskMsgBuff[1];
-extern OSMesgQueue gGfxVImesgQueue;
-extern OSMesg sGfxVImsgBuff[4];
 extern OSMesgQueue gGfxTaskMesgQueue;
 extern OSMesg sGfxTaskMsgBuff[2];
 extern OSMesgQueue gSerialThreadMesgQueue;

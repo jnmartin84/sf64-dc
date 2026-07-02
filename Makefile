@@ -550,7 +550,7 @@ ASSET_ELFS := ast_common ast_bg_space ast_bg_planet ast_arwing ast_landmaster \
 ASSET_SYMBOLS := $(foreach elf,$(ASSET_ELFS),-Wl,--just-symbols=build/src/assets/$(elf)/$(elf).elf)
 
 # Libraries
-LIBS := -lc -lm -lkallisti -lGL
+LIBS := -lc -lm -lkallisti
 
 # We need libkosfat for IDE/SD card support
 ifneq (,$(filter 1,$(IDE_SUPPORT) $(SDCARD_SUPPORT)))
