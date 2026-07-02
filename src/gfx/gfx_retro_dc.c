@@ -41,7 +41,7 @@
 #include "gfx_screen_config.h"
 #include "macros.h"
 
-#include "gl_fast_vert.h"
+#include "vert.h"
 #include <kos.h>
 #include "sh4zam.h"
 
@@ -1879,7 +1879,7 @@ static void __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx2
                 pvr_eval_combiner(rdp.combine_w0, rdp.combine_w1, &v_arr[i]->color, usetex, texenv, &_argb, &_oargb);
                 _oargb |= (uint32_t) v_arr[i]->fog << 24;   // fog density -> oargb.alpha (HW vertex fog)
                 bv->color.packed = _argb;
-                bv->pad0.vertindex = _oargb;
+                bv->oargb.packed = _oargb;
             }
             op_n += 1;
         }
@@ -2103,7 +2103,7 @@ static void __attribute__((noinline)) gfx_sp_quad_2d(uint8_t vtx1_idx, uint8_t v
             uint32_t argb, oargb;
             pvr_eval_combiner(rdp.combine_w0, rdp.combine_w1, &shade, use_texture, texenv2d, &argb, &oargb);
             rsp.loaded_vertices_2D[qi].color.packed = argb;
-            rsp.loaded_vertices_2D[qi].pad0.vertindex = oargb;   // additive offset (glare brighten etc.)
+            rsp.loaded_vertices_2D[qi].oargb.packed = oargb;   // additive offset (glare brighten etc.)
         }
     }
 

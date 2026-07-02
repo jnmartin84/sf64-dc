@@ -271,11 +271,9 @@ void Katina_LaserEnergyParticlesUpdate(Effect358* this) {
 
 void Katina_LaserEnergyParticlesDraw(Effect358* this) {
     RCP_SetupDL(&gMasterDisp, SETUPDL_67);
-                        gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                                        TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
 
     gDPSetPrimColor(gMasterDisp++, 0, 0, 48, 48, 255, this->alpha);
-    gDPSetEnvColor(gMasterDisp++, 255-0, 255-0, 255-0, this->alpha);
+    gDPSetEnvColor(gMasterDisp++, 0, 0, 0, this->alpha);
 
     Matrix_Scale(gGfxMatrix, 0.4f, 0.4f, 0.4f, MTXF_APPLY);
     Matrix_SetGfxMtx(&gMasterDisp);
@@ -1569,9 +1567,6 @@ s32 Katina_BossOverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* r
             // % 2 != 0
             if (boss->swork[BOSS_HATCH_1_FLASH_TIMER] & 1) {
                 RCP_SetupDL(&gMasterDisp, SETUPDL_30);
-                gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                    TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                gDPSetEnvColor(gMasterDisp++,0,0,0,255);
             }
 
             if (boss->swork[BOSS_HATCH_1_HP] <= 0) {
@@ -1586,9 +1581,6 @@ s32 Katina_BossOverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* r
             // % 2 != 0
             if (boss->swork[BOSS_HATCH_2_FLASH_TIMER] & 1) {
                 RCP_SetupDL(&gMasterDisp, SETUPDL_30);
-                gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                    TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                gDPSetEnvColor(gMasterDisp++,0,0,0,255);
             }
 
             if (boss->swork[BOSS_HATCH_2_HP] <= 0) {
@@ -1603,9 +1595,6 @@ s32 Katina_BossOverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* r
 
             if (boss->swork[BOSS_HATCH_3_FLASH_TIMER] & 1) {
                 RCP_SetupDL(&gMasterDisp, SETUPDL_30);
-                gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                    TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                gDPSetEnvColor(gMasterDisp++,0,0,0,255);
             }
 
             if (boss->swork[BOSS_HATCH_3_HP] <= 0) {
@@ -1620,9 +1609,6 @@ s32 Katina_BossOverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* r
 
             if (boss->swork[BOSS_HATCH_4_FLASH_TIMER] & 1) {
                 RCP_SetupDL(&gMasterDisp, SETUPDL_30);
-                gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                    TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                gDPSetEnvColor(gMasterDisp++,0,0,0,255);
             }
 
             if (boss->swork[BOSS_HATCH_4_HP] <= 0) {
@@ -1637,9 +1623,6 @@ s32 Katina_BossOverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* r
 
             if (boss->swork[BOSS_CORE_FLASH_TIMER] & 1) {
                 RCP_SetupDL(&gMasterDisp, SETUPDL_30);
-                gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                    TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                gDPSetEnvColor(gMasterDisp++,0,0,0,255);
             }
 
             if (boss->swork[BOSS_CORE_HP] <= 0) {
@@ -1680,11 +1663,8 @@ void Katina_KaSaucerer_Draw(KaSaucerer* this) {
         if (this->fwork[BOSS_LASER_LIGHT_SCALE] > 0.0f) {
             RCP_SetupDL(&gMasterDisp, SETUPDL_67);
             Matrix_Push(&gGfxMatrix);
-            gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                            TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-
             gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
-            gDPSetEnvColor(gMasterDisp++, 255-0, 255-255, 255-255, 255);
+            gDPSetEnvColor(gMasterDisp++, 0, 255, 255, 255);
             Matrix_Translate(gGfxMatrix, 0.0f, 500.0f, 0.0f, MTXF_APPLY);
             Matrix_Scale(gGfxMatrix, this->fwork[BOSS_LASER_LIGHT_SCALE], this->fwork[BOSS_LASER_LIGHT_SCALE],
                          this->fwork[BOSS_LASER_LIGHT_SCALE], MTXF_APPLY);
@@ -1695,7 +1675,7 @@ void Katina_KaSaucerer_Draw(KaSaucerer* this) {
 
             Matrix_Push(&gGfxMatrix);
             gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 64);
-            gDPSetEnvColor(gMasterDisp++, 255-0, 255-255, 255-255, 64);
+            gDPSetEnvColor(gMasterDisp++, 0, 255, 255, 64);
             Matrix_Translate(gGfxMatrix, 0.0f, 500.0f, 0.0f, MTXF_APPLY);
             Matrix_Scale(gGfxMatrix, this->fwork[BOSS_LASER_LIGHT_SCALE] * 3.0f,
                          this->fwork[BOSS_LASER_LIGHT_SCALE] * 3.0f, this->fwork[BOSS_LASER_LIGHT_SCALE] * 3.0f,
@@ -1708,10 +1688,7 @@ void Katina_KaSaucerer_Draw(KaSaucerer* this) {
 
         if (this->fwork[BOSS_LASER_LENGTH] > 0.0f) {
             RCP_SetupDL(&gMasterDisp, SETUPDL_41);
-                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                        gDPSetEnvColor(gMasterDisp++,0,0,0,255);
-                                    gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 128);
+            gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 128);
             Matrix_RotateX(gGfxMatrix, F_PI, MTXF_APPLY);
             Matrix_Scale(gGfxMatrix, 0.3f, this->fwork[BOSS_LASER_LENGTH], 0.3f, MTXF_APPLY);
             Matrix_SetGfxMtx(&gMasterDisp);

@@ -680,10 +680,6 @@ void Aquas_BlueMarineReticle_Draw(void) {
                 Matrix_Pop(&gGfxMatrix);
             }
         } else { // Target
-            // jnmartin84 ????
-                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                      gDPSetEnvColor(gMasterDisp++, 0,255,255, 255);//255);
             gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
             Matrix_Translate(gGfxMatrix, D_i3_801C41B8[0], D_i3_801C41B8[1], D_i3_801C41B8[2] + gPlayer[0].zPath,
                              MTXF_APPLY);
@@ -1815,10 +1811,6 @@ void Aquas_801ADF7C(f32 xPos, f32 yPos, f32 zPos, f32 xRot, f32 yRot, f32 zRot, 
             RCP_SetupDL(&gMasterDisp, SETUPDL_57);
         } else {
             RCP_SetupDL(&gMasterDisp, SETUPDL_61);
-            // jnmartin84 ????
-                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                      gDPSetEnvColor(gMasterDisp++, 0,255,255, 255);//255);
             gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
         }
     } else {
@@ -1826,10 +1818,6 @@ void Aquas_801ADF7C(f32 xPos, f32 yPos, f32 zPos, f32 xRot, f32 yRot, f32 zRot, 
             RCP_SetupDL(&gMasterDisp, SETUPDL_57);
         } else {
             RCP_SetupDL(&gMasterDisp, SETUPDL_61);
-            // jnmartin84 ????
-                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                      gDPSetEnvColor(gMasterDisp++, 0,255,255, 255);//255);
             gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
         }
     }
@@ -2100,10 +2088,6 @@ void Aquas_AqBacoonMuscle_Draw(AqBacoonMuscle* this) {
         RCP_SetupDL(&gMasterDisp, SETUPDL_29);
     } else {
         RCP_SetupDL(&gMasterDisp, SETUPDL_22);
-            // jnmartin84 ????
-                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                      gDPSetEnvColor(gMasterDisp++, 0,255,255, 255);//255);
         gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
     }
 
@@ -2424,10 +2408,6 @@ void Aquas_AqBacconBarnacle_Draw(AqBacconBarnacle* this) {
         RCP_SetupDL(&gMasterDisp, SETUPDL_57);
     } else {
         RCP_SetupDL(&gMasterDisp, SETUPDL_61);
-            // jnmartin84 ????
-                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                      gDPSetEnvColor(gMasterDisp++, 0,255,255, 255);//255);
         gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
     }
 
@@ -3532,10 +3512,6 @@ s32 Aquas_AqBacoon_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3
     } else {
         sp50 = 1;
         RCP_SetupDL(&gMasterDisp, SETUPDL_61);
-            // jnmartin84 ????
-                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                      gDPSetEnvColor(gMasterDisp++, 0,255,255, 255);//255);
         gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
     }
 
@@ -3599,17 +3575,10 @@ s32 Aquas_AqBacoon_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3
 
             if (sp50) {
                 RCP_SetupDL(&gMasterDisp, SETUPDL_61);
+                // both cases are the same...
                 if (gBosses[0].health != 0) {
-            // jnmartin84 ????
-                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                      gDPSetEnvColor(gMasterDisp++, 0,255,255, 255);//255);
                     gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
                 } else {
-            // jnmartin84 ????
-                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                      gDPSetEnvColor(gMasterDisp++, 0,255,255, 255);//255);
                     gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
                 }
             }
@@ -3804,10 +3773,6 @@ s32 Aquas_AqSculpin_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec
         }
     } else {
         RCP_SetupDL(&gMasterDisp, SETUPDL_61);
-            // jnmartin84 ????
-                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                      gDPSetEnvColor(gMasterDisp++, 0,255,255, 255);//255);
         gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
     }
     return 0;
@@ -4052,10 +4017,6 @@ s32 Aquas_AqAnglerFish_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, 
         RCP_SetupDL(&gMasterDisp, SETUPDL_57);
     } else if ((limbIndex < 7) || (limbIndex >= 9)) {
         RCP_SetupDL(&gMasterDisp, SETUPDL_61);
-            // jnmartin84 ????
-                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                      gDPSetEnvColor(gMasterDisp++, 0,255,255, 255);//255);
         gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
     }
 
@@ -4625,10 +4586,6 @@ void Aquas_AqSpindlyFish_Draw(AqSpindlyFish* this) {
     RCP_SetupDL(&gMasterDisp, SETUPDL_57);
     if ((this->timer_0C6 % 2) != 0) {
         RCP_SetupDL(&gMasterDisp, SETUPDL_61);
-            // jnmartin84 ????
-                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                      gDPSetEnvColor(gMasterDisp++, 0,255,255, 255);//255);
         gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
     }
     Animation_GetFrameData(&aAqSpindlyFishAnim, this->animFrame, frameTable);
@@ -4967,10 +4924,6 @@ s32 Aquas_AqGaroa_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f
     RCP_SetupDL(&gMasterDisp, SETUPDL_58);
     if ((this->timer_0C6 % 2) != 0) {
         RCP_SetupDL(&gMasterDisp, SETUPDL_34);
-            // jnmartin84 ????
-                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                      gDPSetEnvColor(gMasterDisp++, 0,255,255, 255);//255);
         gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
     }
 
@@ -5357,10 +5310,6 @@ void Aquas_AqSquid_Draw(AqSquid* this) {
     RCP_SetupDL(&gMasterDisp, SETUPDL_29);
     if ((this->timer_0C6 % 2) != 0) {
         RCP_SetupDL(&gMasterDisp, SETUPDL_30);
-            // jnmartin84 ????
-                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                      gDPSetEnvColor(gMasterDisp++, 0,255,255, 255);//255);
         gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
     } else if (this->state == 2) {
         RCP_SetupDL(&gMasterDisp, SETUPDL_30);

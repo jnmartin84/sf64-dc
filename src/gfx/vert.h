@@ -23,15 +23,12 @@ typedef union color_uc {
   unsigned int packed;
 } color_uc;
 
-typedef struct __attribute__((packed, aligned(4))) dc_fast_t {
+typedef struct __attribute__((aligned(32))) dc_fast_t {
   uint32_t flags;
   struct vec3f_gl vert;
   uv_float texture;
   color_uc color;  // bgra
-  union {
-    float pad;
-    unsigned int vertindex;
-  } pad0;
+  color_uc oargb;
 } dc_fast_t;
 
 /* must be in order:  [weights (0-8)] [texture uv] [color] [normal] [vertex]

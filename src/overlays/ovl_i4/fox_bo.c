@@ -2024,9 +2024,6 @@ s32 Bolse_BoBaseCore_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Ve
         case 16:
             if ((baseCore->swork[3 + limbIndex] % 2) != 0) {
                 RCP_SetupDL(&gMasterDisp, SETUPDL_41);
-         gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-            TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-            gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 255);
                 if (baseCore->swork[3 + limbIndex] > 1000) {
                     gDPSetPrimColor(gMasterDisp++, 0, 0, 64, 64, 255, 255);
                 } else {

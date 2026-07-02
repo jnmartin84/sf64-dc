@@ -37,7 +37,7 @@
 #include "gfx_cc.h"
 #include "gfx_rendering_api.h"
 #include "macros.h"
-#include "gl_fast_vert.h"   // dc_fast_t (the front-end's per-vertex emit struct)
+#include "vert.h"   // dc_fast_t (the front-end's per-vertex emit struct)
 
 // The DR submit path relies on these: each vertex is copied dc_fast_t -> pvr_vertex_t
 // (identical 32-byte layout), and the poly header is written into a single 32-byte
@@ -816,7 +816,7 @@ static void gfx_pvr_draw_edge_mask(void) {
             p->vert.z = Z;
             p->texture.u = 0.0f; p->texture.v = 0.0f;
             p->color.packed = 0xFF000000u;     // opaque black (ARGB)
-            p->pad0.vertindex = 0;             // no additive offset / fog
+            p->oargb.packed = 0;             // no additive offset / fog
         }
     }
     pvr_submit_op(v, 24);

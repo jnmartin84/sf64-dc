@@ -597,15 +597,11 @@ void Background_DrawBackdrop(void) {
                     switch (levelId) {
                         case LEVEL_WARP_ZONE:
                             if ((s32) gWarpZoneBgAlpha != 0) {
-                                // RCP_SetupDL_62();
                                 RCP_SetupDL_62();
-                                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, (s32) gWarpZoneBgAlpha);
-//                                gDPSetEnvColor(gMasterDisp++, 0,0,0, 0xFF);
-//                                gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-//                                                TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-//                                s32 wzAlpha = (s32) gWarpZoneBgAlpha ;//* 2;
-//                                if (wzAlpha > 240) wzAlpha = 240;
-//                                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, wzAlpha);
+//                                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, (s32) gWarpZoneBgAlpha);
+                                s32 wzAlpha = (s32) gWarpZoneBgAlpha ;//* 2;
+                                if (wzAlpha > 240) wzAlpha = 240;
+                                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, wzAlpha);
                                 Matrix_Translate(gGfxMatrix, (bgXpos - 120.0f)* 41.0f, -(bgYpos - 120.0f)* 41.0f, -290.0f* 41.0f, MTXF_APPLY);
                                 Matrix_Scale(gGfxMatrix, 1.7f* 41.0f, 1.7f* 41.0f, 1.0f, MTXF_APPLY);
                                 Matrix_Push(&gGfxMatrix);

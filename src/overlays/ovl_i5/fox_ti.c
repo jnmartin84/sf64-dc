@@ -1133,9 +1133,6 @@ s32 Titania_TiDesertCrawler_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* 
                     RCP_SetupDL(&gMasterDisp, SETUPDL_30);
 
                     gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
-                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                        TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                    gDPSetEnvColor(gMasterDisp++, 0, 255, 255, 255);
                     gSPDisplayList(gMasterDisp++, *dList);
                     RCP_SetupDL(&gMasterDisp, SETUPDL_29);
                 } else {
@@ -1717,10 +1714,8 @@ void Titania_TiDesertCrawler_Draw(TiDesertCrawler* this) {
     // %2
     if ((this->iwork[6] & 1) != 0) {
         RCP_SetupDL(&gMasterDisp, SETUPDL_31);
-                gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-        gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255/*127*/, 0, 0, 255);
-        gDPSetEnvColor(gMasterDisp++, 255-255, 255-255, 255-255, 255-0);
+        gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 127, 0, 0, 255);
+        gDPSetEnvColor(gMasterDisp++, 255, 255, 255, 255);
     }
     sp34 = this->vwork[0].y;
     this->vwork[0].y += this->fwork[26];
@@ -2335,10 +2330,6 @@ s32 Titania_8018FC70(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* t
             RCP_SetupDL(&gMasterDisp, SETUPDL_30);
 
             if ((D_i5_801BBEF0[30] & 1) != 0) { // % 2
-                // jnmartin84 ????
-                gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                    TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                gDPSetEnvColor(gMasterDisp++, 0,255,255, 255);//255);
                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
             } else {
                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255);
@@ -2356,10 +2347,6 @@ s32 Titania_8018FC70(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* t
             RCP_SetupDL(&gMasterDisp, SETUPDL_61);
 
             if ((D_i5_801BBEF0[30] & 1) != 0) { // % 2
-                // jnmartin84 ????
-                gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                    TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                gDPSetEnvColor(gMasterDisp++, 0,255,255, 255);//255);
                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
             } else {
                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255);
@@ -3161,11 +3148,9 @@ void Titania_80191AE8(s32 limbIndex, Vec3f* rot, void* thisx) {
                 Matrix_Scale(gGfxMatrix, D_i5_801BBEF4[74], D_i5_801BBEF4[74], 1.0f, MTXF_APPLY);
                 Matrix_SetGfxMtx(&gMasterDisp);
                 RCP_SetupDL(&gMasterDisp, SETUPDL_72);
-                                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
 
                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255);
-                gDPSetEnvColor(gMasterDisp++, 255-255, 255-0, 255-0, 255);
+                gDPSetEnvColor(gMasterDisp++, 255, 0, 0, 255);
                 gSPDisplayList(gMasterDisp++, aOrbDL);
                 RCP_SetupDL(&gMasterDisp, SETUPDL_30);
                 Matrix_Pop(&gGfxMatrix);
