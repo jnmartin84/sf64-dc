@@ -338,10 +338,6 @@ void MeMora_DrawParts(MeMora* this, f32 xTrans, f32 yTrans, f32 zTrans, f32 xRot
 
     if (colorFlicker) {
         RCP_SetupDL_64();
-        // jnmartin84 ????
-                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                      gDPSetEnvColor(gMasterDisp++, 0, 255, 255, 255);
         gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
     }
 
@@ -3920,10 +3916,6 @@ void ActorEvent_Draw(ActorEvent* this) {
 
     if ((this->obj.status == OBJ_DYING) && (this->timer_0BE != 0)) {
         RCP_SetupDL_27();
-        // jnmartin84 ????
-                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                      gDPSetEnvColor(gMasterDisp++, /* 0, 255, 255, */0,0,0, 255);
         gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
     }
 

@@ -1512,9 +1512,7 @@ void Meteo_MeCrusherEngineGlow_Draw(s32 scale) {
     gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK);
 
     RCP_SetupDL_64();
-                        gDPSetEnvColor(gMasterDisp++, 0,0,0, 0xFF);
-                        gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                                        TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+    // BACKEND_PVR
     Matrix_Push(&gGfxMatrix);
     Matrix_Scale(gGfxMatrix, 10.0f * xScale, 10.0f * xScale, 10.0f * xScale, MTXF_APPLY);
     Matrix_SetGfxMtx(&gMasterDisp);
@@ -1561,9 +1559,7 @@ void Meteo_MeCrusher_Draw(MeCrusher* this) {
 
     RCP_SetupDL_64();
     gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK);
-                        gDPSetEnvColor(gMasterDisp++, 0,0,0, 0xFF);
-                        gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                                        TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+    // BACKEND_PVR
 
     for (i = 0; i < 6; i++) {
         if ((this->fwork[i + 3] != 0) && (this->fwork[11] == 0.0f)) {

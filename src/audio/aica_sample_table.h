@@ -17,7 +17,7 @@ typedef struct {
 } AicaSampleDesc;
 
 #define AICA_SAMPLE_COUNT 1132
-#define AICA_ADPCM_POOL_SIZE 8212640u
+#define AICA_ADPCM_POOL_SIZE 8209888u
 extern const AicaSampleDesc gAicaSampleTable[AICA_SAMPLE_COUNT];
 
 #endif

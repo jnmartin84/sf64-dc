@@ -366,6 +366,8 @@ u8* AudioLoad_GetFontsForSequence(s32 seqId, u32* outNumFonts) {
 
 void AudioLoad_DiscardSeqFonts(s32 seqId) {
     s32 index = (s32)(__builtin_bswap16(*(u16*) gSeqFontTable + AudioLoad_GetLoadTableIndex(SEQUENCE_TABLE, seqId)));
+//  s32 index = *((u16*) gSeqFontTable + AudioLoad_GetLoadTableIndex(SEQUENCE_TABLE, seqId));
+
     s32 numFonts = gSeqFontTable[index++];
     u32 fontId;
 
@@ -1214,7 +1216,7 @@ void AudioLoad_ProcessSlowLoads(s32 resetStatus) {
             case SLOW_LOAD_LOADING:
                 //MQ_WAIT_FOR_MESG(&slowLoad->mesgQueue, NULL);
                 while (osRecvMesg(&slowLoad->mesgQueue, NULL, 0) == -1) {
-                    thd_pass();
+//                    thd_pass();
                 }
                 if (resetStatus != 0) {
                     slowLoad->state = SLOW_LOAD_DONE;
@@ -1333,7 +1335,7 @@ void AudioLoad_ProcessAsyncLoad(AudioAsyncLoad* asyncLoad, s32 resetStatus) {
         if (resetStatus != 0) {
             //MQ_WAIT_FOR_MESG(&asyncLoad->mesgQueue, NULL);
             while (osRecvMesg(&asyncLoad->mesgQueue, NULL, 0) == -1) {
-                thd_pass();
+//                thd_pass();
             }
             asyncLoad->status = 0;
             return;

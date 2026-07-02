@@ -14,6 +14,7 @@ import hashlib
 import math
 import os
 import struct
+from fractions import Fraction
 
 try:
     import numpy as np
@@ -124,6 +125,35 @@ def _decimate2(pcm):
             idx = 0 if idx < 0 else (L - 1 if idx >= L else idx)
             acc += pcm[idx] * h[k]
         out.append(_clamp16(int(round(acc))))
+    return out
+
+
+def resample_to_fit(pcm, target):
+    """Anti-aliased rational resample of PCM down to <= target samples by
+    INTERPOLATION (never truncation). Used to squeeze a barely-oversize one-shot
+    into a single native AICA channel instead of SH4-streaming it. scipy
+    resample_poly when available (same path as _decimate2); else linear interp,
+    which is adequate for the tiny ratios this is applied at (<~10% reduction)."""
+    n = len(pcm)
+    if n <= target:
+        return list(pcm)
+    if _HAVE_SCIPY:
+        fr = Fraction(target, n).limit_denominator(8192)
+        out = resample_poly(np.asarray(pcm, dtype=np.float64), fr.numerator, fr.denominator)
+        out = [_clamp16(int(round(v))) for v in out]
+    else:
+        out = []
+        step = (n - 1) / float(target - 1) if target > 1 else 0.0
+        for i in range(target):
+            pos = i * step
+            j = int(pos)
+            f = pos - j
+            a = pcm[j]
+            b = pcm[j + 1] if j + 1 < n else pcm[j]
+            out.append(_clamp16(int(round(a + (b - a) * f))))
+    # rational approximation can overshoot the target by a sample or two: clamp.
+    if len(out) > target:
+        out = out[:target]
     return out
 
 

@@ -84,13 +84,6 @@ Gfx* sLargeBonusDLs[4][2] = {
 Gfx* sSmallBonusDLs[10] = {
     D_1015810, D_1016410, D_10162A0, D_1016130, D_1015FC0, D_1015E50, D_10156A0, D_1015CE0, D_1015B70, D_1015320,
 };
-#define gSPRadarMark(pkt)                                       \
-    {                                                                                   \
-        Gfx* _g = (Gfx*) (pkt);                                                         \
-                                                                                        \
-        _g->words.w0 = 0x424C4E44; \
-        _g->words.w1 = 0x12345678;               \
-    }
 void BonusText_Draw(BonusText* bonus) {
     s32 dlIndex;
     Vec3f sp60 = { 0.0f, 0.0f, 0.0f };
@@ -110,7 +103,6 @@ void BonusText_Draw(BonusText* bonus) {
                 Matrix_Translate(gGfxMatrix, 0.0f, bonus->rise, 0.0f, MTXF_APPLY);
                 Matrix_SetGfxMtx(&gMasterDisp);
                 gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
-                gSPRadarMark(gMasterDisp++);
                 if (bonus->hits <= 10) {
                     gSPDisplayList(gMasterDisp++, D_1015980);
                     gSPDisplayList(gMasterDisp++, sSmallBonusDLs[bonus->hits - 1]);
@@ -138,7 +130,6 @@ void BonusText_Draw(BonusText* bonus) {
                     gSPDisplayList(gMasterDisp++, sLargeBonusDLs[dlIndex][0]);
                     gSPDisplayList(gMasterDisp++, sLargeBonusDLs[dlIndex][1]);
                 }
-                gSPRadarMark(gMasterDisp++);
             } else {
                 bonus->hits = BONUS_TEXT_FREE;
             }
@@ -226,8 +217,6 @@ void Effect_Effect382_Draw(Effect382* this) {
     RCP_SetupDL_49();
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, this->alpha);
     gDPSetEnvColor(gMasterDisp++, 255, 255, 255, this->alpha);
-    //gDPSetCombineLERP(gMasterDisp++, 1, 0, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, 0,
-    //                  TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
     Matrix_Scale(gGfxMatrix, this->scale1, this->scale2, 1.0f, MTXF_APPLY);
     Matrix_Translate(gGfxMatrix, 0.0f, 20.0f, 0.0f, MTXF_APPLY);
     Matrix_SetGfxMtx(&gMasterDisp);
@@ -383,8 +372,7 @@ void Effect_ElectricArc_Draw(EffectElectricArc* this) {
 }
 
 void Effect_PinkExplosion_Draw(EffectPinkExplosion* this) {
-//    gDPSetEnvColor(gMasterDisp++, 255,255,255, 255);//255);
-    gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, this->alpha<<1);
+    gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, this->alpha);
     Graphics_SetScaleMtx(this->scale2);
     gSPDisplayList(gMasterDisp++, D_BG_SPACE_2006F50);
 }
@@ -413,10 +401,8 @@ void Effect_Bubble_Draw(EffectBubble* this) {
 }
 
 void Effect_Effect367_Draw(Effect367* this) {
-//    return;
     if (this->timer_50 == 0) {
         Graphics_SetScaleMtx(this->scale2);
-        gDPSetEnvColor(gMasterDisp++, 255,255,255, 255);//255);
         gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, this->alpha);
         gSPDisplayList(gMasterDisp++, D_BG_PLANET_20112C0);
     }
@@ -574,15 +560,14 @@ void Effect_Sparkle_Update(EffectSparkle* this) {
 }
 
 void Effect_Sparkle_Draw(EffectSparkle* this) {
-//    if (this->state != 0) {
-  //      RCP_SetupDL(&gMasterDisp, SETUPDL_67);
-    //} else {
-      //  RCP_SetupDL(&gMasterDisp, SETUPDL_63);
-    //}
-                    RCP_SetupDL_49();
+    if (this->state != 0) {
+        RCP_SetupDL(&gMasterDisp, SETUPDL_67);
+    } else {
+        RCP_SetupDL(&gMasterDisp, SETUPDL_63);
+    }
 
-    gDPSetPrimColor(gMasterDisp++, 0, 0, 250, 255, 200, 255);//255, 255, 0, 255);
-    gDPSetEnvColor(gMasterDisp++, 255, 255, 255, 255);
+    gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
+    gDPSetEnvColor(gMasterDisp++, 255, 255, 0, 255);
     Graphics_SetScaleMtx(this->scale2 * this->scale1);
     gSPDisplayList(gMasterDisp++, aStarDL);
     RCP_SetupDL(&gMasterDisp, SETUPDL_64);
@@ -898,13 +883,6 @@ void Effect_Effect357_Draw(Effect357* this) {
         gSPFogPosition(gMasterDisp++, gFogNear, gFogFar);
     }
 }
-#define gSPFillrectBlend(pkt)                                       \
-    {                                                                                   \
-        Gfx* _g = (Gfx*) (pkt);                                                         \
-                                                                                        \
-        _g->words.w0 = 0x424C4E44; \
-        _g->words.w1 = 0x46554380;                                           \
-    }
 
 uint32_t e383_ult=0, e383_lrt=127;
 
@@ -948,11 +926,9 @@ void Effect_Effect383_Draw(Effect383* this) {
         Matrix_Scale(gGfxMatrix, this->scale2, this->scale2, this->scale2, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
         RCP_SetupDL_64_2();
-//        gSPFillrectBlend(gMasterDisp++);
         gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, this->alpha);
         gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK);
         gSPDisplayList(gMasterDisp++, D_10182C0);
-//        gSPFillrectBlend(gMasterDisp++);
         gSPSetGeometryMode(gMasterDisp++, G_CULL_BACK);
         RCP_SetupDL_64_2();
     }
@@ -1092,10 +1068,8 @@ Gfx* D_800D178C[] = { D_TI_6003440, D_TI_60034E0, D_TI_6003580, D_TI_6003620, D_
 
 void Effect_Effect359_Draw(Effect359* this) {
     RCP_SetupDL(&gMasterDisp, SETUPDL_68);
-//gDPSetCombineLERP(gMasterDisp++, 1, 0, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, 0,
-  //                    TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);    
     gDPSetPrimColor(gMasterDisp++, 0, 0, 31, 10, 00, this->alpha);
-    gDPSetEnvColor(gMasterDisp++, 255-141, 255-73, 255-5, 255);
+    gDPSetEnvColor(gMasterDisp++, 141, 73, 5, 0);
     Matrix_Scale(gGfxMatrix, this->scale2, this->scale2, 1.0f, MTXF_APPLY);
     Matrix_SetGfxMtx(&gMasterDisp);
     gSPDisplayList(gMasterDisp++, D_800D178C[this->unk_4C]);
@@ -2122,13 +2096,6 @@ void Effect_FireSmoke_Draw(EffectFireSmoke* this) {
     Graphics_SetScaleMtx(this->scale2);
 
     if (gLevelType == LEVELTYPE_PLANET) {
-        uint8_t r = D_800D184C[this->unk_4C].r;
-        uint8_t g = D_800D184C[this->unk_4C].g;
-        uint8_t b = D_800D184C[this->unk_4C].b;
-
-        gDPSetCombineLERP(gMasterDisp++, 1, 0, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, 0,
-                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0); 
-                      gDPSetEnvColor(gMasterDisp++,0,0,0,255);
         gDPSetPrimColor(gMasterDisp++, 0, 0, D_800D184C[this->unk_4C].r, D_800D184C[this->unk_4C].g,
                         D_800D184C[this->unk_4C].b, D_800D184C[this->unk_4C].a);
         scale = D_800D17F8[this->unk_4C] - 0.5f;
@@ -2139,9 +2106,6 @@ void Effect_FireSmoke_Draw(EffectFireSmoke* this) {
         return;
     }
 
-//    gDPSetCombineLERP(gMasterDisp++, 1, 0, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, 0,
-  //                    TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0); 
-    //                  gDPSetEnvColor(gMasterDisp++,0,0,0,255);
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 100, this->alpha);
 
     if (this->unk_4C == 0) {
@@ -2376,11 +2340,8 @@ void Effect_Effect342_Update(Effect342* this) {
 void Effect_Effect342_Draw(Effect342* this) {
     Graphics_SetScaleMtx(this->scale2);
     if (this->alpha == 0) {
-        //jnmartin84
-        //gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, this->unk_4A / 4);
         gDPSetPrimColor(gMasterDisp++, 0, 0, 0, 0, 0, this->unk_4A);
     } else {
-        //gDPSetPrimColor(gMasterDisp++, 0, 0, 0, 0, 0, this->unk_4A / 4);
         gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, this->unk_4A);
     }
     gSPDisplayList(gMasterDisp++, D_BG_PLANET_2010A30);
@@ -2434,9 +2395,7 @@ void Effect_Effect365_Update(Effect365* this) {
 
 void Effect_Effect365_Draw(Effect365* this) {
     Graphics_SetScaleMtx(this->scale2);
-  //  gDPSetCombineLERP(gMasterDisp++, 1, 0, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, 0,
-    //                  TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-    gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, this->alpha /* / 4 */);
+    gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, this->alpha);
     gSPDisplayList(gMasterDisp++, D_BG_PLANET_2010A30);
 }
 
@@ -3963,10 +3922,8 @@ void Effect_Effect395_Draw(Effect395* this) {
             break;
 
         case 1:
-            //RCP_SetupDL(&gMasterDisp, SETUPDL_41);
-            RCP_SetupDL_49();
-            gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);//255, 255, 0, 255);
-            gDPSetEnvColor(gMasterDisp++, 220, 225, 180, 255);
+            RCP_SetupDL(&gMasterDisp, SETUPDL_41);
+            gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
             Graphics_SetScaleMtx(this->scale2);
             gSPDisplayList(gMasterDisp++, aStarDL);
             break;

@@ -1408,11 +1408,11 @@ void PlayerShot_DrawShot(PlayerShot* shot) {
                     Matrix_RotateZ(gGfxMatrix, 30.0f * M_DTOR, MTXF_APPLY);
                     Matrix_Scale(gGfxMatrix, 1.0f, 0.65f, 1.0f, MTXF_APPLY);
                     Matrix_SetGfxMtx(&gMasterDisp);
-//                    RCP_SetupDL_68();
-                    RCP_SetupDL_49();
+// BACKEND_PVR
+                    RCP_SetupDL_68();
 
                     gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255);
-                    gDPSetEnvColor(gMasterDisp++, 0, 255, 0, 255);
+                    gDPSetEnvColor(gMasterDisp++, 0, 255, 0, 0);
                     gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK);
                     gSPDisplayList(gMasterDisp++, aLandmasterShotDL);
                 }

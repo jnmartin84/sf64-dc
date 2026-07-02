@@ -5,24 +5,34 @@ SF64 Stage 2: emit adpcm_pool.bin (runtime-loaded) + generated-C descriptor tabl
 Key = global audio_table offset = sample_bank.rom_addr + sample.addr (the runtime
 derives it as patched sampleAddr - audiotable base), same as OoT.
 
-Oversize policy (per user): NO decimation at all.
-  n <= 65534 : normal hardware voice
-  n  > 65534 : stream=1, full quality, SH4 PCM-ring streamer
+Oversize policy:
+  n <= 65534                      : normal hardware voice
+  65534 < n <= RESAMPLE_FIT_MAX,
+          one-shot                : "fit" -- anti-aliased resample down to one AICA
+                                    channel (native HW voice). Tiny inaudible
+                                    pitch/tempo shift; avoids the SH4 PCM-ring
+                                    streamer (whose per-16-sample G2 store-queue
+                                    writes cost ~12x realtime when many play at once).
+  otherwise (genuinely long)      : stream=1, full quality, SH4 PCM-ring streamer
 """
 
 import argparse
+import math
 import os
 from multiprocessing import Pool
 from pathlib import Path
 
 from sf64_audiobank_parse import parse_all
-from transcode import (transcode_sample, beam_encode_cached, _HAVE_SCIPY,
-                       FORCE_PCM_KEYS, FMT_PCM16, FMT_PCM8, FMT_ADPCM)
+from transcode import (transcode_sample, resample_to_fit, beam_encode_cached,
+                       _HAVE_SCIPY, FORCE_PCM_KEYS, FMT_PCM16, FMT_PCM8, FMT_ADPCM)
 import vadpcm
 
 ALIGN = 32
 AICA_MAX = 65534
-STREAM_MIN = 65535    # stream every sample over the AICA channel cap (no decimation)
+# Only resample-to-fit a one-shot that is *barely* over the channel cap; genuinely
+# long samples still stream at full quality. 1.10 => at most ~10% compression
+# (<~1.6 semitones worst case; the real SF64 offenders are 1.036x/1.047x).
+RESAMPLE_FIT_MAX = int(AICA_MAX * 1.10)
 
 
 def align_up(n, a):
@@ -41,12 +51,38 @@ def transcode_streamed(s):
             "downsample_shift": 0, "stream": 1}
 
 
+def transcode_fit(s):
+    """Barely-oversize one-shot: anti-aliased resample down to fit one native AICA
+    channel (hardware ADPCM voice) instead of SH4-streaming. The runtime plays it
+    like any other short ADPCM sample (stream=0). Tiny, inaudible pitch/tempo shift;
+    caller guarantees this is only reached for near-cap one-shots."""
+    pcm = vadpcm.decode(s.data, s.codec, s.order, s.npredictors, s.book)
+    n0 = len(pcm)
+    pcm = resample_to_fit(pcm, AICA_MAX)
+    adpcm, n = beam_encode_cached(pcm)
+    assert n <= AICA_MAX, (s.bank, s.addr, n0, n)
+    return {"data": adpcm, "fmt": FMT_ADPCM, "nsamples": n, "loop": bool(s.has_loop),
+            "loop_start": 0, "loop_end": n, "downsample_shift": 0, "stream": 0,
+            "_fit_from": n0}
+
+
+def _classify(s):
+    n = s.nsamples
+    if n <= AICA_MAX:
+        return "normal"
+    if (not s.has_loop) and n <= RESAMPLE_FIT_MAX:
+        return "fit"
+    return "stream"
+
+
 def _transcode_one(item):
-    """Pool worker: (Sample, key, is_stream) -> descriptor (pool_offset later).
+    """Pool worker: (Sample, key, mode) -> descriptor (pool_offset later).
     key = src_offset (bank base + addr) = runtime lookup key, used for force-PCM."""
-    s, key, is_stream = item
-    if is_stream:
+    s, key, mode = item
+    if mode == "stream":
         d = transcode_streamed(s)
+    elif mode == "fit":
+        d = transcode_fit(s)
     else:
         d = transcode_sample(s, force=(key in FORCE_PCM_KEYS))
         d["stream"] = 0
@@ -61,7 +97,7 @@ def main(audiobank, audiotable, tables_json, outdir, incdir, pool_path):
 
     # Beam encode is CPU-heavy + independent -> fan out across cores. Pool.map keeps
     # order; pool_offset assigned serially after, then re-sorted by key. Deterministic.
-    items = [(s, bank_base[bank] + addr, s.nsamples >= STREAM_MIN)
+    items = [(s, bank_base[bank] + addr, _classify(s))
              for (bank, addr), s in samples.items()]
     with Pool(os.cpu_count()) as pool:
         descs = pool.map(_transcode_one, items)
@@ -119,9 +155,16 @@ def main(audiobank, audiotable, tables_json, outdir, incdir, pool_path):
     n16 = sum(1 for d in descs if d["fmt"] == FMT_PCM16)
     n8 = sum(1 for d in descs if d["fmt"] == FMT_PCM8)
     nad = sum(1 for d in descs if d["fmt"] == FMT_ADPCM)
-    print(f"sf64_emit: {len(descs)} descs  ADPCM={nad} PCM16={n16} PCM8={n8} ({n_stream} streamed), "
+    fits = sorted((d for d in descs if d.get("_fit_from")), key=lambda d: d["key"])
+    print(f"sf64_emit: {len(descs)} descs  ADPCM={nad} PCM16={n16} PCM8={n8} "
+          f"({n_stream} streamed, {len(fits)} fit-resampled), "
           f"pool {len(blob):,} B -> {pool_path}"
-          f"{'' if _HAVE_SCIPY else '  [stdlib decimate fallback]'}")
+          f"{'' if _HAVE_SCIPY else '  [stdlib resample fallback]'}")
+    for d in fits:
+        n0, n = d["_fit_from"], d["nsamples"]
+        cents = 1200.0 * math.log2(n0 / n) if n else 0.0
+        print(f"  fit-resampled 0x{d['key']:06X}: {n0} -> {n} samples "
+              f"(+{cents:.0f} cents, {100.0 * (1 - n / n0):.1f}% shorter) -> native HW voice")
 
 
 if __name__ == "__main__":

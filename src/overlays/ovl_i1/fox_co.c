@@ -1180,11 +1180,7 @@ s32 Corneria_CoGranga_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, V
     // Damage indicator
     if (((boss->swork[limbIndex] % 2) != 0) || ((boss->timer_05C % 2) != 0)) {
         RCP_SetupDL_64();
-        // jnmartin84
-        gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-            TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-        gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 255);
-
+// BACKEND_PVR
         gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 64, 64, 255, 255);
     }
     return 0;

@@ -621,7 +621,13 @@ void Object_LoadLevelObjects(void) {
     }
 
     gLastPathChange = 0;
-
+#if 0
+   // A6 boss
+if (gCurrentLevel == LEVEL_AREA_6) {
+  static ObjectInit aA6LevelObjects_Boss[] = { { /* 255100.0f,  -10000,       0,       0, {  0,   0,   0}, */100.0f,    3000,       0,       0, {  0, 180,   0}, OBJ_BOSS_A6_GORGON },};
+    gLevelObjects = aA6LevelObjects_Boss;
+}
+#endif
     for (i = 0, objInit = &gLevelObjects[gObjectLoadIndex]; i < 10000; i++, gObjectLoadIndex++, objInit++) {
         if (objInit->id <= OBJ_INVALID) {
             break;

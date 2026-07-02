@@ -1999,13 +1999,9 @@ void SectorY_SyShogun_Draw(SyShogun* this) {
 
         if (this->fwork[46] != 0.0f) {
             RCP_SetupDL_49();
-gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-//                      gDPSetEnvColor(gMasterDisp++, 255,255,255, 255);//255);
-
             gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, (s32) this->fwork[46], (s32) this->fwork[46], 0,
                             (s32) this->fwork[46]);
-            gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 255);
+            gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 0);
             Matrix_Pop(&gGfxMatrix);
             Matrix_Push(&gGfxMatrix);
             Matrix_Translate(gGfxMatrix, this->obj.pos.x + 10.0f, this->obj.pos.y + 70.0f, this->obj.pos.z + 60.0f,
@@ -3824,9 +3820,6 @@ s32 SectorY_SyRobot_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec
     SyRobot* actor = (SyRobot*) thisx;
 
     if (limbIndex == 4) {
-        gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-            TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-            gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 255);
         if ((actor->iwork[18] % 2) == 0) {
             gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, D_i6_801A6B28[actor->iwork[14]], D_i6_801A6B34[actor->iwork[14]],
                             D_i6_801A6B40[actor->iwork[14]], 255);
@@ -3834,9 +3827,6 @@ s32 SectorY_SyRobot_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec
             gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 0, 255, 0, 255);
         }
     } else {
-        gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-            TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-            gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 255);
         if ((actor->timer_0C6 % 2) == 0) {
             gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, D_i6_801A6B28[actor->iwork[14]], D_i6_801A6B34[actor->iwork[14]],
                             D_i6_801A6B40[actor->iwork[14]], 255);

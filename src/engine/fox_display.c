@@ -379,9 +379,9 @@ void Display_LandmasterThrusters(Player* player) {
 
     if (gVersusMode) {
         RCP_SetupDL_64();
-        gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255);//150);
+        gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 150);
     } else {
-        gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255);//192);
+        gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 192);
         gDPSetEnvColor(gMasterDisp++, 255, 0, 0, 192);
         RCP_SetupDL(&gMasterDisp, SETUPDL_67);
     }
@@ -623,23 +623,17 @@ void Display_Arwing_Skel(ArwingInfo* arwing) {
     if ((gGameState == GSTATE_PLAY) && (gPlayer[0].state == PLAYERSTATE_LEVEL_INTRO) &&
         (gCurrentLevel == LEVEL_CORNERIA)) {
 
-        gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 120);
-        gDPSetEnvColor(gMasterDisp++, 0,0,0, 0xFF);
-        gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                        TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-        //gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 120);
+        gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 120);
         gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK);
         gSPDisplayList(gMasterDisp++, aAwCockpitGlassDL);
 
         // Cloud reflexions in Corneria level intro cutscene.
+        RCP_SetupDL_46();
         gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 100);
         gSPDisplayList(gMasterDisp++, aAwCockpitGlassCsDL);
     } else {
-//        RCP_SetupDL_46();
-        gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 140);
-        gDPSetEnvColor(gMasterDisp++, 0,0,0, 0xFF);
-        gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                        TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
+        RCP_SetupDL_46();
+        gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 140);
         gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK);
         gSPDisplayList(gMasterDisp++, aAwCockpitGlassDL);
     }
@@ -659,7 +653,7 @@ void Display_CockpitGlass(void) {
     Matrix_Scale(gGfxMatrix, D_display_800CA28C, D_display_800CA28C, D_display_800CA28C, MTXF_APPLY);
     Matrix_SetGfxMtx(&gMasterDisp);
     RCP_SetupDL_64_2();
-    gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 224, 224, 224, 80);
+    gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 120);
     gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK);
     gSPDisplayList(gMasterDisp++, aAwCockpitGlassDL);
     gSPSetGeometryMode(gMasterDisp++, G_CULL_BACK);
@@ -720,27 +714,10 @@ void Display_Arwing(Player* player, s32 reflectY) {
     }
 }
 
-#define gSPReticle(pkt)            \
-    {                              \
-        Gfx* _g = (Gfx*) (pkt);    \
-                                   \
-        _g->words.w0 = 0x424C4E44; \
-        _g->words.w1 = 0x46554350; \
-    }
-// Arwing only
-
-#define gSPRadarMark(pkt)          \
-    {                              \
-        Gfx* _g = (Gfx*) (pkt);    \
-                                   \
-        _g->words.w0 = 0x424C4E44; \
-        _g->words.w1 = 0x12345678; \
-    }
-
 void Display_Reticle(Player* player) {
     Vec3f* translate;
     s32 i;
-    gSPReticle(gMasterDisp++);
+
     if ((gPlayerNum == player->num) && ((player->form == FORM_ARWING) || (player->form == FORM_LANDMASTER)) &&
         player->draw &&
         (((gGameState == GSTATE_PLAY) && (player->state == PLAYERSTATE_ACTIVE)) || (gGameState == GSTATE_MENU))) {
@@ -761,7 +738,6 @@ void Display_Reticle(Player* player) {
                 }
             } else {
                 RCP_SetupDL_36();
-//                RCP_SetupDL(&gMasterDisp, SETUPDL_63);
             }
 
             if (i == 1) {
@@ -770,14 +746,11 @@ void Display_Reticle(Player* player) {
             }
             Matrix_Scale(gGfxMatrix, 4.0f, 4.0f, 4.0f, MTXF_APPLY);
             Matrix_SetGfxMtx(&gMasterDisp);
-        gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
-        gSPRadarMark(gMasterDisp++);
+            gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
             gSPDisplayList(gMasterDisp++, D_1024F60);
-        gSPRadarMark(gMasterDisp++);
             Matrix_Pop(&gGfxMatrix);
         }
     }
-    gSPReticle(gMasterDisp++);
 }
 
 void Display_DrawPlayer(Player* player, s32 reflectY) {
@@ -876,7 +849,7 @@ void Display_DrawEngineGlow(EngineGlowColor color) {
 
 void Display_LandmasterEngineGlow_Draw(Player* player) {
     RCP_SetupDL_64();
-    gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255);//100);
+    gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 100);
     Matrix_Push(&gGfxMatrix);
     Matrix_RotateZ(gGfxMatrix, player->bankAngle * M_DTOR, MTXF_APPLY);
 
@@ -1005,7 +978,7 @@ void Display_ArwingLaserCharge(Player* player) {
         }
 
         RCP_SetupDL(&gMasterDisp, SETUPDL_49);
-        gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255/* 128 */);
+        gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 128);
 
         if (gVersusMode) {
             switch (player->num) {
@@ -1062,7 +1035,7 @@ void Display_ArwingLaserCharge(Player* player) {
 
         switch (laserStrength) {
             case LASERS_SINGLE:
-                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 192, 255, 192, 255);//128);
+                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 192, 255, 192, 128);
                 gDPSetEnvColor(gMasterDisp++, 64, 255, 64, 128);
 
                 if (player->alternateView && (gLevelMode == LEVELMODE_ON_RAILS)) {
@@ -1085,10 +1058,10 @@ void Display_ArwingLaserCharge(Player* player) {
             case LASERS_TWIN:
             case LASERS_HYPER:
                 if (laserStrength == LASERS_TWIN) {
-                    gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 192, 255, 192, 255);//128);
+                    gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 192, 255, 192, 128);
                     gDPSetEnvColor(gMasterDisp++, 64, 255, 64, 128);
                 } else {
-                    gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 128, 255, 255, 255);//160);
+                    gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 128, 255, 255, 160);
                     gDPSetEnvColor(gMasterDisp++, 128, 128, 255, 160);
                 }
                 Matrix_LoadOnly(gCalcMatrix);
@@ -1135,7 +1108,7 @@ void Display_LandmasterLaserCharge(Player* player) {
         Matrix_Scale(gGfxMatrix, 10.0f, 10.0f, 10.0f, MTXF_APPLY);
 
         RCP_SetupDL(&gMasterDisp, SETUPDL_49);
-        gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255);//128);
+        gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 128);
 
         if (gVersusMode) {
             switch (player->num) {
@@ -1439,11 +1412,11 @@ void Display_Player_Update(Player* player, s32 reflectY) {
         switch (player->dmgEffect) {
             case 0:
                 if (!gVersusMode) {
-//                    if ((gCurrentLevel == LEVEL_FORTUNA) || (gCurrentLevel == LEVEL_TITANIA)) {
-//                        RCP_SetupDL_29(gFogRed, gFogGreen, gFogBlue, gFogAlpha, gFogNear, 1005);
-//                    } else {
+                    if ((gCurrentLevel == LEVEL_FORTUNA) || (gCurrentLevel == LEVEL_TITANIA)) {
+                        RCP_SetupDL_29(gFogRed, gFogGreen, gFogBlue, gFogAlpha, gFogNear, 1005);
+                    } else {
                         RCP_SetupDL_29(gFogRed, gFogGreen, gFogBlue, gFogAlpha, gFogNear, gFogFar);
-//                    }
+                    }
                 } else if (gVersusStage == VS_STAGE_SECTOR_Z) {
                     RCP_SetupDL_29(128, 128, 255, 255, gFogNear, gFogFar);
                 } else {
@@ -1617,9 +1590,7 @@ void Display_LockOnIndicator(void) {
                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
                 gDPSetEnvColor(gMasterDisp++, 255, 0, 0, 255);
                 gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
-        gSPRadarMark(gMasterDisp++);
                 gSPDisplayList(gMasterDisp++, D_1024F60);
-        gSPRadarMark(gMasterDisp++);
                 Matrix_Pop(&gGfxMatrix);
             }
         }
@@ -1712,13 +1683,6 @@ void Display_CsLevelCompleteHandleCamera(Player* player) {
 }
 #include "sh4zam.h"
 
-#define gSPFixDepthCut(pkt)                                       \
-    {                                                                                   \
-        Gfx* _g = (Gfx*) (pkt);                                                         \
-                                                                                        \
-        _g->words.w0 = 0x424C4E44; \
-        _g->words.w1 = 0x46554369;                                           \
-    }
 void Display_Update(void) {
     s32 i;
     Vec3f tempVec;

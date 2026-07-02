@@ -406,7 +406,8 @@ Planet sPlanets[PLANET_MAX] = {
         { 0.0f, 0.0f, 0.0f },
         { 0.0f, 0.0f, 0.0f },
         0.0f,
-        15.0f,
+        11.0f,   /* was 15.0f: shrink oversized DC sun body to match N64 apparent size; TUNE BY EYE
+                    (drives both the body draw at Map_PlanetAnim and the path-line attach radius) */
         0,
         PL_ANIM_ROTATE_Z,
         PLANET_MACBETH,
@@ -4631,12 +4632,6 @@ void Map_PlanetAnim(PlanetId planetId) {
                 RCP_SetupDL(&gMasterDisp, SETUPDL_53);
             } else {
                 RCP_SetupDL(&gMasterDisp, SETUPDL_41);
-                // jnmartin84
-                // anywhere you see this idiom, I am working around my shitty color combiner code
-                // in order to make a transparent colored surface
-                gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 0xFF);
-                gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1,
-                                  ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
                 gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, sPlanets[planetId].alpha);
             }
             break;
@@ -4647,12 +4642,6 @@ void Map_PlanetAnim(PlanetId planetId) {
                 RCP_SetupDL(&gMasterDisp, SETUPDL_23);
             } else {
                 RCP_SetupDL(&gMasterDisp, SETUPDL_46);
-                // jnmartin84
-                // anywhere you see this idiom, I am working around my shitty color combiner code
-                // in order to make a transparent colored surface
-                gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 0xFF);
-                gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1,
-                                  ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
                 gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, sPlanets[planetId].alpha);
             }
             break;
@@ -4660,21 +4649,14 @@ void Map_PlanetAnim(PlanetId planetId) {
         case PL_ANIM_BILLBOARD:
         case PL_ANIM_SPIN:
             RCP_SetupDL(&gMasterDisp, SETUPDL_64);
-            // jnmartin84
-            // anywhere you see this idiom, I am working around my shitty color combiner code
-            // in order to make a transparent colored surface
-            gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 0xFF);
-            gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                              TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
             gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, sPlanets[planetId].alpha);
             break;
 
         case PL_ANIM_ROTATE_Z:
             RCP_SetupDL(&gMasterDisp, SETUPDL_67);
-            gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0,
-                              PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
+
             gDPSetPrimColor(gMasterDisp++, 0, 0, 240, 0, 0, sPlanets[planetId].alpha);
-            gDPSetEnvColor(gMasterDisp++, 31, 0, 0, 255);
+            gDPSetEnvColor(gMasterDisp++, 31/2, 0, 0, 0);
 
             sPlanets[planetId].orbit.tilt += 0.1f;
             break;
@@ -4701,22 +4683,23 @@ void Map_SolarRays_Draw(PlanetId planetId) {
     s32 alpha = sPlanets[PLANET_VENOM].alpha;
 
     if (sPlanets[planetId].alpha > 128) {
-        alpha = 224;
+// BACKEND_PVR
+        alpha = 128;
     }
 
     RCP_SetupDL(&gMasterDisp, SETUPDL_67);
-    gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE,
-                      ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
 
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, alpha);
-    gDPSetEnvColor(gMasterDisp++, /* 31, 0, 0 */ 127, 127, 127, 255);
+    gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 0);
 
     Matrix_Push(&gGfxMatrix);
 
     Matrix_Copy(gGfxMatrix, &D_menu_801CDE20[planetId]);
     Matrix_RotateZ(gGfxMatrix, M_DTOR * D_menu_801B6A74, MTXF_APPLY);
-    Matrix_Scale(gGfxMatrix, /* 0.8f, 0.8f, 0.8f */
-                 0.53f, 0.53f, 0.53f, MTXF_APPLY);
+    // Translucent sun glow renders fuller at its faint edges on DC than N64 -> shrink the geometry to
+    // match the visible extent (was 0.8). TUNE BY EYE.
+    Matrix_Scale(gGfxMatrix, 0.68f, 0.68f, 0.68f, MTXF_APPLY);
+    // legit z-fighting fix
     Matrix_Translate(gGfxMatrix, 0.0f, 0.0f, 5.0f, MTXF_APPLY);
 
     Matrix_SetGfxMtx(&gMasterDisp);
@@ -4757,11 +4740,8 @@ void Map_VenomCloud2_Draw(PlanetId planetId) {
 void Map_PlanetShadow_Draw(PlanetId planetId) {
     int zflip = 0;
     RCP_SetupDL(&gMasterDisp, SETUPDL_64);
-    gDPSetEnvColor(gMasterDisp++, /* 255- */ 0, /* 255- */ 0, /* 255- */ 0, 0xFF);
-    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT, TEXEL0,
-                      PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
 
-    gDPSetPrimColor(gMasterDisp++, 0, 0, /* 255, 255, 255 */ 255, 255, 255, 255); //-sPlanets[planetId].alpha);
+    gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, sPlanets[planetId].alpha);
 
     Matrix_Push(&gGfxMatrix);
 
@@ -4784,11 +4764,9 @@ void Map_PlanetShadow_Draw(PlanetId planetId) {
 
 void Map_Titania_DrawRings1(PlanetId planetId) {
     RCP_SetupDL(&gMasterDisp, SETUPDL_67);
-    gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE,
-                      ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
 
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 175, 175, sPlanets[planetId].alpha);
-    gDPSetEnvColor(gMasterDisp++, 73, 31, 15, 255);
+    gDPSetEnvColor(gMasterDisp++, 73, 31, 15, 0);
 
     Matrix_Push(&gGfxMatrix);
 
@@ -4808,11 +4786,9 @@ void Map_Titania_DrawRings1(PlanetId planetId) {
 
 void Map_Titania_DrawRings2(PlanetId planetId) {
     RCP_SetupDL(&gMasterDisp, SETUPDL_67);
-    gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE,
-                      ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
 
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 175, 175, sPlanets[planetId].alpha);
-    gDPSetEnvColor(gMasterDisp++, 73, 31, 15, 255);
+    gDPSetEnvColor(gMasterDisp++, 73, 31, 15, 0);
 
     Matrix_Push(&gGfxMatrix);
 
@@ -4835,11 +4811,9 @@ void Map_VenomCloud_Draw(f32* zAngle, f32 next, f32 scale, int which) {
     }
 
     RCP_SetupDL(&gMasterDisp, SETUPDL_67);
-    gDPSetEnvColor(gMasterDisp++, /* 255- */ 0, /* 255- */ 0, /* 255- */ 0, 0xFF);
-    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT, TEXEL0,
-                      PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
 
     gDPSetPrimColor(gMasterDisp++, 0, 0, 63, 95, 30, alpha);
+    gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 0);
 
     Matrix_Push(&gGfxMatrix);
 
@@ -4914,11 +4888,9 @@ void Map_PlanetCleared_Draw(PlanetId planetId) {
 
     if (alpha != 0) {
         RCP_SetupDL(&gMasterDisp, SETUPDL_67);
-        gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
-            TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
 
         gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, alpha);
-        gDPSetEnvColor(gMasterDisp++, 80, 80, 0, 255);
+        gDPSetEnvColor(gMasterDisp++, 80, 80, 0, 0);
 
         Matrix_Push(&gGfxMatrix);
 
@@ -4957,11 +4929,9 @@ void Map_PlanetMedal_Draw(PlanetId planetId) {
         switch (D_menu_801CD990) {
             case 0:
                 RCP_SetupDL(&gMasterDisp, SETUPDL_67);
-gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
-                           TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
 
                 gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, alpha);
-                gDPSetEnvColor(gMasterDisp++, 80, 80, 0, 255);
+                gDPSetEnvColor(gMasterDisp++, 80, 80, 0, 0);
 
                 Matrix_Push(&gGfxMatrix);
 
@@ -4990,12 +4960,9 @@ gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TE
                 Math_SmoothStepToF(&D_menu_801CD99C, 150.0f, 0.09f, 100.0f, 0.1f);
 
                 RCP_SetupDL(&gMasterDisp, SETUPDL_67);
-gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
-                           TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
-
 
                 gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, D_menu_801CD994);
-                gDPSetEnvColor(gMasterDisp++, 80, 80, 0, 255);
+                gDPSetEnvColor(gMasterDisp++, 80, 80, 0, 0);
 
                 for (i = 0; i < 8; i++) {
                     Matrix_Push(&gGfxMatrix);
@@ -5083,10 +5050,8 @@ gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TE
 void Map_CorneriaExplosion_Draw(void) {
     if (D_menu_801CEB34 >= 0) {
         RCP_SetupDL(&gMasterDisp, SETUPDL_67);
-gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
-                           TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
 
-        gDPSetEnvColor(gMasterDisp++, 255, 0, 0, 255); // was 0 alpha
+        gDPSetEnvColor(gMasterDisp++, 255, 0, 0, 0);
 
         switch (D_menu_801CEB34) {
             case 0:
@@ -5161,10 +5126,8 @@ void Map_PlanetExplosions_Draw(PlanetId planetId, PlanetExplosions explosionIdx)
     }
 
     RCP_SetupDL(&gMasterDisp, SETUPDL_67);
-gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
-                           TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
 
-    gDPSetEnvColor(gMasterDisp++, 255, 0, 0, 255); // was 0 alpha
+    gDPSetEnvColor(gMasterDisp++, 255, 0, 0, 0);
 
     for (i = 0; i < temp2; i++) {
         switch (D_menu_801CEB58[explosionIdx][i]) {
@@ -5759,11 +5722,9 @@ void Map_PathPlanet_Draw(s32 missionIdx, f32 x, f32 y, PlanetId planetId) {
         case PLANET_SOLAR:
             if ((gGameFrameCount & mask) != 0) {
                 RCP_SetupDL(&gMasterDisp, SETUPDL_67);
-                gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
-                           TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
 
                 gDPSetPrimColor(gMasterDisp++, 0, 0, 240, 0, 0, 255);
-                gDPSetEnvColor(gMasterDisp++, 31, 0, 0, 255);
+                gDPSetEnvColor(gMasterDisp++, 31, 0, 0, 0);
 
                 Matrix_Push(&gGfxMatrix);
                 Matrix_Translate(gGfxMatrix, x, y, 0.0f, MTXF_APPLY);
@@ -5772,11 +5733,9 @@ void Map_PathPlanet_Draw(s32 missionIdx, f32 x, f32 y, PlanetId planetId) {
                 Matrix_SetGfxMtx(&gMasterDisp);
 
                 gSPDisplayList(gMasterDisp++, sMapPlanets[sPlanets[planetId].id]);
-                gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
-                           TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
+                gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 128);
+                gDPSetEnvColor(gMasterDisp++, 31, 0, 0, 0);
 
-                gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 224);
-                gDPSetEnvColor(gMasterDisp++, 255,255,255, 255);
                 Matrix_RotateZ(gGfxMatrix, M_DTOR * -D_menu_801B6A74*2.0f, MTXF_APPLY);
                 Matrix_Scale(gGfxMatrix, 0.8f, 0.8f, 0.8f, MTXF_APPLY);
                 Matrix_Translate(gGfxMatrix, 1.0f, 0.0f, 2.0f, MTXF_APPLY);
@@ -6255,8 +6214,8 @@ void Map_GralPepperFace_Draw(void) {
 
         RCP_SetupDL(&gMasterDisp, SETUPDL_67);
 
-        gDPSetPrimColor(gMasterDisp++, 0, 0, 255,255,255/* 32, 32, 255 */, D_menu_801CEA98);
-        gDPSetEnvColor(gMasterDisp++, /* 207, 207, 255, */32,32,255, 255);
+        gDPSetPrimColor(gMasterDisp++, 0, 0, 32, 32, 255, D_menu_801CEA98);
+        gDPSetEnvColor(gMasterDisp++, 207, 207, 255, 0);
 
         Matrix_Push(&gGfxMatrix);
         {
@@ -6270,16 +6229,12 @@ void Map_GralPepperFace_Draw(void) {
             Matrix_SetGfxMtx(&gMasterDisp);
 
             gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK);
-            gSPRadarMark(gMasterDisp++);
-            gSPDisplayList(gMasterDisp++, aMapTvScreenGlowDL);
-            gSPRadarMark(gMasterDisp++);
+/*             gSPDisplayList(gMasterDisp++, aMapTvScreenGlowDL);
 
             gDPSetPrimColor(gMasterDisp++, 0, 0, 32, 32, 255, D_menu_801CEA98);
             gDPSetEnvColor(gMasterDisp++, 207, 207, 255, 255);
-
-            gSPRadarMark(gMasterDisp++);
+ */
             gSPDisplayList(gMasterDisp++, aMapTvScreenGlowDL);
-            gSPRadarMark(gMasterDisp++);
             gSPSetGeometryMode(gMasterDisp++, G_CULL_BACK);
         }
         Matrix_Pop(&gGfxMatrix);
@@ -6456,11 +6411,9 @@ void Map_PathLine_Draw(PathType pathType) {
     }
 
     RCP_SetupDL(&gMasterDisp, SETUPDL_67);
-    gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
-                           TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
 
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 80, D_menu_801CEEAC);
-    gDPSetEnvColor(gMasterDisp++, r, g, b, 255);
+    gDPSetEnvColor(gMasterDisp++, r, g, b, 0);
 
     Matrix_Push(&gGfxMatrix);
 

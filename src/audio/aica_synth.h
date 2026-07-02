@@ -18,6 +18,9 @@ void AicaSynth_Update(void);
 /* Call inside the tick loop after AudioSynth_SyncSampleStates(tick) to keep
    sub-frame pan/vol/freq resolution for fast pan/tremolo/vibrato. */
 void AicaSynth_RefreshActive(s32 tick);
+/* Drop resident-but-unreferenced samples on a scene/memory reset (hooked in nuke_everything) so the
+   ARAM sample cache doesn't carry one level's samples into the next -> CACHETBLFULL. */
+void AicaSynth_ClearSampleCache(void);
 
 /* Base of the resident AICA-ADPCM sample pool; set by the DC asset loader. */
 extern const unsigned char* gAicaAdpcmPoolBase;

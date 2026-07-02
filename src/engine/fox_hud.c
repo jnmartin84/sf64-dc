@@ -82,14 +82,6 @@ s32 D_80161900[20];
 #include "assets/ast_allies.h"
 #include "assets/ast_star_wolf.h"
 
-#define gSPRadarMark(pkt)          \
-    {                              \
-        Gfx* _g = (Gfx*) (pkt);    \
-                                   \
-        _g->words.w0 = 0x424C4E44; \
-        _g->words.w1 = 0x12345678; \
-    }
-
 void HUD_TeammateStatus_Draw(void);
 
 s16 D_hud_800D1970 = 0;
@@ -208,14 +200,10 @@ void HUD_TeamDownWrench_Draw(s32 arg0) {
                 Matrix_Scale(gGfxMatrix, 0.68f, 0.68f, 1.0f, MTXF_APPLY);
                 Matrix_RotateZ(gGfxMatrix, F_PI_4, MTXF_APPLY);
                 Matrix_SetGfxMtx(&gMasterDisp);
-                gSPRadarMark(gMasterDisp++);
                 gSPDisplayList(gMasterDisp++, aDownWrenchDL);
-                gSPRadarMark(gMasterDisp++);
                 Matrix_RotateZ(gGfxMatrix, F_3PI_2, MTXF_APPLY);
                 Matrix_SetGfxMtx(&gMasterDisp);
-                gSPRadarMark(gMasterDisp++);
                 gSPDisplayList(gMasterDisp++, aDownWrenchDL);
-                gSPRadarMark(gMasterDisp++);
                 Matrix_Pop(&gGfxMatrix);
             }
         }
@@ -225,21 +213,16 @@ void HUD_TeamDownWrench_Draw(s32 arg0) {
         Matrix_RotateZ(gGfxMatrix, F_PI / 4, MTXF_APPLY);
         Matrix_Scale(gGfxMatrix, 0.68f, 0.68f, 1.0f, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
-        gSPRadarMark(gMasterDisp++);
         gSPDisplayList(gMasterDisp++, aDownWrenchDL);
-        gSPRadarMark(gMasterDisp++);
         Matrix_RotateZ(gGfxMatrix, F_3PI_2, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
-        gSPRadarMark(gMasterDisp++);
         gSPDisplayList(gMasterDisp++, aDownWrenchDL);
-        gSPRadarMark(gMasterDisp++);
         Matrix_Pop(&gGfxMatrix);
     }
 }
 
 void TextureRect_CI8_2(Gfx** gfxP, u8* texture, u16* palette, u32 tWidth, u32 tHeight, f32 xPos, f32 yPos, f32 xScale,
                        f32 yScale, f32 xWidth, f32 yWidth) {
-    //gDPPipeSync((*gfxP)++);
     gDPLoadTLUT((*gfxP)++, 256, 256, palette);
     gDPLoadTextureBlock((*gfxP)++, texture, G_IM_FMT_CI, G_IM_SIZ_8b, tWidth, tHeight, 0, G_TX_NOMIRROR, G_TX_NOMIRROR,
                         G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
@@ -447,11 +430,7 @@ void HUD_GoldRings_Draw(void) {
                     }
 
                     RCP_SetupDL(&gMasterDisp, SETUPDL_62);
-        RCP_SetupDL(&gMasterDisp, SETUPDL_67);
-gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
-                           TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
                     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
-                    gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 255);
 
                     Matrix_Push(&gGfxMatrix);
                     Matrix_Translate(gGfxMatrix, D_800D1AC4[i + 1], D_800D1AD8[i + 1], -100.0f, MTXF_NEW);
@@ -933,9 +912,7 @@ void HUD_DrawLevelClearScreen(void) {
         HUD_MsgWindowBg_Draw2(30.0f + D_800D1CFC, 60.0f, 10.97f, 4.78f);
 
     if (levelClearState != LEVEL_CLEAR_STATE_0) {
-//        RCP_SetupDL(&gMasterDisp, SETUPDL_76);
-//        gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
-        RCP_SetupDL(&gMasterDisp, SETUPDL_83);
+        RCP_SetupDL(&gMasterDisp, SETUPDL_76);
         gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
         x = 98.0f;
         y = 64.0f;
@@ -1457,13 +1434,11 @@ void HUD_LoseLifeExplosion_Draw(s32 animFrames) {
         Matrix_Translate(gGfxMatrix, 3.9f, -3.3f, -100.0f, MTXF_NEW);
         Matrix_Scale(gGfxMatrix, 0.37f, 0.37f, 0.37f, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
-        gSPRadarMark(gMasterDisp++);
         if (gLevelType == LEVELTYPE_PLANET) {
             gSPDisplayList(gMasterDisp++, sLoseLifePlanetAnimDLs[animFrames]);
         } else {
             gSPDisplayList(gMasterDisp++, sLoseLifeSpaceAnimDLs[animFrames]);
         }
-        gSPRadarMark(gMasterDisp++);
 
         Matrix_Pop(&gGfxMatrix);
     }
@@ -1629,7 +1604,7 @@ void HUD_PauseScreen_Update(void) {
                 }
 
             case 5:
-               Graphics_FillRectangle(&gMasterDisp, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, 0, 0, 0, 255);
+                Graphics_FillRectangle(&gMasterDisp, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, 0, 0, 0, 255);
 
                 for (i = 0; i < 6; i++) {
                     if (gPrevPlanetTeamShields[i] == -1) {
@@ -1797,17 +1772,13 @@ void HUD_PauseScreen_Update(void) {
     }
 }
 
-int do_radar_mark = 0;
-
 void HUD_RadarMark_Item_Draw(void) {
     RCP_SetupDL(&gMasterDisp, SETUPDL_62);
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
     Matrix_Scale(gGfxMatrix, 18.64f, 21.04f, 1.0f, MTXF_APPLY);
     Matrix_SetGfxMtx(&gMasterDisp);
-    gSPRadarMark(gMasterDisp++);
     gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
     gSPDisplayList(gMasterDisp++, aOrbDL);
-    gSPRadarMark(gMasterDisp++);
 }
 
 void HUD_RadarMark_Enemy_Draw(void) {
@@ -1815,10 +1786,8 @@ void HUD_RadarMark_Enemy_Draw(void) {
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
     Matrix_Scale(gGfxMatrix, 11.0f, 11.0f, 1.0f, MTXF_APPLY);
     Matrix_SetGfxMtx(&gMasterDisp);
-    gSPRadarMark(gMasterDisp++);
     gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
     gSPDisplayList(gMasterDisp++, aOrbDL);
-    gSPRadarMark(gMasterDisp++);
 }
 
 void HUD_RadarMark_Boss_Draw(void) {
@@ -1826,10 +1795,8 @@ void HUD_RadarMark_Boss_Draw(void) {
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
     Matrix_Scale(gGfxMatrix, 130.0f, 130.0f, 1.0f, MTXF_APPLY);
     Matrix_SetGfxMtx(&gMasterDisp);
-    gSPRadarMark(gMasterDisp++);
     gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
     gSPDisplayList(gMasterDisp++, aRadarMarkBossDL);
-    gSPRadarMark(gMasterDisp++);
 }
 
 void HUD_RadarMark_KaSaucerer_Draw(void) {
@@ -1837,10 +1804,8 @@ void HUD_RadarMark_KaSaucerer_Draw(void) {
     gDPSetPrimColor(gMasterDisp++, 0, 0, 0, 0, 0, 255);
     Matrix_Scale(gGfxMatrix, 125.0f, 125.0f, 1.0f, MTXF_APPLY);
     Matrix_SetGfxMtx(&gMasterDisp);
-    gSPRadarMark(gMasterDisp++);
     gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
     gSPDisplayList(gMasterDisp++, aBallDL);
-    gSPRadarMark(gMasterDisp++);
 }
 
 void HUD_RadarMark_Missile_Draw(void) {
@@ -1848,10 +1813,8 @@ void HUD_RadarMark_Missile_Draw(void) {
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 208, 80, 255);
     Matrix_Scale(gGfxMatrix, 30.0f, 30.0f, 1.0f, MTXF_APPLY);
     Matrix_SetGfxMtx(&gMasterDisp);
-    gSPRadarMark(gMasterDisp++);
     gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
     gSPDisplayList(gMasterDisp++, aSzMissileRadarMarkDL);
-    gSPRadarMark(gMasterDisp++);
 }
 
 f32 D_800D1E10 = 0.0f;
@@ -1877,10 +1840,8 @@ void HUD_RadarMark_Arwing_Draw(s32 colorIdx) {
                     arwingMarkColor[colorIdx][2], arwingMarkColor[colorIdx][3]);
     Matrix_Scale(gGfxMatrix, var_fv1, var_fv2, 1.0f, MTXF_APPLY);
     Matrix_SetGfxMtx(&gMasterDisp);
-    gSPRadarMark(gMasterDisp++);
     gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
     gSPDisplayList(gMasterDisp++, aRadarMarkArwingDL);
-    gSPRadarMark(gMasterDisp++);
 }
 
 void HUD_RadarMark_StarWolf_Draw(void) {
@@ -1888,10 +1849,8 @@ void HUD_RadarMark_StarWolf_Draw(void) {
     gDPSetPrimColor(gMasterDisp++, 0, 0, 0, 0, 0, 255);
     Matrix_Scale(gGfxMatrix, 54.0f, 54.0f, 1.0f, MTXF_APPLY);
     Matrix_SetGfxMtx(&gMasterDisp);
-    gSPRadarMark(gMasterDisp++);
     gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
     gSPDisplayList(gMasterDisp++, aStarWolfRadarMarkDL);
-    gSPRadarMark(gMasterDisp++);
 }
 
 void HUD_RadarMark_Katt_Draw(void) {
@@ -1899,10 +1858,8 @@ void HUD_RadarMark_Katt_Draw(void) {
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 92, 92, 255);
     Matrix_Scale(gGfxMatrix, 54.0f, 54.0f, 1.0f, MTXF_APPLY);
     Matrix_SetGfxMtx(&gMasterDisp);
-    gSPRadarMark(gMasterDisp++);
     gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
     gSPDisplayList(gMasterDisp++, aKattRadarMarkDL);
-    gSPRadarMark(gMasterDisp++);
 }
 
 void HUD_RadarMark_Supplies_Draw(void) {
@@ -1920,10 +1877,8 @@ void HUD_RadarMark_Supplies_Draw(void) {
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, alpha);
     Matrix_Scale(gGfxMatrix, 15.0f, 15.0f, 1.0f, MTXF_APPLY);
     Matrix_SetGfxMtx(&gMasterDisp);
-    gSPRadarMark(gMasterDisp++);
     gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
     gSPDisplayList(gMasterDisp++, D_1024230);
-    gSPRadarMark(gMasterDisp++);
 }
 
 void HUD_RadarMissileAlarm_Draw(void) {
@@ -1949,10 +1904,8 @@ void HUD_RadarMissileAlarm_Draw(void) {
     Matrix_Translate(gGfxMatrix, 0.0f, -185.92001f, 0, MTXF_APPLY);
     Matrix_Scale(gGfxMatrix, 3.55f, 0.13f, 1.0f, MTXF_APPLY);
     Matrix_SetGfxMtx(&gMasterDisp);
-    gSPRadarMark(gMasterDisp++);
     gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
     gSPDisplayList(gMasterDisp++, D_1024230);
-    gSPRadarMark(gMasterDisp++);
 }
 
 void HUD_RadarMark_Draw(s32 type) {
@@ -2698,9 +2651,7 @@ void HUD_RadioDamage_Draw(void) {
         Matrix_Translate(gGfxMatrix, -53.9f, -38.5f, -139.4f, MTXF_APPLY);
         Matrix_Scale(gGfxMatrix, 1.0f, 1.0f, 1.0f, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
-        gSPRadarMark(gMasterDisp++);
         gSPDisplayList(gMasterDisp++, sRadioDamageDL);
-        gSPRadarMark(gMasterDisp++);
         Matrix_Pop(&gGfxMatrix);
     }
 }

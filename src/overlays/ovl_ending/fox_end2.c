@@ -94,14 +94,11 @@ void Ending_8018D2C8(u32 arg0, AssetInfo* asset) {
     if ((asset->unk_0C + asset->unk_10 - asset->fogFar) < arg0) {
         alpha = (asset->unk_0C + asset->unk_10 - arg0 - 1) * 255 / asset->fogFar;
     }
-/* if (!force_screen_fill_colors) {
- */    gFillScreenRed = asset->prim.r;
+
+    gFillScreenRed = asset->prim.r;
     gFillScreenGreen = asset->prim.g;
     gFillScreenBlue = asset->prim.b;
-/* } else {
-    gFillScreenRed = gFillScreenGreen = gFillScreenBlue = 0;
-}
- */    gFillScreenAlpha = gFillScreenAlphaTarget = alpha;
+    gFillScreenAlpha = gFillScreenAlphaTarget = alpha;
     gFillScreenAlphaStep = 0;
 }
 
@@ -148,21 +145,16 @@ void Ending_8018D638(u32 arg0, AssetInfo* asset) {
     if ((asset->unk_0C + asset->fogFar) > arg0) {
         alpha = (asset->unk_0C + asset->fogFar - arg0) * 255 / asset->fogFar;
     }
-/* if (!force_screen_fill_colors) {
-
- */    gFillScreenRed = asset->prim.r;
+    gFillScreenRed = asset->prim.r;
     gFillScreenGreen = asset->prim.g;
     gFillScreenBlue = asset->prim.b;
-/* } else {
-    gFillScreenRed = gFillScreenGreen = gFillScreenBlue = 0;
-}
- */    gFillScreenAlpha = gFillScreenAlphaTarget = alpha;
+    gFillScreenAlpha = gFillScreenAlphaTarget = alpha;
     gFillScreenAlphaStep = 0;
 
     RCP_SetupDL(&gMasterDisp, SETUPDL_83);
 
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
-        gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
+    gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
 
     if (gExpertMode != 0) {
         for (i = 0; i < 240; i += 4) {
@@ -325,11 +317,11 @@ bool Ending_8018DCB4(void) {
 void Ending_8018E1B8(u32 arg0, AssetInfo* asset) {
     f32 temp;
 
-    if ((asset->unk_18.z + (arg0 - asset->unk_0C) * asset->unk_3C.z) < D_ending_801985D0.z) {
+//    if ((asset->unk_18.z + (arg0 - asset->unk_0C) * asset->unk_3C.z) < D_ending_801985D0.z) {
         RCP_SetupDL(&gMasterDisp, SETUPDL_67);
-    } else {
-        RCP_SetupDL(&gMasterDisp, SETUPDL_63);
-    }
+//    } else {
+//        RCP_SetupDL(&gMasterDisp, SETUPDL_63);
+//    }
 
     gSPFogPosition(gMasterDisp++, 995, 1000);//asset->fogNear, asset->fogFar);
     gDPSetFogColor(gMasterDisp++, asset->fog.r, asset->fog.g, asset->fog.b, 0);
@@ -384,11 +376,11 @@ void Ending_8018E1B8(u32 arg0, AssetInfo* asset) {
 void Ending_8018E7B8(u32 arg0, AssetInfo* asset) {
     f32 temp;
 
-    if ((asset->unk_18.z + (arg0 - asset->unk_0C) * asset->unk_3C.z) < D_ending_801985D0.z) {
+//    if ((asset->unk_18.z + (arg0 - asset->unk_0C) * asset->unk_3C.z) < D_ending_801985D0.z) {
         RCP_SetupDL(&gMasterDisp, SETUPDL_67);
-    } else {
-        RCP_SetupDL(&gMasterDisp, SETUPDL_63);
-    }
+//    } else {
+//        RCP_SetupDL(&gMasterDisp, SETUPDL_63);
+//    }
 
     gSPFogPosition(gMasterDisp++, 995, 1000);//asset->fogNear, asset->fogFar);
     gDPSetFogColor(gMasterDisp++, asset->fog.r, asset->fog.g, asset->fog.b, 0);
@@ -451,6 +443,14 @@ void Ending_Floor_Draw(u32 arg0, AssetInfo* asset) {
     gSPFogPosition(gMasterDisp++, 995, 1000);//asset->fogNear, asset->fogFar);
     gDPSetFogColor(gMasterDisp++, asset->fog.r, asset->fog.g, asset->fog.b, 0);
     gDPSetPrimColor(gMasterDisp++, 0, 0, asset->prim.r, asset->prim.g, asset->prim.b, asset->prim.a);
+
+    // raw-PVR: SETUPDL_20 is Z-off (no G_ZBUFFER, AA_OPA_SURF2 -> writes no depth). On the PVR the Great
+    // Fox's Z-tested engine glow is translucent (TR list, composited after ALL opaque), so with no floor
+    // depth to lose against it bleeds over the floor below the horizon. Give the floor a depth-writing
+    // mode (G_ZBUFFER + AA_ZB_OPA_SURF2) so the glow -- and the body cutoff -- become real depth
+    // occlusion. (Z_UPD could z-fight characters coplanar with the floor; watch the on-foot scene.)
+    gSPSetGeometryMode(gMasterDisp++, G_ZBUFFER);
+    gDPSetRenderMode(gMasterDisp++, G_RM_FOG_SHADE_A, G_RM_AA_ZB_OPA_SURF2);
 
     Matrix_Translate(gGfxMatrix, asset->unk_18.x + (arg0 - asset->unk_0C) * asset->unk_3C.x,
                      asset->unk_18.y + (arg0 - asset->unk_0C) * asset->unk_3C.y,
@@ -686,13 +686,6 @@ void Ending_80190274(u32 arg0, AssetInfo* asset) {
 
     gSPDisplayList(gMasterDisp++, aEndCorneriaDL);
 }
-#define gSPFixDepthCut2(pkt)                                       \
-    {                                                                                   \
-        Gfx* _g = (Gfx*) (pkt);                                                         \
-                                                                                        \
-        _g->words.w0 = 0x424C4E44; \
-        _g->words.w1 = 0x46664369;                                           \
-    }
 
 void Ending_80190648(s32 arg0, AssetInfo* asset) {
     RCP_SetupDL(&gMasterDisp, asset->unk_08);
@@ -705,9 +698,7 @@ void Ending_80190648(s32 arg0, AssetInfo* asset) {
     Matrix_Scale(gGfxMatrix, asset->unk_30.x, asset->unk_30.y, asset->unk_30.z, MTXF_APPLY);
 
     Matrix_SetGfxMtx(&gMasterDisp);
-    gSPFixDepthCut2(gMasterDisp++);
     gSPDisplayList(gMasterDisp++, aEndVenomDL);
-    gSPFixDepthCut2(gMasterDisp++);
 }
 
 void Ending_80190778(u32 arg0, AssetInfo* asset) {
@@ -902,15 +893,6 @@ void Ending_80191294(u32 arg0, AssetInfo* asset) {
 void Ending_80191700(u32 arg0, AssetInfo* asset) {
 }
 
-#define gSPFixDepthCut(pkt)                                       \
-    {                                                                                   \
-        Gfx* _g = (Gfx*) (pkt);                                                         \
-                                                                                        \
-        _g->words.w0 = 0x424C4E44; \
-        _g->words.w1 = 0x46554369;                                           \
-    }
-
-
 void Ending_80191710(u32 arg0, AssetInfo* asset) {
     f32 temp;
 
@@ -963,6 +945,7 @@ void Ending_80191710(u32 arg0, AssetInfo* asset) {
     }
 
     Matrix_SetGfxMtx(&gMasterDisp);
+#if 0
     if (asset->unk_00 == aAwCockpitGlassDL) {
         gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 140);
         gDPSetEnvColor(gMasterDisp++, 0,0,0, 0xFF);
@@ -974,11 +957,14 @@ void Ending_80191710(u32 arg0, AssetInfo* asset) {
         Matrix_Scale(gGfxMatrix, 1.05f, 1.0f, 1.0f, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
         gSPFixDepthCut(gMasterDisp++);
-    } 
+    }
+#endif
     gSPDisplayList(gMasterDisp++, asset->unk_00);
+#if 0
     if (asset->unk_00 == aEndBackdrop2DL) {
         gSPFixDepthCut(gMasterDisp++);
     } 
+#endif
 }
 
 void Ending_80191C58(u32 arg0, AssetInfo* asset) {
@@ -992,9 +978,8 @@ void Ending_80191C7C(u32 arg0, AssetInfo* asset) {
 
     gSPFogPosition(gMasterDisp++, 995, 1000);//asset->fogNear, asset->fogFar);
     gDPSetFogColor(gMasterDisp++, asset->fog.r, asset->fog.g, asset->fog.b, 0);
-//                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-  //                    TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-    gDPSetEnvColor(gMasterDisp++, /* 255- */asset->env.r, /* 255- */asset->env.g, /* 255- */asset->env.b, asset->env.a);
+// BACKEND_PVR
+    gDPSetEnvColor(gMasterDisp++, asset->env.r, asset->env.g, asset->env.b, asset->env.a);
     gDPSetPrimColor(gMasterDisp++, 0, 0, asset->prim.r, asset->prim.g, asset->prim.b, asset->prim.a);
 
     Matrix_Translate(gGfxMatrix, asset->unk_18.x + (arg0 - asset->unk_0C) * asset->unk_3C.x,

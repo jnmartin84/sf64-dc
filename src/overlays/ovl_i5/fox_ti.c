@@ -2596,10 +2596,8 @@ void Titania_8019002C(s32 limbIndex, Vec3f* rot, void* thisx) {
         Matrix_Scale(gGfxMatrix, D_i5_801BBEF4[74], D_i5_801BBEF4[74], 1.0f, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
         RCP_SetupDL(&gMasterDisp, SETUPDL_72);
-                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
         gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255);
-        gDPSetEnvColor(gMasterDisp++, 255-255, 255-0, 255-0, 255);
+        gDPSetEnvColor(gMasterDisp++, 255, 0, 0, 255);
         gSPDisplayList(gMasterDisp++, aOrbDL);
         RCP_SetupDL(&gMasterDisp, SETUPDL_30);
         Matrix_Pop(&gGfxMatrix);
@@ -2650,10 +2648,6 @@ s32 Titania_801903A0(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* t
             RCP_SetupDL(&gMasterDisp, SETUPDL_30);
 
             if (sp20 & 1) {
-                // jnmartin84 ????
-                gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                    TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                gDPSetEnvColor(gMasterDisp++, 0,255,255, 255);//255);
                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
             } else {
                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255);
@@ -2671,10 +2665,6 @@ s32 Titania_801903A0(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* t
             RCP_SetupDL(&gMasterDisp, SETUPDL_61);
 
             if (sp20 & 1) {
-                // jnmartin84 ????
-                gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                    TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                gDPSetEnvColor(gMasterDisp++, 0,255,255, 255);//255);
                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
             } else {
                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255);
@@ -3037,10 +3027,6 @@ s32 Titania_80190A08(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* t
 
                 if ((this->swork[22] & 1) ||
                     ((D_i5_801B7770[i][2] != 0) && (this->swork[D_i5_801B7770[i][2] + 4] & 1))) {
-                    // jnmartin84 ????
-                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                        TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                    gDPSetEnvColor(gMasterDisp++, 255-255,255-0,255-0, 255);//255);
                     gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
                     sp58 = 1;
                 }
@@ -5327,12 +5313,9 @@ void Titania_TiGoras_Draw(TiGoras* boss) {
                 Matrix_Push(&gGfxMatrix);
 
                 RCP_SetupDL(&gMasterDisp, SETUPDL_69);
-//                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-  //                    TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-/*                 gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
-                           TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
- */                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 0, 0, 0, 255);
-                gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 255);
+// BACKEND_PVR
+                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 0, 0, 0, 255);
+                gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 0);
 
                 Matrix_RotateX(gGfxMatrix, -F_PI_2, MTXF_APPLY);
                 Matrix_Scale(gGfxMatrix, boss->fwork[47] * 10.0f, boss->fwork[47] * 10.0f, 1.0f, MTXF_APPLY);
@@ -5353,12 +5336,9 @@ void Titania_TiGoras_Draw(TiGoras* boss) {
                 Matrix_Push(&gGfxMatrix);
 
                 RCP_SetupDL(&gMasterDisp, SETUPDL_69);
-//                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-  //                    TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-//gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
-  //                         TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
+
                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 0, 0, 0, 255);
-                gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 255);
+                gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 0);
 
                 Matrix_RotateX(gGfxMatrix, -F_PI_2, MTXF_APPLY);
                 Matrix_Scale(gGfxMatrix, 10.0f, 10.0f, 1.0f, MTXF_APPLY);
@@ -5380,18 +5360,10 @@ void Titania_TiGoras_Draw(TiGoras* boss) {
                     sp120 = (boss->fwork[43] + i) / 3.0f;
                     temp_fs2 = boss->fwork[45] * sp120;
                     temp_fv0 = 1.0f - sp120;
-
-// FUCKING GORAS JNMARTIN84 FIX THIS SHIT FUCK
-//gSPFillrectBlend(gMasterDisp++);
-//                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-  //                    TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-//gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
-   //                        TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
-
-                    gDPSetPrimColor(gMasterDisp++,   0x00, 0x00,   (s32) (temp_fv0 * 255.0f),
+                    gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, (s32) (temp_fv0 * 255.0f),
                                     (s32) ((temp_fv0 * 128.0f) + 127.0f), (s32) ((temp_fv0 * 60.0f) + 195.0f),
-                                    255);
-                    gDPSetEnvColor(gMasterDisp++,/* 0,0, */255,255, 255,(s32) ((temp_fv0 * 155.0f) + 100.0f));
+                                    (s32) ((temp_fv0 * 155.0f) + 100.0f));
+
                     for (j = 0; j < 360; j += 45) {
                         Matrix_Push(&gGfxMatrix);
                         Matrix_RotateZ(gGfxMatrix, (j + boss->fwork[43] * 360.0f) * M_DTOR, MTXF_APPLY);
@@ -5400,7 +5372,6 @@ void Titania_TiGoras_Draw(TiGoras* boss) {
                         gSPDisplayList(gMasterDisp++, D_Gfx_800D94D0);
                         Matrix_Pop(&gGfxMatrix);
                     }
-//                    gSPFillrectBlend(gMasterDisp++);
 
                 }
                 Matrix_Pop(&gGfxMatrix);
@@ -5411,19 +5382,12 @@ void Titania_TiGoras_Draw(TiGoras* boss) {
             if (D_i5_801BBEF0[7] != 0) {
                 Matrix_Push(&gGfxMatrix);
                 sp120 = D_i5_801BBEF0[7] * 16.0f;
-                RCP_SetupDL(&gMasterDisp, SETUPDL_49/* 64 */);
+                RCP_SetupDL(&gMasterDisp, SETUPDL_64);
                 Matrix_RotateX(gGfxMatrix, F_PI_2, MTXF_APPLY);
                 Matrix_Push(&gGfxMatrix);
                 Matrix_Scale(gGfxMatrix, sp120, 1.0f, sp120, MTXF_APPLY);
                 Matrix_SetGfxMtx(&gMasterDisp);
-//                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-  //                    TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-//  gSPFillrectBlend(gMasterDisp++);
-
-//  gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
-  //                         TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
-                gDPSetEnvColor(gMasterDisp++,/* 0,0, */120, 255, 220,D_i5_801BBEF0[7] * 50);
-                gDPSetPrimColor(gMasterDisp++,  0x00, 0x00,   255,255,255,255);
+                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 120, 255, 220, D_i5_801BBEF0[7] * 50);
                 gSPDisplayList(gMasterDisp++, D_BG_PLANET_20112C0);
                 Matrix_Pop(&gGfxMatrix);
 
@@ -5431,20 +5395,8 @@ void Titania_TiGoras_Draw(TiGoras* boss) {
                     sp120 = (D_i5_801BBEF0[7] - 1) * 24.0f;
                     Matrix_Scale(gGfxMatrix, sp120, 1.0f, sp120, MTXF_APPLY);
                     Matrix_SetGfxMtx(&gMasterDisp);
-//                    gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 120, 255, 220, D_i5_801BBEF0[7] * 50);
-//                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-//                    TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-
-//gDPSetEnvColor(gMasterDisp++, /* 0x00, 0x00,  */255,255,255, 255);
-  //              gDPSetPrimColor(gMasterDisp++,0,0,120, 255, 220,D_i5_801BBEF0[7] * 50);
-    
-  //gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
-//                           TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
-                  gDPSetPrimColor(gMasterDisp++, 0,0,120, 255, 220,D_i5_801BBEF0[7] * 50);
-                gDPSetEnvColor(gMasterDisp++,/* 0,0, */255,255,255, 255);
-
-  
-  gSPDisplayList(gMasterDisp++, D_BG_PLANET_20112C0);
+                    gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 120, 255, 220, D_i5_801BBEF0[7] * 50);
+                    gSPDisplayList(gMasterDisp++, D_BG_PLANET_20112C0);
                 }
 //                gSPFillrectBlend(gMasterDisp++);
 
@@ -5463,16 +5415,10 @@ void Titania_TiGoras_Draw(TiGoras* boss) {
                              MTXF_APPLY);
                 Matrix_SetGfxMtx(&gMasterDisp);
                 RCP_SetupDL(&gMasterDisp, SETUPDL_49);
-//gSPFillrectBlend(gMasterDisp++);
 
-//                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-//                    TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-//  gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
-//                           TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
-                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00,  0, 128, 60, 178);
-                gDPSetEnvColor(gMasterDisp++,/*  0,0, */255, 255, 255, 255);
+                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 178);
+                gDPSetEnvColor(gMasterDisp++, 0, 128, 60, 0);
                 gSPDisplayList(gMasterDisp++, D_TI2_7005300);
-//gSPFillrectBlend(gMasterDisp++);
 
                 Matrix_Pop(&gGfxMatrix);
             }
@@ -5487,17 +5433,12 @@ void Titania_TiGoras_Draw(TiGoras* boss) {
 
                 Matrix_Scale(gGfxMatrix, 4.0f, 4.0f, 4.0f, MTXF_APPLY);
                 Matrix_SetGfxMtx(&gMasterDisp);
-//gSPFillrectBlend(gMasterDisp++);
 
                 RCP_SetupDL(&gMasterDisp, SETUPDL_49);
-//                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-  //                    TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-//gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
-  //                         TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
-                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00,0,128 ,60 , (s32) ((D_i5_801BBEF0[17] * 89.0f) / 3.0f));
-                gDPSetEnvColor(gMasterDisp++, /*  0,0, */255, 255, 255, 255);
+
+                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, (s32) ((D_i5_801BBEF0[17] * 89.0f) / 3.0f));
+                gDPSetEnvColor(gMasterDisp++, 0, 128, 60, 0);
                 gSPDisplayList(gMasterDisp++, D_TI2_7005300);
-//gSPFillrectBlend(gMasterDisp++);
 
                 Matrix_Pop(&gGfxMatrix);
             }
@@ -5514,15 +5455,10 @@ void Titania_TiGoras_Draw(TiGoras* boss) {
                 Matrix_Push(&gGfxMatrix);
                 Matrix_Scale(gGfxMatrix, half * sp120, half * sp120, temp_fs2, MTXF_APPLY);
                 Matrix_SetGfxMtx(&gMasterDisp);
-                RCP_SetupDL(&gMasterDisp, SETUPDL_49/* 72 */);
-//                   gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-  //                    TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-//  gSPFillrectBlend(gMasterDisp++);
+                RCP_SetupDL(&gMasterDisp, SETUPDL_72);
 
-//gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
-  //                         TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
-                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 0, 128 , 60, 178);
-                gDPSetEnvColor(gMasterDisp++,/* 0,0, */ 255, 255, 255, 255);
+                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 178);
+                gDPSetEnvColor(gMasterDisp++, 0, 128, 60, 0);
                 gSPDisplayList(gMasterDisp++, D_TI_8000D90);
 
                 Matrix_Pop(&gGfxMatrix);
@@ -5530,14 +5466,9 @@ void Titania_TiGoras_Draw(TiGoras* boss) {
                 Matrix_SetGfxMtx(&gMasterDisp);
 
                 gDPPipeSync(gMasterDisp++);
-//                   gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-  //                    TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-//  gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
-  //                         TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
-                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00,  0, 128 ,  110, 64);
-                gDPSetEnvColor(gMasterDisp++,/* 0,0, */ 255, 255, 255, 255);
+                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 64);
+                gDPSetEnvColor(gMasterDisp++, 0, 128, 110, 0);
                 gSPDisplayList(gMasterDisp++, D_TI_8000D90);
-//gSPFillrectBlend(gMasterDisp++);
 
                 Matrix_RotateY(gCalcMatrix, (boss->fwork[21] - 90.0f) * M_DTOR, MTXF_NEW);
                 Matrix_RotateX(gCalcMatrix, (boss->fwork[22] - 180.0f) * M_DTOR, MTXF_APPLY);

@@ -3,7 +3,7 @@
 Gfx gRcpSetupDLs[][9] = {
     {
         /* SETUPDL_0 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_OFF),
@@ -17,7 +17,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_1 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_OFF),
@@ -31,7 +31,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_2 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_OFF),
@@ -45,7 +45,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_3 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_OFF),
@@ -59,7 +59,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_4 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_OFF),
@@ -73,7 +73,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_5 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_OFF),
@@ -87,7 +87,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_6 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_OFF),
@@ -101,7 +101,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_7 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_OFF),
@@ -115,7 +115,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_8 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_OFF),
@@ -129,7 +129,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_9 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_OFF),
@@ -143,7 +143,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_10 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_OFF),
@@ -158,7 +158,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_11 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_OFF),
@@ -172,7 +172,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_12 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_OFF),
@@ -186,7 +186,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_13 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_OFF),
@@ -200,7 +200,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_14 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_OFF),
@@ -214,7 +214,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_15 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_OFF),
@@ -228,7 +228,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_16 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_OFF),
@@ -242,7 +242,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_17 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -256,7 +256,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_18 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -270,7 +270,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_19 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -284,7 +284,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_20 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -298,7 +298,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_21 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -312,7 +312,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_22 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -326,7 +326,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_23 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -340,7 +340,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_24 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -354,7 +354,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_25 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -368,7 +368,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_26 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -385,7 +385,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_27 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -399,7 +399,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_28 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -414,7 +414,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_29 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -428,7 +428,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_30 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -442,7 +442,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_31 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -457,7 +457,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_32 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -471,7 +471,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_33 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -485,7 +485,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_34 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -499,7 +499,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_35 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -514,7 +514,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_36 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -528,7 +528,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_37 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -542,7 +542,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_38 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -557,7 +557,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_39 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -571,7 +571,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_40 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -585,7 +585,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_41 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -599,7 +599,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_42 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -613,7 +613,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_43 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -627,7 +627,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_44 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -641,7 +641,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_45 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -655,7 +655,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_46 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -669,7 +669,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_47 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -683,7 +683,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_48 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -697,7 +697,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_49 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -712,7 +712,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_50 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -726,7 +726,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_51 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -742,7 +742,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_52 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -756,7 +756,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_53 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -770,7 +770,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_54 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -784,7 +784,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_55 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -798,7 +798,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_56 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -812,7 +812,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_57 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -826,7 +826,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_58 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -840,7 +840,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_59 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -854,7 +854,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_60 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -868,7 +868,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_61 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -882,7 +882,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_62 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -896,7 +896,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_63 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -911,7 +911,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_64 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -925,7 +925,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_65 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -939,7 +939,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_66 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -953,7 +953,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_67 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -968,7 +968,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_68 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -983,7 +983,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_69 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -998,7 +998,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_70 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -1015,7 +1015,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_71 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -1031,7 +1031,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_72 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -1049,7 +1049,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_73 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -1063,7 +1063,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_74 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -1077,7 +1077,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_75 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -1091,7 +1091,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_76 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -1105,7 +1105,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_77 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -1120,7 +1120,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_78 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -1134,7 +1134,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_79 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -1148,7 +1148,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_80 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -1162,7 +1162,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_81 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -1176,7 +1176,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_82 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -1193,7 +1193,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_83 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -1207,7 +1207,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_84 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -1221,7 +1221,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_85 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -1235,7 +1235,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_86 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
@@ -1252,7 +1252,7 @@ Gfx gRcpSetupDLs[][9] = {
     },
     {
         /* SETUPDL_87 */
-        gsDPPipeSync(),
+        /*gsDPPipeSync(),*/
         gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
                               G_TEXTURE_GEN_LINEAR | G_LOD | G_SHADING_SMOOTH),
         gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),

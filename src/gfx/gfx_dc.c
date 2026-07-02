@@ -127,7 +127,10 @@ static void gfx_dc_swap_buffers_end(void) {
    // const unsigned int elapsed = cur_time - last_time;
 
     // swap before doing any kind of delay or passing of thread
+#ifndef GFX_BACKEND_PVR
+    // GLdc flips here. raw-PVR flips in gfx_pvr_finish_render (pvr_scene_finish).
     glKosSwapBuffers();
+#endif
 
 //    last_time = cur_time;
 

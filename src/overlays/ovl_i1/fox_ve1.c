@@ -942,10 +942,7 @@ bool Venom1_801937F4(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* t
                 if (sGoleMechLimbInfo[D_i1_8019A748[i].index].unk_00 > 0) {
                     if ((sGoleMechLimbInfo[D_i1_8019A748[i].index].unk_02[2] & 2) == 2) {
                         RCP_SetupDL(&gMasterDisp, SETUPDL_30);
-                        // jnmartin84 ????
-                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                      gDPSetEnvColor(gMasterDisp++, 0, 255, 255, 255);
+                        // BACKEND_PVR
                         gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
                         if (*dList != NULL) {
                             gSPDisplayList(gMasterDisp++, *dList);

@@ -72,7 +72,7 @@ static u32 sWaveAram[NUM_WAVEFORMS][NUM_HARMONICS];
 typedef struct { u32 base, type, length, loop, loopstart, loopend; u8 downsample_shift; } Resolved;
 
 /* ---- long-sample streamer (PCM16 ARAM ring, SH4-decoded, timer-paced) ---- */
-#define MAX_STREAMS 16           /* every >65534 sample streams; size for concurrency.
+#define MAX_STREAMS 12           /* every >65534 sample streams; size for concurrency.
                                     Hard ceiling is gNumNotes (22): streams are keyed by
                                     note slot, a note is voice XOR stream, so channel use
                                     stays <= gNumNotes. Each slot costs one 8KB ARAM ring
@@ -86,6 +86,7 @@ typedef struct {
     const u8* src; u32 nsamples, loopStart, loopEnd; u8 loopFlag;
     s32 cur, quant; u32 srcPos; s32 loopCur, loopQuant; u32 haveLoopSnap;
     u32 written, freq; u64 startUs; int done;
+    u32 sentFreq; u8 sentVol, sentPan;   /* last freq/vol/pan pushed to AICA; gate re-push */
 } Stream;
 static Stream sStreams[MAX_STREAMS];
 
@@ -128,12 +129,40 @@ static AramEntry* cache_acquire(u32 key, u32 pool_offset, u32 byte_len) {
     }
     spu_memload_sq(aram, (void*)(gAicaAdpcmPoolBase + pool_offset), (byte_len + 31) & ~31);
     e = cache_find(KEY_EMPTY);
-    if (!e) { snd_mem_free(aram); AICA_DROP("CACHETBLFULL key=%X (all %d entries resident)", (unsigned)key, ARAM_CACHE_ENTRIES); return NULL; }
+    if (!e) {
+        /* TABLE full -- a DIFFERENT resource from the ARAM-full loop above. The ARAM alloc already
+           succeeded, so that loop never ran and never freed a slot; without this the 192-slot table
+           just fills and never recycles (accumulates across levels -> CACHETBLFULL forever). Evict
+           the LRU UNREFERENCED entry to reclaim its slot (frees its ARAM too -- harmless, we keep the
+           block we just allocated). Referenced (playing) entries are never touched. */
+        AramEntry* victim = NULL;
+        for (i = 0; i < ARAM_CACHE_ENTRIES; i++)
+            if (sCache[i].key != KEY_EMPTY && sCache[i].refs == 0)
+                if (!victim || sCache[i].lru < victim->lru) victim = &sCache[i];
+        if (!victim) { snd_mem_free(aram); AICA_DROP("CACHETBLFULL key=%X (all %d entries resident)", (unsigned)key, ARAM_CACHE_ENTRIES); return NULL; }
+        snd_mem_free(victim->aram); victim->key = KEY_EMPTY; victim->aram = 0;
+        e = victim;
+    }
     e->key = key; e->aram = aram; e->len = byte_len; e->refs = 1; e->lru = sTick;
     return e;
 }
 
 static void cache_release(AramEntry* e) { if (e && e->refs > 0) e->refs--; }
+
+/* Clean-slate hook for scene/memory resets (called from nuke_everything). Frees every RESIDENT but
+   UNREFERENCED cache entry so a previous level's samples don't linger in the 192-slot table + ARAM
+   pool and starve the next level (the accumulation that was hitting CACHETBLFULL). Currently-playing
+   voices (refs>0) are left intact, so this is safe to call at any time -- the on-demand LRU eviction
+   in cache_acquire reclaims the rest as needed. */
+void AicaSynth_ClearSampleCache(void) {
+    s32 i;
+    for (i = 0; i < ARAM_CACHE_ENTRIES; i++) {
+        if (sCache[i].key != KEY_EMPTY && sCache[i].refs == 0) {
+            if (sCache[i].aram) snd_mem_free(sCache[i].aram);
+            sCache[i].key = KEY_EMPTY; sCache[i].aram = 0;
+        }
+    }
+}
 
 /* KOS aica_freq firmware octave-gap fix (see MK64/SM64). */
 static u32 fix_aica_freq_gap(u32 freq) {
@@ -316,6 +345,9 @@ static void stream_start(s32 noteIndex, const AicaSampleDesc* d, u32 freq, u32 v
         chan->freq = freq; chan->vol = vol; chan->pan = pan;
         snd_sh4_to_aica(tmp, cmd->size);
     }
+    /* the START command above already carried freq/vol/pan; seed the sent-state so
+       the first stream_service doesn't re-push identical values. */
+    s->sentFreq = freq; s->sentVol = (u8)vol; s->sentPan = (u8)pan;
     s->startUs = timer_us_gettime64();
 }
 
@@ -327,7 +359,14 @@ static int stream_service(Stream* s, u32 vol, u32 pan) {
     target = (consumed + STREAM_RING_SAMPLES - STREAM_GUARD) & ~15u;
     if (target > consumed + STREAM_RING_SAMPLES) target = consumed + STREAM_RING_SAMPLES;
     stream_fill(s, target);
-    chan_update(s->channel, s->freq, vol, pan);
+    /* Gate the re-push: only touch the SH4->AICA queue when freq/vol/pan actually
+       changed since we last sent them. On a stream-heavy level this cuts a per-tick
+       command per active stream (and keeps catch-up bursts nearly free for streams,
+       since the wall-clock fill above is already a no-op on a re-run). */
+    if (s->freq != s->sentFreq || (u8)vol != s->sentVol || (u8)pan != s->sentPan) {
+        chan_update(s->channel, s->freq, vol, pan);
+        s->sentFreq = s->freq; s->sentVol = (u8)vol; s->sentPan = (u8)pan;
+    }
     return 1;
 }
 

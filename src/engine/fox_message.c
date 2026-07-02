@@ -87,6 +87,7 @@ bool Message_DisplayText(Gfx** gfxPtr, u16* msgPtr, s32 xPos, s32 yPos, s32 len)
             case MSGCHAR_CUP:
             case MSGCHAR_CRT:
             case MSGCHAR_CDN:
+                // jn64 this is one intentional color change, dont revert
                 gDPSetPrimColor((*gfxPtr)++, 0x00, 0x00, 0x7f, 0x7f, 0x7f, 255);
                 Message_DisplayChar(gfxPtr, msgPtr[i], xChar, yChar);
                 xChar += 14;

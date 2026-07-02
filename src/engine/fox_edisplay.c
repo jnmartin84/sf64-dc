@@ -331,6 +331,8 @@ void ActorDebris_Draw(ActorDebris* this) {
             if (gCurrentLevel != LEVEL_SOLAR) {
                 gSPDisplayList(gMasterDisp++, D_TI_801B769C[this->work_046]);
             } else {
+                // jn64
+                // solar boss can't have multiple fog colors
                 /* if (gBosses[0].fwork[3] < 4800.0f) {
                     RCP_SetupDL(&gMasterDisp, SETUPDL_30);
                     gDPSetFogColor(gMasterDisp++, 64, 32, 32, gFogAlpha);
@@ -395,17 +397,11 @@ void ActorDebris_Draw(ActorDebris* this) {
             Graphics_SetScaleMtx(0.7f);
 
             if (this->iwork[1] == 1) {
-                // jnmartin84 fix whatever this is that flashes red
+// BACKEND_PVR
                 RCP_SetupDL(&gMasterDisp, SETUPDL_30);
-                gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                      gDPSetEnvColor(gMasterDisp++, 0, 255, 255, 255);
                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
             } else if (this->iwork[1] == 2) {
                 RCP_SetupDL(&gMasterDisp, SETUPDL_30);
-                gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                      gDPSetEnvColor(gMasterDisp++, 0, 255, 255, 255);
                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
                 Graphics_SetScaleMtx(0.7f);
             }
@@ -691,10 +687,6 @@ void CoSkibot_Draw(CoSkibot* this) {
 void CoRadar_Draw(CoRadar* this) {
     if (this->timer_0BC != 0) {
         RCP_SetupDL_27();
-        // jnmartin84
-        gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                      gDPSetEnvColor(gMasterDisp++, 0, 255, 255, 255);
         gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
     }
     gSPDisplayList(gMasterDisp++, aCoRadarDL);
@@ -896,7 +888,6 @@ void ItemCheckpoint_Draw(ItemCheckpoint* this) {
 void ItemSilverRing_Draw(ItemSilverRing* this) {
     RCP_SetupDL(&gMasterDisp, SETUPDL_29);
     gSPTexture(gMasterDisp++, 3000, 0, 0, G_TX_RENDERTILE, G_ON);
-//    gSPTexture(gMasterDisp++, 1900, 1700, 0, G_TX_RENDERTILE, G_ON);
     gSPSetGeometryMode(gMasterDisp++, G_TEXTURE_GEN | G_TEXTURE_GEN_LINEAR);
     Graphics_SetScaleMtx(this->width);
     gSPDisplayList(gMasterDisp++, aItemSilverRingDL);
@@ -1760,10 +1751,7 @@ void Object_DrawAll(s32 cullDirection) {
             if ((boss->timer_05C % 2) == 0) {
                 RCP_SetupDL_29(gFogRed, gFogGreen, gFogBlue, gFogAlpha, gFogNear, gFogFar);
             } else {
-//                RCP_SetupDL_27();
-        gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-            TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-            gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 255);
+                RCP_SetupDL_27();
                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 64, 64, 255, 255);
             }
 
@@ -1807,17 +1795,10 @@ void Object_DrawAll(s32 cullDirection) {
                 }
             } else {
                 RCP_SetupDL_27();
-
+// BACKEND_PVR
                 if (actor->scale >= 0.0f) {
-                    // jnmartin84 ????
-                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                      gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 255);
                     gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 0, 0, 255);
                 } else {
-                    gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-                      gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 255);
                     gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 64, 64, 255, 255);
                 }
             }
@@ -1883,7 +1864,6 @@ void Effect_DrawAll(s32 arg0) {
     Effect* effect;
 
     RCP_SetupDL(&gMasterDisp, SETUPDL_64);
-    //gDPSetCombineMode(gMasterDisp++, G_CC_PRIMITIVE, G_CC_PRIMITIVE);
 
     for (i = 0, effect = &gEffects[0]; i < ARRAY_COUNT(gEffects); i++, effect++) {
         if (effect->obj.status >= OBJ_ACTIVE) {
@@ -1915,11 +1895,8 @@ void Effect_DrawAll(s32 arg0) {
             if ((boss->timer_05C % 2) == 0) {
                 RCP_SetupDL_29(gFogRed, gFogGreen, gFogBlue, gFogAlpha, gFogNear, gFogFar);
             } else {
-//                RCP_SetupDL_27();
-//                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 64, 64, 255, 255);
-        gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-            TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
-            gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 255);
+                RCP_SetupDL_27();
+                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 64, 64, 255, 255);
             }
             Matrix_Push(&gGfxMatrix);
             Boss_Draw(boss, arg0);

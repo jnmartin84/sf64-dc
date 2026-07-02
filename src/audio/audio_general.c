@@ -62,7 +62,7 @@ u8 sSeqCmdReadPos = 0;
 u8 sStartSeqDisabled = 0;
 u8 sSoundModeList[4] = { SOUNDMODE_STEREO, SOUNDMODE_HEADSET, SOUNDMODE_SURROUND, SOUNDMODE_MONO };
 u8 sAudioSpecId = AUDIOSPEC_CO;
-u8 sAudioResetStatus = AUDIORESET_READY;
+volatile u8 sAudioResetStatus = AUDIORESET_READY;
 s32 D_800C5D5C = 0; // unused. file split?
 s8 sEnvReverb = 0;
 s8 sAudioSpecReverb = 0;
@@ -1196,7 +1196,7 @@ u8 Audio_HandleReset(void) {
             }
         } else if (sAudioResetStatus == AUDIORESET_BLOCK) {
             while (AudioThread_ResetComplete() != 1) {
-                //                thd_pass();
+//                                thd_pass();
             }
             sAudioResetStatus = AUDIORESET_READY;
             AUDIOCMD_SEQPLAYER_SET_IO(SEQ_PLAYER_SFX, 0, sSfxLayout);

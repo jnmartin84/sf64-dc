@@ -22,9 +22,17 @@ static kos_blockdev_t dev;
 #define SAMPLES_LOW 528
 
 extern struct GfxWindowManagerAPI gfx_glx;
+#ifdef GFX_BACKEND_PVR
+extern struct GfxRenderingAPI gfx_pvr_api;
+#else
 extern struct GfxRenderingAPI gfx_opengl_api;
+#endif
 static struct GfxWindowManagerAPI* wm_api = &gfx_dc;
+#ifdef GFX_BACKEND_PVR
+static struct GfxRenderingAPI* rendering_api = &gfx_pvr_api;
+#else
 static struct GfxRenderingAPI* rendering_api = &gfx_opengl_api;
+#endif
 
 extern void gfx_run(Gfx* commands);
 char* fnpre;
@@ -44,7 +52,7 @@ void vblfunc(uint32_t c, void* d) {
     (void) c;
     (void) d;
     vblticker++;
-    osSendMesg(&gGfxVImesgQueue, (OSMesg) NULL, OS_MESG_NOBLOCK);
+//    osSendMesg(&gGfxVImesgQueue, (OSMesg) NULL, OS_MESG_NOBLOCK);
     genwait_wake_all((void*) &vblticker);
 }
 
@@ -287,7 +295,13 @@ void Main_ThreadEntry(void* arg0) {
     main_attr5.create_detached = 1;
     main_attr5.stack_size = 32768;
     main_attr5.stack_ptr = NULL;
-    main_attr5.prio = 11;
+    // KOS: lower number = higher priority; the main render thread is PRIO_DEFAULT (10). The audio
+    // thread ticks the sequencer/synth and MUST run on time each vblank or note-offs land late
+    // (hanging notes) and next note-ons slip (delayed) — worst under heavy render (starfield). It was
+    // 11 (BELOW the renderer), so it only ran when the CPU-bound render loop yielded. Put it ABOVE
+    // the renderer: its per-vblank work is cheap and it blocks between ticks, so it preempts, does
+    // its ~sub-ms tick, and yields right back — the renderer just loses a small slice.
+    main_attr5.prio = 9;
     main_attr5.label = "SPINNING";
     thd_create_ex(&main_attr5, &AudioThread, arg0);
 
@@ -461,19 +475,44 @@ assetsfound:
 
 void* AudioThread(UNUSED void* arg) {
     uint64_t last_vbltick = vblticker;
+    uint32_t audio_frame = 0;
+
+    /* Bounded catch-up. The sequencer clock is slaved to vblank service while the
+       AICA mixes continuously in real time; a render hitch that makes us miss one
+       or more vblanks must still issue the sequence ticks that were due during
+       them, or the sequencer permanently slips behind the AICA -> hung/late notes
+       and dropped note-offs. We process up to CATCHUP_MAX buffers per wake and
+       advance last_vbltick by exactly what we run (never a snap-drop), so transient
+       1-2 vblank hitches are fully made up. If we fall further behind than the cap
+       (sustained overload / a long stall such as a scene load) we resync to real
+       time by dropping the excess instead of drifting unboundedly late. The cap
+       also keeps a catch-up burst from overflowing the SH4->AICA command queue the
+       way the earlier *unbounded* catch-up did (dead songs / no voice lines). */
+    enum { CATCHUP_MAX = 3 };
 
     while (1) {
         while (vblticker <= last_vbltick)
             genwait_wait((void*) &vblticker, NULL, 0, NULL);
 
-        last_vbltick = vblticker;
+        uint64_t behind = vblticker - last_vbltick;
+        if (behind > CATCHUP_MAX) {
+            /* Too far behind (sustained overload / a long stall such as a scene
+               load): resync to real time by dropping the excess rather than drifting
+               unboundedly late. The cap also bounds the catch-up burst so it can't
+               overflow the SH4->AICA command queue. */
+            last_vbltick = vblticker - CATCHUP_MAX;
+            behind = CATCHUP_MAX;
+        }
+        last_vbltick += behind;
 
-        int samplecount = SAMPLES_LOW;
-        if ((gSysFrameCount & 3) == 0)
-            samplecount = SAMPLES_HIGH;
-
-        AudioThread_CreateNextAudioBuffer(audio_buffer[0], audio_buffer[1], samplecount);
-        audio_api->play((u8*) audio_buffer[0], (u8*) audio_buffer[1], samplecount * 4);
+        for (uint64_t n = 0; n < behind; n++) {
+            /* HIGH every 4th generated buffer, keyed off the audio-frame counter
+               (not gSysFrameCount) so the sample-count cadence tracks buffers we
+               actually produce and stays correct through catch-up. */
+            int samplecount = ((audio_frame++ & 3) == 0) ? SAMPLES_HIGH : SAMPLES_LOW;
+            AudioThread_CreateNextAudioBuffer(audio_buffer[0], audio_buffer[1], samplecount);
+            audio_api->play((u8*) audio_buffer[0], (u8*) audio_buffer[1], samplecount * 4);
+        }
     }
 
     return NULL;

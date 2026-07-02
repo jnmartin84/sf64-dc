@@ -135,6 +135,7 @@ Acmd* AudioSynth_Update(Acmd* aList, s32* cmdCount, s16* aiBufStartL, s16* aiBuf
         /* NOTE: sub-tick AicaSynth_RefreshActive() disabled while diagnosing an
            intro hang (suspected SH4->AICA command-queue overflow under the 4x
            burst + streamer). Re-enable once throttled. */
+//        AicaSynth_RefreshActive(i-1);
     }
 
 #ifdef __DREAMCAST__

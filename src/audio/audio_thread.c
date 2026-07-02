@@ -6,15 +6,15 @@ void AudioThread_ProcessCmds(u32 msg);
 void AudioThread_SetFadeOutTimer(s32 seqPlayId, s32 fadeTime);
 void AudioThread_SetFadeInTimer(s32 seqPlayId, s32 fadeTime);
 
-OSMesgQueue sAudioTaskStartQueue;
-OSMesgQueue sThreadCmdProcQueue;
-OSMesgQueue sAudioSpecQueue;
-OSMesgQueue sAudioResetQueue;
-AudioCmd gThreadCmdBuffer[256];
-OSMesg sAudioTaskStartMsg[1];
-OSMesg sThreadCmdProcMsg[4];
-OSMesg sAudioSpecMsg[1];
-OSMesg sAudioResetMsg[1];
+volatile OSMesgQueue sAudioTaskStartQueue;
+volatile OSMesgQueue sThreadCmdProcQueue;
+volatile OSMesgQueue sAudioSpecQueue;
+volatile OSMesgQueue sAudioResetQueue;
+volatile AudioCmd gThreadCmdBuffer[256];
+volatile OSMesg sAudioTaskStartMsg[1];
+volatile OSMesg sThreadCmdProcMsg[4];
+volatile OSMesg sAudioSpecMsg[1];
+volatile OSMesg sAudioResetMsg[1];
 
 u8 gThreadCmdWritePos = 0;
 u8 gThreadCmdReadPos = 0;

@@ -106,6 +106,14 @@ ifeq ($(SCALE_LIGHTS),1)
   CFLAGS += -DSCALE_LIGHTS
 endif
 
+# GFX_BACKEND - renderer backend:
+#   pvr  - raw KOS PVR direct-render (gfx_pvr.c)
+GFX_BACKEND ?= pvr
+ifeq ($(GFX_BACKEND),pvr)
+  CFLAGS += -DGFX_BACKEND_PVR=1
+  GFX_BACKEND_OBJ := build/src/gfx/gfx_pvr.o
+endif
+
 ifeq ($(LOWRES),1)
   CFLAGS += -DLOWRES
 endif
@@ -352,6 +360,7 @@ $(shell mkdir -p $(BUILD_DIR)/linker_scripts/$(VERSION)/$(REV) $(BUILD_DIR)/link
 build/src/libc_math64.o:  OPTFLAGS := -O3
 build/src/audio/mixer.o: OPTFLAGS := -O3
 build/src/gfx/gfx_retro_dc.o: OPTFLAGS := -O3
+build/src/gfx/gfx_pvr.o: OPTFLAGS := -O2
 build/src/sys/sys_matrix.o: OPTFLAGS := -O2
 build/src/sys/sys_math.o: OPTFLAGS := -O3
 
@@ -532,7 +541,7 @@ FINAL_OBJS := build/src/ultra_reimpl.o \
               build/src/audio/aica_synth.o \
               build/src/audio/aica_sample_table.o \
               build/src/gfx/gfx_cc.o \
-              build/src/gfx/gfx_gldc.o
+              $(GFX_BACKEND_OBJ)
 
 # Asset ELF symbols list
 ASSET_ELFS := ast_common ast_bg_space ast_bg_planet ast_arwing ast_landmaster \

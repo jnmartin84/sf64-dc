@@ -1769,13 +1769,8 @@ bool Ending_8018BCB0(void) {
 
     return sp5C;
 }
-#define gSPFixDepthCut2(pkt)                                       \
-    {                                                                                   \
-        Gfx* _g = (Gfx*) (pkt);                                                         \
-                                                                                        \
-        _g->words.w0 = 0x424C4E44; \
-        _g->words.w1 = 0x46664369;                                           \
-    }
+
+// BACKEND_PVR
 
 void Ending_8018C21C(void) {
     Vec3f sp124[3] = {
@@ -1802,9 +1797,7 @@ void Ending_8018C21C(void) {
         RCP_SetupDL(&gMasterDisp, SETUPDL_17);
         Matrix_Translate(gGfxMatrix, 0.0f, -1200.0f, -6000.0f, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
-        gSPFixDepthCut2(gMasterDisp++);
         gSPDisplayList(gMasterDisp++, aEndCorneriaBackdropDL);
-        gSPFixDepthCut2(gMasterDisp++);
         Matrix_Pop(&gGfxMatrix);
     } else {
         Matrix_Push(&gGfxMatrix);
@@ -1812,9 +1805,7 @@ void Ending_8018C21C(void) {
         Matrix_Translate(gGfxMatrix, -2000.0f, -3000.0f, 3000.0f, MTXF_APPLY);
         Matrix_RotateY(gGfxMatrix, 110.0f * M_DTOR, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
-        gSPFixDepthCut2(gMasterDisp++);
         gSPDisplayList(gMasterDisp++, aEndCorneriaBackdropDL);
-        gSPFixDepthCut2(gMasterDisp++);
         Matrix_Pop(&gGfxMatrix);
     }
 

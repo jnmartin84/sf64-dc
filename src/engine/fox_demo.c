@@ -3126,14 +3126,6 @@ void ActorCutscene_Draw(ActorCutscene* this) {
     }
 }
 
-#define gSPRadarMark(pkt)                                       \
-    {                                                                                   \
-        Gfx* _g = (Gfx*) (pkt);                                                         \
-                                                                                        \
-        _g->words.w0 = 0x424C4E44; \
-        _g->words.w1 = 0x12345678;               \
-    }
-
 int oldfognear;
 int oldfogfar;
 
@@ -3157,10 +3149,9 @@ void Cutscene_DrawGreatFox(void) {
     }
 
     if (gCurrentLevel == LEVEL_TITANIA) {
-//        gSPRadarMark(gMasterDisp++);
-//oldfognear = gFogNear;
-//oldfogfar = gFogFar;
-  RCP_SetupDL_29(gFogRed, gFogGreen, gFogBlue, gFogAlpha, gFogNear, gFogFar/* 1005 */);
+        //oldfognear = gFogNear;
+        //oldfogfar = gFogFar;
+        RCP_SetupDL_29(gFogRed, gFogGreen, gFogBlue, gFogAlpha, gFogNear, gFogFar/* 1005 */);
     }
 
     if (gGreatFoxIntact) {

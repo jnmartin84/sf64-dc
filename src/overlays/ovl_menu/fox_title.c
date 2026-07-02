@@ -2397,8 +2397,6 @@ void Title_EngineGlowParticles_Draw(TitleTeam teamIdx) {
 
     RCP_SetupDL(&gMasterDisp, SETUPDL_49);
 
-//                        gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-  //                                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
     gDPSetPrimColor(gMasterDisp++, 0, 0, 253, 253, 255, 255);
     gDPSetEnvColor(gMasterDisp++, 251, 251, 255, 255);
 
@@ -2544,8 +2542,6 @@ void Title_CorneriaExplosions_Draw(void) {
     RCP_SetupDL(&gMasterDisp, SETUPDL_49);
 
     for (i = 0; i < sMaxExplosions; i++) {
-//                        gDPSetCombineLERP(gMasterDisp++, 1, ENVIRONMENT, TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0, 1, ENVIRONMENT,
-  //                                      TEXEL0, PRIMITIVE, PRIMITIVE, 0, TEXEL0, 0);
         gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 200, 200, D_menu_801B7CC8[i]);
         gDPSetEnvColor(gMasterDisp++, 255, 0, 0, D_menu_801B7CF0[i]);
 
@@ -2999,13 +2995,6 @@ s32 D_menu_801AE528[] = {
     80, 64, 48, 32, 12, 32, 44, 32, 42, 36, 12, 38,
 };
 
-#define gSPFillrectBlend(pkt)                                       \
-    {                                                                                   \
-        Gfx* _g = (Gfx*) (pkt);                                                         \
-                                                                                        \
-        _g->words.w0 = 0x424C4E44; \
-        _g->words.w1 = 0x46554380;                                           \
-    }
 void Title_SunGlare_Draw(void) {
     if (D_menu_801B7BD8 != 0) {
         if ((D_menu_801B7BB8 > -870.0f) && (D_menu_801B7BB8 < 900.0f) && (gFillScreenAlpha > 0)) {
@@ -3117,7 +3106,6 @@ void Title_SunGlare2_Draw(void) {
             Matrix_SetGfxMtx(&gMasterDisp);
 
             temp = D_menu_801AE528[i] * var_fs1;
-                       gDPSetEnvColor(gMasterDisp++, /* 255- */0,/* 255- */0,/* 255- */0, 0xFF);
 
             if (i != 10) {
                 gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, D_menu_801AE51C[i], (s32) temp);

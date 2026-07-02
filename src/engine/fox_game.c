@@ -62,6 +62,7 @@ void Game_Initialize(void) {
     gBgColor = 0;
     gBlurAlpha = 255;
     gFovY = 45.0f;
+    // BACKEND_PVR
     gProjectNear = 1.0f;
     gProjectFar = 12800.0f;
     gNextVsViewScale = gVsViewScale = 0.0f;
@@ -145,14 +146,6 @@ s32 Game_ChangeScene(void) {
     return 0;
 }
 
-#define gSPFixDepthCut(pkt)        \
-    {                              \
-        Gfx* _g = (Gfx*) (pkt);    \
-                                   \
-        _g->words.w0 = 0x424C4E44; \
-        _g->words.w1 = 0x46554369; \
-    }
-
 #define gSPTheBlur(pkt)            \
     {                              \
         Gfx* _g = (Gfx*) (pkt);    \
@@ -212,7 +205,6 @@ void Game_InitMasterDL(Gfx** dList) {
         }
         // otherwise, we have "one in the chamber"
         // we can do the full render with blur now
-
         gfx_texture_cache_invalidate(scaled2);
         RCP_SetupDL(&gMasterDisp, SETUPDL_76);
         gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, gBlurAlpha);
@@ -228,13 +220,10 @@ void Game_InitMasterDL(Gfx** dList) {
             gDPSetFillColor((*dList)++, FILL_COLOR(0x0001));
         }
 
-        gSPFixDepthCut((*dList)++);
         gDPFillRectangle((*dList)++, SCREEN_MARGIN, SCREEN_MARGIN, SCREEN_WIDTH - SCREEN_MARGIN /* - 1 */,
                          (SCREEN_HEIGHT - SCREEN_MARGIN) /* - 1 */);
-        gSPFixDepthCut((*dList)++);
     }
 
-    // gDPPipeSync((*dList)++);
     gDPSetColorDither((*dList)++, G_CD_MAGICSQ);
 }
 
@@ -243,9 +232,7 @@ void Game_InitStandbyDL(Gfx** dList) {
     gDPSetScissor((*dList)++, G_SC_NON_INTERLACE, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     gDPSetFillColor((*dList)++, FILL_COLOR(0x0001));
     gDPSetColorImage((*dList)++, G_IM_FMT_RGBA, G_IM_SIZ_16b, SCREEN_WIDTH, gFrameBuffers[0].data);
-    gSPFixDepthCut((*dList)++);
     gDPFillRectangle((*dList)++, 0, 0, SCREEN_WIDTH /* - 1 */, SCREEN_HEIGHT /* - 1 */);
-    gSPFixDepthCut((*dList)++);
     //gDPPipeSync((*dList)++);
     gDPSetColorDither((*dList)++, G_CD_MAGICSQ);
 }
@@ -459,7 +446,7 @@ void Game_Update(void) {
             case GSTATE_LOGO_WAIT:
                 RCP_SetupDL(&gMasterDisp, SETUPDL_76);
                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255);
-        gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
+                gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
                 Lib_TextureRect_IA8(&gMasterDisp, &aNintendoLogoTex[128 * 16 * 0], 128, 16, 100.0f, 86.0f, 1.0f, 1.0f);
                 Lib_TextureRect_IA8(&gMasterDisp, &aNintendoLogoTex[128 * 16 * 1], 128, 16, 100.0f, 102.0f, 1.0f, 1.0f);
                 Lib_TextureRect_IA8(&gMasterDisp, &aNintendoLogoTex[128 * 16 * 2], 128, 16, 100.0f, 118.0f, 1.0f, 1.0f);
@@ -583,7 +570,6 @@ void Game_Update(void) {
         if (gCamCount == 2) {
             Game_InitViewport(&gMasterDisp, gCamCount, 1);
             Game_Draw(1);
-            //gDPPipeSync(gMasterDisp++);
             gDPSetScissor(gMasterDisp++, G_SC_NON_INTERLACE, SCREEN_MARGIN, SCREEN_MARGIN, SCREEN_WIDTH - SCREEN_MARGIN,
                           SCREEN_HEIGHT - SCREEN_MARGIN);
         } else if ((gCamCount == 4) && (gDrawMode != DRAW_NONE)) {
@@ -593,7 +579,6 @@ void Game_Update(void) {
             Game_Draw(2);
             Game_InitViewport(&gMasterDisp, gCamCount, 1);
             Game_Draw(1);
-            //gDPPipeSync(gMasterDisp++);
             gDPSetScissor(gMasterDisp++, G_SC_NON_INTERLACE, SCREEN_MARGIN, SCREEN_MARGIN, SCREEN_WIDTH - SCREEN_MARGIN,
                           SCREEN_HEIGHT - SCREEN_MARGIN);
             gDPSetColorDither(gMasterDisp++, G_CD_NOISE);
@@ -602,25 +587,21 @@ void Game_Update(void) {
             gDPSetCombineMode(gMasterDisp++, G_CC_PRIMITIVE, G_CC_PRIMITIVE);
             gDPSetRenderMode(gMasterDisp++, G_RM_XLU_SURF, G_RM_XLU_SURF2);
             gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 0, 0, 0, 0);
-            gSPFixDepthCut(gMasterDisp++);
 
             gDPFillRectangle(gMasterDisp++, SCREEN_WIDTH / 2 - 2 - 1, SCREEN_MARGIN, SCREEN_WIDTH / 2 + 2,
                              SCREEN_HEIGHT - SCREEN_MARGIN);
             gDPFillRectangle(gMasterDisp++, SCREEN_MARGIN, SCREEN_HEIGHT / 2 - 2 - 1, SCREEN_WIDTH - SCREEN_MARGIN,
                              SCREEN_HEIGHT / 2 + 2);
-            gSPFixDepthCut(gMasterDisp++);
 
             if (gLevelType == LEVELTYPE_PLANET) {
                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 0, 0, 0, 255);
             } else {
                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 100, 100, 255, 255);
             }
-            gSPFixDepthCut(gMasterDisp++);
             gDPFillRectangle(gMasterDisp++, SCREEN_WIDTH / 2 - 1 - 1, SCREEN_MARGIN, SCREEN_WIDTH / 2 + 1,
                              SCREEN_HEIGHT - SCREEN_MARGIN);
             gDPFillRectangle(gMasterDisp++, SCREEN_MARGIN, SCREEN_HEIGHT / 2 - 1 - 1, SCREEN_WIDTH - SCREEN_MARGIN,
                              SCREEN_HEIGHT / 2 + 1);
-            gSPFixDepthCut(gMasterDisp++);
 
             HUD_8008CB8C();
         }

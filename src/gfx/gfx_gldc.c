@@ -1030,14 +1030,21 @@ static void gfx_opengl_finish_render(void) {
     ;
 }
 
+// GLdc keys texenv off shader ids itself; this is a no-op. (raw-PVR uses set_tex_env.)
+static void gfx_opengl_set_tex_env(uint32_t mode) {
+    (void) mode;
+}
+
 struct GfxRenderingAPI gfx_opengl_api = { gfx_opengl_z_is_from_0_to_1, gfx_opengl_unload_shader,
                                           gfx_opengl_load_shader,      gfx_opengl_create_and_load_new_shader,
                                           gfx_opengl_lookup_shader,    gfx_opengl_shader_get_info,
                                           gfx_opengl_new_texture,      gfx_opengl_select_texture,
                                           gfx_opengl_upload_texture,   gfx_opengl_set_sampler_parameters,
                                           gfx_opengl_set_depth_test,   gfx_opengl_set_depth_mask,
-                                          gfx_opengl_set_zmode_decal,  gfx_opengl_set_viewport,
+                                          gfx_opengl_set_zmode_decal,  gfx_opengl_set_tex_env,
+                                          gfx_opengl_set_viewport,
                                           gfx_opengl_set_scissor,      gfx_opengl_set_use_alpha,
-                                          gfx_opengl_draw_triangles,   gfx_opengl_init,
+                                          gfx_opengl_draw_triangles,   gfx_opengl_draw_triangles_2d,
+                                          gfx_opengl_init,
                                           gfx_opengl_on_resize,        gfx_opengl_start_frame,
                                           gfx_opengl_end_frame,        gfx_opengl_finish_render };

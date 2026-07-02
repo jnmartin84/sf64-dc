@@ -2377,22 +2377,6 @@ void Option_RankingTeamAlive_Draw(s32 rankIdx, s32 xPos, s32 yPos) {
     }
 }
 
-#define gSPRadarMark(pkt)                                       \
-    {                                                                                   \
-        Gfx* _g = (Gfx*) (pkt);                                                         \
-                                                                                        \
-        _g->words.w0 = 0x424C4E44; \
-        _g->words.w1 = 0x12345678;               \
-    }
-
-#define gSPPathPriority(pkt)                                       \
-    {                                                                                   \
-        Gfx* _g = (Gfx*) (pkt);                                                         \
-                                                                                        \
-        _g->words.w0 = 0x424C4E44; \
-        _g->words.w1 = 0x46004400;                                           \
-    }
-
 void Option_RankingRoute_Draw(s32 rankIdx, f32 arg1, f32 arg2) {
     f32 temp = 16.0f;
     s32 routeMax = gSaveFile.save.data.rankingRoute[rankIdx];
@@ -2400,15 +2384,11 @@ void Option_RankingRoute_Draw(s32 rankIdx, f32 arg1, f32 arg2) {
     s32 i;
 
     for (var_fs2 = 0.0f, i = 0; i < ROUTE_MAX; i++, var_fs2 += 24.0f + temp) {
-//gSPPathPriority(gMasterDisp++);
         Option_RankingRouteFrame_Draw(rankIdx, i, 28.0f + var_fs2, arg1, routeMax);
-//gSPPathPriority(gMasterDisp++);
         if (i < routeMax) {
-//gSPPathPriority(gMasterDisp++);
             Option_RankingPlanetName_Draw(rankIdx, i, 28.0f + var_fs2, arg1);
             Option_RankingHitCount_Draw(rankIdx, i, 28.0f + var_fs2, arg1);
             Option_RankingTeamPresence_Draw(rankIdx, i, 28.0f + var_fs2, arg1);
-//gSPPathPriority(gMasterDisp++);
         }
     }
 
@@ -2534,23 +2514,21 @@ void Option_RankingPlanetRoute_Draw(s32 rankIdx, f32 y, s32 routeMax) {
     Matrix_SetGfxMtx(&gMasterDisp);
     Lib_InitOrtho(&gMasterDisp);
 
-
+#if 1
     Lib_InitOrtho(&gMasterDisp);
     Matrix_LookAt(gGfxMatrix, 0.0f, 0.0f, 100.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, MTXF_APPLY);
     Matrix_SetGfxMtx(&gMasterDisp);
+#endif
     gotMedal = gSaveFile.save.data.rankingMedal[rankIdx];
-gSPRadarMark(gMasterDisp++);
 
     for (x = xStart + 1, i = 0; i < routeMax; i++, x += xAdvance) {
         planet = gSaveFile.save.data.stats[rankIdx][i].planetId & 0xF;
         switch (planet) {
             case SAVE_SLOT_SOLAR:
                 RCP_SetupDL(&gMasterDisp, SETUPDL_67);
-                gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
-                           TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
 
                 gDPSetPrimColor(gMasterDisp++, 0, 0, 240, 0, 0, 255);
-                gDPSetEnvColor(gMasterDisp++, 31, 0, 0, 255);
+                gDPSetEnvColor(gMasterDisp++, 31, 0, 0, 0);
 
                 Matrix_Push(&gGfxMatrix);
                 Matrix_Translate(gGfxMatrix, x, y, 0.0f, MTXF_APPLY);
@@ -2559,14 +2537,9 @@ gSPRadarMark(gMasterDisp++);
                 Matrix_SetGfxMtx(&gMasterDisp);
                 gSPDisplayList(gMasterDisp++, D_menu_801AEE6C[planet]);
 
-                gDPSetCombineLERP(gMasterDisp++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE, ENVIRONMENT,
-                           TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
-
-                gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 224);
-                gDPSetEnvColor(gMasterDisp++, 255,255,255, 255);
-                Matrix_RotateZ(gGfxMatrix, M_DTOR * -zAngle*2.0f, MTXF_APPLY);
-                Matrix_Scale(gGfxMatrix, 0.53f, 0.53f, 0.53f, MTXF_APPLY);
-                Matrix_Translate(gGfxMatrix, 1.0f, 0.0f, 2.0f, MTXF_APPLY);
+                gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 128);
+                gDPSetEnvColor(gMasterDisp++, 31, 0, 0, 0);
+                Matrix_Scale(gGfxMatrix, 0.8f, 0.8f, 0.8f, MTXF_APPLY);
                 Matrix_SetGfxMtx(&gMasterDisp);
                 gSPDisplayList(gMasterDisp++, D_menu_801AEE6C[planet]);
 
@@ -2581,10 +2554,6 @@ gSPRadarMark(gMasterDisp++);
                 Matrix_Push(&gGfxMatrix);
                 Matrix_Translate(gGfxMatrix, x - 1.0f, y + 4.0f, 0.0f, MTXF_APPLY);
                 Matrix_Scale(gGfxMatrix, 0.3f, 0.3f, 0.3f, MTXF_APPLY);
-                Matrix_SetGfxMtx(&gMasterDisp);
-                gSPDisplayList(gMasterDisp++, D_menu_801AEE6C[planet]);
-
-                Matrix_Translate(gGfxMatrix, 18.0f, -20.0f, 0.0f, MTXF_APPLY);
                 Matrix_SetGfxMtx(&gMasterDisp);
                 gSPDisplayList(gMasterDisp++, D_menu_801AEE6C[planet]);
 
@@ -2673,13 +2642,12 @@ gSPRadarMark(gMasterDisp++);
             Option_RankingRouteMedal_Draw(x, y, 0.0f);
         }
     }
-    gSPRadarMark(gMasterDisp++);
 
     Matrix_Pop(&gGfxMatrix);
 
     Option_ScrollPlanetTexture();
 
-    zAngle += 0.25f; // was 0.1f
+    zAngle += 0.1f;//0.25f; // was 0.1f
 
     Lib_InitPerspective(&gMasterDisp);
 }
@@ -2694,10 +2662,8 @@ void Option_RankingRouteMedal_Draw(f32 xPos, f32 yPos, f32 zPos) {
     Matrix_Translate(gGfxMatrix, xPos - D_menu_801AF140, yPos + D_menu_801AF144, zPos, MTXF_APPLY);
     Matrix_Scale(gGfxMatrix, D_menu_801AF13C, D_menu_801AF13C, D_menu_801AF13C, MTXF_APPLY);
     Matrix_SetGfxMtx(&gMasterDisp);
-    gSPRadarMark(gMasterDisp++);
 
     gSPDisplayList(gMasterDisp++, aMapMedalDL);
-gSPRadarMark(gMasterDisp++);
 
     Matrix_Pop(&gGfxMatrix);
 }
@@ -3611,20 +3577,11 @@ void Option_DrawMenuLabel(void) {
     Option_DrawCardLabel(sOptionCardList[sMainMenuCursor].tex);
 }
 
-#define gSPMenuCard(pkt)           \
-    {                              \
-        Gfx* _g = (Gfx*) (pkt);    \
-                                   \
-        _g->words.w0 = 0x424C4E44; \
-        _g->words.w1 = 0x465543EE; \
-    }
-
 void Option_DrawMenuCard(OptionCardFrame arg0) {
     RCP_SetupDL(&gMasterDisp, SETUPDL_17);
 
     Lib_InitOrtho(&gMasterDisp);
 
-    gSPMenuCard(gMasterDisp++);
     Matrix_Push(&gGfxMatrix);
     Matrix_LookAt(gGfxMatrix, 0.0f, 0.0f, 300.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, MTXF_APPLY);
     Matrix_SetGfxMtx(&gMasterDisp);
@@ -3638,7 +3595,6 @@ void Option_DrawMenuCard(OptionCardFrame arg0) {
     gSPDisplayList(gMasterDisp++, D_OPT_8015550);
 
     Matrix_Pop(&gGfxMatrix);
-    gSPMenuCard(gMasterDisp++);
 
     Lib_InitPerspective(&gMasterDisp);
 }
@@ -3734,7 +3690,8 @@ void Option_CardLightning_Draw(void) {
     Lib_InitOrtho(&gMasterDisp);
 
     Matrix_Push(&gGfxMatrix);
-    Matrix_LookAt(gGfxMatrix, 0.0f, 0.0f, 100.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, MTXF_APPLY);
+// BACKEND_PVR
+        Matrix_LookAt(gGfxMatrix, 0.0f, 0.0f, 100.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, MTXF_APPLY);
     Matrix_Translate(gGfxMatrix, sLightningXpos, sLightningYpos, 0.0f, MTXF_APPLY);
     Matrix_Scale(gGfxMatrix, sLightningXScale, sLightningYScale, 1.0f, MTXF_APPLY);
 

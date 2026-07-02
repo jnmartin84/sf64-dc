@@ -544,8 +544,10 @@ void func_radio_800BB388(void) {
 
     if (gRadioTextBoxScaleY == 1.3f) {
         RCP_SetupDL(&gMasterDisp, SETUPDL_85);
-        gSPSetOtherModeHi(gMasterDisp++, G_AD_PATTERN | G_CD_MAGICSQ | G_CK_NONE | G_TC_FILT | G_TF_POINT | G_TT_RGBA16 | G_TL_TILE |
-                           G_TD_CLAMP | G_TP_NONE | G_CYC_1CYCLE | G_PM_NPRIMITIVE);
+        // jn64 - wtf?
+        // BACKEND_PVR
+        //gSPSetOtherModeHi(gMasterDisp++, G_AD_PATTERN | G_CD_MAGICSQ | G_CK_NONE | G_TC_FILT | G_TF_POINT | G_TT_RGBA16 | G_TL_TILE |
+        //                   G_TD_CLAMP | G_TP_NONE | G_CYC_1CYCLE | G_PM_NPRIMITIVE);
         gMsgCharIsPrinting =
             Message_DisplayText(&gMasterDisp, gRadioMsg, gRadioPrintPosX, gRadioPrintPosY, gRadioMsgCharIndex);
     }
