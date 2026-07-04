@@ -2141,7 +2141,7 @@ void Aquas_AqBacoonMuscle_Draw(AqBacoonMuscle* this) {
     gSP1Triangle(gMasterDisp++, 2, 3, 0, 0);
     gSP1Triangle(gMasterDisp++, 4, 5, 6, 0);
     gSP1Triangle(gMasterDisp++, 6, 7, 4, 0);
-    gDPPipeSync(gMasterDisp++);
+    //gDPPipeSync(gMasterDisp++);
     gDPSetTextureLUT(gMasterDisp++, G_TT_NONE);
 }
 

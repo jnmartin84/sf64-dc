@@ -932,6 +932,7 @@ void AudioLoad_LoadFiles(void) {
         size_t toread = filesize;
         size_t didread = 0;
         while (didread < (size_t) filesize) {
+            printf("load load load\n");
             size_t rv = fread(&pool[didread], 1, toread - didread, file);
             if (rv == (size_t) -1) {
                 printf("problem reading adpcm_pool\n");
@@ -1002,13 +1003,13 @@ void AudioLoad_Init(void) {
     }
 #endif
 
-    audio_timer_kick();
+/*     audio_timer_kick();
     audio_timer_reset();
 
     if (gAudioResetTimer != 1234567) {
         exit(-1);
     }
-
+ */
     gAudioResetTimer = 0;
 
 #if 0

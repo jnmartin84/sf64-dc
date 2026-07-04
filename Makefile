@@ -31,16 +31,16 @@ SDCARD_SUPPORT ?= 0
 TESTING_MODE ?= 1
 
 ### Take no damage
-I_DONT_WANT_TO_DIE ?= 1
+I_DONT_WANT_TO_DIE ?= 0
 
 ### Get laser upgrades, extra lives, extra bombs
-EXTRA_EVERYTHING ?= 1
+EXTRA_EVERYTHING ?= 0
 
 ### Level select
 # At the map screen, use the analog stick to select a level.
 # Press D-Pad Up to select an advanced level phase (warp zone or Andross fight).
 # Useful for debugging and speedrunning training.
-MODS_LEVEL_SELECT ?= 1
+MODS_LEVEL_SELECT ?= 0
 
 ### MR logo
 # Set a custom IP.BIN boot logo when building CDI files
@@ -793,6 +793,13 @@ assets:
 	@$(TORCH) code $(BASEROM_UNCOMPRESSED)
 	@$(TORCH) header $(BASEROM_UNCOMPRESSED)
 	@$(TORCH) modding export $(BASEROM_UNCOMPRESSED)
+	@$(MAKE) -s strip-syncs
+
+# Comment out Pipe/Tile/Load sync commands in the Torch-generated display lists;
+# they are no-ops on the raw-PVR interpreter. Auto-skips offset-patched lists.
+strip-syncs:
+	$(call print2,Stripping RDP syncs from generated display lists...)
+	@$(PYTHON) $(TOOLS)/strip_dc_syncs.py .
 
 mod:
 	@$(TORCH) modding import code $(BASEROM_UNCOMPRESSED)

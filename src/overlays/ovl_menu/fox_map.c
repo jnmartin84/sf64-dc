@@ -740,7 +740,7 @@ Gfx gMapVenomCloudDL[] = {
     gsDPLoadTextureBlock(&gMapVenomCloudTex[96 * 8 * 11], G_IM_FMT_IA, G_IM_SIZ_8b, 96, 8, 0, G_TX_NOMIRROR | G_TX_WRAP,
                          G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD),
     gsSP1Quadrangle(13, 14, 15, 12, 0),
-    gsDPPipeSync(),
+    //gsDPPipeSync(),
     gsDPSetTextureLUT(G_TT_NONE),
     gsSPEndDisplayList(),
 };
@@ -787,7 +787,7 @@ Gfx gMapCorneriaDL[] = {
     gsDPLoadTextureBlock(&gMapCorneriaTex[96 * 8 * 11], G_IM_FMT_CI, G_IM_SIZ_8b, 96, 8, 0, G_TX_NOMIRROR | G_TX_WRAP,
                          G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD),
     gsSP1Quadrangle(13, 14, 15, 12, 0),
-    gsDPPipeSync(),
+    //gsDPPipeSync(),
     gsDPSetTextureLUT(G_TT_NONE),
     gsSPEndDisplayList(),
 };
@@ -834,7 +834,7 @@ Gfx gMapFortunaDL[] = {
     gsDPLoadTextureBlock(&gMapFortunaTex[96 * 8 * 11], G_IM_FMT_CI, G_IM_SIZ_8b, 96, 8, 0, G_TX_NOMIRROR | G_TX_WRAP,
                          G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD),
     gsSP1Quadrangle(13, 14, 15, 12, 0),
-    gsDPPipeSync(),
+    //gsDPPipeSync(),
     gsDPSetTextureLUT(G_TT_NONE),
     gsSPEndDisplayList(),
 };
@@ -881,7 +881,7 @@ Gfx gMapAquasDL[] = {
     gsDPLoadTextureBlock(&gMapAquasTex[96 * 8 * 11], G_IM_FMT_CI, G_IM_SIZ_8b, 96, 8, 0, G_TX_NOMIRROR | G_TX_WRAP,
                          G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD),
     gsSP1Quadrangle(13, 14, 15, 12, 0),
-    gsDPPipeSync(),
+    //gsDPPipeSync(),
     gsDPSetTextureLUT(G_TT_NONE),
     gsSPEndDisplayList(),
 };
@@ -928,7 +928,7 @@ Gfx gMapVenomDL[] = {
     gsDPLoadTextureBlock(&gMapVenomTex[96 * 8 * 11], G_IM_FMT_CI, G_IM_SIZ_8b, 96, 8, 0, G_TX_NOMIRROR | G_TX_WRAP,
                          G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD),
     gsSP1Quadrangle(13, 14, 15, 12, 0),
-    gsDPPipeSync(),
+    //gsDPPipeSync(),
     gsDPSetTextureLUT(G_TT_NONE),
     gsSPEndDisplayList(),
 };
@@ -975,7 +975,7 @@ Gfx gMapTitaniaDL[] = {
     gsDPLoadTextureBlock(&gMapTitaniaTex[96 * 8 * 11], G_IM_FMT_CI, G_IM_SIZ_8b, 96, 8, 0, G_TX_NOMIRROR | G_TX_WRAP,
                          G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD),
     gsSP1Quadrangle(13, 14, 15, 12, 0),
-    gsDPPipeSync(),
+    //gsDPPipeSync(),
     gsDPSetTextureLUT(G_TT_NONE),
     gsSPEndDisplayList(),
 };
@@ -1022,7 +1022,7 @@ Gfx gMapKatinaDL[] = {
     gsDPLoadTextureBlock(&gMapKatinaTex[96 * 8 * 11], G_IM_FMT_CI, G_IM_SIZ_8b, 96, 8, 0, G_TX_NOMIRROR | G_TX_WRAP,
                          G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD),
     gsSP1Quadrangle(13, 14, 15, 12, 0),
-    gsDPPipeSync(),
+    //gsDPPipeSync(),
     gsDPSetTextureLUT(G_TT_NONE),
     gsSPEndDisplayList(),
 };
@@ -1069,7 +1069,7 @@ Gfx gMapMacbethDL[] = {
     gsDPLoadTextureBlock(&gMapMacbethTex[96 * 8 * 11], G_IM_FMT_CI, G_IM_SIZ_8b, 96, 8, 0, G_TX_NOMIRROR | G_TX_WRAP,
                          G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD),
     gsSP1Quadrangle(13, 14, 15, 12, 0),
-    gsDPPipeSync(),
+    //gsDPPipeSync(),
     gsDPSetTextureLUT(G_TT_NONE),
     gsSPEndDisplayList(),
 };
@@ -1116,7 +1116,7 @@ Gfx gMapZonessDL[] = {
     gsDPLoadTextureBlock(gMapZonessTex + (96 * 8 * 11), G_IM_FMT_CI, G_IM_SIZ_8b, 96, 8, 0, G_TX_NOMIRROR | G_TX_WRAP,
                          G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD),
     gsSP1Quadrangle(13, 14, 15, 12, 0),
-    gsDPPipeSync(),
+    //gsDPPipeSync(),
     gsDPSetTextureLUT(G_TT_NONE),
     gsSPEndDisplayList(),
 };

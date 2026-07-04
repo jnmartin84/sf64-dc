@@ -356,11 +356,6 @@ static struct GfxRenderingAPI* gfx_rapi;
 
 static uint16_t __attribute__((aligned(32))) tlut[256];
 
-static void gfx_flush(void) {
-    // PVR: 3D geometry streams as it's built (OP via DR, PT/TR into deferred buckets) — nothing
-    // buffered, so the many gfx_flush() batch-barrier calls become no-ops.
-}
-
 static struct ShaderProgram* gfx_lookup_or_create_shader_program(uint32_t shader_id) {
     struct ShaderProgram* prg = gfx_rapi->lookup_shader(shader_id);
     if (prg == NULL) {
@@ -438,7 +433,6 @@ static __attribute__((noinline)) struct ColorCombiner* gfx_lookup_or_create_colo
             return prev_combiner = &color_combiner_pool[i];
         }
     }
-    gfx_flush();
     struct ColorCombiner* comb = &color_combiner_pool[color_combiner_pool_size++];
     gfx_generate_cc(comb, cc_id);
     return prev_combiner = comb;
@@ -1577,28 +1571,24 @@ static void __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx2
     // passively fall into the ortho-overlay foreground path instead of z-rejecting behind 3D.
     depth_test = depth_test && (rdp.other_mode_l & Z_CMP);
     if ((depth_test != rendering_state.depth_test)) {
-        gfx_flush();
         gfx_rapi->set_depth_test(depth_test);
         rendering_state.depth_test = depth_test;
     }
 
     uint8_t z_upd = (rdp.other_mode_l & Z_UPD) == Z_UPD;
     if ((z_upd != rendering_state.depth_mask)) {
-        gfx_flush();
         gfx_rapi->set_depth_mask(z_upd);
         rendering_state.depth_mask = z_upd;
     }
 
     uint8_t zmode_decal = (rdp.other_mode_l & ZMODE_DEC) == ZMODE_DEC;
     if ((zmode_decal != rendering_state.decal_mode)) {
-        gfx_flush();
         gfx_rapi->set_zmode_decal(zmode_decal);
         rendering_state.decal_mode = zmode_decal;
     }
 
     if (rdp.viewport_or_scissor_changed) {
         if (memcmp(&rdp.viewport, &rendering_state.viewport, sizeof(rdp.viewport)) != 0) {
-            gfx_flush();
             gfx_rapi->set_viewport(rdp.viewport.x, rdp.viewport.y, rdp.viewport.width, rdp.viewport.height);
             rendering_state.viewport = rdp.viewport;
             // PVR set_viewport is a no-op; the front-end owns the screen map.
@@ -1607,7 +1597,6 @@ static void __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx2
             gfx_recompute_screen_map();
         }
         if (memcmp(&rdp.scissor, &rendering_state.scissor, sizeof(rdp.scissor)) != 0) {
-            gfx_flush();
             gfx_rapi->set_scissor(rdp.scissor.x, rdp.scissor.y, rdp.scissor.width, rdp.scissor.height);
             rendering_state.scissor = rdp.scissor;
         }
@@ -1619,14 +1608,12 @@ static void __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx2
     uint8_t use_alpha = (rdp.other_mode_l & (G_BL_A_MEM << 18)) == 0;
     uint8_t use_fog = (rdp.other_mode_l >> 30) == G_BL_CLR_FOG;
     if ((rsp.use_fog != use_fog)) {
-        gfx_flush();
         rsp.use_fog = use_fog;
     }
     uint8_t texture_edge = (rdp.other_mode_l & CVG_X_ALPHA) == CVG_X_ALPHA;
     uint8_t use_noise = (rdp.other_mode_h == 0x2ca0);
 
     if (alpha_noise) {
-        gfx_flush();
         alpha_noise = 0;
     }
 
@@ -1649,14 +1636,12 @@ static void __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx2
     struct ColorCombiner* comb = gfx_lookup_or_create_color_combiner(cc_id);
     struct ShaderProgram* prg = comb->prg;
     if ((prg != rendering_state.shader_program)) {
-        gfx_flush();
         gfx_rapi->unload_shader(rendering_state.shader_program);
         gfx_rapi->load_shader(prg);
         rendering_state.shader_program = prg;
     }
 
     if ((use_alpha != rendering_state.alpha_blend)) {
-        gfx_flush();
         gfx_rapi->set_use_alpha(use_alpha);
         rendering_state.alpha_blend = use_alpha;
     }
@@ -1874,6 +1859,9 @@ static void __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx2
                 bv->argb = _argb;
                 bv->oargb = _oargb;
             }
+            // Stamp the PVR strip flag at vertex creation (TRIANGLES: EOL on every 3rd). PT/TR bucket
+            // slots are already flagged by pvr_reserve, so only the OP stream needs it here.
+            if (op_stream) bv->flags = (i == 2) ? PVR_CMD_VERTEX_EOL : PVR_CMD_VERTEX;
             op_n += 1;
         }
     }
@@ -1893,13 +1881,10 @@ static void __attribute__((noinline)) gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx2
 extern int gfx_pvr_bound_texture_opaque(void);   // 1 iff the bound texture has no transparent texels
 
 int do_ext_fill = 0;
-int last_was_starfield = 0;
 
 static void __attribute__((noinline)) gfx_sp_quad_2d(uint8_t vtx1_idx, uint8_t vtx2_idx, uint8_t vtx3_idx,
                                                      uint8_t vtx1_idx2, uint8_t vtx2_idx2, uint8_t vtx3_idx2) {
     pvr_vertex_t* v2d = &rsp.loaded_vertices_2D[0];
-    if (!last_was_starfield || !do_starfield)
-        gfx_flush();
 
     uint8_t depth_test = (rsp.geometry_mode & G_ZBUFFER) == G_ZBUFFER;
     if (depth_test != rendering_state.depth_test) {
@@ -2092,12 +2077,6 @@ static void __attribute__((noinline)) gfx_sp_quad_2d(uint8_t vtx1_idx, uint8_t v
             rsp.loaded_vertices_2D[qi].argb = argb;
             rsp.loaded_vertices_2D[qi].oargb = oargb;   // additive offset (glare brighten etc.)
         }
-    }
-
-    if (do_starfield) {
-        last_was_starfield = 1;
-    } else {
-        last_was_starfield = 0;
     }
 
     // (oargb per vertex is set by the combiner loop above — the additive offset carries brightening
@@ -2714,6 +2693,7 @@ static void __attribute__((noinline)) gfx_dp_fill_rectangle(int32_t ulx, int32_t
         // Don't clear Z buffer here since we already did it with glClear
         return;
     }
+
     do_ext_fill = 1;
 
     uint32_t mode = (rdp.other_mode_h & (3U << G_MDSFT_CYCLETYPE));
@@ -2728,10 +2708,7 @@ static void __attribute__((noinline)) gfx_dp_fill_rectangle(int32_t ulx, int32_t
         rsp.geometry_mode &= ~G_ZBUFFER;
         rdp.other_mode_l &= ~Z_UPD;
     }
-//    if (!do_starfield) {
-  //      lrx += ((1 << 2) + 2);
-    //    lry += ((1 << 2) + 2);
-    //}
+
     for (i = 0; i < 4; i++) {
         rsp.loaded_vertices_2D[i].argb =
             PACK_ARGB8888(rdp.fill_color.r, rdp.fill_color.g, rdp.fill_color.b, rdp.fill_color.a);
@@ -2740,6 +2717,7 @@ static void __attribute__((noinline)) gfx_dp_fill_rectangle(int32_t ulx, int32_t
     gfx_draw_rectangle(ulx, uly, lrx, lry);
     rsp.geometry_mode = saved_geom_mode;
     rdp.other_mode_l = saved_other_mode_l;
+
     do_ext_fill = 0;
 }
 
@@ -2763,8 +2741,6 @@ static inline void* seg_addr(uintptr_t w1) {
     return (void*) SEGMENTED_TO_VIRTUAL((void*) w1);
 }
 
-volatile int do_reticle = 0;
-int do_fillrect_blend = 0;
 #define C0alt(pos, width) ((w0 >> (pos)) & ((1U << width) - 1))
 #define C1alt(pos, width) ((w1 >> (pos)) & ((1U << width) - 1))
 
@@ -2816,16 +2792,6 @@ static void gfx_dp_set_tile2(uint32_t w0, uint32_t w1) {
     rdp.last_palette = stile->palette;
 }
 
-extern uint8_t gorgon_alpha;
-extern Gfx aAndBackdropDL[];
-extern Gfx aLandmasterModelDL[];
-extern Gfx D_A6_6015EE0[];
-extern Gfx aAwBodyDL[];
-extern Gfx aSxCanineDL[];
-int ever_did = 0;
-extern Gfx aGreatFoxDamagedDL[];
-extern Gfx aGreatFoxIntactDL[];
-
 #define GFX_DL_STACK_MAX 4 /* tune this to whatever nesting you expect */
 
 static Gfx __attribute__((aligned(32))) * dl_stack[GFX_DL_STACK_MAX];
@@ -2861,7 +2827,6 @@ static void __attribute__((noinline)) gfx_run_dl(Gfx* cmd) {
                 break;
 
             case G_MOVEMEM:
-                // if (C0(16, 8) >= 0x80)
                 gfx_sp_movemem(C0(16, 8), seg_addr(cmd->words.w1));
                 break;
 
@@ -2922,11 +2887,6 @@ static void __attribute__((noinline)) gfx_run_dl(Gfx* cmd) {
 
             case (uint8_t) G_CLEARGEOMETRYMODE:
                 gfx_sp_geometry_mode(cmd->words.w1, 0);
-                break;
-
-            case (uint8_t) G_QUAD:
-                gfx_sp_tri1(C1(17, 7), C1(9, 7), C1(25, 7));
-                gfx_sp_tri1(C1(9, 7), C1(1, 7), C1(25, 7));
                 break;
 
             case (uint8_t) G_TRI1:
@@ -3083,24 +3043,13 @@ void gfx_start_frame(void) {
 
 void gfx_run(Gfx* commands) {
     gfx_sp_reset();
-
-    // if (!gfx_wapi->start_frame()) {
-    //	dropped_frame = 1;
-    //	return;
-    // }
-
-    // dropped_frame = 0;
-
     gfx_rapi->start_frame();
     gfx_run_dl(commands);
-    gfx_flush();
     gfx_rapi->end_frame();
     gfx_wapi->swap_buffers_begin();
 }
 
 void gfx_end_frame(void) {
-    // if (!dropped_frame) {
     gfx_rapi->finish_render();
     gfx_wapi->swap_buffers_end();
-    //}
 }

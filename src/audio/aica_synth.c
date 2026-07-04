@@ -16,6 +16,7 @@
 #include <arch/timer.h>
 
 #include <stdio.h>
+#include <math.h>
 #define AICA_DEBUG 0
 #define AICA_OCTAVE_LOG 0   /* log ADPCM samples pitched past +1 octave -> FORCE_PCM candidates */
 #define AICA_DROP_LOG 1     /* instrument every silent drop (ARAM/cache/stream/channel/resolve); capped per site */
@@ -45,9 +46,14 @@ static u32 sTblBase = 0;                            /* gSampleBankTable->base.ro
 #define MAX_VOICES 64
 #define ARAM_CACHE_ENTRIES 192
 #define AICA_LEN_MAX 65534
-/* Headroom for full-scale synth waves summing on the AICA mix bus (no HW overflow
-   protection). Out of 256 (256 = unity); tune on HW. */
-#define SYNTH_VOL_SCALE 192
+/* Synth-wave voices need COMPRESSION, not a uniform gain. Their base panVol spans a wide range
+   (siren/FX ~8-12, menu ~39); any linear multiplier keeps that ~3x spread, so cranking it until the
+   quiet siren is audible makes the loud menu notes blow up. Map volume through sqrt -- which lifts
+   the quiet end far more than the loud end -- times SYNTH_VOL_GAIN: v_out = sqrt(panvol) * GAIN,
+   clamped to 255. ~16 ≈ gamma-0.5 across the range (siren 12->~55, menu 39->~100; spread ~3.3x -> ~1.8x).
+   TUNE BY EAR: raise GAIN for louder overall while the sqrt shape holds the quiet/loud balance.
+   Keep summed synth output within 0dB -- the AICA mix bus WRAPS on overflow, it does not clamp. */
+#define SYNTH_VOL_GAIN 8
 #define WAVE_SAMPLES 64          /* WAVE_SAMPLE_COUNT */
 #define NUM_WAVEFORMS 6          /* saw, tri, sine, square, noise, unk */
 #define NUM_HARMONICS 4
@@ -184,8 +190,13 @@ static u32 calc_vol(NoteSubEu* sub) {
     u32 m = (l > r) ? l : r;
     u32 v = m >> 4;
     if (v > 255) v = 255;
-    /* Headroom for full-scale synth waves summing without clipping. */
-    if (sub->bitField1.isSyntheticWave) v = (v * SYNTH_VOL_SCALE) >> 8;
+    /* Synth (wavetable) voices arrive with a deliberately LOW, wide-spread panVol (see SYNTH_VOL_GAIN):
+       compress via sqrt so the quiet siren/FX lift much more than the loud menu notes, instead of a
+       uniform gain that keeps them buried. sqrt(0)=0 so silent notes stay silent. */
+    if (sub->bitField1.isSyntheticWave) {
+        v = (u32)(sqrtf((float) v) * SYNTH_VOL_GAIN);
+        if (v > 255) v = 255;
+    }
     return v;
 }
 

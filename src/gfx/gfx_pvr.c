@@ -289,13 +289,10 @@ static void pvr_flush_bucket(PvrBucket *b) {
         pvr_poly_hdr_t *hp = (pvr_poly_hdr_t *) pvr_dr_target(sDrState);
         *hp = bt->hdr;
         pvr_dr_commit(hp);
-        for (uint32_t v = 0; v < bt->count; v++) {
-            pvr_vertex_t *vp = (pvr_vertex_t *) pvr_dr_target(sDrState);
-            *vp = b->verts[bt->start + v];
-            // Flags are already set in the bucket: 3-vert tris by pvr_reserve, 4-vert quads by
-            // gfx_pvr_draw_triangles_2d. Do NOT re-stamp here — a blanket (v%3) would corrupt the quads.
-            pvr_dr_commit(vp);
-        }
+        // Verts are already contiguous in the bucket with flags stamped at build time (3-vert tris
+        // by pvr_reserve, 4-vert quads by gfx_pvr_draw_triangles_2d), so ship the whole run to the
+        // TA FIFO in one store-queue copy instead of a per-vertex dr_target/dr_commit dance.
+        sq_fast_cpy(SQ_MASK_DEST(PVR_TA_INPUT), &b->verts[bt->start], bt->count);
     }
 }
 
@@ -640,13 +637,10 @@ static inline void pvr_emit_op_header(void) {
 // same-state run streams headerless after the first. External — no wrapper needed. (oargb carried
 // in the copied vertex — do NOT zero it here.)
 void pvr_submit_op(const pvr_vertex_t *tris, size_t n) {
+    // Verts arrive fully built WITH strip flags set at creation (3D bake loop / 2D quad / edge mask).
+    // Header on the DR path, then bulk-ship the whole run to the TA FIFO in one store-queue copy.
     pvr_emit_op_header();
-    for (size_t i = 0; i < n; i++) {
-        pvr_vertex_t *v = (pvr_vertex_t *) pvr_dr_target(sDrState);
-        *v = tris[i];
-        v->flags = ((i % 3) == 2) ? PVR_CMD_VERTEX_EOL : PVR_CMD_VERTEX;
-        pvr_dr_commit(v);
-    }
+    sq_fast_cpy(SQ_MASK_DEST(PVR_TA_INPUT), tris, n);
 }
 
 // 2D quad depth counter owned by the front-end (gfx_draw_rectangle increments it).
@@ -677,16 +671,16 @@ static void gfx_pvr_draw_triangles(float buf_vbo[], UNUSED size_t buf_vbo_len,
 // correctly (diagonal ll-ur) with no extra verts. Routing via gfx_pvr_set_blend: opaque HUD -> OP;
 // alpha-test glyphs -> PT; blend -> TR.
 void gfx_pvr_draw_triangles_2d(void *buf_vbo, UNUSED size_t buf_vbo_len, UNUSED size_t buf_vbo_num_tris) {
-    const pvr_vertex_t *q = (const pvr_vertex_t *) buf_vbo;
+    pvr_vertex_t *q = (pvr_vertex_t *) buf_vbo;
+    // 4-vertex strip: EOL on the last vert. Set once here (the 2D choke point; the verts arrive
+    // pre-built from the front-end rect builders) so every emit below just copies — matching the
+    // 3D bake / bucket paths, no per-slot flag stamping.
+    q[0].flags = q[1].flags = q[2].flags = PVR_CMD_VERTEX;
+    q[3].flags = PVR_CMD_VERTEX_EOL;
 
     if (sListKind == PVR_KIND_OP) {
         pvr_emit_op_header();
-        for (int i = 0; i < 4; i++) {
-            pvr_vertex_t *o = (pvr_vertex_t *) pvr_dr_target(sDrState);
-            *o = q[i];
-            o->flags = (i == 3) ? PVR_CMD_VERTEX_EOL : PVR_CMD_VERTEX;
-            pvr_dr_commit(o);
-        }
+        sq_fast_cpy(SQ_MASK_DEST(PVR_TA_INPUT), q, 4);
         return;
     }
 
@@ -701,11 +695,8 @@ void gfx_pvr_draw_triangles_2d(void *buf_vbo, UNUSED size_t buf_vbo_len, UNUSED 
         b->dirty = 0;
     }
     if (b->nverts + 4 > b->max_verts) { if (sDropV++ < 8) printf("PVR_DROP verts %d\n", kind); return; }
-    for (int i = 0; i < 4; i++) {
-        pvr_vertex_t *o = &b->verts[b->nverts++];
-        *o = q[i];
-        o->flags = (i == 3) ? PVR_CMD_VERTEX_EOL : PVR_CMD_VERTEX;
-    }
+    for (int i = 0; i < 4; i++)
+        b->verts[b->nverts++] = q[i];   // flags already set above; flushed later via sq_fast_cpy
     b->batch[b->cur].count += 4;
 }
 
@@ -726,9 +717,6 @@ static void gfx_pvr_init(void) {
     pvr_set_bg_color(0.0f, 0.0f, 0.0f);
 
     // Headers are compiled lazily per depth/texture/list state at draw time.
-
-    printf("=== SF64 DC: raw-PVR backend (gfx_pvr.c) STAGE 1 live ===\n");
-    fflush(stdout);
 }
 
 static void gfx_pvr_on_resize(void) { }
@@ -800,7 +788,7 @@ static void gfx_pvr_draw_edge_mask(void) {
         const float xy[4][2] = { { x0, y0 }, { x0, y1 }, { x1, y0 }, { x1, y1 } };
         for (int k = 0; k < 6; k++) {
             pvr_vertex_t *p = &v[vi++];
-            p->flags = 0;
+            p->flags = ((k % 3) == 2) ? PVR_CMD_VERTEX_EOL : PVR_CMD_VERTEX;   // 2 tris/rect, EOL every 3rd
             p->x = xy[idx[k]][0];
             p->y = xy[idx[k]][1];
             p->z = Z;

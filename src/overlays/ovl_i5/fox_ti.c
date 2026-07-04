@@ -3025,7 +3025,7 @@ s32 Titania_80190A08(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* t
                 if (D_i5_801B7770[i][1] > 0) {
                     RCP_SetupDL(&gMasterDisp, SETUPDL_30);
                 } else {
-                    gDPPipeSync(gMasterDisp++);
+                    //gDPPipeSync(gMasterDisp++);
                 }
 
                 if (sp58 == 1) {
@@ -5450,7 +5450,7 @@ void Titania_TiGoras_Draw(TiGoras* boss) {
                 Matrix_Scale(gGfxMatrix, sp120, sp120, temp_fs2, MTXF_APPLY);
                 Matrix_SetGfxMtx(&gMasterDisp);
 
-                gDPPipeSync(gMasterDisp++);
+                //gDPPipeSync(gMasterDisp++);
                 gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 64);
                 gDPSetEnvColor(gMasterDisp++, 0, 128, 110, 0);
                 gSPDisplayList(gMasterDisp++, D_TI_8000D90);

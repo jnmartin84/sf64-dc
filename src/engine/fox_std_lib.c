@@ -600,7 +600,7 @@ void Lib_TextureRect_RGBA32(Gfx** gfxPtr, u32* texture, u32 width, u32 height, f
 
 void Graphics_FillRectangle(Gfx** gfxPtr, s32 ulx, s32 uly, s32 lrx, s32 lry, u8 r, u8 g, u8 b, u8 a) {
     if (a != 0) {
-        gDPPipeSync((*gfxPtr)++);
+        //gDPPipeSync((*gfxPtr)++);
         gDPSetPrimColor((*gfxPtr)++, 0x00, 0x00, r, g, b, a);
         gDPSetColorDither((*gfxPtr)++, G_CD_NOISE);
         gDPSetAlphaDither((*gfxPtr)++, G_AD_NOISE);
