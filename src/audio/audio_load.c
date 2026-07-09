@@ -1003,13 +1003,13 @@ void AudioLoad_Init(void) {
     }
 #endif
 
-/*     audio_timer_kick();
+    audio_timer_kick();
     audio_timer_reset();
 
     if (gAudioResetTimer != 1234567) {
         exit(-1);
     }
- */
+
     gAudioResetTimer = 0;
 
 #if 0
