@@ -732,7 +732,7 @@ void Effect_Effect357_Draw(Effect357* this) {
     RCP_SetupDL(&gMasterDisp, SETUPDL_29);
 
     if (gCurrentLevel == LEVEL_KATINA) {
-        gSPFogPosition(gMasterDisp++, gFogNear, gFogFar)/* 1005) */;
+        gSPFogPosition(gMasterDisp++, gFogNear, 1005);
     }
 
     Graphics_SetScaleMtx(this->scale2);

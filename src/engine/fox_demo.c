@@ -2780,7 +2780,7 @@ void ActorCutscene_Draw(ActorCutscene* this) {
 
         case ACTOR_CS_GREAT_FOX:
             if (gCurrentLevel == LEVEL_SECTOR_Z) {
-                gSPFogPosition(gMasterDisp++, gFogNear, gFogFar/* 1005 */);
+                gSPFogPosition(gMasterDisp++, gFogNear, 1005);
             }
             this->info.bonus = 1;
             Cutscene_DrawGreatFox();

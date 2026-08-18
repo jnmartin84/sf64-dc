@@ -2416,7 +2416,7 @@ void ActorAllRange_Draw(ActorAllRange* this) {
 
         if ((this->timer_0C6 % 2) == 0) {
             RCP_SetupDL(&gMasterDisp, SETUPDL_29);
-            gSPFogPosition(gMasterDisp++, gFogNear, gFogFar/* 1005 */);
+            gSPFogPosition(gMasterDisp++, gFogNear, 1005);
         }
 
         switch (this->aiType) {

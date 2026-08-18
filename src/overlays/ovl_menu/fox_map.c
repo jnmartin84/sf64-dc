@@ -16,6 +16,15 @@
 #include "assets/ast_text.h"
 #include "assets/ast_font_3d.h"
 
+// DC: custom BLND 'OVLY' toggle -> the wrapped DL is composited in PAINT ORDER (near overlay z) instead
+// of PVR autosort depth. The briefing TV glow (XLU, no Z-write) must draw over the map planet/nebula
+// like it does on N64 (draw order), but autosort put the nearer nebula on top. Wrap ONLY the glow.
+#define gSPPaintOverlay(pkt)                                                        \
+    {                                                                               \
+        Gfx* _g = (Gfx*) (pkt);                                                     \
+        _g->words.w0 = 0x424C4E44;                                                  \
+        _g->words.w1 = 0x4F564C59;                                                  \
+    }
 #define gSPRadarMark(pkt)                                       \
     {                                                                                   \
         Gfx* _g = (Gfx*) (pkt);                                                         \
@@ -6200,6 +6209,10 @@ void Map_GralPepperFace_Draw(void) {
 
             Matrix_SetGfxMtx(&gMasterDisp);
 
+            // DC: the TV face is opaque+Z (SETUPDL_21); on N64 it wins over the earlier-drawn map
+            // nebula by draw order, on PVR the nearer nebula autosorted through it (Sector Z
+            // briefing). Paint-order overlay for the face + frame, like the glow below.
+            gSPPaintOverlay(gMasterDisp++);
             gSPRadarMark(gMasterDisp++);
             gSPDisplayList(gMasterDisp++, sMapGralPepperFaceDLs[D_menu_801CD810]);
             gSPRadarMark(gMasterDisp++);
@@ -6209,6 +6222,7 @@ void Map_GralPepperFace_Draw(void) {
             gSPRadarMark(gMasterDisp++);
             gSPDisplayList(gMasterDisp++, D_MAP_605A120);
             gSPRadarMark(gMasterDisp++);
+            gSPPaintOverlay(gMasterDisp++);
         }
         Matrix_Pop(&gGfxMatrix);
 
@@ -6234,7 +6248,9 @@ void Map_GralPepperFace_Draw(void) {
             gDPSetPrimColor(gMasterDisp++, 0, 0, 32, 32, 255, D_menu_801CEA98);
             gDPSetEnvColor(gMasterDisp++, 207, 207, 255, 255);
  */
+            gSPPaintOverlay(gMasterDisp++);
             gSPDisplayList(gMasterDisp++, aMapTvScreenGlowDL);
+            gSPPaintOverlay(gMasterDisp++);
             gSPSetGeometryMode(gMasterDisp++, G_CULL_BACK);
         }
         Matrix_Pop(&gGfxMatrix);

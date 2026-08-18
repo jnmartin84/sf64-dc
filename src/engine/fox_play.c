@@ -545,10 +545,6 @@ void Play_InitEnvironment(void) {
     gFogBlue = sEnvironment->fogB;
     gFogNear = sEnvironment->fogN;
     gFogFar = sEnvironment->fogF;
-    if (gCurrentLevel == LEVEL_KATINA) {
-        gFogFar = 1006;
-    }
-    if (gFogFar <= gFogNear) gFogNear = gFogFar - 16;
 
     gLight1R = gLight2R = D_ctx_80161A70 = sEnvironment->lightR;
     gLight1G = gLight2G = D_ctx_80161A74 = sEnvironment->lightG;

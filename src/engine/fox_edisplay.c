@@ -333,6 +333,8 @@ void ActorDebris_Draw(ActorDebris* this) {
             } else {
                 // jn64
                 // solar boss can't have multiple fog colors
+                RCP_SetupDL(&gMasterDisp, SETUPDL_30);
+                gSPFogPosition(gMasterDisp++, gFogNear, gFogFar);
                 /* if (gBosses[0].fwork[3] < 4800.0f) {
                     RCP_SetupDL(&gMasterDisp, SETUPDL_30);
                     gDPSetFogColor(gMasterDisp++, 64, 32, 32, gFogAlpha);

@@ -117,6 +117,35 @@ static uint32_t sCurBound = 0;   // last select_texture id == upload target
 // texture is still bound, which would otherwise draw an untextured fill wearing the prior texture.
 static uint8_t sDrawTextured = 0;
 
+// --- "Stale TEXEL1" garbage texture (SX warp-zone enemies) ------------------------------
+// SETUPDL_35/87 sample TEXEL1 (tile 1) having only loaded a 4x4 white texture into tile 0. On N64
+// tile 1 is a stale descriptor, so TEXEL1 reads leftover TMEM from earlier textures through a
+// mismatched format = coloured per-pixel garbage (x NOISE). We have no TMEM, so when the front-end
+// flags this combiner shape (gfx_pvr_set_stale_texel1) the header binds a raw VRAM WINDOW instead:
+// a 256x256 twiddled ARGB4444 view (deliberately NOT the 1555 most textures use -> hue scramble)
+// based inside the live texture heap, point-sampled, with a per-frame random address jitter so the
+// garbage animates like the RDP noise. Real VRAM data supplies the colour; the front-end's grey
+// per-vertex NOISE supplies the flicker.
+static uint8_t  sStaleTexel1 = 0;
+static uint32_t sStaleJitter = 0;         // per-frame address offset (8-byte units), see start_frame
+static uint32_t sStaleRng    = 0x9E3779B9u;
+#define STALE_TEX_DIM      256
+#define STALE_TEX_BYTES    (STALE_TEX_DIM * STALE_TEX_DIM * 2)
+#define STALE_JITTER_SPAN  (64 * 1024)    // bytes of wander within the heap window
+// Base = lowest-addressed live texture (the heap start-ish), re-derived per frame; the window may
+// span many textures (that's the point). Falls back to the bound texture if nothing is allocated.
+static pvr_ptr_t sStaleBase = NULL;
+static void pvr_stale_pick_base(void) {
+    uintptr_t lo = 0;
+    for (uint32_t i = 1; i <= sTexCount && i < PVR_TEX_MAX; i++) {
+        uintptr_t a = (uintptr_t) sTextures[i].addr;
+        if (a && (!lo || a < lo)) lo = a;
+    }
+    sStaleBase = (pvr_ptr_t) lo;
+    sStaleRng = sStaleRng * 1664525u + 1013904223u;
+    sStaleJitter = (sStaleRng >> 8) % (STALE_JITTER_SPAN / 8);
+}
+
 // --- OP live + PT/TR deferred -----------------------------------------------
 // Only ONE list can be open on the DR path at a time, so the OP (opaque) list stays open and
 // LIVE the whole frame — geometry the front-end can GUARANTEE is fully opaque (pvr_submit_op)
@@ -157,7 +186,12 @@ static PvrBucket sPunch = { sPunchVerts, sPunchBatch, 0, TR_MAX_VERTS, 0, TR_MAX
 #define PVR_KIND_PT 1
 #define PVR_KIND_TR 2
 static uint8_t sListKind = PVR_KIND_OP;
-static uint8_t sOpDirty = 1;   // live OP header needs re-emit (depth/texture changed)
+// Live OP header needs re-emit (depth/texture changed). EXPORTED (not static) so the front-end's
+// inline OP submit (gfx_retro_dc.c, gfx_sp_tri1_impl) can test it without a cross-object call per
+// triangle: pvr_submit_op sat on the tri1_impl/run_dl I-cache alias every time the front-end file
+// changed size (8KB direct-mapped I-cache). Only pvr_emit_op_header_slow() clears it.
+uint8_t gfx_pvr_op_dirty = 1;
+#define sOpDirty gfx_pvr_op_dirty
 
 // TR blend factors, derived by the front-end from the N64 blender and pushed via
 // gfx_pvr_set_blend_factors. Default = standard alpha-over (SRC_ALPHA / INV_SRC_ALPHA).
@@ -222,6 +256,19 @@ static void pvr_compile_header(pvr_poly_hdr_t *out, int kind) {
         out->m2.v_flip      = t->flipv;
         // texenv DERIVED from the N64 combiner (REPLACE/MODULATE/DECAL/MODULATEALPHA).
         out->m2.shading     = (pvr_txr_shading_mode_t) sTexEnv;
+        if (sStaleTexel1 && sStaleBase) {
+            // Stale-TEXEL1 garbage window (see sStaleTexel1): raw VRAM read as 256x256 twiddled
+            // ARGB4444, point-sampled, wrapping, jittered per frame. Overrides addr/dims/fmt only.
+            uintptr_t addr = (uintptr_t) sStaleBase + (uintptr_t) sStaleJitter * 8u;
+            out->mode3 = (uint32_t) PVR_TXRFMT_ARGB4444 | ((uint32_t) addr & 0x00fffff8u) >> 3;
+            out->m2.u_size      = (pvr_uv_size_t)(__builtin_ctz(STALE_TEX_DIM) - 3);
+            out->m2.v_size      = (pvr_uv_size_t)(__builtin_ctz(STALE_TEX_DIM) - 3);
+            out->m2.filter_mode = PVR_FILTER_NONE;
+            out->m2.u_clamp     = 0;
+            out->m2.v_clamp     = 0;
+            out->m2.u_flip      = 0;
+            out->m2.v_flip      = 0;
+        }
     }
     // Per-draw state (per-list alpha/txralpha/blend defaults stay from the base):
     // z = 1/w (larger == nearer): GEQUAL keeps the nearer fragment; ALWAYS == test off.
@@ -321,9 +368,15 @@ static void pvr_pad16(const uint16_t *in, int iw, int ih, uint16_t *out, int ow,
     }
 }
 
-// 640x480, matches gfx_dc.c / gfx_screen_config.
+// Framebuffer dimensions — must match gfx_dc.c SCR_WIDTH/HEIGHT. LOWRES = native 240p (320x240),
+// else 640x480. Everything else (RATIO, viewport, screen map) derives from gfx_current_dimensions.
+#if LOWRES
+#define DC_FB_W 320
+#define DC_FB_H 240
+#else
 #define DC_FB_W 640
 #define DC_FB_H 480
+#endif
 
 // Mirror of OoT's known-good params for this toolchain:
 //   {OP, OP_MOD, TR, TR_MOD, PT} bin sizes, vtxbuf, dma, fsaa, autosort_disabled, overflow
@@ -424,8 +477,32 @@ extern int gfx_pvr_next_twiddled;
 // Consumed (and reset to 0) by gfx_pvr_upload_texture below. Mirrors gfx_pvr_next_twiddled.
 extern int gfx_pvr_next_opaque;
 // `pvrfmt` is a native PVR_TXRFMT_* pixel format straight from the front-end (no GL laundering).
+// Per-channel texel INVERT for the texel-interpolant lerp variant (front-end pvr_tex_invert_mask,
+// part of its cache key). Applied in place on the front-end's scratch buffer before padding/twiddle.
+static uint8_t sTexInvertMask = 0;
+void gfx_pvr_set_tex_invert_mask(uint8_t mask) { sTexInvertMask = mask & 7; }
+static void pvr_invert_channels(uint16_t *buf, int n, unsigned int pvrfmt) {
+    uint16_t m = 0;
+    if (pvrfmt == PVR_TXRFMT_ARGB4444) {
+        if (sTexInvertMask & 1) m |= 0x0F00;
+        if (sTexInvertMask & 2) m |= 0x00F0;
+        if (sTexInvertMask & 4) m |= 0x000F;
+    } else if (pvrfmt == PVR_TXRFMT_ARGB1555) {
+        if (sTexInvertMask & 1) m |= 0x7C00;
+        if (sTexInvertMask & 2) m |= 0x03E0;
+        if (sTexInvertMask & 4) m |= 0x001F;
+    } else if (pvrfmt == PVR_TXRFMT_RGB565) {
+        if (sTexInvertMask & 1) m |= 0xF800;
+        if (sTexInvertMask & 2) m |= 0x07E0;
+        if (sTexInvertMask & 4) m |= 0x001F;
+    }
+    if (!m) return;
+    for (int i = 0; i < n; i++) buf[i] ^= m;
+}
+
 static void gfx_pvr_upload_texture(const uint16_t *buf16, int width, int height, unsigned int pvrfmt) {
     struct PvrTex *t = &sTextures[sCurBound];
+    if (sTexInvertMask) pvr_invert_channels((uint16_t *) buf16, width * height, pvrfmt);
     int twiddled = gfx_pvr_next_twiddled;
     // RGB565 is only the per-frame framebuffer-capture (blur) here: it re-uploads every frame, so the
     // Morton reorder of twiddling is pure cost with no cache-locality payoff -> always upload linear.
@@ -480,12 +557,18 @@ static void gfx_pvr_set_sampler_parameters(uint8_t linear_filter, uint32_t cms, 
     struct PvrTex *t = &sTextures[sBoundTex];
     // Match GLdc gfx_cm_to_opengl precedence: CLAMP wins, else MIRROR (mirror-repeat),
     // else plain repeat. PVR clamp == GL_CLAMP, PVR flip == GL_MIRRORED_REPEAT.
-    t->filter = linear_filter ? 1 : 0;
-    t->clampu = (cms & G_TX_CLAMP) ? 1 : 0;
-    t->clampv = (cmt & G_TX_CLAMP) ? 1 : 0;
-    t->flipu  = (!(cms & G_TX_CLAMP) && (cms & G_TX_MIRROR)) ? 1 : 0;
-    t->flipv  = (!(cmt & G_TX_CLAMP) && (cmt & G_TX_MIRROR)) ? 1 : 0;
-    pvr_mark_dirty();
+    uint8_t filter = linear_filter ? 1 : 0;
+    uint8_t clampu = (cms & G_TX_CLAMP) ? 1 : 0;
+    uint8_t clampv = (cmt & G_TX_CLAMP) ? 1 : 0;
+    uint8_t flipu  = (!(cms & G_TX_CLAMP) && (cms & G_TX_MIRROR)) ? 1 : 0;
+    uint8_t flipv  = (!(cmt & G_TX_CLAMP) && (cmt & G_TX_MIRROR)) ? 1 : 0;
+    // The front-end calls this for EVERY textured triangle; only a real change may dirty the headers
+    // (an unconditional pvr_mark_dirty here re-emitted a poly header per triangle and split PT/TR
+    // batches per triangle — a large share of the ~10us/tri setup cost, PROF 2026-08-16).
+    if (t->filter != filter || t->clampu != clampu || t->clampv != clampv || t->flipu != flipu || t->flipv != flipv) {
+        t->filter = filter; t->clampu = clampu; t->clampv = clampv; t->flipu = flipu; t->flipv = flipv;
+        pvr_mark_dirty();
+    }
 }
 
 // Free ALL cached texture VRAM. Mirrors GLdc's glDeleteTextures sweep in gfx_clear_all_textures
@@ -595,6 +678,12 @@ void gfx_pvr_set_textured(uint8_t textured) {
     if (sDrawTextured != textured) { sDrawTextured = textured; pvr_mark_dirty(); }
 }
 
+// Front-end flags the "NOISE x stale TEXEL1" combiner shape (see sStaleTexel1). Header state.
+void gfx_pvr_set_stale_texel1(uint8_t on) {
+    on = on ? 1 : 0;
+    if (sStaleTexel1 != on) { sStaleTexel1 = on; pvr_mark_dirty(); }
+}
+
 // Front-end list classifier, called directly (not via rapi) from gfx_sp_tri1/gfx_sp_quad_2d:
 // kind 0 = OP (fully opaque -> live list), 1 = PT (alpha-test cutout -> sPunch bucket),
 // 2 = TR (real alpha-blend -> sTR bucket). Routing only — does NOT dirty headers. Persists
@@ -622,8 +711,9 @@ void gfx_pvr_set_blend_factors(uint8_t src_code, uint8_t dst_code) {
 }
 
 // (Re)emit the live OP header to the open OP list when depth/texture state changed.
-static inline void pvr_emit_op_header(void) {
-    if (!sOpDirty) return;
+// The compile+emit body is OUT OF LINE (rare: only on state change) and exported for the
+// front-end's inline OP submit; the inline check stays here for the backend's own callers.
+void __attribute__((noinline)) pvr_emit_op_header_slow(void) {
     pvr_poly_hdr_t __attribute__((aligned(32))) hdr;
     pvr_compile_header(&hdr, PVR_KIND_OP);
     pvr_poly_hdr_t *hp = (pvr_poly_hdr_t *) pvr_dr_target(sDrState);
@@ -631,14 +721,20 @@ static inline void pvr_emit_op_header(void) {
     pvr_dr_commit(hp);
     sOpDirty = 0;
 }
+static inline void pvr_emit_op_header(void) {
+    if (sOpDirty) pvr_emit_op_header_slow();
+}
 
 // Stream OP geometry straight to the live OP list via DR. Called per source-triangle from the
 // front-end (no buf_vbo) AND internally. Header re-emitted only on state change (sOpDirty), so a
 // same-state run streams headerless after the first. External — no wrapper needed. (oargb carried
 // in the copied vertex — do NOT zero it here.)
+// GFXPROF per-frame list counters (read+reset by the front-end's profiler print).
+uint32_t gfx_pvr_prof_op = 0, gfx_pvr_prof_pt = 0, gfx_pvr_prof_tr = 0;
 void pvr_submit_op(const pvr_vertex_t *tris, size_t n) {
     // Verts arrive fully built WITH strip flags set at creation (3D bake loop / 2D quad / edge mask).
     // Header on the DR path, then bulk-ship the whole run to the TA FIFO in one store-queue copy.
+    gfx_pvr_prof_op += n;
     pvr_emit_op_header();
     sq_fast_cpy(SQ_MASK_DEST(PVR_TA_INPUT), tris, n);
 }
@@ -700,12 +796,28 @@ void gfx_pvr_draw_triangles_2d(void *buf_vbo, UNUSED size_t buf_vbo_len, UNUSED 
     b->batch[b->cur].count += 4;
 }
 
+// Set the DC video mode for this build's resolution (LOWRES = native 240p 320x240, else 640x480).
+static void gfx_pvr_apply_video_mode(void) {
+#if LOWRES
+    vid_set_mode(vid_check_cable() != CT_VGA ? DM_320x240_NTSC : DM_320x240_VGA, PM_RGB565);
+#else
+    vid_set_mode(vid_check_cable() != CT_VGA ? DM_640x480_NTSC_IL : DM_640x480_VGA, PM_RGB565);
+#endif
+}
+
 static void gfx_pvr_init(void) {
-    if (vid_check_cable() != CT_VGA)
-        vid_set_mode(DM_640x480_NTSC_IL, PM_RGB565);
-    else
-        vid_set_mode(DM_640x480_VGA, PM_RGB565);
+    gfx_pvr_apply_video_mode();
     pvr_init(&sPvrParams);
+#if LOWRES
+    PVR_SET(PVR_SCALER_CFG, 0x400);   // 240p: disable the vertical flicker/scanline filter
+#endif
+
+    // Small-polygon cull threshold (Holly FPU_CULL_VAL, KOS PVR_OBJECT_CLIP; a float, KOS leaves the BIOS
+    // default ~1.0). Every header uses PVR_CULLING_SMALL to discard degenerate tris, but at 1.0 the two
+    // ~1 px^2 triangles of a 240p starfield pixel (1x1 fill rect) sit ON the threshold and get culled or
+    // not per frame -> star brightness flicker (less at 640, where they are ~3 px^2). 0.1 still culls
+    // true degenerates (area ~0) and leaves single-pixel fills alone.
+    // (Tried 0.1f on 2026-08-16 for the star flicker: no effect -> left at the BIOS default.)
 
     // PT alpha-test reference: punch-through discards texels with alpha <= this, giving N64
     // cutout/texture-edge transparency. 0x80 matches OoT. (ARGB1555 alpha is 0/255, so this
@@ -741,8 +853,11 @@ static void gfx_pvr_start_frame(void) {
     // far-plane background (ortho skybox baked to 1/w≈0) would otherwise be culled.
     pvr_set_zclip(0.0f);
 
+    // Re-pick the stale-TEXEL1 garbage window base + jitter for this frame (cheap table scan).
+    pvr_stale_pick_base();
+
     // Reset the deferred PT + TR buckets and force the live OP header to re-emit for the new
-    // scene. sDepth*/sListKind persist in lockstep with the front-end's trackers.
+    // scene. sDepth/sListKind persist in lockstep with the front-end's trackers.
     sTR.nverts    = 0; sTR.nbatch    = 0; sTR.cur    = -1; sTR.dirty    = 1;
     sPunch.nverts = 0; sPunch.nbatch = 0; sPunch.cur = -1; sPunch.dirty = 1;
     sOpDirty = 1;
@@ -751,13 +866,18 @@ static void gfx_pvr_start_frame(void) {
     // ortho BACKDROP (kept far) from a Z-off ortho OVERLAY (foreground 2D/text). Prev-frame value
     // avoids draw-order races within the frame.
     {
-        extern int cur_frame_persp, prev_frame_had_persp, has_done_3d, has_done_3d_pending;
-        extern float backdrop_far_z;
+        extern int cur_frame_persp, prev_frame_had_persp, has_done_3d, has_done_3d_pending, has_drawn_persp_tri;
+        extern float backdrop_far_z; extern const float pvr_backdrop_z0;
         prev_frame_had_persp = cur_frame_persp;
         cur_frame_persp = 0;
         has_done_3d = 0;           // reset: no 3D drawn yet this frame
         has_done_3d_pending = 0;   // clear any un-promoted arm from last frame
-        backdrop_far_z = 0.00001f; // restart the backdrop far-slab stagger
+        has_drawn_persp_tri = 0;   // no perspective tri emitted yet (2D fill backdrop-vs-overlay)
+        { extern int force_paint_overlay; force_paint_overlay = 0; }   // 'OVLY' toggle never leaks a frame
+        { extern int far_fill_count; far_fill_count = 0; }             // pre-scene fill far-pin stagger
+        backdrop_far_z = pvr_backdrop_z0; // restart the backdrop far-slab stagger
+        { extern float quad_backdrop_z; extern const float pvr_quad_backdrop_z0;
+          quad_backdrop_z = pvr_quad_backdrop_z0; }   // restart the promoted-quad backdrop stagger
     }
 }
 
@@ -766,8 +886,8 @@ static void gfx_pvr_start_frame(void) {
 // with depth-write at the nearest z, so the mask also OCCLUDES any PT/TR that bleeds into the border
 // (they depth-test against the mask's near z and lose). Injected while the OP list is still open.
 static void gfx_pvr_draw_edge_mask(void) {
-    const float W = 640.0f, H = 480.0f;
-    const float b = 8.0f * (W / 320.0f);      // 16 px border at 640 wide
+    const float W = (float) DC_FB_W, H = (float) DC_FB_H;
+    const float b = 8.0f * (W / 320.0f);      // 8 px border at 320 wide, 16 at 640
     const float Z = 1000000.0f;               // z = 1/w, huge == nearest -> in front of all geometry
 
     // Force untextured / opaque-OP / depth-writing state; sOpDirty=1 makes pvr_submit_op re-emit the
@@ -801,6 +921,7 @@ static void gfx_pvr_draw_edge_mask(void) {
 }
 
 static void gfx_pvr_end_frame(void) {
+    gfx_pvr_prof_pt = sPunch.nverts; gfx_pvr_prof_tr = sTR.nverts;   // GFXPROF
     gfx_pvr_draw_edge_mask();   // out-of-band overscan mask, into the still-open OP list
     pvr_list_finish();   // close the OP list (opened once this frame)
 
