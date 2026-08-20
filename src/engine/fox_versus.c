@@ -198,19 +198,40 @@ void func_versus_800BD1FC(f32 xPos, f32 yPos) {
     Lib_TextureRect_IA8(&gMasterDisp, D_VS_MENU_7003E10, 16, 16, xPos, yPos, 1.0f, 1.0f);
 }
 
+
+u16 aRedATex[] = {
+	#include "src/dc/red_a.rgba16.inc.c"
+};
+
+u16 aYellowXTex[] = {
+	#include "src/dc/yellow_x.rgba16.inc.c"
+};
+
+u16 aGrayUpTex[] = {
+	#include "src/dc/gray_up.rgba16.inc.c"
+};
+
 void func_versus_800BD248(f32 xPos, f32 yPos) {
         gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
-    Lib_TextureRect_CI8(&gMasterDisp, D_VS_MENU_7004050, D_VS_MENU_7004150, 16, 16, xPos, yPos, 1.0f, 1.0f);
+//    Lib_TextureRect_CI8(&gMasterDisp, D_VS_MENU_7004050, D_VS_MENU_7004150, 16, 16, xPos, yPos, 1.0f, 1.0f);
+// A button
+Lib_TextureRect_RGBA16(&gMasterDisp, aRedATex, 16, 16, xPos, yPos, 1.0f, 1.0f);
 }
 
 void func_versus_800BD2A0(f32 xPos, f32 yPos) {
         gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
-    Lib_TextureRect_CI8(&gMasterDisp, D_VS_MENU_70041F0, D_VS_MENU_70042F0, 16, 16, xPos, yPos, 1.0f, 1.0f);
+//    Lib_TextureRect_CI8(&gMasterDisp, D_VS_MENU_70041F0, D_VS_MENU_70042F0, 16, 16, xPos, yPos, 1.0f, 1.0f);
+// b -> x
+Lib_TextureRect_RGBA16(&gMasterDisp, aYellowXTex, 16, 16, xPos, yPos, 1.0f, 1.0f);
 }
 
 void func_versus_800BD2F8(f32 xPos, f32 yPos) {
-         gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
-   Lib_TextureRect_CI8(&gMasterDisp, D_VS_MENU_7004360, D_VS_MENU_7004460, 16, 16, xPos, yPos, 1.0f, 1.0f);
+
+    gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
+    // c up button for vs mode machine select
+//    Lib_TextureRect_CI8(&gMasterDisp, D_VS_MENU_7004360, D_VS_MENU_7004460, 16, 16, xPos, yPos, 1.0f, 1.0f);
+Lib_TextureRect_RGBA16(&gMasterDisp, aGrayUpTex, 16, 16, xPos, yPos, 1.0f, 1.0f);
+
 }
 
 void func_versus_800BD350(f32 xPos, f32 yPos) {

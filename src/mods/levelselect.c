@@ -81,7 +81,7 @@ void Map_LevelSelect(void) {
     if (contPress->button & U_CBUTTONS) {
         startOption ^= 1;
     }
-
+#if 0
     /* Draw */
     if ((sCurrentPlanetId >= 0) && (sCurrentPlanetId < PLANET_MAX)) {
         RCP_SetupDL(&gMasterDisp, SETUPDL_83);
@@ -101,7 +101,7 @@ void Map_LevelSelect(void) {
         }
         gSPPathPriority(gMasterDisp++);
     }
-
+#endif
     if (gControllerPress[0].button & A_BUTTON) {
         timer = 15;
         startLevel = 1;
@@ -111,7 +111,7 @@ void Map_LevelSelect(void) {
         timer--;
     }
 
-#define BYPASS_BRIEFING 1
+#define BYPASS_BRIEFING 0
 #if BYPASS_BRIEFING
     // Bypass briefing
     if ((timer == 0) && (startLevel == 1)) {

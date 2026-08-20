@@ -14,12 +14,6 @@ SCALE_LIGHTS ?= 0
 ### Enable 320x240 resolution
 LOWRES ?= 0
 
-### Enable 16KHz sample rate
-USE_16KHZ ?= 0
-
-### Enable 32KHz sample rate
-USE_32KHZ ?= 0
-
 ### Enable loading assets from FAT32-formatted IDE drive
 IDE_SUPPORT ?= 0
 
@@ -28,7 +22,7 @@ SDCARD_SUPPORT ?= 0
 
 ### Enable testing mode
 # Turns on no damage, extra everything, and level select
-TESTING_MODE ?= 1
+TESTING_MODE ?= 0
 
 ### Take no damage
 I_DONT_WANT_TO_DIE ?= 0

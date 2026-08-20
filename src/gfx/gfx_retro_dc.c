@@ -351,6 +351,112 @@ static void gfx_recompute_screen_map(void) {
     sm_ybias  = fb_h - vpf_y - vh * 0.5f;
 }
 
+// ---- Software scissor state (split-screen pane clip; mk64-dc's HW-validated scheme) -----------
+// The raw-PVR backend has no per-draw scissor (the KOS userclip is one global register clipping to
+// the full screen), so with multiple viewports per frame (VS split-screen) a pane's frustum
+// overhang bakes to screen pixels inside the NEIGHBOURING pane and depth-stomps it. Pane clipping
+// is therefore done in software in gfx_sp_tri1: the scissor rect becomes NDC bounds relative to
+// the active viewport's window mapping
+//   win = v.xy + (ndc+1)/2 * v.wh   =>   ndc = 2*(scissor - v.xy)/v.wh - 1
+// and pane-crossing triangles are Sutherland-Hodgman clipped in clip space before the bake.
+static float scf_x = 0.0f, scf_y = 0.0f, scf_w = 640.0f, scf_h = 480.0f;   // float scissor rect (rdp.scissor is uint16 -> wraps negatives)
+static float sc_ndc_xmin = -1.0f, sc_ndc_xmax = 1.0f;
+static float sc_ndc_ymin = -1.0f, sc_ndc_ymax = 1.0f;
+static int sc_is_fullscreen = 1;
+// Which scissor edges actually need the CLIP pass: an edge whose boundary sits on the framebuffer
+// border has nothing to bleed into (overhang lands off-screen, the PVR userclip eats it); only
+// edges on an interior split line stay active. Trivial-reject still uses all four edges.
+static uint8_t sc_active_mask = 0x0F;
+#define SCISSOR_W_EPS 0.00001f
+// Per-vertex scissor outcode bits: each set bit = vertex OUTSIDE that pane edge. SC_FORCE marks a
+// vertex whose NDC is not (yet) valid — at/behind the eye (w<=eps) or behind the near plane — so
+// any triangle touching it must take the full clip path (near plane is clipped first there).
+#define SC_LEFT   0x01
+#define SC_RIGHT  0x02
+#define SC_BOTTOM 0x04
+#define SC_TOP    0x08
+#define SC_FORCE  0x10
+#define SC_EDGE_MASK 0x0F
+// Outcodes are cached per loaded vertex (parallel to clip_rej), lazily refreshed per scissor
+// generation: sc_gen_v[i] != cur_scissor_gen -> recompute. Loaders reset sc_gen_v to 0 ("never").
+static uint8_t cur_scissor_gen = 1;
+static uint8_t sc_oc_v[MAX_VERTICES + 2];
+static uint8_t sc_gen_v[MAX_VERTICES + 2];
+
+// Recompute the scissor NDC bounds from the current float viewport + scissor rects.
+// Called from gfx_calc_and_set_viewport and gfx_dp_set_scissor (same window space).
+static void gfx_recompute_scissor_planes(void) {
+    float vx = vpf_x, vy = vpf_y;
+    float vw = vpf_w <= 0.0f ? 1.0f : vpf_w;
+    float vh = vpf_h <= 0.0f ? 1.0f : vpf_h;
+
+    sc_ndc_xmin = 2.0f * (scf_x - vx) / vw - 1.0f;
+    sc_ndc_xmax = 2.0f * ((scf_x + scf_w) - vx) / vw - 1.0f;
+    sc_ndc_ymin = 2.0f * (scf_y - vy) / vh - 1.0f;
+    sc_ndc_ymax = 2.0f * ((scf_y + scf_h) - vy) / vh - 1.0f;
+
+    // Clip region is scissor INTERSECT viewport. The RSP confines geometry to the viewport
+    // frustum (NDC +/-1), so a scissor LOOSER than the viewport (race-start style transitions)
+    // must not widen the clip past the viewport edge — that's exactly the cross-pane depth-bleed
+    // hole. Clamp every bound to [-1,1]; non-overlapping rects collapse to an empty interval
+    // (nothing draws — also the correct N64 result).
+    sc_ndc_xmin = sc_ndc_xmin < -1.0f ? -1.0f : (sc_ndc_xmin > 1.0f ? 1.0f : sc_ndc_xmin);
+    sc_ndc_xmax = sc_ndc_xmax < -1.0f ? -1.0f : (sc_ndc_xmax > 1.0f ? 1.0f : sc_ndc_xmax);
+    sc_ndc_ymin = sc_ndc_ymin < -1.0f ? -1.0f : (sc_ndc_ymin > 1.0f ? 1.0f : sc_ndc_ymin);
+    sc_ndc_ymax = sc_ndc_ymax < -1.0f ? -1.0f : (sc_ndc_ymax > 1.0f ? 1.0f : sc_ndc_ymax);
+
+    // Skip the software clip whenever the viewport fills the whole framebuffer, REGARDLESS of the
+    // scissor (deliberate deviation from mk64-dc's scissor-covers-viewport condition): pane
+    // clipping only protects a NEIGHBOURING sub-viewport from overhang/depth-stomp, and a
+    // full-screen viewport has no neighbour. SF64 single-player always pairs the full viewport
+    // with an 8px-margin scissor (Game_SetGameFrame) — the whole game is HW-validated rendering
+    // that un-scissored (this port never had a scissor), and the 16px overscan edge mask covers
+    // exactly that band — so honouring it here would only push every single-player triangle
+    // through the classify path for nothing. Sub-viewports (VS split) always clip.
+    float fbw = (float) gfx_current_dimensions.width;
+    float fbh = (float) gfx_current_dimensions.height;
+    int vp_is_full = (vx <= 0.5f && vy <= 0.5f &&
+                      (vx + vw) >= fbw - 0.5f && (vy + vh) >= fbh - 0.5f);
+    sc_is_fullscreen = vp_is_full;
+
+    // Per-edge clip skip: map each bound back to framebuffer space and drop edges that sit on
+    // the framebuffer border (half-pixel slop, matching vp_is_full).
+    {
+        float bx_min = vx + (sc_ndc_xmin + 1.0f) * 0.5f * vw;
+        float bx_max = vx + (sc_ndc_xmax + 1.0f) * 0.5f * vw;
+        float by_min = vy + (sc_ndc_ymin + 1.0f) * 0.5f * vh;
+        float by_max = vy + (sc_ndc_ymax + 1.0f) * 0.5f * vh;
+        uint8_t m = 0;
+        if (bx_min >  0.5f)       m |= SC_LEFT;
+        if (bx_max <  fbw - 0.5f) m |= SC_RIGHT;
+        if (by_min >  0.5f)       m |= SC_BOTTOM;
+        if (by_max <  fbh - 0.5f) m |= SC_TOP;
+        sc_active_mask = m;
+    }
+
+    // Invalidate cached per-vertex outcodes (0 is reserved for "never computed").
+    if (++cur_scissor_gen == 0)
+        cur_scissor_gen = 1;
+}
+
+// Vertex scissor outcode from its homogeneous clip coords. One fast reciprocal + two muls beats
+// four muls (SH4 fdiv is slow); the outcode is only a classifier — gfx_build_clipped_fan still
+// clips with exact math.
+static inline uint8_t compute_scissor_outcode(const struct LoadedVertex *v) {
+    float w = v->_w;
+    if (w <= SCISSOR_W_EPS || v->_z + w < 0.0f)
+        return SC_FORCE;
+    float rw = shz_fast_invf(w);
+    float nx = v->_x * rw;
+    float ny = v->_y * rw;
+    uint8_t oc = 0;
+    if (nx < sc_ndc_xmin) oc |= SC_LEFT;
+    if (nx > sc_ndc_xmax) oc |= SC_RIGHT;
+    if (ny < sc_ndc_ymin) oc |= SC_BOTTOM;
+    if (ny > sc_ndc_ymax) oc |= SC_TOP;
+    return oc;
+}
+
 // Backend seam (all defined in gfx_pvr.c): OP/PT/TR routing + TR blend factors + vertex fog +
 // POT-pad UV correction + the no-buf_vbo submit path.
 extern void gfx_pvr_set_blend(uint8_t kind);                     // 0=OP, 1=PT, 2=TR
@@ -362,8 +468,9 @@ extern float gfx_pvr_get_u_scale(void);
 extern float gfx_pvr_get_v_scale(void);
 // PVR streams 3D with NO buf_vbo: OP bakes into op_emit then DR-submits per source-tri
 // (pvr_submit_op); PT/TR bake directly into their bucket (pvr_reserve). op_emit holds one
-// near-clip fan = at most 2 tris = 6 verts.
-static pvr_vertex_t __attribute__((aligned(32))) op_emit[2 * 3];
+// source triangle's worst-case clipped fan: 3 verts + 5 clip planes (near + 4 pane edges)
+// = 8-vert polygon = 6 tris = 18 verts, never more.
+static pvr_vertex_t __attribute__((aligned(32))) op_emit[6 * 3];
 extern void pvr_submit_op(const pvr_vertex_t *tris, size_t n);
 extern pvr_vertex_t *pvr_reserve(int kind, size_t n);
 // Inline OP submit for the per-triangle path (the 2D fill path still uses pvr_submit_op): the
@@ -1054,7 +1161,14 @@ static __attribute__((noinline)) void gfx_sp_matrix_impl(uint8_t parameters, con
         // Classify the projection as orthographic (2D/overlay) vs perspective (3D) for the PVR
         // depth/overlay logic in gfx_sp_tri1. Ortho has P[3][3]~1 (w passthrough) and P[2][3]~0.
         proj_is_ortho = (rsp.P_matrix[3][3] > 0.5f) && (rsp.P_matrix[2][3] > -0.5f);
-        if (!proj_is_ortho) cur_frame_persp = 1;
+        // cur_frame_persp is deliberately NOT set here: merely LOADING a perspective matrix must
+        // not arm the backdrop machinery. The option menus (Option_DrawMenuCard) end every frame
+        // with Lib_InitPerspective and never draw a perspective triangle — with the flag set at
+        // matrix load, prev_frame_had_persp stayed 1 on the pure-2D VS player-select screen,
+        // has_drawn_persp_tri stayed 0, and the effectively-opaque-quad backdrop promotion stayed
+        // permanently armed: the opaque RGBA16 face portraits got promoted to the far OP slab
+        // while the (transparent-cornered, unpromoted) panel frame stayed near TR and its black
+        // interior overdrew them. Set where perspective geometry actually EMITS (gfx_sp_tri1).
     } else {
         // G_MTX_NOPUSH | G_MTX_MUL | G_MTX_MODELVIEW
         if (parameters == 0) {
@@ -1236,6 +1350,7 @@ static void __attribute__((noinline)) gfx_sp_vertex_light_step1(int n_vertices, 
         // trivial clip rejection
         uint8_t cr = 128 | ((w < 0) ? 64 : 0x00);
         clip_rej[dest_index] = cr | trivial_reject(x, y, z, w);
+        sc_gen_v[dest_index] = 0;   // scissor outcode stale (recomputed lazily in gfx_sp_tri1)
 
         d->u = (vn->tc[0] * rsp.texture_scaling_factor.s) * recip64k;
         d->v = (vn->tc[1] * rsp.texture_scaling_factor.t) * recip64k;
@@ -1354,6 +1469,7 @@ static void __attribute__((noinline)) gfx_sp_vertex_no(uint8_t n_vertices, uint8
         // trivial clip rejection
         uint8_t cr = ((w < 0) ? 64 : 0x00);
         clip_rej[dest_index] = cr | trivial_reject(x, y, z, w);
+        sc_gen_v[dest_index] = 0;   // scissor outcode stale (recomputed lazily in gfx_sp_tri1)
     }
 }
 
@@ -2023,6 +2139,129 @@ static int __attribute__((noinline)) sm_near_clip_fan_slow(struct LoadedVertex *
     return 1;
 }
 
+// ---- Software scissor: 5-plane homogeneous Sutherland-Hodgman clip (split-screen panes) -------
+// Clips a triangle in clip space against the near plane (z+w>=0 — the SAME plane sm_near_clip_fan
+// uses, NOT the eye plane, whose intersections project to ~infinity) and the 4 scissor planes.
+// The crossing parameter t is applied to the emit-relevant attributes via sm_clip_lerp; because
+// the projection is linear in homogeneous coords, lerp-in-clip-space is exact. Only planes named
+// in clip_mask get a pass (convexity: clipping a crossed plane can't push verts outside an
+// un-crossed one). Cold path: runs only for pane-edge-crossing triangles in split-screen.
+#define CLIP_MAX 12
+static struct LoadedVertex clip_bufA[CLIP_MAX] __attribute__((aligned(32)));
+static struct LoadedVertex clip_bufB[CLIP_MAX] __attribute__((aligned(32)));
+
+// signed distance = A*_x + B*_y + C*_z + D*_w + E ; inside when >= 0
+static inline float clip_dist(const struct LoadedVertex *v, const float p[5]) {
+    return p[0] * v->_x + p[1] * v->_y + p[2] * v->_z + p[3] * v->_w + p[4];
+}
+
+static int clip_against_plane(const struct LoadedVertex *in, int n, struct LoadedVertex *out,
+                              const float p[5]) {
+    int m = 0;
+    for (int i = 0; i < n; i++) {
+        const struct LoadedVertex *cur = &in[i];
+        const struct LoadedVertex *nxt = &in[(i + 1 == n) ? 0 : (i + 1)];
+        float dc = clip_dist(cur, p);
+        float dn = clip_dist(nxt, p);
+        int inc = (dc >= 0.0f);
+        int inn = (dn >= 0.0f);
+        if (inc && m < CLIP_MAX)
+            out[m++] = *cur;
+        if ((inc != inn) && m < CLIP_MAX) {
+            float t = dc / (dc - dn);
+            sm_clip_lerp(&out[m++], cur, nxt, t);
+        }
+    }
+    return m;
+}
+
+// Clip (a,b,c) and emit the resulting polygon as a triangle fan of pointers into a static buffer.
+// Returns the number of output triangles (0..6). The near plane is mapped to SC_FORCE and clipped
+// FIRST so the scissor passes see near-side geometry only.
+static int __attribute__((noinline)) gfx_build_clipped_fan(const struct LoadedVertex *a,
+                                                           const struct LoadedVertex *b,
+                                                           const struct LoadedVertex *c,
+                                                           struct LoadedVertex *out_tris[][3],
+                                                           uint8_t clip_mask) {
+    static const uint8_t plane_bit[5] = { SC_FORCE, SC_LEFT, SC_RIGHT, SC_BOTTOM, SC_TOP };
+    float planes[5][5];
+    // near: _z + _w >= 0
+    planes[0][0] = 0.0f;  planes[0][1] = 0.0f;  planes[0][2] = 1.0f; planes[0][3] = 1.0f;         planes[0][4] = 0.0f;
+    // _x/_w >= xmin  ->  _x - xmin*_w >= 0
+    planes[1][0] = 1.0f;  planes[1][1] = 0.0f;  planes[1][2] = 0.0f; planes[1][3] = -sc_ndc_xmin; planes[1][4] = 0.0f;
+    // _x/_w <= xmax  ->  xmax*_w - _x >= 0
+    planes[2][0] = -1.0f; planes[2][1] = 0.0f;  planes[2][2] = 0.0f; planes[2][3] = sc_ndc_xmax;  planes[2][4] = 0.0f;
+    // _y/_w >= ymin
+    planes[3][0] = 0.0f;  planes[3][1] = 1.0f;  planes[3][2] = 0.0f; planes[3][3] = -sc_ndc_ymin; planes[3][4] = 0.0f;
+    // _y/_w <= ymax
+    planes[4][0] = 0.0f;  planes[4][1] = -1.0f; planes[4][2] = 0.0f; planes[4][3] = sc_ndc_ymax;  planes[4][4] = 0.0f;
+
+    clip_bufA[0] = *a;
+    clip_bufA[1] = *b;
+    clip_bufA[2] = *c;
+    int n = 3;
+
+    struct LoadedVertex *src = clip_bufA;
+    struct LoadedVertex *dst = clip_bufB;
+    for (int pi = 0; pi < 5; pi++) {
+        if (!(clip_mask & plane_bit[pi]))
+            continue;
+        n = clip_against_plane(src, n, dst, planes[pi]);
+        if (n < 3)
+            return 0;
+        struct LoadedVertex *tmp = src;
+        src = dst;
+        dst = tmp;
+    }
+
+    int nt = 0;
+    for (int k = 1; k + 1 < n && nt < 6; k++) {
+        out_tris[nt][0] = &src[0];
+        out_tris[nt][1] = &src[k];
+        out_tris[nt][2] = &src[k + 1];
+        nt++;
+    }
+    return nt;
+}
+
+// Split-screen pane path for gfx_sp_tri1: classify by the per-vertex scissor outcodes (lazily
+// refreshed per scissor generation, cheap byte compares) and software-clip pane-crossing
+// triangles. Deliberately noinline and OUT of the GFX_HOT section: single-player never takes it
+// (sc_is_fullscreen skips it entirely), and split-screen trades an out-of-section call for not
+// bloating the 8KB direct-mapped I-cache hot block. i1/i2/i3 are the loaded_vertices indices of
+// v1/v2/v3 (the caller's swapped order already applied). Returns the fan size (0 = drop).
+static int __attribute__((noinline)) gfx_scissor_classify_fan(struct LoadedVertex *v1,
+                                                              struct LoadedVertex *v2,
+                                                              struct LoadedVertex *v3,
+                                                              uint8_t i1, uint8_t i2, uint8_t i3,
+                                                              struct LoadedVertex *out[][3]) {
+    if (sc_gen_v[i1] != cur_scissor_gen) { sc_oc_v[i1] = compute_scissor_outcode(v1); sc_gen_v[i1] = cur_scissor_gen; }
+    if (sc_gen_v[i2] != cur_scissor_gen) { sc_oc_v[i2] = compute_scissor_outcode(v2); sc_gen_v[i2] = cur_scissor_gen; }
+    if (sc_gen_v[i3] != cur_scissor_gen) { sc_oc_v[i3] = compute_scissor_outcode(v3); sc_gen_v[i3] = cur_scissor_gen; }
+    uint8_t oc_or  = sc_oc_v[i1] | sc_oc_v[i2] | sc_oc_v[i3];
+    uint8_t oc_and = sc_oc_v[i1] & sc_oc_v[i2] & sc_oc_v[i3];
+
+    if (oc_or == 0) {
+        // fully inside every pane edge, in front of the near plane -> emit unclipped
+        out[0][0] = v1; out[0][1] = v2; out[0][2] = v3;
+        return 1;
+    }
+    if (oc_and & SC_EDGE_MASK) {
+        // all three verts outside one pane edge -> whole triangle off-pane
+        return 0;
+    }
+    // A SC_FORCE vertex's edge bits are meaningless -> clip every plane; otherwise clip only the
+    // CROSSED, NON-REDUNDANT edges (sc_active_mask drops framebuffer-border edges — overhang past
+    // those lands off-screen and the PVR userclip eats it).
+    uint8_t clip_mask = (oc_or & SC_FORCE) ? (SC_FORCE | SC_EDGE_MASK)
+                                           : (oc_or & sc_active_mask);
+    if (clip_mask == 0) {
+        out[0][0] = v1; out[0][1] = v2; out[0][2] = v3;
+        return 1;
+    }
+    return gfx_build_clipped_fan(v1, v2, v3, out, clip_mask);
+}
+
 // ---- Per-STATE triangle setup (hoisted out of gfx_sp_tri1) -----------------------------------
 // Everything below depends only on RDP/RSP state (other modes, combiner, textures, viewport, prim/env,
 // geometry mode), NOT on the triangle. It used to run for EVERY triangle (~10us/tri = 2000 cycles,
@@ -2070,10 +2309,9 @@ static void __attribute__((noinline)) gfx_tri_state_setup(void) {
         if (memcmp(&rdp.viewport, &rendering_state.viewport, sizeof(rdp.viewport)) != 0) {
             gfx_rapi->set_viewport(rdp.viewport.x, rdp.viewport.y, rdp.viewport.width, rdp.viewport.height);
             rendering_state.viewport = rdp.viewport;
-            // PVR set_viewport is a no-op; the front-end owns the screen map.
-            vpf_x = rdp.viewport.x; vpf_y = rdp.viewport.y;
-            vpf_w = rdp.viewport.width; vpf_h = rdp.viewport.height;
-            gfx_recompute_screen_map();
+            // PVR set_viewport is a no-op. The screen map / pane planes update at
+            // gfx_calc_and_set_viewport (float source), NOT from the uint16 rdp rect here —
+            // the texrect path temporarily swaps rdp.viewport and must not retarget them.
         }
         if (memcmp(&rdp.scissor, &rendering_state.scissor, sizeof(rdp.scissor)) != 0) {
             gfx_rapi->set_scissor(rdp.scissor.x, rdp.scissor.y, rdp.scissor.width, rdp.scissor.height);
@@ -2394,9 +2632,15 @@ static void __attribute__((noinline)) GFX_HOT gfx_sp_tri1_impl(uint8_t vtx1_idx,
 #if GFX_PROF
     prof_t_tri_setup += PROF_NOW() - prof_t_tri_mark;   // state/combiner/texture setup
 #endif
-    // Near-plane clip the triangle into a fan of 1-2 tris (instead of dropping eye-crossers).
-    struct LoadedVertex *fan_tris[2][3];
-    int n_tris = sm_near_clip_fan(v1, v2, v3, fan_tris);
+    // Clip the triangle into a fan. Full-screen scissor (single player): near-plane clip only,
+    // 1-2 tris — the pre-existing hot path, zero extra cost. Split-screen pane: outcode-classify
+    // + software-clip pane-crossing triangles out of line — un-clipped frustum overhang would
+    // bake to screen pixels inside the NEIGHBOURING pane and depth-stomp it (mk64-dc's scheme).
+    // NB: v1 = loaded_vertices[vtx3_idx] (the load above swaps), so the indices pass swapped too.
+    static struct LoadedVertex *fan_tris[6][3];
+    int n_tris = sc_is_fullscreen
+                     ? sm_near_clip_fan(v1, v2, v3, fan_tris)
+                     : gfx_scissor_classify_fan(v1, v2, v3, vtx3_idx, vtx2_idx, vtx1_idx, fan_tris);
     if (n_tris == 0) return;
 #if GFX_PROF
     uint64_t prof_tc = PROF_NOW(); prof_t_clip += prof_tc - prof_t_tri_mark;   // includes setup; subtract later
@@ -2509,7 +2753,10 @@ static void __attribute__((noinline)) GFX_HOT gfx_sp_tri1_impl(uint8_t vtx1_idx,
     // a near overlay drawn OVER the foreground. The real actors are depth-tested and still set it,
     // so the reticle/HUD overlays are unaffected.
     if (!proj_is_ortho && depth_test) has_done_3d_pending = 1;
-    if (!proj_is_ortho) has_drawn_persp_tri = 1;
+    // cur_frame_persp: "this frame DREW perspective geometry" (latched into prev_frame_had_persp
+    // at start_frame). Set here — NOT at projection-matrix load — so a 2D menu that loads a
+    // perspective matrix without using it doesn't arm the backdrop gates next frame.
+    if (!proj_is_ortho) { has_drawn_persp_tri = 1; cur_frame_persp = 1; }
 }
 
 extern int gfx_pvr_bound_texture_opaque(void);   // 1 iff the bound texture has no transparent texels
@@ -2820,6 +3067,17 @@ static void gfx_calc_and_set_viewport(const Vp_t* viewport) {
     rdp.viewport.width = width;
     rdp.viewport.height = height;
 
+    // Keep the un-truncated float rect for the pane-clip math (rdp.viewport is uint16: negative
+    // transition coords wrap to ~65000). The raw-PVR backend has no viewport transform, so the
+    // front-end screen map + scissor NDC planes refresh right here — NOT in the deferred state
+    // flush, whose rdp.viewport also gets temporarily swapped by the texrect path.
+    vpf_x = x;
+    vpf_y = y;
+    vpf_w = width;
+    vpf_h = height;
+    gfx_recompute_screen_map();
+    gfx_recompute_scissor_planes();
+
     rdp.viewport_or_scissor_changed = 1;
 }
 
@@ -2887,6 +3145,14 @@ static void gfx_dp_set_scissor(uint32_t ulx, uint32_t uly, uint32_t lrx, uint32_
     rdp.scissor.y = y;
     rdp.scissor.width = width;
     rdp.scissor.height = height;
+
+    // Scissoring is done in software (homogeneous clip in gfx_sp_tri1) — the PVR userclip can't
+    // track per-pane rects. Keep the float rect and recompute the NDC bounds vs the viewport.
+    scf_x = x;
+    scf_y = y;
+    scf_w = width;
+    scf_h = height;
+    gfx_recompute_scissor_planes();
 
     rdp.viewport_or_scissor_changed = 1;
 }
@@ -3802,9 +4068,6 @@ void gfx_init(struct GfxWindowManagerAPI* wapi, struct GfxRenderingAPI* rapi, co
 #endif
     fb_half_w = (float) gfx_current_dimensions.width * 0.5f;
     fb_half_h = (float) gfx_current_dimensions.height * 0.5f;
-    printf("gfx_init: framebuffer %lux%lu (2D bake half-extents %.0f x %.0f)\n",
-           (unsigned long) gfx_current_dimensions.width, (unsigned long) gfx_current_dimensions.height,
-           fb_half_w, fb_half_h);
 
     gfx_current_dimensions.aspect_ratio = (float) gfx_current_dimensions.width / (float) gfx_current_dimensions.height;
 

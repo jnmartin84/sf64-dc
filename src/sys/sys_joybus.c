@@ -263,7 +263,7 @@ void Controller_UpdateInput(void) {
             ucheld |= N64_CONT_START; // START_BUTTON;
 
         if (state->buttons & CONT_Y)
-            ucheld |= L_CBUTTONS; // C_UP
+            ucheld |= L_CBUTTONS; // C_LEFT
         if (state->buttons & CONT_B)
             ucheld |= D_CBUTTONS; // C_RIGHT
         if (state->buttons & CONT_DPAD_UP)

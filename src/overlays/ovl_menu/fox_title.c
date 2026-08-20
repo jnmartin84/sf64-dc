@@ -2861,6 +2861,9 @@ void Title_CopyrightSymbol_Draw(void) {
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
     Lib_TextureRect_IA8(&gMasterDisp, aTitleCopyrightTex, 16, 16, 234.0f, 20.0f, 1.0f, 1.0f);
 }
+u8 trianglePressStartTex[] = {
+	#include "src/dc/triPressStart.ia8.inc.c"
+};
 
 void Title_PressStart_Draw(void) {
     f32 yPos;
@@ -2908,10 +2911,10 @@ void Title_PressStart_Draw(void) {
             gDPSetTextureFilter(gMasterDisp++, G_TF_POINT);
 
             for (i = 0; i < 2; i++) {
-                Lib_TextureRect_IA8(&gMasterDisp, aTitlePressStartTex + (120 * 6 * i), 120, 6, 101.0f,
+                Lib_TextureRect_IA8(&gMasterDisp, trianglePressStartTex + (120 * 6 * i), 120, 6, 101.0f,
                                     yPos + (i * 6.0f), 1.0f, 1.0f);
             }
-            Lib_TextureRect_IA8(&gMasterDisp, aTitlePressStartTex + 120 * 6 * 2, 120, 1, 101.0f, yPos + 12, 1.0f, 1.0f);
+            Lib_TextureRect_IA8(&gMasterDisp, trianglePressStartTex + 120 * 6 * 2, 120, 1, 101.0f, yPos + 12, 1.0f, 1.0f);
         }
     }
 }
