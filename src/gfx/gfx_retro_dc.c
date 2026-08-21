@@ -41,7 +41,7 @@
 // The innermost per-primitive set (vertex, tri, fill-rect, DL walk: ~6.4KB total) is placed in ONE
 // named section so it stays contiguous (< 8KB -> never self-aliasing) wherever the linker puts it.
 // (KOS's shlelf.xc gathers `.text .text.*` in input order, so this block lands right after this
-// object's .text — contiguous is all that matters.) Keep the members' total under 8KB.
+// object's .text - contiguous is all that matters.) Keep the members' total under 8KB.
 #define GFX_HOT __attribute__((section(".text.hot.gfx")))
 
 #include "gfx_pc.h"
@@ -107,7 +107,7 @@ int do_starfield = 0;
 int do_menucard = 0;
 
 // Opaque to the front-end: the interpreter only holds/compares ShaderProgram* and hands them to the
-// backend vtable (create/load/unload/lookup, shader_get_info) — it never touches the fields. The
+// backend vtable (create/load/unload/lookup, shader_get_info) - it never touches the fields. The
 // layout is private to the backend (gfx_pvr.c). Keeping a second full definition here would give two
 // TUs conflicting `struct ShaderProgram` bodies, which LTO flags as a type mismatch on gfx_pvr_api.
 struct ShaderProgram;
@@ -120,14 +120,13 @@ struct XYWidthHeight {
     uint16_t x, y, width, height;
 };
 
-// GLdc: 32 bytes (one cache line). PVR: _x/_y hold RAW CLIP x,y (no perspective divide), plus
-// raw clip _z,_w (homogeneous near-clip, depth=1/w, fog=z/w) and a per-vertex fog coefficient.
-// The PVR variant overflows one cache line — accepted for PVR only (matches the sm64 donor).
+// PVR: _x/_y hold RAW CLIP x,y (no perspective divide), plus raw clip _z,_w
+// (homogeneous near-clip, depth=1/w, fog=z/w) and a per-vertex fog coefficient.
+// Overflows one cache line.
 struct __attribute__((aligned(32))) LoadedVertex {
-    // 0, 4 — GLdc: NDC (x/w, y/w). PVR: raw clip x, y.
+    // 0, 4 - PVR: raw clip x, y.
     float _x, _y;
     float _z, _w;   // raw clip z, w (PVR software near-clip + screen-bake)
-    // x, y, z — OBJECT-space position (GLdc emits these; PVR ignores them)
     float x, y, z /* , w */;
     float u, v;
     struct RGBA color;
@@ -155,9 +154,9 @@ struct TextureHashmapNode {
     uint32_t texture_id;
     // 8
     uint32_t key;
-    // 12 — flags byte (kept 1 byte so two nodes still fit one 32-byte cache line):
+    // 12 - flags byte (kept 1 byte so two nodes still fit one 32-byte cache line):
     //   bit0 TEX_DIRTY   : needs re-upload (content changed / first load)
-    //   bit1 TEX_DYNAMIC : sticky "content churns" — set by gfx_texture_cache_invalidate(), NOT
+    //   bit1 TEX_DYNAMIC : sticky "content churns" - set by gfx_texture_cache_invalidate(), NOT
     //                      cleared on re-upload. Drives PVR upload layout (0=twiddled/static,
     //                      set=non-twiddled/dynamic). Both bits 0 on a freshly created node.
     uint8_t dirty;
@@ -243,7 +242,7 @@ static struct RDP {
 
     uint32_t other_mode_l, other_mode_h;
     uint32_t combine_mode;
-    // Raw G_SETCOMBINE words — the PVR combiner evaluator reads the N64 mux bit-fields directly
+    // Raw G_SETCOMBINE words - the PVR combiner evaluator reads the N64 mux bit-fields directly
     // (sf64's compact combine_mode loses them). Captured at the G_SETCOMBINE dispatch.
     uint32_t combine_w0, combine_w1;
 
@@ -311,7 +310,7 @@ int has_drawn_persp_tri = 0;   // ANY perspective triangle (depth-tested or Z-of
 // triangles of a 2x2 starfield fillrect -> triangle-shaped stars). The backdrop slab starts just
 // IN FRONT of the far-pin so nebula/planet tiles still cover the star fills.
 #define PVR_Z_FARPIN        0.00003f
-#define PVR_Z_FARPIN_FILL2  0.000035f   // 2nd+ pre-scene fill (starfield pixels) — NEARER than the screen
+#define PVR_Z_FARPIN_FILL2  0.000035f   // 2nd+ pre-scene fill (starfield pixels) - NEARER than the screen
                                         // clear so an OP z-tie can't drop them, still behind the backdrop slab
 #define PVR_Z_BACKDROP0     0.00004f
 int far_fill_count = 0;   // pre-scene (far-pinned) fills this frame; reset in start_frame
@@ -321,7 +320,7 @@ float backdrop_far_z = PVR_Z_BACKDROP0;
 // Opaque-promoted 2D backdrop quads (gfx_sp_quad_2d XLU->OP reroute) sit NEARER than the whole
 // persp backdrop slab, and must ALSO stagger per quad: two promoted quads at one z (e.g. a planet
 // backdrop + a full-white fade that just reached alpha 255) tie on the depth-resolved OP list and
-// the tie is decided arbitrarily — later-drawn must win to keep N64 paint order.
+// the tie is decided arbitrarily - later-drawn must win to keep N64 paint order.
 #define PVR_Z_QUAD_BD0      0.001f      // base: precision-safe for the razor-thin ending strips
 #define PVR_Z_QUAD_BD_MAX   0.0011f
 const float pvr_quad_backdrop_z0 = PVR_Z_QUAD_BD0;   // read by gfx_pvr.c start_frame reset
@@ -369,7 +368,7 @@ static int sc_is_fullscreen = 1;
 static uint8_t sc_active_mask = 0x0F;
 #define SCISSOR_W_EPS 0.00001f
 // Per-vertex scissor outcode bits: each set bit = vertex OUTSIDE that pane edge. SC_FORCE marks a
-// vertex whose NDC is not (yet) valid — at/behind the eye (w<=eps) or behind the near plane — so
+// vertex whose NDC is not (yet) valid - at/behind the eye (w<=eps) or behind the near plane - so
 // any triangle touching it must take the full clip path (near plane is clipped first there).
 #define SC_LEFT   0x01
 #define SC_RIGHT  0x02
@@ -397,9 +396,9 @@ static void gfx_recompute_scissor_planes(void) {
 
     // Clip region is scissor INTERSECT viewport. The RSP confines geometry to the viewport
     // frustum (NDC +/-1), so a scissor LOOSER than the viewport (race-start style transitions)
-    // must not widen the clip past the viewport edge — that's exactly the cross-pane depth-bleed
+    // must not widen the clip past the viewport edge - that's exactly the cross-pane depth-bleed
     // hole. Clamp every bound to [-1,1]; non-overlapping rects collapse to an empty interval
-    // (nothing draws — also the correct N64 result).
+    // (nothing draws - also the correct N64 result).
     sc_ndc_xmin = sc_ndc_xmin < -1.0f ? -1.0f : (sc_ndc_xmin > 1.0f ? 1.0f : sc_ndc_xmin);
     sc_ndc_xmax = sc_ndc_xmax < -1.0f ? -1.0f : (sc_ndc_xmax > 1.0f ? 1.0f : sc_ndc_xmax);
     sc_ndc_ymin = sc_ndc_ymin < -1.0f ? -1.0f : (sc_ndc_ymin > 1.0f ? 1.0f : sc_ndc_ymin);
@@ -409,9 +408,9 @@ static void gfx_recompute_scissor_planes(void) {
     // scissor (deliberate deviation from mk64-dc's scissor-covers-viewport condition): pane
     // clipping only protects a NEIGHBOURING sub-viewport from overhang/depth-stomp, and a
     // full-screen viewport has no neighbour. SF64 single-player always pairs the full viewport
-    // with an 8px-margin scissor (Game_SetGameFrame) — the whole game is HW-validated rendering
+    // with an 8px-margin scissor (Game_SetGameFrame) - the whole game is HW-validated rendering
     // that un-scissored (this port never had a scissor), and the 16px overscan edge mask covers
-    // exactly that band — so honouring it here would only push every single-player triangle
+    // exactly that band - so honouring it here would only push every single-player triangle
     // through the classify path for nothing. Sub-viewports (VS split) always clip.
     float fbw = (float) gfx_current_dimensions.width;
     float fbh = (float) gfx_current_dimensions.height;
@@ -440,7 +439,7 @@ static void gfx_recompute_scissor_planes(void) {
 }
 
 // Vertex scissor outcode from its homogeneous clip coords. One fast reciprocal + two muls beats
-// four muls (SH4 fdiv is slow); the outcode is only a classifier — gfx_build_clipped_fan still
+// four muls (SH4 fdiv is slow); the outcode is only a classifier - gfx_build_clipped_fan still
 // clips with exact math.
 static inline uint8_t compute_scissor_outcode(const struct LoadedVertex *v) {
     float w = v->_w;
@@ -628,7 +627,7 @@ void reset_texcache(void) {
     memset(&gfx_texture_cache, 0, sizeof(gfx_texture_cache));
 }
 
-// Per-channel texel INVERT variant (bits r,g,b) — see pvr_tex_invert_mask. Address bits 27..31 are
+// Per-channel texel INVERT variant (bits r,g,b) - see pvr_tex_invert_mask. Address bits 27..31 are
 // constant for all of RAM (0x8Cxxxxxx), so dropping them keeps the key unique.
 static uint8_t pvr_tex_invert_mask = 0;   // set per draw in gfx_sp_tri1 before import_texture
 
@@ -1163,7 +1162,7 @@ static __attribute__((noinline)) void gfx_sp_matrix_impl(uint8_t parameters, con
         proj_is_ortho = (rsp.P_matrix[3][3] > 0.5f) && (rsp.P_matrix[2][3] > -0.5f);
         // cur_frame_persp is deliberately NOT set here: merely LOADING a perspective matrix must
         // not arm the backdrop machinery. The option menus (Option_DrawMenuCard) end every frame
-        // with Lib_InitPerspective and never draw a perspective triangle — with the flag set at
+        // with Lib_InitPerspective and never draw a perspective triangle - with the flag set at
         // matrix load, prev_frame_had_persp stayed 1 on the pure-2D VS player-select screen,
         // has_drawn_persp_tri stayed 0, and the effectively-opaque-quad backdrop promotion stayed
         // permanently armed: the opaque RGBA16 face portraits got promoted to the far OP slab
@@ -1263,12 +1262,12 @@ float __attribute__((aligned(32))) COLOR_MTX[3][3];
 // 0 when fog is off (G_FOG clear) or the vertex is behind the near plane, so non-fogged frames
 // pay nothing. Baked into PVR oargb.alpha (HW vertex fog) at emit.
 // ---- SF64 fog: faithful N64 formula + perceptual black/colour GAMMA -------------------------------
-// alpha = fog_mul*(z/w) + fog_offset, clamped 0..255 — faithful N64 fog (z/w uses the authentic near=10
+// alpha = fog_mul*(z/w) + fog_offset, clamped 0..255 - faithful N64 fog (z/w uses the authentic near=10
 // in gameplay, see Lib_InitPerspective). Then a per-colour GAMMA reshapes the curve WITHOUT moving the
-// endpoints (0->0, 255->255), so black fog still reaches full black at distance (no grey veil) — a plain
+// endpoints (0->0, 255->255), so black fog still reaches full black at distance (no grey veil) - a plain
 // multiply couldn't do that (scaling down lowers the ceiling => distant void goes grey).
 // BLACK uses a GAMMA (gamma>1 -> clearer near/mid, endpoints pinned so far stays full black, no grey).
-// COLOUR uses a clamped MULTIPLY (gFogColorGain) — that was already ~perfect, and multiplying UP keeps
+// COLOUR uses a clamped MULTIPLY (gFogColorGain) - that was already ~perfect, and multiplying UP keeps
 // the far at full fog-colour via the clamp (only multiplying DOWN would lower the ceiling / grey it).
 // Applied via a 256-entry LUT (per-vertex path = one table lookup); LUTs rebuilt only when a knob edits.
 float gFogGammaDark = 1.5f;    // black/space fog: gamma reshape
@@ -1576,7 +1575,7 @@ extern float get_current_v_scale(void);
 // a constant additive 'd' / a texture-independent colour is routed to oargb (added post-modulate
 // via the always-on specular bit). (a/b/d 4-bit, c 5-bit; mux 6 == G_CCMUX_1 == 1.0.)
 // Mux samplers. `comb` = the COMBINED colour for this channel (cycle-0 result), `comb_a` = the
-// COMBINED alpha — both fed in cycle 1 of a 2-cycle combiner; pass 0 in cycle 0 / 1-cycle (mux 0
+// COMBINED alpha - both fed in cycle 1 of a 2-cycle combiner; pass 0 in cycle 0 / 1-cycle (mux 0
 // then resolves to 0, exactly the old behaviour). texel terms substitute to `tex` (1.0 modulate /
 // 0.0 decal); PVR multiplies the real texel in via the texenv.
 static inline float pvr_cc4(int mux, int ch, float tex, float comb, const float prim[4], const float env[4], const float shade[4]) {
@@ -1601,7 +1600,7 @@ static inline float pvr_noise(void) {
     return (float) (pvr_noise_state >> 8) * (1.0f / 16777216.0f);
 }
 // "NOISE x stale TEXEL1": 2-cycle, NOISE in a cycle's colour 'a' slot, and TEXEL1 in cycle 1's colour
-// muxes (SETUPDL_35/87 — SX warp-zone enemies — which load only tile 0). On N64, TEXEL1 reads stale
+// muxes (SETUPDL_35/87 - SX warp-zone enemies - which load only tile 0). On N64, TEXEL1 reads stale
 // TMEM through tile 1's leftover descriptor = coloured garbage; the backend binds a raw-VRAM window
 // for it (gfx_pvr_set_stale_texel1). Cheap bit tests on the raw combine words, once per draw.
 static inline int pvr_combiner_stale_texel1(void) {
@@ -1670,7 +1669,7 @@ static inline float pvr_ca(int mux, float comb_a, const float prim[4], const flo
 // 3 bits/input). Maps the combiner's texel<->colour relationship onto REPLACE/MODULATE/DECAL/
 // MODULATEALPHA. 2-cycle ALWAYS uses MODULATEALPHA: pvr_eval_combiner evaluates both cycles to the
 // final non-texel colour AND alpha (texel as 1.0), and PVR multiplies the one bound texture's rgb
-// AND alpha in (MODULATE would drop the combiner alpha — a=tex.a — and re-opaque a glass surface).
+// AND alpha in (MODULATE would drop the combiner alpha - a=tex.a - and re-opaque a glass surface).
 static uint32_t derive_pvr_texenv(uint32_t cc_id) {
     if ((rdp.other_mode_h & (3U << G_MDSFT_CYCLETYPE)) == G_CYC_2CYCLE) return GFX_TEXENV_MODULATEALPHA;
     int ca = (cc_id >> 0) & 7, cb = (cc_id >> 3) & 7, cc = (cc_id >> 6) & 7, cd = (cc_id >> 9) & 7;
@@ -1736,8 +1735,8 @@ static inline void pvr_eval_combiner(uint32_t w0, uint32_t w1, const struct RGBA
     if (two_cycle) {
         // Full 2-cycle eval: cycle 0 -> COMBINED -> cycle 1, for colour AND alpha. texenv is forced
         // MODULATEALPHA (derive_pvr_texenv), so texv==1 and PVR multiplies the one bound texture's
-        // rgb AND alpha into this final non-texel colour+alpha. (Two-texture 2-cycle — TEXEL1 in
-        // cycle 1 — can't be exact on single-tile; that 2nd texel falls back to the texv placeholder.)
+        // rgb AND alpha into this final non-texel colour+alpha. (Two-texture 2-cycle - TEXEL1 in
+        // cycle 1 - can't be exact on single-tile; that 2nd texel falls back to the texv placeholder.)
         int b2 = (w1 >> 24) & 0xF, c2 = (w0 >> 0) & 0x1F, d2 = (w1 >> 6) & 0x7;
         int aa2 = (w1 >> 21) & 0x7, ab2 = (w1 >> 3) & 0x7, ac2 = (w1 >> 18) & 0x7, ad2 = (w1 >> 0) & 0x7;
         // alpha: cycle 0, then cycle 1 with COMBINED = cycle-0 alpha
@@ -1823,7 +1822,7 @@ static inline void pvr_eval_combiner(uint32_t w0, uint32_t w1, const struct RGBA
 // small value table whose constant rows (PRIM/ENV/TEX/ONE/ZERO/alpha consts) are pre-filled as floats;
 // per vertex only the SHADE rows (and NOISE) are written, then the eval is straight-line loads+FMAs.
 // Same maths/branches as pvr_eval_combiner (mode/DECAL texv, has_texel/offset/color_const_textured/
-// invert-mask handling, 2-cycle) — keep them in sync.
+// invert-mask handling, 2-cycle) - keep them in sync.
 enum { CR_COMB = 0, CR_TEX, CR_PRIM, CR_SHADE, CR_ENV, CR_ONE, CR_ZERO, CR_COMBA, CR_PRIMA, CR_SHADEA,
        CR_ENVA, CR_NOISE, CR_ROWS };
 static struct ccp_s {
@@ -2140,7 +2139,7 @@ static int __attribute__((noinline)) sm_near_clip_fan_slow(struct LoadedVertex *
 }
 
 // ---- Software scissor: 5-plane homogeneous Sutherland-Hodgman clip (split-screen panes) -------
-// Clips a triangle in clip space against the near plane (z+w>=0 — the SAME plane sm_near_clip_fan
+// Clips a triangle in clip space against the near plane (z+w>=0 - the SAME plane sm_near_clip_fan
 // uses, NOT the eye plane, whose intersections project to ~infinity) and the 4 scissor planes.
 // The crossing parameter t is applied to the emit-relevant attributes via sm_clip_lerp; because
 // the projection is linear in homogeneous coords, lerp-in-clip-space is exact. Only planes named
@@ -2251,7 +2250,7 @@ static int __attribute__((noinline)) gfx_scissor_classify_fan(struct LoadedVerte
         return 0;
     }
     // A SC_FORCE vertex's edge bits are meaningless -> clip every plane; otherwise clip only the
-    // CROSSED, NON-REDUNDANT edges (sc_active_mask drops framebuffer-border edges — overhang past
+    // CROSSED, NON-REDUNDANT edges (sc_active_mask drops framebuffer-border edges - overhang past
     // those lands off-screen and the PVR userclip eats it).
     uint8_t clip_mask = (oc_or & SC_FORCE) ? (SC_FORCE | SC_EDGE_MASK)
                                            : (oc_or & sc_active_mask);
@@ -2310,7 +2309,7 @@ static void __attribute__((noinline)) gfx_tri_state_setup(void) {
             gfx_rapi->set_viewport(rdp.viewport.x, rdp.viewport.y, rdp.viewport.width, rdp.viewport.height);
             rendering_state.viewport = rdp.viewport;
             // PVR set_viewport is a no-op. The screen map / pane planes update at
-            // gfx_calc_and_set_viewport (float source), NOT from the uint16 rdp rect here —
+            // gfx_calc_and_set_viewport (float source), NOT from the uint16 rdp rect here -
             // the texrect path temporarily swaps rdp.viewport and must not retarget them.
         }
         if (memcmp(&rdp.scissor, &rendering_state.scissor, sizeof(rdp.scissor)) != 0) {
@@ -2633,8 +2632,8 @@ static void __attribute__((noinline)) GFX_HOT gfx_sp_tri1_impl(uint8_t vtx1_idx,
     prof_t_tri_setup += PROF_NOW() - prof_t_tri_mark;   // state/combiner/texture setup
 #endif
     // Clip the triangle into a fan. Full-screen scissor (single player): near-plane clip only,
-    // 1-2 tris — the pre-existing hot path, zero extra cost. Split-screen pane: outcode-classify
-    // + software-clip pane-crossing triangles out of line — un-clipped frustum overhang would
+    // 1-2 tris - the pre-existing hot path, zero extra cost. Split-screen pane: outcode-classify
+    // + software-clip pane-crossing triangles out of line - un-clipped frustum overhang would
     // bake to screen pixels inside the NEIGHBOURING pane and depth-stomp it (mk64-dc's scheme).
     // NB: v1 = loaded_vertices[vtx3_idx] (the load above swaps), so the indices pass swapped too.
     static struct LoadedVertex *fan_tris[6][3];
@@ -2647,7 +2646,7 @@ static void __attribute__((noinline)) GFX_HOT gfx_sp_tri1_impl(uint8_t vtx1_idx,
 #endif
 
     PROF_INC(prof_tris);
-    // Ortho 3D GEOMETRY (depth-tested): under ortho w~const, so 1/w carries no depth — use clip z.
+    // Ortho 3D GEOMETRY (depth-tested): under ortho w~const, so 1/w carries no depth - use clip z.
     int ortho_3d = proj_is_ortho && depth_test;
     // OVERLAY = a Z-off layer drawn AFTER the 3D scene (foreground HUD / targeting reticle) -> near
     // paint-order z so it sits on top; a Z-off layer BEFORE any 3D is a true BACKDROP. The catch:
@@ -2713,7 +2712,7 @@ static void __attribute__((noinline)) GFX_HOT gfx_sp_tri1_impl(uint8_t vtx1_idx,
             }
 
             // Evaluate the N64 colour+alpha combiner directly. SHADE = the per-vertex lit/material
-            // colour from the matrix-lighting pipeline (NO (255+c)/2 / level hacks — accurate path).
+            // colour from the matrix-lighting pipeline (NO (255+c)/2 / level hacks - accurate path).
             {
                 uint32_t _argb, _oargb;
                 int vi = (int) (v_arr[i] - rsp.loaded_vertices);
@@ -2754,7 +2753,7 @@ static void __attribute__((noinline)) GFX_HOT gfx_sp_tri1_impl(uint8_t vtx1_idx,
     // so the reticle/HUD overlays are unaffected.
     if (!proj_is_ortho && depth_test) has_done_3d_pending = 1;
     // cur_frame_persp: "this frame DREW perspective geometry" (latched into prev_frame_had_persp
-    // at start_frame). Set here — NOT at projection-matrix load — so a 2D menu that loads a
+    // at start_frame). Set here - NOT at projection-matrix load - so a 2D menu that loads a
     // perspective matrix without using it doesn't arm the backdrop gates next frame.
     if (!proj_is_ortho) { has_drawn_persp_tri = 1; cur_frame_persp = 1; }
 }
@@ -2979,7 +2978,7 @@ static void __attribute__((noinline)) gfx_sp_quad_2d(uint8_t vtx1_idx, uint8_t v
             }
         } else {
             // Fullscreen blur quad. slot0=ul, slot1=ll; slots 2/3 follow the backend's quad order
-            // (PVR strip: ul,ll,ur,lr — GLdc: ul,ll,lr,ur).
+            // (PVR strip: ul,ll,ur,lr).
             tmpv->x = 0;   tmpv->y = 0;   tmpv->u = 0.0f;   tmpv++->v = 0.0f;      // slot0 = ul
             tmpv->x = 0;   tmpv->y = 479; tmpv->u = 0.0f;   tmpv++->v = 0.9375f;   // slot1 = ll
             tmpv->x = 639; tmpv->y = 0;   tmpv->u = 0.625f; tmpv++->v = 0.0f;      // slot2 = ur
@@ -3009,9 +3008,9 @@ static void __attribute__((noinline)) gfx_sp_quad_2d(uint8_t vtx1_idx, uint8_t v
         // the SF64 PVR 2D backdrop->OP note): alpha-over quad, output alpha 255, no texel alpha,
         // pre-3D in a perspective frame. Depth-TEST on, depth-WRITE off; z starts at 0.001 (thin
         // strips drop at the extreme far-pin) and staggers per quad so a later quad beats an earlier
-        // one — an exact OP z tie is resolved arbitrarily, which put a planet backdrop on top of a
+        // one - an exact OP z tie is resolved arbitrarily, which put a planet backdrop on top of a
         // just-turned-opaque full-white fade. It changes rendering_state; invalidate the setup after.
-        // !has_drawn_persp_tri: same guard the fill far-pin path learned from the Sector Y outro —
+        // !has_drawn_persp_tri: same guard the fill far-pin path learned from the Sector Y outro -
         // a quad drawn AFTER any perspective tri this frame is an OVERLAY even when nothing was
         // depth-tested (has_done_3d==0). Without it, a full-white fade rect at alpha exactly 255,
         // drawn last over a Z-off cutscene scene (Area 6 -> Venom warp), got promoted+far-pinned to
@@ -3069,7 +3068,7 @@ static void gfx_calc_and_set_viewport(const Vp_t* viewport) {
 
     // Keep the un-truncated float rect for the pane-clip math (rdp.viewport is uint16: negative
     // transition coords wrap to ~65000). The raw-PVR backend has no viewport transform, so the
-    // front-end screen map + scissor NDC planes refresh right here — NOT in the deferred state
+    // front-end screen map + scissor NDC planes refresh right here - NOT in the deferred state
     // flush, whose rdp.viewport also gets temporarily swapped by the texrect path.
     vpf_x = x;
     vpf_y = y;
@@ -3146,7 +3145,7 @@ static void gfx_dp_set_scissor(uint32_t ulx, uint32_t uly, uint32_t lrx, uint32_
     rdp.scissor.width = width;
     rdp.scissor.height = height;
 
-    // Scissoring is done in software (homogeneous clip in gfx_sp_tri1) — the PVR userclip can't
+    // Scissoring is done in software (homogeneous clip in gfx_sp_tri1) - the PVR userclip can't
     // track per-pane rects. Keep the float rect and recompute the NDC bounds vs the viewport.
     scf_x = x;
     scf_y = y;
@@ -3406,7 +3405,7 @@ static void gfx_dp_set_fog_color(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
     sFogLut = (r | g | b) ? sFogLutColor : sFogLutDark;
     if ((!rendering_state.fog_col_change)) {
         rendering_state.fog_col_change = 1;
-        // PVR vertex-fog colour is ONE global per frame (first-wins, mirrors the GLdc guard).
+        // PVR vertex-fog colour is ONE global per frame (first wins).
         gfx_pvr_set_fog_color(rdp.fog_color.r, rdp.fog_color.g, rdp.fog_color.b, 255);
     }
 }
@@ -3481,7 +3480,7 @@ static void __attribute__((noinline)) gfx_draw_rectangle_impl(int32_t ulx, int32
     pvr_vertex_t* ul = &rsp.loaded_vertices_2D[0];
     pvr_vertex_t* ll = &rsp.loaded_vertices_2D[1];
     // PVR strip order (ul, ll, ur, lr): a 4-vert strip tessellates as (ul,ll,ur)+(ll,ur,lr),
-    // diagonal ll-ur — same split as the GLdc (0,1,3)+(1,2,3) path, with no extra verts.
+    // diagonal ll-ur.
     pvr_vertex_t* ur = &rsp.loaded_vertices_2D[2];
     pvr_vertex_t* lr = &rsp.loaded_vertices_2D[3];
 
@@ -3489,7 +3488,7 @@ static void __attribute__((noinline)) gfx_draw_rectangle_impl(int32_t ulx, int32
     // A 2D rect drawn BEFORE any 3D in a perspective frame is a BACKDROP (e.g. the starfield) ->
     // pin it to the far plane so the 3D scene resolves in front of it. Anything else is an overlay
     // at the running 2D paint-order depth. (PVR z is 1/w, larger == nearer.)
-    // Far-pin BACKDROP fills only — the untextured screen-clear fill + starfield (do_ext_fill==1) —
+    // Far-pin BACKDROP fills only - the untextured screen-clear fill + starfield (do_ext_fill==1) -
     // when drawn before any 3D in a perspective frame, so the 3D scene resolves in front of them.
     // Textured 2D (labels/HUD via texrect, do_ext_fill==0) is an OVERLAY: keep it at paint-order z
     // even when drawn pre-3D, so it isn't pinned to the far plane and depth-rejected into a black wedge.
@@ -3930,7 +3929,7 @@ static pvr_vertex_t __attribute__((aligned(32))) fill_fast_q[4];
 static struct { uint32_t src, stamp, argb, oargb; } fill_fast_cc[FILL_FAST_CC];
 // Colour (re)evaluation for the fill fast path, OUT OF LINE: the inlined evaluator made the fast
 // path 1.4KB of rarely-run code sitting inside the hot I-cache set. Runs only on palette/state change.
-// (GFX_HOT: trails the 3D core in the hot block with the other fill-rect functions — it aliased
+// (GFX_HOT: trails the 3D core in the hot block with the other fill-rect functions - it aliased
 // them from outside the block and ping-ponged per star.)
 static void __attribute__((noinline)) GFX_HOT fill_fast_recolor(uint32_t fc, unsigned slot) {
     struct RGBA shade = { rdp.fill_color.r, rdp.fill_color.g, rdp.fill_color.b, rdp.fill_color.a };

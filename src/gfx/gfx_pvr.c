@@ -12,13 +12,6 @@
 // vestigial inheritance from the 2020 ancestor — see memory project_sf64_raw_pvr_port).
 // The rapi vtable was stripped to single-tile (select_texture(id), shader_get_info returns
 // the used-texture flag, set_sampler_parameters(linear,cms,cmt)); this backend matches.
-//
-// STAGE 1 (current): full backend machinery + build-wired, so the PVR scene lifecycle runs
-// and the screen clears. The draw paths are present but the SHARED front-end still emits
-// object-space verts through GLdc-era code until the S2/S3 seams (screen-bake + combiner
-// eval + OP/PT/TR classify) land; only this backend changes here.
-
-// This is the sole renderer backend; the Makefile compiles it directly into every build.
 
 #include <PR/gbi.h>
 #include <stdlib.h>
@@ -39,8 +32,8 @@
 _Static_assert(sizeof(pvr_poly_hdr_t) == 32, "pvr_poly_hdr_t must be one 32-byte SQ slot");
 
 // ---------------------------------------------------------------------------
-// Shader bookkeeping — identical bookkeeping to the GLdc backend. The front-end
-// treats ShaderProgram opaquely (only via shader_get_info), so this layout is
+// Shader bookkeeping - The front-end treats ShaderProgram opaquely
+// (only via shader_get_info), so this layout is
 // private to the backend. The PVR poly config is derived per-draw from the CC
 // features + texenv (set by the front-end), not cached here.
 // ---------------------------------------------------------------------------
@@ -351,7 +344,7 @@ static inline uint32_t pvr_next_pot(uint32_t v) {
 }
 static inline int pvr_is_pot(uint32_t v) { return (v & (v - 1)) == 0; }
 
-// Pad-copy with clamp-to-edge (mirrors GLdc's resample_tex): real image at top-left,
+// Pad-copy with clamp-to-edge: real image at top-left,
 // pad columns/rows replicate the edge so bilinear at the border samples real texels.
 static void pvr_pad16(const uint16_t *in, int iw, int ih, uint16_t *out, int ow, int oh) {
     int y;
@@ -396,11 +389,6 @@ static pvr_init_params_t sPvrParams = {
 // ===========================================================================
 // GfxRenderingAPI implementation
 // ===========================================================================
-
-static uint8_t gfx_pvr_z_is_from_0_to_1(void) {
-    // Matches the GLdc backend's value. PVR uses 1/w depth regardless.
-    return 0;
-}
 
 static void gfx_pvr_unload_shader(UNUSED struct ShaderProgram *old_prg) {
     cur_shader = NULL;
@@ -467,9 +455,16 @@ static uint32_t gfx_pvr_new_texture(void) {
 }
 
 static void gfx_pvr_select_texture(uint32_t texture_id) {
+    // Dirty the poly header only when the binding actually CHANGES. The front-end's texture cache
+    // calls this on every lookup (~195/frame), overwhelmingly re-binding the already-bound texture;
+    // an unconditional dirty forced a header re-emit + PT/TR batch split per lookup. Re-uploads
+    // dirty for themselves in gfx_pvr_upload_texture, so a same-id rebind is header-neutral.
+    // (Companion to the set_sampler_parameters guard; mk64-dc has both, sf64 was missing this one.)
+    uint8_t changed = (sBoundTex != texture_id);
+    sCurBound = texture_id;   // upload target follows the most recent bind
     sBoundTex = texture_id;
-    sCurBound = texture_id;   // upload target follows the most recent bind (à la GLdc)
-    pvr_mark_dirty();
+    if (changed)
+        pvr_mark_dirty();
 }
 
 extern int gfx_pvr_next_twiddled;
@@ -571,16 +566,14 @@ static void gfx_pvr_set_sampler_parameters(uint8_t linear_filter, uint32_t cms, 
     }
 }
 
-// Free ALL cached texture VRAM. Mirrors GLdc's glDeleteTextures sweep in gfx_clear_all_textures
-// (called from nuke_everything at memory resets) — the point where the texture cache's VRAM
-// (including reuse bloat) is reclaimed.
+// Free ALL cached texture VRAM.
 //
 // CRITICAL: also RESET the id allocator. nuke_everything calls this and then reset_texcache()
 // (front-end cache wipe), after which the front-end re-requests a fresh id (new_texture ->
 // ++sTexCount) for every texture it re-encounters. If sTexCount is NOT reset here, it climbs
 // monotonically across resets; once cumulative unique textures exceed PVR_TEX_MAX, new_texture
 // clamps EVERY further id to slot 1023 and the whole scene draws with the last-uploaded texture
-// (the "same texture everywhere" wedge). GLdc never hit this — its id space isn't capped.
+// (the "same texture everywhere" wedge).
 void gfx_pvr_clear_all_textures(void) {
     for (uint32_t i = 0; i <= sTexCount && i < PVR_TEX_MAX; i++) {
         if (sTextures[i].addr) {
@@ -594,17 +587,14 @@ void gfx_pvr_clear_all_textures(void) {
     sCurBound = 0;
 }
 
-// PoT-padding UV correction (real/padded), consumed by the front-end's recip_tex_*
-// in place of GLdc's get_current_*_scale (PVR build routes to these).
+// PoT-padding UV correction (real/padded), consumed by the front-end's recip_tex_*.
 float gfx_pvr_get_u_scale(void) { return sTextures[sBoundTex].u_scale; }
 float gfx_pvr_get_v_scale(void) { return sTextures[sBoundTex].v_scale; }
 
-// SF64 framebuffer-capture-for-effects (blur overlay). Mirrors gfx_gldc.c's capture_framebuffer:
-// downsample the displayed 16-bit framebuffer (KOS vram_s, RGB565) by 4x into scaled2 (a 256x128
+// SF64 framebuffer-capture-for-effects (blur overlay).
+// Downsample the displayed 16-bit framebuffer (KOS vram_s, RGB565) by 4x into scaled2 (a 256x128
 // buffer, gfx_buf.c), which the front-end then uploads as the blur texture. Called from
-// fox_game.c. (HW NOTE: on the raw-PVR path vram_s points at VRAM base; whether the just-flipped
-// scene lands there at capture time vs GLdc's glKosSwapBuffers may need a timing/offset tweak —
-// audition on HW. Logic kept identical to GLdc for now.)
+// fox_game.c.
 extern uint16_t scaled2[256 * 128];
 void capture_framebuffer(void) {
 #if LOWRES
@@ -622,12 +612,11 @@ void capture_framebuffer(void) {
 #endif
 }
  
-// Full reset at scene/memory load (fox_load.c Load_SceneFiles). GLdc's nuke_everything cleared GL
-// textures + the front-end cache; the PVR equivalent frees all PVR texture VRAM (and resets the id
-// allocator) then wipes the front-end hashmap. Without it, scene loads leak VRAM and eventually
-// clamp every texture id -> "same texture everywhere".
+// Full reset at scene/memory load (fox_load.c Load_SceneFiles).
+// Frees all PVR texture VRAM (and resets the id allocator) then wipes the front-end hashmap.
+// Without it, scene loads leak VRAM and eventually clamp every texture id -> "same texture everywhere".
 extern void reset_texcache(void);
-extern void AicaSynth_ClearSampleCache(void);   // drop the prior scene's unreferenced ARAM samples
+extern void AicaSynth_ClearSampleCache(void);   // drop the prior scene's unreferenced sound ram samples
 void nuke_everything(void) {
     gfx_pvr_clear_all_textures();
     reset_texcache();
@@ -740,7 +729,6 @@ void pvr_submit_op(const pvr_vertex_t *tris, size_t n) {
 }
 
 // 2D quad depth counter owned by the front-end (gfx_draw_rectangle increments it).
-// GLdc's start_frame reset it each frame; the PVR backend must too, or it grows unbounded.
 extern float screen_2d_z;
 static void gfx_pvr_draw_triangles(float buf_vbo[], UNUSED size_t buf_vbo_len,
                                    size_t buf_vbo_num_tris) {
@@ -824,8 +812,6 @@ static void gfx_pvr_init(void) {
     // cleanly drops the transparent bit; ARGB4444 keeps alpha >= ~8.)
     *(volatile uint32_t *) 0xA05F811C = 0x80 + 0x40;
 
-    // SF64's GLdc backend clears the framebuffer to BLACK every frame (it draws its own skyboxes
-    // as geometry — there is no per-frame N64 clear_color global). Match that.
     pvr_set_bg_color(0.0f, 0.0f, 0.0f);
 
     // Headers are compiled lazily per depth/texture/list state at draw time.
@@ -948,7 +934,6 @@ static void gfx_pvr_finish_render(void) {
 }
 
 struct GfxRenderingAPI gfx_pvr_api = {
-    gfx_pvr_z_is_from_0_to_1,
     gfx_pvr_unload_shader,
     gfx_pvr_load_shader,
     gfx_pvr_create_and_load_new_shader,

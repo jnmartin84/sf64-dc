@@ -6,7 +6,7 @@
 //#include <stduint8_t.h>
 
 // Abstract blend factors: the front-end derives these from the N64 blender (other_mode_l) and the
-// raw-PVR backend maps them onto PVR blend modes. GLdc ignores them. (Used by the PVR backend.)
+// raw-PVR backend maps them onto PVR blend modes.
 enum gfx_blend_factor {
     GFX_BLENDF_ZERO = 0,
     GFX_BLENDF_ONE,
@@ -17,8 +17,7 @@ enum gfx_blend_factor {
 };
 
 // Abstract texture-environment mode, derived in the front-end from the N64 color combiner. Values
-// match the PVR pvr_txr_shading_mode order so the raw-PVR backend maps 1:1. GLdc no-ops set_tex_env
-// (it keys texenv off shader ids itself).
+// match the PVR pvr_txr_shading_mode order so the raw-PVR backend maps 1:1.
 enum gfx_tex_env {
     GFX_TEXENV_REPLACE = 0,        // px = tex
     GFX_TEXENV_MODULATE,           // rgb = col*tex, a = tex.a
@@ -29,7 +28,6 @@ enum gfx_tex_env {
 struct ShaderProgram;
 
 struct GfxRenderingAPI {
-    uint8_t (*z_is_from_0_to_1)(void);
     void (*unload_shader)(struct ShaderProgram *old_prg);
     void (*load_shader)(struct ShaderProgram *new_prg);
     struct ShaderProgram *(*create_and_load_new_shader)(uint32_t shader_id);
@@ -44,14 +42,13 @@ struct GfxRenderingAPI {
     void (*set_depth_mask)(uint8_t z_upd);
     void (*set_zmode_decal)(uint8_t zmode_decal);
     // Texel<->vertex-color combine (enum gfx_tex_env), derived from the N64 combiner. Raw-PVR folds
-    // it into the poly header; GLdc no-ops (it keys texenv off shader ids itself).
+    // it into the poly header.
     void (*set_tex_env)(uint32_t mode);
     void (*set_viewport)(int x, int y, int width, int height);
     void (*set_scissor)(int x, int y, int width, int height);
     void (*set_use_alpha)(uint8_t use_alpha);
     void (*draw_triangles)(float buf_vbo[], size_t buf_vbo_len, size_t buf_vbo_num_tris);
-    // 2D screen-space quad (4 verts). GLdc draws via its existing path; the raw-PVR backend submits a
-    // native 4-vertex strip. Dormant until the front-end's 2D path is routed here (later stage).
+    // 2D screen-space quad (4 verts).
     void (*draw_triangles_2d)(void *buf_vbo, size_t buf_vbo_len, size_t buf_vbo_num_tris);
     void (*init)(void);
     void (*on_resize)(void);
