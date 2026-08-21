@@ -623,7 +623,7 @@ $(FILES_ZIP): $(ELF) $(BIN)
 # loaded at runtime) + sample table from the soundfont banks (timestamp-gated;
 # only re-runs when the banks change). No decimation (oversize samples stream),
 # so stdlib-only -- a clean checkout builds with stock python3.
-AICA_TOOLS := $(wildcard tools/aica/*.py) tools/aica/audio_tables.json
+AICA_TOOLS := $(filter-out tools/aica/verify_ya2beam.py,$(wildcard tools/aica/*.py)) tools/aica/ya2beam.c tools/aica/audio_tables.json
 AICA_BANK  := baserom/audio_bank.$(VERSION).$(REV).bin
 AICA_TABLE := baserom/audio_table.$(VERSION).$(REV).bin
 

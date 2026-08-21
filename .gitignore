@@ -50,3 +50,4 @@ sf_data/
 *.iso
 *.zip
 sf64.elf
+tools/aica/_ya2beam.so

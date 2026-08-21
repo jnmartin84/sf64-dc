@@ -26,6 +26,7 @@ from sf64_audiobank_parse import parse_all
 from transcode import (transcode_sample, resample_to_fit, beam_encode_cached,
                        _HAVE_SCIPY, FORCE_PCM_KEYS, FMT_PCM16, FMT_PCM8, FMT_ADPCM)
 import vadpcm
+import ya2beam_c
 
 ALIGN = 32
 AICA_MAX = 65534
@@ -99,6 +100,10 @@ def main(audiobank, audiotable, tables_json, outdir, incdir, pool_path):
     # order; pool_offset assigned serially after, then re-sorted by key. Deterministic.
     items = [(s, bank_base[bank] + addr, _classify(s))
              for (bank, addr), s in samples.items()]
+    # Build the C encoder .so once here so forked workers inherit it (no per-worker
+    # compile race); prints a notice + falls back to pure-Python if no C compiler.
+    if not ya2beam_c.prebuild():
+        print("sf64_emit: C beam encoder unavailable; using pure-Python (slow)")
     with Pool(os.cpu_count()) as pool:
         descs = pool.map(_transcode_one, items)
 
