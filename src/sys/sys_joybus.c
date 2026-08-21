@@ -221,6 +221,7 @@ void Controller_Init(void) {
 u16 ucheld;
 extern char* fnpre;
 #include <string.h>
+#include <arch/arch.h>
 void Map_Main(void);
 
 void Controller_UpdateInput(void) {
@@ -239,14 +240,20 @@ void Controller_UpdateInput(void) {
         gControllerPlugged[i] = 1;
         sControllerStatus[i].status = 1;
         sNextController[i].errno = 0;
-
-        if (state->ltrig && state->rtrig) {
+        if ((state->buttons & CONT_START) && 
+        (state->buttons & CONT_A) &&
+        (state->buttons & CONT_B) &&
+        (state->buttons & CONT_X) &&
+        (state->buttons & CONT_Y)) {
+            exit(0);
+        }
+/*         if (state->ltrig && state->rtrig) {
             if (state->buttons & CONT_START) {
                 if (strcmp("/pc", fnpre) == 0) {
                     exit(0);
                 }
             }
-        }
+        } */
 
         const char stickH = state->joyx;
         const char stickV = 0xff - ((uint8_t) (state->joyy));
