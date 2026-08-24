@@ -39,7 +39,7 @@ f32 __vtx3_z;
 #define TRINORM_Y(A, B, C) ((B##_z - A##_z) * (C##_x - B##_x) - (B##_x - A##_x) * (C##_z - B##_z))
 #define TRINORM_Z(A, B, C) ((B##_x - A##_x) * (C##_y - B##_y) - (B##_y - A##_y) * (C##_x - B##_x))
 
-#include "sh4zam.h"
+#include <sh4zam/shz_sh4zam.h>
 
 // Calculate the normal vector of an ordered triangle, given as a Vec3f array
 void func_col1_80097730(Vec3f* norm, Vec3f* tri) {
@@ -308,19 +308,19 @@ void func_col1_80098860(PlaneF* plane, Vec3f* point, Vec3f* normal) {
 // was s32
 #define distfunctype f32
 distfunctype func_col1_800988B4(Vec3f* vec, PlaneF* plane) {
-    f32 recY = shz_fast_invf(plane->normal.y);
+    f32 recY = shz_invf(plane->normal.y);
     return (distfunctype)(shz_dot6f(-plane->normal.x, -plane->normal.z, 1.0f, vec->x, vec->z, -plane->dist) * recY);
 }
 
 // z dist to closest point on plane
 distfunctype func_col1_800988F8(Vec3f* vec, PlaneF* plane) {
-    f32 recZ = shz_fast_invf(plane->normal.z);
+    f32 recZ = shz_invf(plane->normal.z);
     return (distfunctype)(shz_dot6f(-plane->normal.x, -plane->normal.y, 1.0f, vec->x, vec->y, -plane->dist) * recZ);
 }
 
 // x dist to closest point on plane
 distfunctype func_col1_8009893C(Vec3f* vec, PlaneF* plane) {
-    f32 recX = shz_fast_invf(plane->normal.x);
+    f32 recX = shz_invf(plane->normal.x);
     return (distfunctype)(shz_dot6f(-plane->normal.z, -plane->normal.y, 1.0f, vec->z, vec->y, -plane->dist) * recX);
 }
 
@@ -556,10 +556,10 @@ s32 func_80099254(Vec3f* objPos, Vec3f* colliderPos, Vec3f* objVel, CollisionHea
 
                 // check if the angle between the normal and velocity is > 90. That is, the object was moving toward the
                 // front of the polygon
-                f32 recipThing = shz_fast_invf((VEC3F_MAG(&polyPlane.normal) * speed));
+                f32 recipThing = shz_invf((VEC3F_MAG(&polyPlane.normal) * speed));
                 if (shz_acosf(tempf * recipThing) > DEG_TO_RAD(90.0f)) {
                     // Calculate the time since the plane was crossed. Reusing the temp is required to match
-                    f32 reciptemp = shz_fast_invf(tempf);
+                    f32 reciptemp = shz_invf(tempf);
                     tempf = (DOT_XYZ(&polyPlane.normal, &objRel) + polyPlane.dist) * reciptemp;
 
                     // find the point where the object crossed the plane of the polygon
@@ -573,15 +573,15 @@ s32 func_80099254(Vec3f* objPos, Vec3f* colliderPos, Vec3f* objVel, CollisionHea
                         hitPosOut->y = colliderPos->y + hitPosRel.y;
                         hitPosOut->z = colliderPos->z + hitPosRel.z;
                         if (polyPlane.normal.x != 0.0) {
-                            f32 recipN = shz_fast_invf(polyPlane.normal.x);
+                            f32 recipN = shz_invf(polyPlane.normal.x);
                             polyPlane.normal.x = -polyPlane.dist * recipN;
                         }
                         if (polyPlane.normal.y != 0.0f) {
-                            f32 recipN = shz_fast_invf(polyPlane.normal.y);
+                            f32 recipN = shz_invf(polyPlane.normal.y);
                             polyPlane.normal.y = -polyPlane.dist * recipN;
                         }
                         if (polyPlane.normal.z != 0.0f) {
-                            f32 recipN = shz_fast_invf(polyPlane.normal.z);
+                            f32 recipN = shz_invf(polyPlane.normal.z);
                             polyPlane.normal.z = -polyPlane.dist * recipN;
                         }
                         hitAnglesOut[0] = Math_Atan2F_XY(polyPlane.normal.y, polyPlane.normal.z);

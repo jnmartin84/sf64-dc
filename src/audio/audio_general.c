@@ -563,10 +563,10 @@ f32 Audio_UpdateDopplerShift(f32* srcPos, f32* srcVel, f32 soundSpeed, f32* curD
     xPosNext = xPos + xVel;
     zPosNext = zPos + zVel;
     xzDistNext = shz_sqrtf_fsrra(SQ(xPosNext) + SQ(zPosNext));
-    //recipspeed = shz_fast_invf(soundSpeed);
+    //recipspeed = shz_invf(soundSpeed);
     relativeSpeed = shz_divf((xzDist - xzDistNext), soundSpeed);
-    //recipspeed = shz_fast_invf(1.0f - relativeSpeed);
-    targetDopplerShift = shz_fast_invf(1.0f - relativeSpeed);// 1.0f / (1.0f - relativeSpeed);
+    //recipspeed = shz_invf(1.0f - relativeSpeed);
+    targetDopplerShift = shz_invf(1.0f - relativeSpeed);// 1.0f / (1.0f - relativeSpeed);
 
     step = targetDopplerShift - *curDopplerShift;
     newShift = *curDopplerShift;
@@ -914,7 +914,7 @@ void Audio_ProcessSeqCmd(u32 seqCmd) {
             if (duration == 0) {
                 duration++;
             }
-            f32 recip_duration = shz_fast_invf((f32) duration);
+            f32 recip_duration = shz_invf((f32) duration);
             sActiveSequences[seqPlayId].mainVolume.target = val * recip127; // / 127.0f;
             if (sActiveSequences[seqPlayId].mainVolume.mod != sActiveSequences[seqPlayId].mainVolume.target) {
                 sActiveSequences[seqPlayId].mainVolume.step =
@@ -930,7 +930,7 @@ void Audio_ProcessSeqCmd(u32 seqCmd) {
             if (duration == 0) {
                 duration++;
             }
-            f32 recip_duration = shz_fast_invf((f32) duration);
+            f32 recip_duration = shz_invf((f32) duration);
             for (i = 0; i < SEQ_NUM_CHANNELS; i++) {
                 sActiveSequences[seqPlayId].channelMod[i].freq.target = val * 0.001f; // / 1000.0f;
                 sActiveSequences[seqPlayId].channelMod[i].freq.step =
@@ -949,7 +949,7 @@ void Audio_ProcessSeqCmd(u32 seqCmd) {
             if (duration == 0) {
                 duration++;
             }
-            f32 recip_duration = shz_fast_invf((f32) duration);
+            f32 recip_duration = shz_invf((f32) duration);
 
             sActiveSequences[seqPlayId].channelMod[channel].volume.target = val * recip127; // / 127.0f;
             if (sActiveSequences[seqPlayId].channelMod[channel].volume.value !=
@@ -1200,7 +1200,7 @@ void Audio_UpdateActiveSequences(void) {
                 }
                 sActiveSequences[seqPlayId].tempo.target = tempoTarget;
                 sActiveSequences[seqPlayId].tempo.value = (s32) gSeqPlayers[seqPlayId].tempo * recip48; // / 48;
-                f32 recip_tempoTimer = shz_fast_invf(tempoTimer);
+                f32 recip_tempoTimer = shz_invf(tempoTimer);
                 sActiveSequences[seqPlayId].tempo.step =
                     (sActiveSequences[seqPlayId].tempo.value - sActiveSequences[seqPlayId].tempo.target) *
                     recip_tempoTimer; // / tempoTimer;
@@ -1608,7 +1608,7 @@ void Audio_ChooseActiveSfx(u8 bankId) {
                 }
             }
             if (SFX_RANGE(entry->sfxId) != 0) {
-                f32 recipSFX_RANGE = shz_fast_invf(SQ((s32) SFX_RANGE(entry->sfxId)));
+                f32 recipSFX_RANGE = shz_invf(SQ((s32) SFX_RANGE(entry->sfxId)));
                 maxRangeSq = SQ(33000.0f) * recipSFX_RANGE; //  / SQ((s32) SFX_RANGE(entry->sfxId));
             } else {
                 maxRangeSq = SQ(100000.0f);
@@ -1886,7 +1886,7 @@ void Audio_SetSfxVolumeMod(u8 bankId, u8 target, u16 timer) {
 
     scale->target = target * recip127; // / 127.0f;
     scale->timer = timer;
-    f32 recipTimer = shz_fast_invf((f32) timer);
+    f32 recipTimer = shz_invf((f32) timer);
     scale->step = (scale->value - scale->target) * recipTimer; //  / timer;
 }
 
@@ -2099,7 +2099,7 @@ void Audio_UpdateArwingNoise(u8 playerId) {
         sPlayerNoise[playerId].freqMod[4].target =
             (((f32) (gAudioRandom & 65535) * 0.00003052f /* / 32768.0 */) * 0.15f) + 1.0f - 0.15f;
         sPlayerNoise[playerId].freqMod[4].timer = 16 + (gAudioRandom >> 27);
-        // f32 recipTimer = shz_fast_invf((f32)sPlayerNoise[playerId].freqMod[4].timer);
+        // f32 recipTimer = shz_invf((f32)sPlayerNoise[playerId].freqMod[4].timer);
         sPlayerNoise[playerId].freqMod[4].step =
             (sPlayerNoise[playerId].freqMod[4].target - sPlayerNoise[playerId].freqMod[3].value) /
             sPlayerNoise[playerId].freqMod[4].timer;
@@ -2111,7 +2111,7 @@ void Audio_UpdateArwingNoise(u8 playerId) {
             if ((sPlayerNoise[playerId].freqMod[i].timer == 0) && (sPlayerNoise[playerId].freqMod[i].target != 1.0f)) {
                 sPlayerNoise[playerId].freqMod[i].target = 1.0f;
                 sPlayerNoise[playerId].freqMod[i].timer = sPlayerNoiseTimes[i];
-                f32 recip_times = shz_fast_invf((f32) sPlayerNoiseTimes[i]);
+                f32 recip_times = shz_invf((f32) sPlayerNoiseTimes[i]);
                 sPlayerNoise[playerId].freqMod[i].step =
                     (1.0f - sPlayerNoise[playerId].freqMod[i].value) * recip_times; //  / sPlayerNoiseTimes[i];
             }
@@ -2157,7 +2157,7 @@ void Audio_UpdateLandmasterNoise(u8 playerId) {
             if ((sPlayerNoise[playerId].freqMod[i].timer == 0) && (sPlayerNoise[playerId].freqMod[i].target != 1.0f)) {
                 sPlayerNoise[playerId].freqMod[i].target = 1.0f;
                 sPlayerNoise[playerId].freqMod[i].timer = sPlayerNoiseTimes[i];
-                f32 recip_times = shz_fast_invf((f32) sPlayerNoiseTimes[i]);
+                f32 recip_times = shz_invf((f32) sPlayerNoiseTimes[i]);
                 sPlayerNoise[playerId].freqMod[i].step =
                     (1.0f - sPlayerNoise[playerId].freqMod[i].value) * recip_times; // / sPlayerNoiseTimes[i];
             }
@@ -2217,7 +2217,7 @@ void Audio_UpdateBlueMarineNoise(u8 playerId) {
             if ((sPlayerNoise[playerId].freqMod[i].timer == 0) && (sPlayerNoise[playerId].freqMod[i].target != 1.0f)) {
                 sPlayerNoise[playerId].freqMod[i].target = 1.0f;
                 sPlayerNoise[playerId].freqMod[i].timer = sPlayerNoiseTimes[i];
-                f32 recip_times = shz_fast_invf((f32) sPlayerNoiseTimes[i]);
+                f32 recip_times = shz_invf((f32) sPlayerNoiseTimes[i]);
                 sPlayerNoise[playerId].freqMod[i].step =
                     (1.0f - sPlayerNoise[playerId].freqMod[i].value) * recip_times; // / sPlayerNoiseTimes[i];
             }

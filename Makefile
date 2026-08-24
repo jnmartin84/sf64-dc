@@ -28,7 +28,7 @@ SDCARD_SUPPORT ?= 0
 
 ### Enable testing mode
 # Turns on no damage, extra everything, and level select
-TESTING_MODE ?= 0
+TESTING_MODE ?= 1
 
 ### Take no damage
 I_DONT_WANT_TO_DIE ?= 0
@@ -132,9 +132,7 @@ ifeq ($(SDCARD_SUPPORT),1)
   CFLAGS += -DSDCARD_SUPPORT
 endif
 
-ifeq ($(TESTING_MODE),1)
   CFLAGS += -DTESTING_MODE
-endif
 
 ifneq (,$(filter 1,$(TESTING_MODE) $(I_DONT_WANT_TO_DIE)))
   CFLAGS += -DI_DONT_WANT_TO_DIE
@@ -572,7 +570,7 @@ ASSET_ELFS := ast_common ast_bg_space ast_bg_planet ast_arwing ast_landmaster \
 ASSET_SYMBOLS := $(foreach elf,$(ASSET_ELFS),-Wl,--just-symbols=build/src/assets/$(elf)/$(elf).elf)
 
 # Libraries
-LIBS := -lc -lm -lkallisti -lGL
+LIBS := -lc -lm -lkallisti -lGL -lsh4zam
 
 # We need libkosfat for IDE/SD card support
 ifneq (,$(filter 1,$(IDE_SUPPORT) $(SDCARD_SUPPORT)))

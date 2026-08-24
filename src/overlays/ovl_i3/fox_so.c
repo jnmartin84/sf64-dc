@@ -8,7 +8,7 @@
 #include "assets/ast_bg_planet.h"
 #include "assets/ast_solar.h"
 
-#include "sh4zam.h"
+#include <sh4zam/shz_sh4zam.h>
 
 typedef void (*SoVulkainfunc)(SoVulkain*);
 

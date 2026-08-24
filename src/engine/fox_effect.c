@@ -587,7 +587,7 @@ void Effect_Sparkle_Draw(EffectSparkle* this) {
     gSPDisplayList(gMasterDisp++, aStarDL);
     RCP_SetupDL(&gMasterDisp, SETUPDL_64);
 }
-#include "sh4zam.h"
+#include <sh4zam/shz_sh4zam.h>
 void Effect_Effect357_Setup(Effect357* this, f32 xPos, f32 yPos, f32 zPos, f32 scale2, u8 arg5) {
     Vec3f sp54;
     Vec3f sp48;

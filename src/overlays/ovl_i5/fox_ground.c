@@ -174,8 +174,8 @@ void Ground_801B4AA8(s32* arg0, s32* arg1) {
 
                 case 1:
                     {
-                        f32 recip_unk_18 = shz_fast_invf(unk_18);
-                        f32 recip_unk_10 = shz_fast_invf(unk_10);
+                        f32 recip_unk_18 = shz_invf(unk_18);
+                        f32 recip_unk_10 = shz_invf(unk_10);
                         for (j = 0; j < 16; j++, var_s1++) {
                             temp_fs0 = (j * 220.0f * D_i5_801BE740) - 1760.0f - unk_08;
 
@@ -219,8 +219,8 @@ void Ground_801B4AA8(s32* arg0, s32* arg1) {
 
                 case 3:
                     {
-                        f32 recip_unk_18 = shz_fast_invf(var_s2->unk_18);
-                        f32 recip_unk_10 = shz_fast_invf(var_s2->unk_10);
+                        f32 recip_unk_18 = shz_invf(var_s2->unk_18);
+                        f32 recip_unk_10 = shz_invf(var_s2->unk_10);
 
                         for (j = 0; j < 16; j++, var_s1++) {
                             temp_fs0 =

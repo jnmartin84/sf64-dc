@@ -58,17 +58,17 @@ bool func_col2_800A36FC(Vec3f* objPos, Vec3f* colliderPos, CollisionHeader2* col
         hitDataOut->y = func_col1_800988B4(&objRelPos, &triPlane);
 
         if (triPlane.normal.x != 0.0f) {
-            norm.x = -triPlane.dist * shz_fast_invf(triPlane.normal.x);
+            norm.x = -triPlane.dist * shz_invf(triPlane.normal.x);
         } else {
             norm.x = 0.0f;
         }
         if (triPlane.normal.y != 0.0f) {
-            norm.y = -triPlane.dist * shz_fast_invf( triPlane.normal.y);
+            norm.y = -triPlane.dist * shz_invf( triPlane.normal.y);
         } else {
             norm.y = 0.0f;
         }
         if (triPlane.normal.z != 0.0f) {
-            norm.z = -triPlane.dist * shz_fast_invf(triPlane.normal.z);
+            norm.z = -triPlane.dist * shz_invf(triPlane.normal.z);
         } else {
             norm.z = 0.0f;
         }

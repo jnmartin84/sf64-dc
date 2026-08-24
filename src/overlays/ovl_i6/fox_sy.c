@@ -6,7 +6,7 @@
 
 #include "global.h"
 #include "assets/ast_sector_y.h"
-#include "sh4zam.h"
+#include <sh4zam/shz_sh4zam.h>
 #define SHOGUN_SHIP (0)
 
 typedef void (*BossFuncs)(SyShogun*);

@@ -10,10 +10,10 @@ f32 Math_FAtanF(f32 x) {
 
     if (x > 1.0f) {
         sector = 1;
-        x = shz_fast_invf(x);
+        x = shz_invf(x);
     } else if (x < -1.0f) {
         sector = -1;
-        x = shz_fast_invf(x);
+        x = shz_invf(x);
     } else {
         sector = 0;
     }
@@ -21,12 +21,12 @@ f32 Math_FAtanF(f32 x) {
     sq = SQ(x);
 
     for (z = i = 24; i != 0; i--) {
-        float recipdenom = shz_fast_invf(2.0f * z + 1.0f + conv);
+        float recipdenom = shz_invf(2.0f * z + 1.0f + conv);
         conv = SQ(z) * sq * recipdenom;
         z -= 1.0f;
     }
 
-    float recip1pconv = shz_fast_invf(1.0f + conv);
+    float recip1pconv = shz_invf(1.0f + conv);
 
     if (sector > 0) {
         return F_PI_2 - (x * recip1pconv);

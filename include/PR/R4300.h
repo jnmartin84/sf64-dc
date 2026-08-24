@@ -206,27 +206,27 @@
 
 /* Cause register exception codes */
 
-#define	EXC_CODE(x)	((x)<<2)
+#define	EXC_CODE2(x)	((x)<<2)
 
 /* Hardware exception codes */
-#define	EXC_INT		EXC_CODE(0)	/* interrupt */
-#define	EXC_MOD		EXC_CODE(1)	/* TLB mod */
-#define	EXC_RMISS	EXC_CODE(2)	/* Read TLB Miss */
-#define	EXC_WMISS	EXC_CODE(3)	/* Write TLB Miss */
-#define	EXC_RADE	EXC_CODE(4)	/* Read Address Error */
-#define	EXC_WADE	EXC_CODE(5)	/* Write Address Error */
-#define	EXC_IBE		EXC_CODE(6)	/* Instruction Bus Error */
-#define	EXC_DBE		EXC_CODE(7)	/* Data Bus Error */
-#define	EXC_SYSCALL	EXC_CODE(8)	/* SYSCALL */
-#define	EXC_BREAK	EXC_CODE(9)	/* BREAKpoint */
-#define	EXC_II		EXC_CODE(10)	/* Illegal Instruction */
-#define	EXC_CPU		EXC_CODE(11)	/* CoProcessor Unusable */
-#define	EXC_OV		EXC_CODE(12)	/* OVerflow */
-#define	EXC_TRAP	EXC_CODE(13)	/* Trap exception */
-#define	EXC_VCEI	EXC_CODE(14)	/* Virt. Coherency on Inst. fetch */
-#define	EXC_FPE		EXC_CODE(15)	/* Floating Point Exception */
-#define	EXC_WATCH	EXC_CODE(23)	/* Watchpoint reference */
-#define	EXC_VCED	EXC_CODE(31)	/* Virt. Coherency on data read */
+#define	EXC_INT		EXC_CODE2(0)	/* interrupt */
+#define	EXC_MOD		EXC_CODE2(1)	/* TLB mod */
+#define	EXC_RMISS	EXC_CODE2(2)	/* Read TLB Miss */
+#define	EXC_WMISS	EXC_CODE2(3)	/* Write TLB Miss */
+#define	EXC_RADE	EXC_CODE2(4)	/* Read Address Error */
+#define	EXC_WADE	EXC_CODE2(5)	/* Write Address Error */
+#define	EXC_IBE		EXC_CODE2(6)	/* Instruction Bus Error */
+#define	EXC_DBE		EXC_CODE2(7)	/* Data Bus Error */
+#define	EXC_SYSCALL	EXC_CODE2(8)	/* SYSCALL */
+#define	EXC_BREAK	EXC_CODE2(9)	/* BREAKpoint */
+#define	EXC_II		EXC_CODE2(10)	/* Illegal Instruction */
+#define	EXC_CPU		EXC_CODE2(11)	/* CoProcessor Unusable */
+#define	EXC_OV		EXC_CODE2(12)	/* OVerflow */
+#define	EXC_TRAP2	EXC_CODE2(13)	/* Trap exception */
+#define	EXC_VCEI	EXC_CODE2(14)	/* Virt. Coherency on Inst. fetch */
+#define	EXC_FPE		EXC_CODE2(15)	/* Floating Point Exception */
+#define	EXC_WATCH	EXC_CODE2(23)	/* Watchpoint reference */
+#define	EXC_VCED	EXC_CODE2(31)	/* Virt. Coherency on data read */
 
 /* C0_PRID Defines */
 #define	C0_IMPMASK	0xff00

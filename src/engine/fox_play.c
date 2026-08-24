@@ -1128,7 +1128,7 @@ bool Play_CheckDynaFloorCollision(f32* floorHeight, s32* triangleIndex, f32 xPos
     crossProductZ = (deltaX10 * deltaY21) - (deltaY10 * deltaX21);
 
     tempVar = -crossProductX * x0 - crossProductY * y0 - crossProductZ * z0;
-    heightVal = (-tempVar - crossProductX * xPos - crossProductZ * (zPos + gPathProgress + 1500.0f)) * shz_fast_invf(crossProductY);
+    heightVal = (-tempVar - crossProductX * xPos - crossProductZ * (zPos + gPathProgress + 1500.0f)) * shz_invf(crossProductY);
     // / crossProductY;
 
     if (yPos < heightVal) {
@@ -1667,7 +1667,7 @@ void Player_UpdateHitbox(Player* player) {
         Matrix_MultVec3f_NoLoad(/* gCalcMatrix, */ &sp3C, &player->hit4);
     }
 }
-#include "sh4zam.h"
+#include <sh4zam/shz_sh4zam.h>
 void Player_CollisionCheck(Player* player) {
     s32 i;
     s32 j;

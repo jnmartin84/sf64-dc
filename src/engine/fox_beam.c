@@ -427,7 +427,7 @@ s32 PlayerShot_CheckEventHitbox(PlayerShot* shot, Actor* actor) {
     }
     return 0;
 }
-#include "sh4zam.h"
+#include <sh4zam/shz_sh4zam.h>
 s32 PlayerShot_CheckActorHitbox(PlayerShot* shot, Actor* actor) {
     Object* shotx = &shot->obj;
     f32 xPos = actor->obj.pos.x - shotx->pos.x;

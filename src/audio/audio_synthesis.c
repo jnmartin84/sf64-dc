@@ -560,7 +560,7 @@ Acmd* AudioSynth_ProcessEnvelope(Acmd* aList, NoteSubEu* noteSub, NoteSynthesisS
     panVolLeft <<= 4;
     panVolRight <<= 4;
 
-    f32 recipAiBufLenShr3 = shz_fast_invf((f32)((aiBufLen >> 3)));
+    f32 recipAiBufLenShr3 = shz_invf((f32)((aiBufLen >> 3)));
 
     if (panVolLeft != curVolLeft) {
         rampLeft = (s16)((f32)(panVolLeft - curVolLeft) * recipAiBufLenShr3);

@@ -642,14 +642,14 @@ void AudioSeq_SeqLayerProcessScript(SequenceLayer* layer) {
                                 var_v0_2 = temp_fv1;
                                 break;
                         }
-                        f32 recipFreqMod = shz_fast_invf(freqMod);
+                        f32 recipFreqMod = shz_invf(freqMod);
                         portamento->extent = (var_v0_2 * recipFreqMod) - 1.0f;
                         if (layer->portamento.mode & 0x80) {
-                            f32 recip = shz_fast_invf((f32) layer->delay * gMaxTempo * (s32) layer->portamentoTime);
+                            f32 recip = shz_invf((f32) layer->delay * gMaxTempo * (s32) layer->portamentoTime);
                             portamento->speed = ((s32) seqPlayer->tempo * 32512.0f) * recip; // /
 //                                                ((f32) layer->delay * gMaxTempo * (s32) layer->portamentoTime);
                         } else {
-                            f32 recip = shz_fast_invf((f32)(s32)layer->portamentoTime);
+                            f32 recip = shz_invf((f32)(s32)layer->portamentoTime);
                             portamento->speed = 127.0f * recip;// / (s32) layer->portamentoTime;
                         }
                         portamento->cur = 0.0f;
@@ -1362,7 +1362,7 @@ void AudioSeq_SequencePlayerProcessSequence(SequencePlayer* seqPlayer) {
                             case 2: {
                                 seqPlayer->fadeTimer = temp_v0_7;
                                 seqPlayer->state = temp_s2;
-                                f32 recipft = shz_fast_invf((f32)(s32)seqPlayer->fadeTimer);
+                                f32 recipft = shz_invf((f32)(s32)seqPlayer->fadeTimer);
                                 seqPlayer->fadeVelocity = (0.0f - seqPlayer->fadeVolume)*recipft; //  / (s32) seqPlayer->fadeTimer;
                                 }
                                 break;
@@ -1382,7 +1382,7 @@ void AudioSeq_SequencePlayerProcessSequence(SequencePlayer* seqPlayer) {
                             case 0:
                                 seqPlayer->fadeTimer = seqPlayer->fadeTimerUnkEu;
                                 if (seqPlayer->fadeTimerUnkEu != 0) {
-                                                                    f32 recipft = shz_fast_invf((f32)(s32)seqPlayer->fadeTimer);
+                                                                    f32 recipft = shz_invf((f32)(s32)seqPlayer->fadeTimer);
 
                                     seqPlayer->fadeVelocity = (((s32) temp_v0_8 * 0.00787402f/* / 127.0f */) - seqPlayer->fadeVolume)*recipft;
                                     // /

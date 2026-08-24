@@ -471,7 +471,7 @@ typedef enum {
 s32 __attribute__((aligned(32))) sZoLimbTimers[ZO_LIMB_MAX];
 s32 __attribute__((aligned(32))) sZoSwork[ZO_BSS_MAX];
 f32 __attribute__((aligned(32))) sZoFwork[ZO_BSF_MAX];
-#include "sh4zam.h"
+#include <sh4zam/shz_sh4zam.h>
 void Zoness_8018FF50(ZoEnergyBall* this) {
     f32 x;
 
@@ -4008,7 +4008,7 @@ void Zoness_ZoSpikeBall_Draw(ZoSpikeBall* this) {
         if (var_s4 < 0) {
             var_s4 = 0;
         }
-        f32 recip_var_s4 = shz_fast_invf(var_s4);
+        f32 recip_var_s4 = shz_invf(var_s4);
         Matrix_Translate(gGfxMatrix, this->obj.pos.x, this->obj.pos.y, this->obj.pos.z + gPathProgress, MTXF_APPLY);
         Matrix_RotateY(gGfxMatrix, temp_fs4, MTXF_APPLY);
         Matrix_RotateX(gGfxMatrix, temp_fs0_2, MTXF_APPLY);

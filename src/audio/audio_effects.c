@@ -107,7 +107,7 @@ f32 Audio_GetVibratoFreqScale(VibratoState* vibrato) {
         if (vibrato->depthChangeTimer == 1) {
             vibrato->depth = (s32) vibrato->channel->vibratoDepthTarget;
         } else {
-            f32 recipchangetimer = shz_fast_invf((f32)(s32) vibrato->depthChangeTimer);
+            f32 recipchangetimer = shz_invf((f32)(s32) vibrato->depthChangeTimer);
             vibrato->depth +=
                 ((s32) vibrato->channel->vibratoDepthTarget - vibrato->depth) * recipchangetimer; // / (s32) vibrato->depthChangeTimer;
         }
@@ -121,7 +121,7 @@ f32 Audio_GetVibratoFreqScale(VibratoState* vibrato) {
         if (vibrato->rateChangeTimer == 1) {
             vibrato->rate = (s32) vibrato->channel->vibratoRateTarget;
         } else {
-                        f32 recipchangetimer = shz_fast_invf((f32)(s32) vibrato->rateChangeTimer);
+                        f32 recipchangetimer = shz_invf((f32)(s32) vibrato->rateChangeTimer);
 
             vibrato->rate +=
                 ((s32) vibrato->channel->vibratoRateTarget - vibrato->rate) * recipchangetimer; // / (s32) vibrato->rateChangeTimer;
@@ -230,7 +230,7 @@ f32 Audio_AdsrUpdate(AdsrState* adsr) {
                     adsr->target = (s16)__builtin_bswap16(adsr->envelope[adsr->envIndex].arg) * 0.00003052f; // / 32767.0f;
                     adsr->target = SQ(adsr->target);
                 {
-                    f32 recipdelay = shz_fast_invf((f32)adsr->delay);
+                    f32 recipdelay = shz_invf((f32)adsr->delay);
                     adsr->velocity = (adsr->target - adsr->current) * recipdelay; // / adsr->delay;
                                   }
                                                     adsr->state = ADSR_STATE_FADE;

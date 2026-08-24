@@ -413,7 +413,7 @@ void Math_SmoothStepToVec3fArray(Vec3f* src, Vec3f* dst, s32 mode, s32 count, f3
             break;
     }
 }
-#include "sh4zam.h"
+#include <sh4zam/shz_sh4zam.h>
 
 s32 Math_PursueVec3f(Vec3f* pos, Vec3f* target, Vec3f* rot, f32 stepSize, f32 scaleTurn, f32 maxTurn, f32 dist) {
     Vec3f diff;

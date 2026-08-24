@@ -2741,7 +2741,7 @@ void ActorCutscene_SyShip_Setup(ActorCutscene* this, s32 idx) {
     }
 }
 
-#include "sh4zam.h"
+#include <sh4zam/shz_sh4zam.h>
 
 void ActorCutscene_Draw(ActorCutscene* this) {
     static f32 D_800CA210 = 0.0f;

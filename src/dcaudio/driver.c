@@ -19,6 +19,8 @@
 #include "audio_dc.h"
 #include "macros.h"
 
+#include <sh4zam/shz_sh4zam.h>
+
 // --- Configuration ---
 // Stereo
 #define DC_AUDIO_CHANNELS (2) 
@@ -153,7 +155,7 @@ static void cb_write_data(int N, const void *src, size_t n) {
         return;
     uint32_t idx = head & (r[N]->cap - 1);
     r[N]->head = head + n;
-    n64_memcpy(r[N]->buf + idx, src, n);
+    shz_memcpy(r[N]->buf + idx, src, n);
 }
 
 static void cb_read_data(int N, void *dst, size_t n) {
@@ -165,7 +167,7 @@ static void cb_read_data(int N, void *dst, size_t n) {
     if (n > avail)
         return;
     r[N]->tail = tail + n;
-    n64_memcpy(dst, r[N]->buf + idx, n);
+    shz_memcpy(dst, r[N]->buf + idx, n);
 }
 
 #endif

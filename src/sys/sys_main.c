@@ -475,7 +475,7 @@ void* AudioThread(UNUSED void* arg) {
 
     while (1) {
         while (vblticker <= last_vbltick)
-            genwait_wait((void*) &vblticker, NULL, 5, NULL);
+            genwait_wait((void*) &vblticker, NULL, 5);
 
         last_vbltick = vblticker;
 
